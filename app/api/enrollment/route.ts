@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   enrollmentService,
   EnrollmentConflictError,
   EnrollmentValidationError,
 } from '@/backend/services/enrollment';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeEnrollment = (enrollment: Awaited<ReturnType<typeof enrollmentService.getById>>) => ({
   id: enrollment.id,
@@ -30,7 +31,8 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
-export async function GET(request: NextRequest) {
+// GET - RLS filtra automaticamente (alunos veem apenas suas próprias matrículas)
+async function getHandler(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
@@ -51,7 +53,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST - Criar matrícula (professor ou API Key)
+async function postHandler(request: AuthenticatedRequest) {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const enrollment = await enrollmentService.create({
@@ -66,4 +73,7 @@ export async function POST(request: NextRequest) {
     return handleError(error);
   }
 }
+
+export const GET = requireAuth(getHandler);
+export const POST = requireAuth(postHandler);
 

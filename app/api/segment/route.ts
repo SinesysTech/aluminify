@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   segmentService,
   SegmentConflictError,
   SegmentValidationError,
 } from '@/backend/services/segment';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeSegment = (segment: Awaited<ReturnType<typeof segmentService.getById>>) => ({
   id: segment.id,
@@ -26,6 +27,7 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
+// GET é público (catálogo)
 export async function GET() {
   try {
     const segments = await segmentService.list();
@@ -35,7 +37,12 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST requer autenticação de professor (JWT ou API Key)
+async function postHandler(request: AuthenticatedRequest) {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const segment = await segmentService.create({ name: body?.name, slug: body?.slug });
@@ -44,4 +51,6 @@ export async function POST(request: NextRequest) {
     return handleError(error);
   }
 }
+
+export const POST = requireAuth(postHandler);
 

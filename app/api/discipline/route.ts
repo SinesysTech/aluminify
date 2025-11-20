@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   disciplineService,
   DisciplineConflictError,
   DisciplineValidationError,
 } from '@/backend/services/discipline';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeDiscipline = (discipline: Awaited<ReturnType<typeof disciplineService.getById>>) => ({
   id: discipline.id,
@@ -25,6 +26,7 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
+// GET é público (catálogo)
 export async function GET() {
   try {
     const disciplines = await disciplineService.list();
@@ -34,7 +36,14 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST requer autenticação de professor (JWT ou API Key)
+async function postHandler(request: AuthenticatedRequest) {
+  // API Keys têm acesso total (request.apiKey existe)
+  // Se for JWT, verificar se é professor ou superadmin
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const discipline = await disciplineService.create({ name: body?.name });
@@ -43,5 +52,7 @@ export async function POST(request: NextRequest) {
     return handleError(error);
   }
 }
+
+export const POST = requireAuth(postHandler);
 
 

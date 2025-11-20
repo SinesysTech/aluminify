@@ -7,6 +7,7 @@ import { teacherPaths, teacherSchemas } from './teacher.spec';
 import { authPaths, authSchemas } from './auth.spec';
 import { enrollmentPaths, enrollmentSchemas } from './enrollment.spec';
 import { courseMaterialPaths, courseMaterialSchemas } from './course-material.spec';
+import { apiKeyPaths, apiKeySchemas } from './api-key.spec';
 
 const baseDefinition: OAS3Definition = {
   openapi: '3.0.3',
@@ -27,6 +28,13 @@ const baseDefinition: OAS3Definition = {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
+        description: 'JWT token from authentication',
+      },
+      apiKeyAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'X-API-Key',
+        description: 'API Key for direct API access (alternative to JWT)',
       },
     },
   },
@@ -49,6 +57,7 @@ export function getOpenApiSpec() {
     ...authPaths,
     ...enrollmentPaths,
     ...courseMaterialPaths,
+    ...apiKeyPaths,
   };
 
   spec.components = {
@@ -63,6 +72,7 @@ export function getOpenApiSpec() {
       ...authSchemas,
       ...enrollmentSchemas,
       ...courseMaterialSchemas,
+      ...apiKeySchemas,
     },
   };
 

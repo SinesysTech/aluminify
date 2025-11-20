@@ -1,9 +1,16 @@
-export type UserRole = 'aluno' | 'professor';
+export type UserRole = 'aluno' | 'professor' | 'superadmin';
 
 export interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
+  isSuperAdmin?: boolean;
+}
+
+export interface ApiKeyAuth {
+  type: 'api_key';
+  apiKeyId: string;
+  createdBy: string;
 }
 
 export interface SignUpInput {

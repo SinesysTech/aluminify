@@ -3,6 +3,7 @@ import {
   courseMaterialService,
   CourseMaterialValidationError,
 } from '@/backend/services/course-material';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeCourseMaterial = (
   material: Awaited<ReturnType<typeof courseMaterialService.getById>>,
@@ -27,6 +28,7 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
+// GET - RLS filtra automaticamente (alunos veem apenas materiais de cursos matriculados)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -45,7 +47,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST requer autenticação de professor (JWT ou API Key)
+async function postHandler(request: AuthenticatedRequest) {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const material = await courseMaterialService.create({
@@ -61,4 +68,6 @@ export async function POST(request: NextRequest) {
     return handleError(error);
   }
 }
+
+export const POST = requireAuth(postHandler);
 

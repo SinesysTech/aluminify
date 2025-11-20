@@ -5,6 +5,7 @@ import {
   CourseNotFoundError,
   CourseValidationError,
 } from '@/backend/services/course';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({
   id: course.id,
@@ -45,6 +46,7 @@ interface RouteContext {
   params: { id: string };
 }
 
+// GET é público (catálogo)
 export async function GET(_request: NextRequest, { params }: RouteContext) {
   try {
     const course = await courseService.getById(params.id);
@@ -54,7 +56,8 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteContext) {
+// PUT requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
+async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     const body = await request.json();
     const course = await courseService.update(params.id, {
@@ -77,12 +80,21 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+// DELETE requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
+async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     await courseService.delete(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return handleError(error);
   }
+}
+
+export async function PUT(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => putHandler(req, context))(request);
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => deleteHandler(req, context))(request);
 }
 

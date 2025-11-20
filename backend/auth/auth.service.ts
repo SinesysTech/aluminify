@@ -25,12 +25,14 @@ export class AuthService {
     }
 
     const role = (data.user.user_metadata?.role as UserRole) || 'aluno';
+    const isSuperAdmin = role === 'superadmin' || data.user.user_metadata?.is_superadmin === true;
 
     return {
       user: {
         id: data.user.id,
         email: data.user.email!,
-        role,
+        role: isSuperAdmin ? 'superadmin' : role,
+        isSuperAdmin,
       },
       session: {
         accessToken: data.session.access_token,
@@ -56,12 +58,14 @@ export class AuthService {
     }
 
     const role = (data.user.user_metadata?.role as UserRole) || 'aluno';
+    const isSuperAdmin = role === 'superadmin' || data.user.user_metadata?.is_superadmin === true;
 
     return {
       user: {
         id: data.user.id,
         email: data.user.email!,
-        role,
+        role: isSuperAdmin ? 'superadmin' : role,
+        isSuperAdmin,
       },
       session: {
         accessToken: data.session.access_token,
@@ -89,11 +93,13 @@ export class AuthService {
     }
 
     const role = (user.user_metadata?.role as UserRole) || 'aluno';
+    const isSuperAdmin = role === 'superadmin' || user.user_metadata?.is_superadmin === true;
 
     return {
       id: user.id,
       email: user.email!,
-      role,
+      role: isSuperAdmin ? 'superadmin' : role,
+      isSuperAdmin,
     };
   }
 
@@ -113,12 +119,14 @@ export class AuthService {
     }
 
     const role = (data.user.user_metadata?.role as UserRole) || 'aluno';
+    const isSuperAdmin = role === 'superadmin' || data.user.user_metadata?.is_superadmin === true;
 
     return {
       user: {
         id: data.user.id,
         email: data.user.email!,
-        role,
+        role: isSuperAdmin ? 'superadmin' : role,
+        isSuperAdmin,
       },
       session: {
         accessToken: data.session.access_token,

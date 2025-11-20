@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   courseService,
   CourseConflictError,
   CourseValidationError,
 } from '@/backend/services/course';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({
   id: course.id,
@@ -36,6 +37,7 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
+// GET é público (catálogo)
 export async function GET() {
   try {
     const courses = await courseService.list();
@@ -45,7 +47,12 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST requer autenticação de professor (JWT ou API Key)
+async function postHandler(request: AuthenticatedRequest) {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const course = await courseService.create({
@@ -67,4 +74,6 @@ export async function POST(request: NextRequest) {
     return handleError(error);
   }
 }
+
+export const POST = requireAuth(postHandler);
 

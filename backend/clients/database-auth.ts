@@ -1,0 +1,57 @@
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { AuthenticatedRequest } from '@/backend/auth/middleware';
+
+const DATABASE_URL = process.env.SUPABASE_URL;
+const DATABASE_KEY = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
+
+if (!DATABASE_URL || !DATABASE_KEY) {
+  throw new Error(
+    'Database credentials are not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
+  );
+}
+
+let cachedClient: SupabaseClient | null = null;
+let cachedServiceClient: SupabaseClient | null = null;
+
+export function getDatabaseClient(): SupabaseClient {
+  if (!cachedClient) {
+    cachedClient = createClient(DATABASE_URL, DATABASE_KEY, {
+      auth: {
+        persistSession: false,
+      },
+    });
+  }
+  return cachedClient;
+}
+
+export function getServiceRoleClient(): SupabaseClient {
+  if (!SERVICE_ROLE_KEY) {
+    throw new Error('Service role key is required for API key operations');
+  }
+
+  if (!cachedServiceClient) {
+    cachedServiceClient = createClient(DATABASE_URL, SERVICE_ROLE_KEY, {
+      auth: {
+        persistSession: false,
+      },
+    });
+  }
+  return cachedServiceClient;
+}
+
+/**
+ * Retorna o cliente do Supabase apropriado baseado no tipo de autenticação
+ * - Se for autenticação via JWT (usuário), usa o cliente normal
+ * - Se for autenticação via API Key, usa o service role client (bypass RLS)
+ */
+export function getAuthenticatedClient(request: AuthenticatedRequest): SupabaseClient {
+  // Se for autenticação via API Key, usar service role para bypass RLS
+  if (request.apiKey) {
+    return getServiceRoleClient();
+  }
+
+  // Se for autenticação via JWT, usar cliente normal (respeita RLS)
+  return getDatabaseClient();
+}
+

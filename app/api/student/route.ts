@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   studentService,
   StudentConflictError,
   StudentValidationError,
 } from '@/backend/services/student';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeStudent = (student: Awaited<ReturnType<typeof studentService.getById>>) => ({
   id: student.id,
@@ -34,7 +35,8 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
-export async function GET() {
+// GET - RLS filtra automaticamente (alunos veem apenas seu próprio perfil, superadmin vê todos)
+async function getHandler() {
   try {
     const students = await studentService.list();
     return NextResponse.json({ data: students.map(serializeStudent) });
@@ -43,7 +45,8 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST - Criação de aluno (geralmente via signup, mas pode ser manual por superadmin)
+async function postHandler(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     const student = await studentService.create({
@@ -64,4 +67,7 @@ export async function POST(request: NextRequest) {
     return handleError(error);
   }
 }
+
+export const GET = requireAuth(getHandler);
+export const POST = requireAuth(postHandler);
 

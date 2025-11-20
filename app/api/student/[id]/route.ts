@@ -5,6 +5,7 @@ import {
   StudentNotFoundError,
   StudentValidationError,
 } from '@/backend/services/student';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeStudent = (student: Awaited<ReturnType<typeof studentService.getById>>) => ({
   id: student.id,
@@ -43,7 +44,8 @@ interface RouteContext {
   params: { id: string };
 }
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+// GET - RLS filtra automaticamente (alunos veem apenas seu próprio perfil)
+async function getHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     const student = await studentService.getById(params.id);
     return NextResponse.json({ data: serializeStudent(student) });
@@ -52,7 +54,8 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteContext) {
+// PUT - RLS verifica se é o próprio aluno ou superadmin
+async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     const body = await request.json();
     const student = await studentService.update(params.id, {
@@ -73,12 +76,25 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+// DELETE - RLS verifica se é o próprio aluno ou superadmin
+async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     await studentService.delete(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return handleError(error);
   }
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => getHandler(req, context))(request);
+}
+
+export async function PUT(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => putHandler(req, context))(request);
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => deleteHandler(req, context))(request);
 }
 

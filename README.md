@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Área do Aluno - Backend API
 
-## Getting Started
+Sistema de gerenciamento educacional com arquitetura API-First, modularizada e baseada em princípios SOLID, KISS e YAGNI.
 
-First, run the development server:
+## 🏗️ Arquitetura
+
+### Estrutura do Projeto
+
+```
+backend/
+├── services/          # Serviços modulares independentes
+│   ├── discipline/   # Serviço de Disciplinas
+│   ├── segment/       # Serviço de Segmentos
+│   ├── course/        # Serviço de Cursos
+│   ├── student/       # Serviço de Alunos
+│   ├── teacher/       # Serviço de Professores
+│   ├── enrollment/    # Serviço de Matrículas
+│   ├── course-material/ # Serviço de Materiais
+│   └── api-key/       # Serviço de API Keys
+├── auth/              # Sistema de autenticação
+├── clients/            # Clientes de banco de dados
+└── swagger/            # Documentação Swagger
+
+app/
+└── api/                # Rotas Next.js API Routes
+    ├── auth/           # Autenticação
+    ├── api-key/        # Gerenciamento de API Keys
+    ├── discipline/     # Disciplinas
+    ├── segment/        # Segmentos
+    ├── course/         # Cursos
+    ├── student/        # Alunos
+    ├── teacher/        # Professores
+    ├── enrollment/     # Matrículas
+    ├── course-material/ # Materiais
+    └── docs/           # Documentação OpenAPI
+```
+
+## 🚀 Tecnologias
+
+- **Next.js 16** - Framework React com App Router
+- **TypeScript** - Tipagem estática
+- **Supabase** - Banco de dados PostgreSQL
+- **Swagger/OpenAPI** - Documentação de API
+
+## 📋 Pré-requisitos
+
+- Node.js 18+
+- Conta Supabase configurada
+- Variáveis de ambiente configuradas
+
+## ⚙️ Configuração
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env.local`:
+
+```env
+# Supabase Configuration
+SUPABASE_URL=your-project-url
+SUPABASE_SECRET_KEY=sb_secret_...  # Recomendado para backend
+# ou
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # Legacy
+```
+
+### Instalação
+
+```bash
+npm install
+```
+
+### Executar em Desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A API estará disponível em `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📚 Documentação
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Swagger UI
 
-## Learn More
+Acesse a documentação interativa em:
+- **Swagger UI**: `http://localhost:3000/swagger`
+- **OpenAPI JSON**: `http://localhost:3000/api/docs`
 
-To learn more about Next.js, take a look at the following resources:
+### Documentação Adicional
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Sistema de Autenticação](./docs/authentication.md)
+- [Documentação da API](./docs/API.md)
+- [Schema do Banco de Dados](./docs/schema/schema.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔐 Autenticação
 
-## Deploy on Vercel
+O sistema suporta duas formas de autenticação:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **JWT** - Para interface de usuário (`Authorization: Bearer <token>`)
+2. **API Key** - Para requisições diretas (`X-API-Key: <key>`)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Veja [docs/authentication.md](./docs/authentication.md) para mais detalhes.
+
+## 👥 Tipos de Usuários
+
+1. **Aluno** - Acesso limitado aos próprios dados
+2. **Professor** - Pode criar e gerenciar recursos educacionais
+3. **Superadmin** - Acesso total ao sistema
+
+## 📦 Serviços Implementados
+
+- ✅ Disciplinas
+- ✅ Segmentos
+- ✅ Cursos
+- ✅ Alunos
+- ✅ Professores
+- ✅ Matrículas
+- ✅ Materiais de Curso
+- ✅ API Keys
+- ✅ Autenticação
+
+## 🗄️ Banco de Dados
+
+O banco de dados está configurado no Supabase com:
+- Tabelas criadas via migrations
+- Row Level Security (RLS) configurado
+- Triggers para auditoria (`created_by`, `updated_at`)
+- Políticas de acesso por tipo de usuário
+
+## 🧪 Testes
+
+```bash
+npm run lint
+```
+
+## 📝 Estrutura de um Serviço
+
+Cada serviço segue o mesmo padrão:
+
+```
+service-name/
+├── service-name.types.ts      # Tipos e DTOs
+├── service-name.service.ts     # Lógica de negócio
+├── service-name.repository.ts  # Interface e implementação
+├── errors.ts                   # Erros específicos
+└── index.ts                   # Exportações
+```
+
+## 🔄 Princípios Aplicados
+
+- **SOLID** - Separação de responsabilidades, inversão de dependências
+- **KISS** - Simplicidade e clareza
+- **YAGNI** - Apenas o necessário, sem over-engineering
+- **API-First** - Backend independente do frontend
+- **Modularização** - Serviços independentes e reutilizáveis
+
+## 📄 Licença
+
+Este projeto é privado e proprietário.

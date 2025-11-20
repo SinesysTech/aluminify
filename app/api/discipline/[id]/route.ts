@@ -5,6 +5,7 @@ import {
   DisciplineNotFoundError,
   DisciplineValidationError,
 } from '@/backend/services/discipline';
+import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeDiscipline = (discipline: Awaited<ReturnType<typeof disciplineService.getById>>) => ({
   id: discipline.id,
@@ -34,6 +35,7 @@ interface RouteContext {
   params: { id: string };
 }
 
+// GET é público (catálogo)
 export async function GET(_request: NextRequest, { params }: RouteContext) {
   try {
     const discipline = await disciplineService.getById(params.id);
@@ -43,7 +45,8 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteContext) {
+// PUT requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
+async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     const body = await request.json();
     const discipline = await disciplineService.update(params.id, { name: body?.name });
@@ -53,13 +56,22 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+// DELETE requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
+async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
   try {
     await disciplineService.delete(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return handleError(error);
   }
+}
+
+export async function PUT(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => putHandler(req, context))(request);
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  return requireAuth((req) => deleteHandler(req, context))(request);
 }
 
 
