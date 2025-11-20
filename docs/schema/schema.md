@@ -192,3 +192,162 @@ INSERT INTO public.segmentos (nome, slug) VALUES
 INSERT INTO public.disciplinas (nome) VALUES 
 ('Física'), ('Matemática'), ('História'), ('Geografia'), ('Química');
 ```
+
+Perfeito. Focaremos 100% na estrutura do banco de dados (Backend).
+
+Entendido que não precisamos de migrações "seguras" (podemos alterar estruturas livremente pois está vazio) e que a diferenciação entre Aluno e Professor será feita via metadados no momento do cadastro (`auth.users`), gerenciado pela trigger.
+
+Aqui está a estrutura atualizada do banco de dados. Antes dos códigos, veja como a entidade **Professor** entra no diagrama:
+
+Abaixo estão os blocos SQL para você executar sequencialmente.
+
+### Parte 1: Criar a Tabela de Professores
+
+Esta tabela armazenará os dados públicos dos docentes.
+
+```sql
+-- 1. Criação da tabela Professores
+CREATE TABLE public.professores (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    
+    nome_completo TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    cpf TEXT UNIQUE,
+    telefone TEXT,
+    
+    -- Campos específicos para a vitrine do curso
+    biografia TEXT, 
+    foto_url TEXT,
+    especialidade TEXT, -- Ex: 'Doutor em História'
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Trigger para manter updated_at atualizado
+CREATE TRIGGER on_update_professores 
+    BEFORE UPDATE ON public.professores 
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+```
+
+### Parte 2: Alterar Tabelas existentes (`created_by`)
+
+Aqui adicionamos a coluna de auditoria/autoria nas tabelas de conteúdo. Usamos `ON DELETE SET NULL` para que, se um professor for deletado, os cursos que ele criou **não** sejam apagados (apenas ficam sem dono).
+
+```sql
+-- Adicionar coluna created_by em Segmentos
+ALTER TABLE public.segmentos 
+ADD COLUMN created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+
+-- Adicionar coluna created_by em Disciplinas
+ALTER TABLE public.disciplinas 
+ADD COLUMN created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+
+-- Adicionar coluna created_by em Cursos
+ALTER TABLE public.cursos 
+ADD COLUMN created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+
+-- Adicionar coluna created_by em Materiais
+ALTER TABLE public.materiais_curso 
+ADD COLUMN created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+```
+
+### Parte 3: Automação de Autoria (Auto-fill `created_by`)
+
+Para você não precisar enviar manualmente o ID do professor em todo `INSERT` no backend, esta trigger pega o ID do usuário logado automaticamente.
+
+```sql
+-- 1. Função que preenche o created_by
+CREATE OR REPLACE FUNCTION public.handle_created_by()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Se não foi enviado manualmente, usa o ID do usuário autenticado
+    IF NEW.created_by IS NULL THEN
+        NEW.created_by := auth.uid();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Aplicando a trigger nas tabelas
+CREATE TRIGGER set_created_by_segmentos BEFORE INSERT ON public.segmentos FOR EACH ROW EXECUTE PROCEDURE public.handle_created_by();
+CREATE TRIGGER set_created_by_disciplinas BEFORE INSERT ON public.disciplinas FOR EACH ROW EXECUTE PROCEDURE public.handle_created_by();
+CREATE TRIGGER set_created_by_cursos BEFORE INSERT ON public.cursos FOR EACH ROW EXECUTE PROCEDURE public.handle_created_by();
+CREATE TRIGGER set_created_by_materiais BEFORE INSERT ON public.materiais_curso FOR EACH ROW EXECUTE PROCEDURE public.handle_created_by();
+```
+
+### Parte 4: Atualizar a Lógica de Cadastro (Aluno vs Professor)
+
+Substituímos a função antiga. Agora ela verifica o metadado `role` dentro do objeto `auth.users` para decidir em qual tabela inserir.
+
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+    user_role TEXT;
+BEGIN
+    -- Tenta ler o papel do usuário (ex: { "role": "professor" })
+    user_role := new.raw_user_meta_data->>'role';
+
+    IF user_role = 'professor' THEN
+        INSERT INTO public.professores (id, email, nome_completo)
+        VALUES (
+            new.id, 
+            new.email, 
+            COALESCE(new.raw_user_meta_data->>'full_name', 'Novo Professor')
+        );
+    ELSE
+        -- Default: Se não vier nada ou vier 'aluno', cria como Aluno
+        INSERT INTO public.alunos (id, email, nome_completo)
+        VALUES (
+            new.id, 
+            new.email, 
+            COALESCE(new.raw_user_meta_data->>'full_name', 'Novo Aluno')
+        );
+    END IF;
+
+    RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+### Parte 5: Atualizar Segurança (RLS)
+
+Agora precisamos permitir que os professores **escrevam** no banco de dados.
+
+```sql
+-- 1. Permissões na tabela PROFESSORES
+ALTER TABLE public.professores ENABLE ROW LEVEL SECURITY;
+
+-- Público pode ver perfil dos professores
+CREATE POLICY "Perfil dos professores é público" ON public.professores FOR SELECT USING (true);
+
+-- Apenas o próprio professor edita seu perfil
+CREATE POLICY "Professor edita seu perfil" ON public.professores FOR UPDATE USING (auth.uid() = id);
+
+
+-- 2. Permissões de ESCRITA para Professores (Cursos, Materiais, etc)
+-- Lógica: Permitir INSERT/UPDATE se o ID do usuário estiver na tabela 'professores'
+
+-- Cursos
+CREATE POLICY "Professores criam cursos" ON public.cursos 
+    FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.professores WHERE id = auth.uid()));
+
+CREATE POLICY "Professores editam seus cursos" ON public.cursos 
+    FOR UPDATE USING (created_by = auth.uid());
+
+CREATE POLICY "Professores deletam seus cursos" ON public.cursos 
+    FOR DELETE USING (created_by = auth.uid());
+
+-- Materiais
+CREATE POLICY "Professores gerenciam materiais" ON public.materiais_curso 
+    FOR ALL USING (EXISTS (SELECT 1 FROM public.professores WHERE id = auth.uid()));
+
+-- Segmentos e Disciplinas (Geralmente professores podem criar, ou apenas admins)
+-- Aqui estou liberando para professores criarem também
+CREATE POLICY "Professores criam disciplinas" ON public.disciplinas 
+    FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.professores WHERE id = auth.uid()));
+
+CREATE POLICY "Professores criam segmentos" ON public.segmentos 
+    FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.professores WHERE id = auth.uid()));
+```

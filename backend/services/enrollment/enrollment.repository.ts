@@ -1,0 +1,204 @@
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Enrollment, CreateEnrollmentInput, UpdateEnrollmentInput } from './enrollment.types';
+
+export interface EnrollmentRepository {
+  list(): Promise<Enrollment[]>;
+  findById(id: string): Promise<Enrollment | null>;
+  findByStudentId(studentId: string): Promise<Enrollment[]>;
+  findByCourseId(courseId: string): Promise<Enrollment[]>;
+  findActiveByStudentAndCourse(studentId: string, courseId: string): Promise<Enrollment | null>;
+  create(payload: CreateEnrollmentInput): Promise<Enrollment>;
+  update(id: string, payload: UpdateEnrollmentInput): Promise<Enrollment>;
+  delete(id: string): Promise<void>;
+  studentExists(studentId: string): Promise<boolean>;
+  courseExists(courseId: string): Promise<boolean>;
+}
+
+const TABLE = 'matriculas';
+const STUDENT_TABLE = 'alunos';
+const COURSE_TABLE = 'cursos';
+
+type EnrollmentRow = {
+  id: string;
+  aluno_id: string;
+  curso_id: string;
+  data_matricula: string;
+  data_inicio_acesso: string;
+  data_fim_acesso: string;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+function mapRow(row: EnrollmentRow): Enrollment {
+  return {
+    id: row.id,
+    studentId: row.aluno_id,
+    courseId: row.curso_id,
+    enrollmentDate: new Date(row.data_matricula),
+    accessStartDate: new Date(row.data_inicio_acesso),
+    accessEndDate: new Date(row.data_fim_acesso),
+    active: row.ativo,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+export class EnrollmentRepositoryImpl implements EnrollmentRepository {
+  constructor(private readonly client: SupabaseClient) {}
+
+  async list(): Promise<Enrollment[]> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .order('data_matricula', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to list enrollments: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapRow);
+  }
+
+  async findById(id: string): Promise<Enrollment | null> {
+    const { data, error } = await this.client.from(TABLE).select('*').eq('id', id).maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch enrollment: ${error.message}`);
+    }
+
+    return data ? mapRow(data) : null;
+  }
+
+  async findByStudentId(studentId: string): Promise<Enrollment[]> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .eq('aluno_id', studentId)
+      .order('data_matricula', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch enrollments by student: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapRow);
+  }
+
+  async findByCourseId(courseId: string): Promise<Enrollment[]> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .eq('curso_id', courseId)
+      .order('data_matricula', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch enrollments by course: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapRow);
+  }
+
+  async findActiveByStudentAndCourse(studentId: string, courseId: string): Promise<Enrollment | null> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .eq('aluno_id', studentId)
+      .eq('curso_id', courseId)
+      .eq('ativo', true)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch active enrollment: ${error.message}`);
+    }
+
+    return data ? mapRow(data) : null;
+  }
+
+  async create(payload: CreateEnrollmentInput): Promise<Enrollment> {
+    const insertData: Record<string, unknown> = {
+      aluno_id: payload.studentId,
+      curso_id: payload.courseId,
+      data_inicio_acesso: payload.accessStartDate || new Date().toISOString().split('T')[0],
+      data_fim_acesso: payload.accessEndDate,
+      ativo: payload.active ?? true,
+    };
+
+    const { data, error } = await this.client
+      .from(TABLE)
+      .insert(insertData)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create enrollment: ${error.message}`);
+    }
+
+    return mapRow(data);
+  }
+
+  async update(id: string, payload: UpdateEnrollmentInput): Promise<Enrollment> {
+    const updateData: Record<string, unknown> = {};
+
+    if (payload.accessStartDate !== undefined) {
+      updateData.data_inicio_acesso = payload.accessStartDate.split('T')[0];
+    }
+
+    if (payload.accessEndDate !== undefined) {
+      updateData.data_fim_acesso = payload.accessEndDate.split('T')[0];
+    }
+
+    if (payload.active !== undefined) {
+      updateData.ativo = payload.active;
+    }
+
+    const { data, error } = await this.client
+      .from(TABLE)
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update enrollment: ${error.message}`);
+    }
+
+    return mapRow(data);
+  }
+
+  async delete(id: string): Promise<void> {
+    const { error } = await this.client.from(TABLE).delete().eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete enrollment: ${error.message}`);
+    }
+  }
+
+  async studentExists(studentId: string): Promise<boolean> {
+    const { data, error } = await this.client
+      .from(STUDENT_TABLE)
+      .select('id')
+      .eq('id', studentId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to check student existence: ${error.message}`);
+    }
+
+    return !!data;
+  }
+
+  async courseExists(courseId: string): Promise<boolean> {
+    const { data, error } = await this.client
+      .from(COURSE_TABLE)
+      .select('id')
+      .eq('id', courseId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to check course existence: ${error.message}`);
+    }
+
+    return !!data;
+  }
+}
+
