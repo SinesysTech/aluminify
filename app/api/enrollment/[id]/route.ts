@@ -37,11 +37,11 @@ function handleError(error: unknown) {
 }
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET - RLS filtra automaticamente (alunos veem apenas suas próprias matrículas)
-async function getHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
+async function getHandler(_request: AuthenticatedRequest, params: { id: string }) {
   try {
     const enrollment = await enrollmentService.getById(params.id);
     return NextResponse.json({ data: serializeEnrollment(enrollment) });
@@ -51,7 +51,7 @@ async function getHandler(_request: AuthenticatedRequest, { params }: RouteConte
 }
 
 // PUT - RLS verifica permissões (professor ou superadmin)
-async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
   if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -70,7 +70,7 @@ async function putHandler(request: AuthenticatedRequest, { params }: RouteContex
 }
 
 // DELETE - RLS verifica permissões (professor ou superadmin)
-async function deleteHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
   if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -84,14 +84,17 @@ async function deleteHandler(request: AuthenticatedRequest, { params }: RouteCon
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => getHandler(req, context))(request);
+  const params = await context.params;
+  return requireAuth((req) => getHandler(req, params))(request);
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => putHandler(req, context))(request);
+  const params = await context.params;
+  return requireAuth((req) => putHandler(req, params))(request);
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => deleteHandler(req, context))(request);
+  const params = await context.params;
+  return requireAuth((req) => deleteHandler(req, params))(request);
 }
 

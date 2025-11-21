@@ -54,11 +54,11 @@ function handleError(error: unknown) {
 }
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET - Pode ser público ou autenticado dependendo da necessidade
-async function getHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
+async function getHandler(_request: AuthenticatedRequest, params: { id: string }) {
   try {
     if (!params || !params.id || params.id === 'undefined') {
       console.error('[Teacher GET] Invalid params:', params);
@@ -72,7 +72,7 @@ async function getHandler(_request: AuthenticatedRequest, { params }: RouteConte
 }
 
 // PUT requer autenticação
-async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
   try {
     // Validar params.id
     if (!params || !params.id || params.id === 'undefined') {
@@ -130,7 +130,7 @@ async function putHandler(request: AuthenticatedRequest, { params }: RouteContex
 }
 
 // DELETE requer autenticação
-async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
+async function deleteHandler(_request: AuthenticatedRequest, params: { id: string }) {
   try {
     if (!params || !params.id || params.id === 'undefined') {
       console.error('[Teacher DELETE] Invalid params:', params);
@@ -144,29 +144,20 @@ async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteCo
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  // Verificar se params é uma Promise (Next.js 16)
-  const params = context.params instanceof Promise ? await context.params : context.params;
-  const handler = requireAuth((req) => getHandler(req, { params }));
+  const params = await context.params;
+  const handler = requireAuth((req) => getHandler(req, params));
   return handler(request);
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  // Log do context para debug
-  console.log('[Teacher PUT] Context:', context);
-  console.log('[Teacher PUT] Context params:', context.params);
-  
-  // Verificar se params é uma Promise (Next.js 16)
-  const params = context.params instanceof Promise ? await context.params : context.params;
-  console.log('[Teacher PUT] Resolved params:', params);
-  
-  const handler = requireAuth((req) => putHandler(req, { params }));
+  const params = await context.params;
+  const handler = requireAuth((req) => putHandler(req, params));
   return handler(request);
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  // Verificar se params é uma Promise (Next.js 16)
-  const params = context.params instanceof Promise ? await context.params : context.params;
-  const handler = requireAuth((req) => deleteHandler(req, { params }));
+  const params = await context.params;
+  const handler = requireAuth((req) => deleteHandler(req, params));
   return handler(request);
 }
 

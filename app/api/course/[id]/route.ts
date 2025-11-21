@@ -38,17 +38,25 @@ function handleError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: 404 });
   }
 
-  console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  console.error('[Course API] Unexpected error:', error);
+  if (error instanceof Error) {
+    console.error('[Course API] Error message:', error.message);
+    console.error('[Course API] Error stack:', error.stack);
+  }
+  return NextResponse.json({ 
+    error: 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && error instanceof Error ? { details: error.message } : {})
+  }, { status: 500 });
 }
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET é público (catálogo)
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+export async function GET(_request: NextRequest, context: RouteContext) {
   try {
+    const params = await context.params;
     const course = await courseService.getById(params.id);
     return NextResponse.json({ data: serializeCourse(course) });
   } catch (error) {
@@ -57,8 +65,13 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
 }
 
 // PUT requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
-async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
   try {
+    if (!params || !params.id) {
+      console.error('[Course PUT Handler] Invalid params:', params);
+      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
+    }
+    console.log('[Course PUT Handler] Updating course with ID:', params.id);
     const body = await request.json();
     const course = await courseService.update(params.id, {
       segmentId: body?.segmentId,
@@ -76,12 +89,13 @@ async function putHandler(request: AuthenticatedRequest, { params }: RouteContex
     });
     return NextResponse.json({ data: serializeCourse(course) });
   } catch (error) {
+    console.error('[Course PUT Handler] Error:', error);
     return handleError(error);
   }
 }
 
 // DELETE requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
-async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
+async function deleteHandler(_request: AuthenticatedRequest, params: { id: string }) {
   try {
     await courseService.delete(params.id);
     return NextResponse.json({ success: true });
@@ -91,10 +105,21 @@ async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteCo
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => putHandler(req, context))(request);
+  try {
+    const params = await context.params;
+    if (!params || !params.id) {
+      console.error('[Course PUT] Invalid params:', params);
+      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 });
+    }
+    return requireAuth((req) => putHandler(req, params))(request);
+  } catch (error) {
+    console.error('[Course PUT] Error in PUT handler:', error);
+    return handleError(error);
+  }
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => deleteHandler(req, context))(request);
+  const params = await context.params;
+  return requireAuth((req) => deleteHandler(req, params))(request);
 }
 

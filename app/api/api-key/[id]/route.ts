@@ -31,10 +31,10 @@ function handleError(error: unknown) {
 }
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-async function getHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function getHandler(request: AuthenticatedRequest, params: { id: string }) {
   if (!request.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -53,7 +53,7 @@ async function getHandler(request: AuthenticatedRequest, { params }: RouteContex
   }
 }
 
-async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
   if (!request.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -78,7 +78,7 @@ async function putHandler(request: AuthenticatedRequest, { params }: RouteContex
   }
 }
 
-async function deleteHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
   if (!request.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -99,13 +99,16 @@ async function deleteHandler(request: AuthenticatedRequest, { params }: RouteCon
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  return requireUserAuth((req) => getHandler(req, context))(request);
+  const params = await context.params;
+  return requireUserAuth((req) => getHandler(req, params))(request);
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  return requireUserAuth((req) => putHandler(req, context))(request);
+  const params = await context.params;
+  return requireUserAuth((req) => putHandler(req, params))(request);
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  return requireUserAuth((req) => deleteHandler(req, context))(request);
+  const params = await context.params;
+  return requireUserAuth((req) => deleteHandler(req, params))(request);
 }

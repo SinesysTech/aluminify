@@ -33,12 +33,13 @@ function handleError(error: unknown) {
 }
 
 interface RouteContext {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET é público (catálogo)
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+export async function GET(_request: NextRequest, context: RouteContext) {
   try {
+    const params = await context.params;
     const segment = await segmentService.getById(params.id);
     return NextResponse.json({ data: serializeSegment(segment) });
   } catch (error) {
@@ -47,7 +48,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
 }
 
 // PUT requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
-async function putHandler(request: AuthenticatedRequest, { params }: RouteContext) {
+async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
   try {
     const body = await request.json();
     const segment = await segmentService.update(params.id, { name: body?.name, slug: body?.slug });
@@ -58,7 +59,7 @@ async function putHandler(request: AuthenticatedRequest, { params }: RouteContex
 }
 
 // DELETE requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
-async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteContext) {
+async function deleteHandler(_request: AuthenticatedRequest, params: { id: string }) {
   try {
     await segmentService.delete(params.id);
     return NextResponse.json({ success: true });
@@ -68,10 +69,12 @@ async function deleteHandler(_request: AuthenticatedRequest, { params }: RouteCo
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => putHandler(req, context))(request);
+  const params = await context.params;
+  return requireAuth((req) => putHandler(req, params))(request);
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  return requireAuth((req) => deleteHandler(req, context))(request);
+  const params = await context.params;
+  return requireAuth((req) => deleteHandler(req, params))(request);
 }
 
