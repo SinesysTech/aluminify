@@ -44,6 +44,8 @@ class ResponseStore {
         console.error('[Response Store] ❌ Erro ao configurar Upstash Redis:', error);
         console.log('[Response Store] ⚠️  Fallback para Map em memória (NÃO funciona em serverless!)');
         this.useRedis = false;
+        // Iniciar limpeza automática quando Redis falha na inicialização
+        this.startMemoryCleanup();
       }
     } else {
       console.warn('[Response Store] ⚠️  AVISO: Upstash Redis não configurado!');
@@ -64,7 +66,8 @@ class ResponseStore {
       try {
         const key = this.getRedisKey(sessionId);
         // Armazenar no Redis com TTL de 10 minutos
-        await this.redis.setex(key, 600, JSON.stringify(data));
+        // Upstash REST API lida com JSON automaticamente
+        await this.redis.setex(key, 600, data);
         console.log(`[Response Store] Redis SET: ${key} - ${data.chunks.length} chunks`);
       } catch (error) {
         console.error('[Response Store] Erro ao armazenar no Redis:', error);
@@ -123,7 +126,8 @@ class ResponseStore {
     };
 
     data.chunks.push(chunk);
-    data.isComplete = isComplete;
+    // Garantir que uma vez marcada como completa, permaneça completa
+    data.isComplete = isComplete || data.isComplete;
     data.timestamp = Date.now();
 
     await this.set(sessionId, data);
