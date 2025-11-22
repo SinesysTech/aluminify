@@ -266,34 +266,15 @@ async function postStreamHandler(request: AuthenticatedRequest) {
               console.log('[Chat API] Resposta length:', immediateResponse.length);
               console.log('[Chat API] Resposta preview:', immediateResponse.substring(0, 100));
               
-              // Enviar resposta imediata em chunks menores para melhor streaming
-              // Dividir a resposta em pedaços para simular streaming
-              const chunkSize = 50; // Enviar 50 caracteres por vez
-              const chunks = [];
-              for (let i = 0; i < immediateResponse.length; i += chunkSize) {
-                chunks.push(immediateResponse.substring(i, i + chunkSize));
-              }
-              
-              console.log('[Chat API] Dividindo resposta em', chunks.length, 'chunks');
-              
-              // Enviar cada chunk como text-delta
-              // O AI SDK espera o formato: 0:{"type":"text-delta","id":"...","delta":"..."}\n
-              for (let i = 0; i < chunks.length; i++) {
-                const deltaChunk = {
-                  type: 'text-delta',
-                  id: messageId,
-                  delta: chunks[i],
-                };
-                // Formato correto: "0:" + JSON + "\n" (uma quebra de linha)
-                const deltaData = '0:' + JSON.stringify(deltaChunk) + '\n';
-                console.log('[Chat API] Enviando chunk', i + 1, 'de', chunks.length, '(length:', chunks[i].length, ')');
-                controller.enqueue(encoder.encode(deltaData));
-                
-                // Pequeno delay entre chunks para simular streaming real
-                if (i < chunks.length - 1) {
-                  await new Promise(resolve => setTimeout(resolve, 10));
-                }
-              }
+              // Enviar resposta completa como um único text-delta
+              const deltaChunk = {
+                type: 'text-delta',
+                id: messageId,
+                delta: immediateResponse,
+              };
+              const deltaData = '0:' + JSON.stringify(deltaChunk) + '\n';
+              console.log('[Chat API] 📤 Enviando resposta completa (length:', immediateResponse.length, 'chars)');
+              controller.enqueue(encoder.encode(deltaData));
               
               responseStarted = true;
               
@@ -418,16 +399,6 @@ async function postStreamHandler(request: AuthenticatedRequest) {
   }
 }
 
-export const POST = requireAuth(async (request: AuthenticatedRequest) => {
-  // Verificar se é uma requisição de streaming
-  const acceptHeader = request.headers.get('accept');
-  const isStreaming = acceptHeader?.includes('text/event-stream') || 
-                      request.nextUrl.searchParams.get('stream') === 'true';
-
-  if (isStreaming) {
-    return postStreamHandler(request);
-  }
-
-  return postHandler(request);
-});
+// POST simples - sem streaming complexo do AI SDK
+export const POST = requireAuth(postHandler);
 
