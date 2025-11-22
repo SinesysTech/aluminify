@@ -2,22 +2,7 @@ import { updateSession } from '@/lib/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function proxy(request: NextRequest) {
-  // Rotas públicas que não precisam de autenticação
-  const publicPaths = [
-    '/api/chat/callback', // Callback do N8N - deve ser público
-  ]
-
-  // Verificar se a rota atual é pública
-  const isPublicPath = publicPaths.some(path =>
-    request.nextUrl.pathname.startsWith(path)
-  )
-
-  // Se for uma rota pública, permitir acesso sem autenticação
-  if (isPublicPath) {
-    return NextResponse.next()
-  }
-
-  // Para todas as outras rotas, aplicar autenticação do Supabase
+  // Aplicar autenticação do Supabase em todas as rotas
   return await updateSession(request)
 }
 
