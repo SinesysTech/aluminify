@@ -1,22 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Armazenar respostas temporariamente em memória (por sessionId)
-// Em produção, considere usar Redis ou outro sistema de cache
-const pendingResponses = new Map<string, {
-  chunks: string[];
-  isComplete: boolean;
-  timestamp: number;
-}>();
-
-// Limpar respostas antigas (mais de 5 minutos)
-setInterval(() => {
-  const now = Date.now();
-  for (const [sessionId, data] of pendingResponses.entries()) {
-    if (now - data.timestamp > 5 * 60 * 1000) {
-      pendingResponses.delete(sessionId);
-    }
-  }
-}, 60000); // Limpar a cada minuto
+import { responseStore } from '@/backend/services/cache';
 
 /**
  * Endpoint de callback para receber respostas do agente via n8n
@@ -33,61 +16,66 @@ setInterval(() => {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    console.log('[Chat Callback] Recebendo resposta do agente:', {
+
+    console.log('[Chat Callback] ========== CALLBACK RECEBIDO ==========');
+    console.log('[Chat Callback] Dados recebidos:', {
       sessionId: body.sessionId,
       hasOutput: !!body.output,
       hasChunk: !!body.chunk,
       isComplete: body.isComplete,
+      outputLength: body.output?.length,
+      chunkLength: body.chunk?.length,
     });
-    
+
     const sessionId = body.sessionId;
     if (!sessionId) {
-      return NextResponse.json({ 
-        error: 'SessionId é necessário' 
+      console.error('[Chat Callback] ❌ SessionId não fornecido no callback');
+      return NextResponse.json({
+        error: 'SessionId é necessário'
       }, { status: 400 });
     }
-    
-    // Obter ou criar entrada para esta sessão
-    let sessionData = pendingResponses.get(sessionId);
-    if (!sessionData) {
-      sessionData = {
-        chunks: [],
-        isComplete: false,
-        timestamp: Date.now(),
-      };
-      pendingResponses.set(sessionId, sessionData);
-    }
-    
-    // Adicionar chunk ou output completo
+
+    // Adicionar chunk ou output completo usando responseStore
     if (body.chunk) {
       // Streaming: adicionar chunk
-      sessionData.chunks.push(body.chunk);
-      console.log('[Chat Callback] Chunk adicionado para sessionId:', sessionId, 'Total chunks:', sessionData.chunks.length);
+      await responseStore.addChunk(sessionId, body.chunk, body.isComplete || false);
+      const current = await responseStore.get(sessionId);
+      console.log('[Chat Callback] ✅ Chunk adicionado para sessionId:', sessionId, 'Total chunks:', current?.chunks.length || 0);
     } else if (body.output) {
       // Resposta completa: adicionar como único chunk
-      sessionData.chunks.push(body.output);
-      sessionData.isComplete = true;
-      console.log('[Chat Callback] Resposta completa recebida para sessionId:', sessionId);
+      await responseStore.addChunk(sessionId, body.output, true);
+      console.log('[Chat Callback] ✅ Resposta completa recebida para sessionId:', sessionId);
+    } else {
+      console.warn('[Chat Callback] ⚠️  Nem chunk nem output fornecido no callback');
+      return NextResponse.json({
+        error: 'Nem chunk nem output fornecido'
+      }, { status: 400 });
     }
-    
+
     // Marcar como completo se indicado
-    if (body.isComplete !== undefined) {
-      sessionData.isComplete = body.isComplete;
+    if (body.isComplete === true) {
+      await responseStore.markComplete(sessionId);
+      console.log('[Chat Callback] ✅ Resposta marcada como completa para sessionId:', sessionId);
     }
-    
-    // Atualizar timestamp
-    sessionData.timestamp = Date.now();
-    
-    return NextResponse.json({ 
+
+    const currentData = await responseStore.get(sessionId);
+
+    console.log('[Chat Callback] Estado atual:', {
+      sessionId,
+      chunksReceived: currentData?.chunks.length || 0,
+      isComplete: currentData?.isComplete || false,
+    });
+    console.log('[Chat Callback] ==========================================');
+
+    return NextResponse.json({
       success: true,
       message: 'Resposta recebida com sucesso',
-      chunksReceived: sessionData.chunks.length,
-      isComplete: sessionData.isComplete,
+      chunksReceived: currentData?.chunks.length || 0,
+      isComplete: currentData?.isComplete || false,
     });
   } catch (error) {
-    console.error('[Chat Callback] Erro ao processar callback:', error);
-    return NextResponse.json({ 
+    console.error('[Chat Callback] ❌ Erro ao processar callback:', error);
+    return NextResponse.json({
       error: 'Erro ao processar callback',
       details: error instanceof Error ? error.message : 'Unknown error',
     }, { status: 500 });
@@ -96,26 +84,26 @@ export async function POST(request: NextRequest) {
 
 /**
  * Endpoint para verificar se há resposta disponível para uma sessão
- * Usado pelo cliente para fazer polling
+ * Usado pelo cliente para fazer polling (opcional)
  */
 export async function GET(request: NextRequest) {
   const sessionId = request.nextUrl.searchParams.get('sessionId');
-  
+
   if (!sessionId) {
-    return NextResponse.json({ 
-      error: 'SessionId é necessário' 
+    return NextResponse.json({
+      error: 'SessionId é necessário'
     }, { status: 400 });
   }
-  
-  const sessionData = pendingResponses.get(sessionId);
-  
+
+  const sessionData = await responseStore.get(sessionId);
+
   if (!sessionData) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       available: false,
       message: 'Nenhuma resposta disponível ainda',
     });
   }
-  
+
   return NextResponse.json({
     available: true,
     chunks: sessionData.chunks,
@@ -125,10 +113,10 @@ export async function GET(request: NextRequest) {
 }
 
 // Exportar função para acessar respostas pendentes (usado pelo endpoint de streaming)
-export function getPendingResponse(sessionId: string): { chunks: string[]; isComplete: boolean } | null {
-  const data = pendingResponses.get(sessionId);
+export async function getPendingResponse(sessionId: string): Promise<{ chunks: string[]; isComplete: boolean } | null> {
+  const data = await responseStore.get(sessionId);
   if (!data) return null;
-  
+
   return {
     chunks: [...data.chunks],
     isComplete: data.isComplete,
@@ -136,7 +124,7 @@ export function getPendingResponse(sessionId: string): { chunks: string[]; isCom
 }
 
 // Exportar função para limpar resposta após uso
-export function clearPendingResponse(sessionId: string): void {
-  pendingResponses.delete(sessionId);
+export async function clearPendingResponse(sessionId: string): Promise<void> {
+  await responseStore.delete(sessionId);
 }
 
