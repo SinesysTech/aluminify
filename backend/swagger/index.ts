@@ -8,6 +8,7 @@ import { authPaths, authSchemas } from './auth.spec';
 import { enrollmentPaths, enrollmentSchemas } from './enrollment.spec';
 import { courseMaterialPaths, courseMaterialSchemas } from './course-material.spec';
 import { apiKeyPaths, apiKeySchemas } from './api-key.spec';
+import { chatPaths, chatSchemas } from './chat.spec';
 
 const baseDefinition: OAS3Definition = {
   openapi: '3.0.3',
@@ -58,6 +59,7 @@ export function getOpenApiSpec() {
     ...enrollmentPaths,
     ...courseMaterialPaths,
     ...apiKeyPaths,
+    ...chatPaths,
   };
 
   spec.components = {
@@ -73,6 +75,7 @@ export function getOpenApiSpec() {
       ...enrollmentSchemas,
       ...courseMaterialSchemas,
       ...apiKeySchemas,
+      ...chatSchemas,
     },
   };
 

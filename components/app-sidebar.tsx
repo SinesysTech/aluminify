@@ -8,6 +8,7 @@ import {
   Layers,
   Users,
   FileText,
+  MessageSquare,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 
@@ -24,6 +25,12 @@ import {
 } from "@/components/ui/sidebar"
 
 const navMainData = [
+    {
+      title: "TobIAs",
+      url: "/tobias",
+      icon: MessageSquare,
+      isActive: false,
+    },
     {
       title: "Professores",
       url: "/professor",
