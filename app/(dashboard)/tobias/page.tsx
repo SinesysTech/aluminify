@@ -131,12 +131,10 @@ export default function TobIAsPage() {
     onError: (error) => {
       console.error('[Chat Client] Error:', error)
     },
-    onResponse: (response) => {
-      console.log('[Chat Client] Response received:', response.status, response.statusText)
-    },
-    onFinish: (message) => {
-      console.log('[Chat Client] Message finished:', message.id, message.role)
-      console.log('[Chat Client] Message parts:', message.parts?.length || 0)
+    onFinish: (result) => {
+      console.log('[Chat Client] Message finished:', result.message.id, result.message.role)
+      console.log('[Chat Client] Message parts:', result.message.parts?.length || 0)
+      console.log('[Chat Client] Finish reason:', result.finishReason)
     },
   })
   

@@ -320,37 +320,40 @@ async function postStreamHandler(request: AuthenticatedRequest) {
           
           // Aguardar resposta do callback (polling com conexão mantida aberta)
           while (Date.now() - startTime < maxWaitTime) {
-            const response = getPendingResponse(sessionId);
-            
+            const response = await getPendingResponse(sessionId);
+
             if (response && response.chunks.length > processedChunks) {
               // Há novos chunks disponíveis
               const newChunks = response.chunks.slice(processedChunks);
-              
+
+              console.log(`[Chat API] 📦 Novos chunks disponíveis: ${newChunks.length} (total: ${response.chunks.length}, processados: ${processedChunks})`);
+
               for (const chunk of newChunks) {
                 if (!responseStarted) {
                   responseStarted = true;
-                  console.log('[Chat API] Primeira resposta recebida do callback');
+                  console.log('[Chat API] ✅ Primeira resposta recebida do callback');
                 }
-                
+
                 const deltaChunk = {
                   type: 'text-delta',
                   id: messageId,
                   delta: chunk,
                 };
                 const deltaData = '0:' + JSON.stringify(deltaChunk) + '\n';
-                console.log('[Chat API] Sending text-delta chunk (length:', chunk.length, ')');
+                console.log('[Chat API] 📤 Enviando text-delta chunk (length:', chunk.length, 'chars)');
+                console.log('[Chat API] 📝 Preview:', chunk.substring(0, 50));
                 controller.enqueue(encoder.encode(deltaData));
               }
-              
+
               processedChunks = response.chunks.length;
-              
+
               // Se a resposta estiver completa, finalizar
               if (response.isComplete) {
-                console.log('[Chat API] Resposta completa recebida, finalizando stream');
+                console.log('[Chat API] ✅ Resposta completa recebida, finalizando stream');
                 break;
               }
             }
-            
+
             // Aguardar antes de verificar novamente (mantém a conexão aberta)
             await new Promise(resolve => setTimeout(resolve, pollInterval));
           }
@@ -370,8 +373,9 @@ async function postStreamHandler(request: AuthenticatedRequest) {
           
           // Limpar resposta após uso (mas manter a conexão para próximas mensagens)
           // Não limpar imediatamente para permitir reconexão
-          setTimeout(() => {
-            clearPendingResponse(sessionId);
+          setTimeout(async () => {
+            await clearPendingResponse(sessionId);
+            console.log('[Chat API] 🗑️  Resposta limpa do cache para sessionId:', sessionId);
           }, 10000); // Limpar após 10 segundos
           
           // Enviar evento de finalização
