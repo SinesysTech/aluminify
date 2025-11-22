@@ -84,16 +84,16 @@ class ResponseStore {
     if (this.useRedis && this.redis) {
       try {
         const key = this.getRedisKey(sessionId);
-        const data = await this.redis.get<string>(key);
+        // Upstash REST API retorna o valor diretamente como objeto se for JSON
+        const data = await this.redis.get<ChatResponseData>(key);
 
         if (!data) {
           console.log(`[Response Store] Redis GET: ${key} - não encontrado`);
           return null;
         }
 
-        const parsed = JSON.parse(data) as ChatResponseData;
-        console.log(`[Response Store] Redis GET: ${key} - ${parsed.chunks.length} chunks, complete: ${parsed.isComplete}`);
-        return parsed;
+        console.log(`[Response Store] Redis GET: ${key} - ${data.chunks.length} chunks, complete: ${data.isComplete}`);
+        return data;
       } catch (error) {
         console.error('[Response Store] Erro ao ler do Redis:', error);
         // Fallback para memória em caso de erro
