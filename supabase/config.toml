@@ -1,0 +1,7 @@
+# Configuração para Edge Functions
+# Com as novas chaves publishable/secret, precisamos desabilitar verify_jwt
+# e implementar validação manual do JWT do usuário
+
+[functions.gerar-cronograma]
+verify_jwt = false
+

@@ -168,7 +168,7 @@ export default function TobIAsPage() {
   }
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || !userId || isLoading) {
+    if (!text.trim() || !userId || !accessToken || isLoading) {
       return
     }
 
@@ -189,6 +189,11 @@ export default function TobIAsPage() {
             await loadConversation(activeConversation)
           } else {
             // Criar nova conversa se não houver nenhuma ativa
+            if (!accessToken) {
+              console.error('[TobIAs] Cannot create conversation: accessToken is null')
+              return
+            }
+            
             const createResponse = await fetch('/api/conversations', {
               method: 'POST',
               headers: {

@@ -10,6 +10,7 @@ import {
   FileText,
   MessageSquare,
   Calendar,
+  CalendarCheck,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 
@@ -66,6 +67,12 @@ const navMainData = [
       title: "Conteúdo Programático",
       url: "/conteudos",
       icon: Calendar,
+      isActive: false,
+    },
+    {
+      title: "Meu Cronograma",
+      url: "/aluno/cronograma",
+      icon: CalendarCheck,
       isActive: false,
     },
 ]

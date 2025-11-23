@@ -239,6 +239,39 @@ export default function ConteudosPage() {
     fetchModulosEAulas()
   }, [supabase, frenteSelecionada])
 
+  // Função auxiliar para formatar tempo (minutos para minutos/horas)
+  const formatTempo = (minutos: number): string => {
+    if (minutos < 60) {
+      return `${minutos} min`
+    }
+    const horas = Math.floor(minutos / 60)
+    const mins = minutos % 60
+    if (mins === 0) {
+      return `${horas}h`
+    }
+    return `${horas}h ${mins} min`
+  }
+
+  // Calcular estatísticas de um módulo
+  const calcularEstatisticasModulo = (aulas: Aula[]) => {
+    const totalAulas = aulas.length
+    const tempoTotal = aulas.reduce((sum, aula) => {
+      return sum + (aula.tempo_estimado_minutos || 0)
+    }, 0)
+    return { totalAulas, tempoTotal }
+  }
+
+  // Calcular estatísticas de uma frente (todos os módulos)
+  const calcularEstatisticasFrente = (modulos: Modulo[]) => {
+    const totalAulas = modulos.reduce((sum, modulo) => sum + modulo.aulas.length, 0)
+    const tempoTotal = modulos.reduce((sum, modulo) => {
+      return sum + modulo.aulas.reduce((aulaSum, aula) => {
+        return aulaSum + (aula.tempo_estimado_minutos || 0)
+      }, 0)
+    }, 0)
+    return { totalAulas, tempoTotal }
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -263,7 +296,8 @@ export default function ConteudosPage() {
             return
           }
 
-          const workbook = XLSX.read(data, { type: 'binary' })
+          // Usar ArrayBuffer ao invés de binary string (readAsBinaryString está deprecated)
+          const workbook = XLSX.read(data, { type: 'array' })
           
           // Pegar a primeira planilha
           const firstSheetName = workbook.SheetNames[0]
@@ -329,7 +363,8 @@ export default function ConteudosPage() {
         reject(new Error('Erro ao ler arquivo XLSX'))
       }
 
-      reader.readAsBinaryString(file)
+      // Usar readAsArrayBuffer ao invés de readAsBinaryString (deprecated)
+      reader.readAsArrayBuffer(file)
     })
   }
 
@@ -943,8 +978,39 @@ export default function ConteudosPage() {
             )}
 
             {!isLoadingContent && frenteSelecionada && modulos.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {modulos.map((modulo) => {
+              <div className="mt-4 space-y-4">
+                {/* Resumo da Frente */}
+                {(() => {
+                  const { totalAulas, tempoTotal } = calcularEstatisticasFrente(modulos)
+                  const frenteSelecionadaData = frentes.find(f => f.id === frenteSelecionada)
+                  return (
+                    <div className="rounded-lg border-2 bg-primary/5 p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            Resumo: {frenteSelecionadaData?.nome || 'N/A'}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {modulos.length} módulo{modulos.length !== 1 ? 's' : ''} cadastrado{modulos.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold">
+                            {totalAulas} aula{totalAulas !== 1 ? 's' : ''}
+                          </div>
+                          {tempoTotal > 0 && (
+                            <div className="text-lg text-muted-foreground mt-1">
+                              {formatTempo(tempoTotal)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
+                
+                <div className="space-y-2">
+                  {modulos.map((modulo) => {
                   const isOpen = modulosAbertos.has(modulo.id)
                   const toggleModulo = (open: boolean) => {
                     setModulosAbertos((prev) => {
@@ -1028,11 +1094,33 @@ export default function ConteudosPage() {
                             )}
                           </TableBody>
                         </Table>
+                        {/* Resumo do Módulo */}
+                        {modulo.aulas.length > 0 && (() => {
+                          const { totalAulas, tempoTotal } = calcularEstatisticasModulo(modulo.aulas)
+                          return (
+                            <div className="border-t bg-muted/50 px-4 py-3">
+                              <div className="flex items-center justify-between text-sm font-medium">
+                                <span>Total do Módulo:</span>
+                                <div className="flex items-center gap-4">
+                                  <span className="text-muted-foreground">
+                                    {totalAulas} aula{totalAulas !== 1 ? 's' : ''}
+                                  </span>
+                                  {tempoTotal > 0 && (
+                                    <span className="text-muted-foreground">
+                                      {formatTempo(tempoTotal)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()}
                       </div>
                     </CollapsibleContent>
                     </Collapsible>
                   )
                 })}
+                </div>
               </div>
             )}
           </CardContent>
