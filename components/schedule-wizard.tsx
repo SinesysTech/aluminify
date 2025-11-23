@@ -38,7 +38,7 @@ const wizardSchema = z.object({
   prioridade_minima: z.number().min(1).max(5),
   modalidade: z.enum(['paralelo', 'sequencial']),
   ordem_frentes_preferencia: z.array(z.string()).optional(),
-  nome: z.string().optional(),
+  nome: z.string().min(1, 'Nome do cronograma é obrigatório'),
 }).refine((data) => data.data_fim > data.data_inicio, {
   message: 'Data de término deve ser posterior à data de início',
   path: ['data_fim'],
@@ -139,6 +139,17 @@ export function ScheduleWizard() {
   }, [form.watch('disciplinas_ids')])
 
   const onSubmit = async (data: WizardFormData) => {
+    // Validar que estamos no último step
+    if (currentStep !== STEPS.length) {
+      return
+    }
+
+    // Validar que o nome foi preenchido
+    if (!data.nome || data.nome.trim().length === 0) {
+      setError('Por favor, informe um nome para o cronograma')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -161,7 +172,7 @@ export function ScheduleWizard() {
         disciplinas_ids: data.disciplinas_ids,
         modalidade: data.modalidade,
         curso_alvo_id: data.curso_alvo_id,
-        nome: data.nome,
+        nome: data.nome.trim(), // Garantir que não há espaços extras
         ordem_frentes_preferencia: data.ordem_frentes_preferencia,
       }
 
@@ -272,7 +283,16 @@ export function ScheduleWizard() {
           <Progress value={progress} className="mt-4" />
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault()
+              // Só submete se estiver no último step e o nome estiver preenchido
+              if (currentStep === STEPS.length && form.watch('nome')?.trim()) {
+                form.handleSubmit(onSubmit)(e)
+              }
+            }} 
+            className="space-y-6"
+          >
             {/* Step 1: Definições de Tempo */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -554,11 +574,16 @@ export function ScheduleWizard() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Nome do Cronograma (Opcional)</Label>
+                  <Label>Nome do Cronograma *</Label>
                   <Input
-                    placeholder="Meu Cronograma"
+                    placeholder="Ex: Meu Cronograma de Estudos 2024"
                     {...form.register('nome')}
                   />
+                  {form.formState.errors.nome && (
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.nome.message}
+                    </p>
+                  )}
                 </div>
 
                 <Card>
@@ -620,7 +645,10 @@ export function ScheduleWizard() {
                   Próximo
                 </Button>
               ) : (
-                <Button type="submit" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  disabled={loading || !form.watch('nome') || form.watch('nome')?.trim().length === 0}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

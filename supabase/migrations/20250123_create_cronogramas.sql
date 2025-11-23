@@ -92,3 +92,4 @@ CREATE POLICY "Aluno gerencia itens do seu cronograma"
         )
     );
 
+

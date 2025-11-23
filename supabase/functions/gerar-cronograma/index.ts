@@ -52,19 +52,29 @@ interface SemanaInfo {
   capacidade_minutos: number;
 }
 
+// Headers CORS para todas as respostas
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 Deno.serve(async (req: Request) => {
+  console.log("=== INÍCIO DA REQUISIÇÃO ===");
+  console.log("Método:", req.method);
+  console.log("URL:", req.url);
+  
   try {
     // CORS headers
     if (req.method === "OPTIONS") {
+      console.log("Resposta OPTIONS");
       return new Response(null, {
         status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-        },
+        headers: corsHeaders,
       });
     }
+    
+    console.log("Processando requisição POST");
 
     // Validar método
     if (req.method !== "POST") {
@@ -72,7 +82,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Método não permitido. Use POST." }),
         {
           status: 405,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -81,13 +94,26 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     
+    console.log("Variáveis de ambiente:", {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      urlLength: supabaseUrl.length,
+      serviceKeyLength: supabaseServiceKey.length,
+    });
+    
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error("Variáveis de ambiente não configuradas");
+      console.error("Variáveis de ambiente não configuradas", {
+        supabaseUrl: supabaseUrl ? "OK" : "MISSING",
+        supabaseServiceKey: supabaseServiceKey ? "OK" : "MISSING",
+      });
       return new Response(
         JSON.stringify({ error: "Configuração do servidor inválida" }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -101,7 +127,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Token de autenticação não fornecido" }),
         {
           status: 401,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -118,7 +147,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Configuração do servidor inválida" }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -140,51 +172,94 @@ Deno.serve(async (req: Request) => {
     // Validar manualmente o JWT do usuário
     // Com as novas chaves publishable/secret, verify_jwt pode não funcionar
     // Precisamos validar manualmente o token JWT do usuário
+    console.log("Iniciando validação do JWT...");
     let userId: string;
     try {
-      // Usar o cliente com ANON_KEY para validar o token do usuário
-      // O token JWT do usuário é enviado automaticamente pelo cliente Supabase
+      console.log("Chamando supabase.auth.getUser()...");
+      // getUser() sem parâmetros usa o token do header Authorization
+      // que foi passado no createClient acima
       const {
         data: { user: userData },
         error: authError,
       } = await supabase.auth.getUser();
 
+      console.log("Resposta do getUser():", {
+        hasUser: !!userData,
+        hasError: !!authError,
+        errorMessage: authError?.message,
+        userId: userData?.id,
+      });
+
       if (authError || !userData) {
-        console.error("Erro ao validar token:", authError);
+        console.error("Erro ao validar token:", {
+          error: authError,
+          errorMessage: authError?.message,
+          errorCode: authError?.status,
+        });
         return new Response(
           JSON.stringify({ 
             error: "Token inválido ou expirado: " + (authError?.message || "Usuário não encontrado") 
           }),
           {
             status: 401,
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
           }
         );
       }
 
       userId = userData.id;
+      console.log("Usuário autenticado com sucesso:", userId);
     } catch (authErr: any) {
-      console.error("Erro ao validar autenticação:", authErr);
+      console.error("=== ERRO NA VALIDAÇÃO DE AUTENTICAÇÃO ===");
+      console.error("Tipo:", authErr?.constructor?.name);
+      console.error("Mensagem:", authErr?.message);
+      console.error("Stack:", authErr?.stack);
+      console.error("Erro completo:", JSON.stringify(authErr, Object.getOwnPropertyNames(authErr)));
+      
       return new Response(
-        JSON.stringify({ error: "Erro ao validar autenticação: " + (authErr.message || "Desconhecido") }),
+        JSON.stringify({ 
+          error: "Erro ao validar autenticação: " + (authErr?.message || "Desconhecido"),
+          tipo: authErr?.constructor?.name || "Unknown",
+        }),
         {
           status: 401,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
 
     // Parse do body
+    console.log("Fazendo parse do body...");
     let input: GerarCronogramaInput;
     try {
       input = await req.json();
+      console.log("Body parseado com sucesso. Campos recebidos:", {
+        hasAlunoId: !!input.aluno_id,
+        hasDataInicio: !!input.data_inicio,
+        hasDataFim: !!input.data_fim,
+        disciplinasCount: input.disciplinas_ids?.length || 0,
+        modalidade: input.modalidade,
+      });
     } catch (parseError: any) {
-      console.error("Erro ao fazer parse do body:", parseError);
+      console.error("=== ERRO AO FAZER PARSE DO BODY ===");
+      console.error("Tipo:", parseError?.constructor?.name);
+      console.error("Mensagem:", parseError?.message);
+      console.error("Stack:", parseError?.stack);
+      
       return new Response(
         JSON.stringify({ error: "Erro ao processar dados da requisição: " + (parseError.message || "Formato inválido") }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -195,7 +270,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Campos obrigatórios: aluno_id, data_inicio, data_fim" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -206,7 +284,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Você só pode criar cronogramas para si mesmo" }),
         {
           status: 403,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -220,7 +301,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Datas inválidas" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -230,7 +314,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "data_fim deve ser posterior a data_inicio" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -297,7 +384,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Erro ao buscar frentes: " + frentesError.message }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -309,7 +399,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Nenhuma frente encontrada para as disciplinas selecionadas" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -326,7 +419,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Erro ao buscar módulos: " + modulosError.message }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -338,7 +434,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Nenhum módulo encontrado para as frentes selecionadas" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -377,7 +476,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Erro ao buscar aulas: " + aulasError.message }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -387,7 +489,10 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Nenhuma aula encontrada com os critérios fornecidos" }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -469,7 +574,10 @@ Deno.serve(async (req: Request) => {
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -657,7 +765,10 @@ Deno.serve(async (req: Request) => {
         }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -683,7 +794,10 @@ Deno.serve(async (req: Request) => {
         }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
         }
       );
     }
@@ -733,22 +847,28 @@ Deno.serve(async (req: Request) => {
         status: 201,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders,
         },
       }
     );
   } catch (error) {
-    console.error("Erro inesperado:", error);
+    console.error("=== ERRO INESPERADO ===");
+    console.error("Tipo do erro:", error?.constructor?.name);
+    console.error("Mensagem:", error instanceof Error ? error.message : String(error));
+    console.error("Stack:", error instanceof Error ? error.stack : "N/A");
+    console.error("Erro completo:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    
     return new Response(
       JSON.stringify({
         error: "Erro interno do servidor",
         detalhes: error instanceof Error ? error.message : String(error),
+        tipo: error?.constructor?.name || "Unknown",
       }),
       {
         status: 500,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders,
         },
       }
     );
