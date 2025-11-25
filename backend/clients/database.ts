@@ -14,16 +14,28 @@ if (!DATABASE_URL || !DATABASE_KEY) {
   );
 }
 
+// TypeScript type narrowing - após a verificação acima, sabemos que estas variáveis estão definidas
+const DB_URL: string = DATABASE_URL;
+const DB_KEY: string = DATABASE_KEY;
+
 let cachedClient: SupabaseClient | null = null;
 
 export function getDatabaseClient(): SupabaseClient {
   if (!cachedClient) {
-    cachedClient = createClient(DATABASE_URL, DATABASE_KEY, {
+    cachedClient = createClient(DB_URL, DB_KEY, {
       auth: {
         persistSession: false,
+      },
+      db: {
+        schema: 'public',
       },
     });
   }
   return cachedClient;
+}
+
+// Função para recriar o cliente (útil quando há mudanças no schema)
+export function clearDatabaseClientCache(): void {
+  cachedClient = null;
 }
 

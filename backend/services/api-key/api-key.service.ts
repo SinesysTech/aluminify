@@ -29,7 +29,7 @@ export class ApiKeyService {
 
   async create(payload: CreateApiKeyInput, createdBy: string): Promise<ApiKey & { plainKey: string }> {
     const name = this.validateName(payload.name);
-    const expiresAt = payload.expiresAt ? this.validateDate(payload.expiresAt) : null;
+    const expiresAt = payload.expiresAt ? this.validateDateString(payload.expiresAt) : undefined;
 
     // Gerar chave única
     const plainKey = this.generateApiKey();
@@ -63,7 +63,7 @@ export class ApiKeyService {
     }
 
     if (payload.expiresAt !== undefined) {
-      updateData.expiresAt = payload.expiresAt ? this.validateDate(payload.expiresAt) : null;
+      updateData.expiresAt = payload.expiresAt ? this.validateDateString(payload.expiresAt) : null;
     }
 
     return this.repository.update(id, updateData);
@@ -126,6 +126,14 @@ export class ApiKeyService {
       throw new ApiKeyValidationError('Invalid date format');
     }
     return date;
+  }
+
+  private validateDateString(dateString: string): string {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new ApiKeyValidationError('Invalid date format');
+    }
+    return date.toISOString();
   }
 
   private generateApiKey(): string {

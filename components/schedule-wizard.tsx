@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,8 +13,17 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import * as AccordionPrimitive from '@radix-ui/react-accordion'
+import { ChevronDownIcon } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -34,8 +43,8 @@ import { ptBR } from 'date-fns/locale/pt-BR'
 import { cn } from '@/lib/utils'
 
 const wizardSchema = z.object({
-  data_inicio: z.date({ required_error: 'Data de início é obrigatória' }),
-  data_fim: z.date({ required_error: 'Data de término é obrigatória' }),
+  data_inicio: z.date({ message: 'Data de início é obrigatória' }),
+  data_fim: z.date({ message: 'Data de término é obrigatória' }),
   dias_semana: z.number().min(1).max(7),
   horas_dia: z.number().min(1),
   ferias: z.array(z.object({
@@ -47,7 +56,10 @@ const wizardSchema = z.object({
   prioridade_minima: z.number().min(1).max(5),
   modalidade: z.enum(['paralelo', 'sequencial']),
   ordem_frentes_preferencia: z.array(z.string()).optional(),
+  modulos_ids: z.array(z.string()).optional(),
+  excluir_aulas_concluidas: z.boolean().optional(),
   nome: z.string().min(1, 'Nome do cronograma é obrigatório'),
+  velocidade_reproducao: z.number().min(1.0).max(2.0).default(1.0),
 }).refine((data) => data.data_fim > data.data_inicio, {
   message: 'Data de término deve ser posterior à data de início',
   path: ['data_fim'],
@@ -62,13 +74,60 @@ const STEPS = [
   { id: 4, title: 'Revisão e Geração' },
 ]
 
+const MODALIDADES = [
+  { nivel: 1, label: 'Super Extensivo' },
+  { nivel: 2, label: 'Extensivo' },
+  { nivel: 3, label: 'Semi Extensivo' },
+  { nivel: 4, label: 'Intensivo' },
+  { nivel: 5, label: 'Superintensivo' },
+]
+
+const TEMPO_PADRAO_MINUTOS = 10
+const FATOR_MULTIPLICADOR = 1.5
+
+type ModalidadeStats = {
+  tempoAulaMinutos: number
+  tempoEstudoMinutos: number
+  totalAulas: number
+}
+
+type ModuloResumo = {
+  id: string
+  nome: string
+  numero_modulo: number | null
+  totalAulas: number
+  tempoTotal: number
+  concluidas: number
+}
+
+type FrenteResumo = {
+  id: string
+  nome: string
+  modulos: ModuloResumo[]
+}
+
+const formatHorasFromMinutes = (minutos?: number) => {
+  if (!minutos || minutos <= 0) {
+    return '--'
+  }
+
+  const horas = minutos / 60
+  const isInt = Number.isInteger(horas)
+
+  return `${horas.toLocaleString('pt-BR', {
+    minimumFractionDigits: isInt ? 0 : 1,
+    maximumFractionDigits: 1,
+  })}h`
+}
+
 export function ScheduleWizard() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cursos, setCursos] = useState<any[]>([])
-  const [disciplinas, setDisciplinas] = useState<any[]>([])
+  const [disciplinas, setDisciplinas] = useState<any[]>([]) // Todas as disciplinas (para referência)
+  const [disciplinasDoCurso, setDisciplinasDoCurso] = useState<any[]>([]) // Disciplinas do curso selecionado
   const [frentes, setFrentes] = useState<any[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [showTempoInsuficienteDialog, setShowTempoInsuficienteDialog] = useState(false)
@@ -77,18 +136,36 @@ export function ScheduleWizard() {
     horasDisponiveis: number
     horasDiaNecessarias: number
   } | null>(null)
+  const [modalidadeStats, setModalidadeStats] = useState<Record<number, ModalidadeStats>>({})
+  const [modalidadeStatsLoading, setModalidadeStatsLoading] = useState(false)
+  const [modalidadeStatsError, setModalidadeStatsError] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [modulosCurso, setModulosCurso] = useState<FrenteResumo[]>([])
+  const [modulosCursoAgrupadosPorDisciplina, setModulosCursoAgrupadosPorDisciplina] = useState<Record<string, { disciplinaNome: string; frentes: FrenteResumo[] }>>({})
+  const [modulosSelecionados, setModulosSelecionados] = useState<string[]>([])
+  const [modulosLoading, setModulosLoading] = useState(false)
+  const [completedLessonsCount, setCompletedLessonsCount] = useState(0)
 
   const form = useForm<WizardFormData>({
-    resolver: zodResolver(wizardSchema),
+    resolver: zodResolver(wizardSchema) as any,
     defaultValues: {
       dias_semana: 3,
       horas_dia: 2,
-      prioridade_minima: 4,
+      prioridade_minima: 2, // Extensivo
       modalidade: 'paralelo',
       disciplinas_ids: [],
       ferias: [],
+      modulos_ids: [],
+      excluir_aulas_concluidas: true,
+      velocidade_reproducao: 1.0,
     },
   })
+
+  const cursoSelecionado = form.watch('curso_alvo_id')
+  const cursoAtual = React.useMemo(
+    () => cursos.find((curso) => curso.id === cursoSelecionado) ?? null,
+    [cursos, cursoSelecionado],
+  )
 
   // Carregar cursos e disciplinas
   React.useEffect(() => {
@@ -100,18 +177,75 @@ export function ScheduleWizard() {
         router.push('/auth/login')
         return
       }
+      setUserId(user.id)
 
-      // Buscar cursos do aluno
-      const { data: matriculas } = await supabase
-        .from('matriculas')
-        .select('curso_id, cursos(*)')
-        .eq('aluno_id', user.id)
-        .eq('ativo', true)
+      // Verificar se o usuário é professor
+      const { data: professorData, error: professorError } = await supabase
+        .from('professores')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
 
-      if (matriculas) {
-        const cursosData = matriculas.map((m: any) => m.cursos).filter(Boolean)
-        setCursos(cursosData)
+      if (professorError) {
+        console.error('Erro ao verificar se é professor:', professorError)
       }
+
+      const isProfessor = !!professorData
+      console.log(`Usuário ${user.id} é professor: ${isProfessor}`)
+
+      // Buscar cursos: se for professor, buscar cursos que ele criou; se for aluno, buscar através de matrículas
+      let cursosData: any[] = []
+
+      if (isProfessor) {
+        // Professor vê todos os cursos disponíveis (os que ele criou + cursos sem created_by para testes)
+        // Buscar cursos em duas queries para evitar problemas com RLS
+        const [cursosDoProfessor, cursosSemCriador] = await Promise.all([
+          supabase
+            .from('cursos')
+            .select('*')
+            .eq('created_by', user.id)
+            .order('nome', { ascending: true }),
+          supabase
+            .from('cursos')
+            .select('*')
+            .is('created_by', null)
+            .order('nome', { ascending: true }),
+        ])
+
+        if (cursosDoProfessor.error) {
+          console.error('Erro ao carregar cursos do professor:', cursosDoProfessor.error)
+        }
+        if (cursosSemCriador.error) {
+          console.error('Erro ao carregar cursos sem criador:', cursosSemCriador.error)
+        }
+
+        // Combinar resultados e remover duplicatas
+        const todosCursos = [
+          ...(cursosDoProfessor.data || []),
+          ...(cursosSemCriador.data || []),
+        ]
+        
+        // Remover duplicatas por ID
+        const cursosUnicos = Array.from(
+          new Map(todosCursos.map((curso: any) => [curso.id, curso])).values()
+        ).sort((a: any, b: any) => a.nome.localeCompare(b.nome))
+
+        cursosData = cursosUnicos
+        console.log(`Professor ${user.id} encontrou ${cursosUnicos.length} curso(s):`, cursosUnicos.map((c: any) => c.nome))
+      } else {
+        // Aluno vê cursos através de matrículas
+        const { data: matriculas } = await supabase
+          .from('matriculas')
+          .select('curso_id, cursos(*)')
+          .eq('aluno_id', user.id)
+          .eq('ativo', true)
+
+        if (matriculas) {
+          cursosData = matriculas.map((m: any) => m.cursos).filter(Boolean)
+        }
+      }
+
+      setCursos(cursosData)
 
       // Buscar todas as disciplinas
       const { data: disciplinasData } = await supabase
@@ -129,11 +263,75 @@ export function ScheduleWizard() {
     loadData()
   }, [router])
 
-  // Carregar frentes quando disciplinas são selecionadas
+  // Carregar disciplinas do curso selecionado
+  React.useEffect(() => {
+    async function loadDisciplinasDoCurso() {
+      if (!cursoSelecionado) {
+        setDisciplinasDoCurso([])
+        form.setValue('disciplinas_ids', [])
+        return
+      }
+
+      const supabase = createClient()
+      try {
+        // Buscar disciplinas do curso através da tabela cursos_disciplinas
+        const { data: cursosDisciplinas, error: cdError } = await supabase
+          .from('cursos_disciplinas')
+          .select('disciplina_id')
+          .eq('curso_id', cursoSelecionado)
+
+        if (cdError) {
+          console.error('Erro ao carregar disciplinas do curso:', cdError)
+          setDisciplinasDoCurso([])
+          form.setValue('disciplinas_ids', [])
+          return
+        }
+
+        if (!cursosDisciplinas || cursosDisciplinas.length === 0) {
+          setDisciplinasDoCurso([])
+          form.setValue('disciplinas_ids', [])
+          return
+        }
+
+        // Buscar detalhes das disciplinas
+        const disciplinaIds = cursosDisciplinas.map((cd) => cd.disciplina_id)
+        const { data: disciplinasData, error: discError } = await supabase
+          .from('disciplinas')
+          .select('id, nome')
+          .in('id', disciplinaIds)
+          .order('nome', { ascending: true })
+
+        if (discError) {
+          console.error('Erro ao carregar detalhes das disciplinas:', discError)
+          setDisciplinasDoCurso([])
+          form.setValue('disciplinas_ids', [])
+          return
+        }
+
+        setDisciplinasDoCurso(disciplinasData || [])
+        
+        // Se houver apenas uma disciplina, selecionar automaticamente
+        if (disciplinasData && disciplinasData.length === 1) {
+          form.setValue('disciplinas_ids', [disciplinasData[0].id])
+        } else {
+          // Se houver múltiplas, deixar o usuário escolher
+          form.setValue('disciplinas_ids', [])
+        }
+      } catch (err) {
+        console.error('Erro ao carregar disciplinas do curso:', err)
+        setDisciplinasDoCurso([])
+        form.setValue('disciplinas_ids', [])
+      }
+    }
+
+    loadDisciplinasDoCurso()
+  }, [cursoSelecionado, form])
+
+  // Carregar frentes quando disciplinas são selecionadas (filtradas pelo curso também)
   React.useEffect(() => {
     async function loadFrentes() {
       const disciplinasIds = form.watch('disciplinas_ids')
-      if (disciplinasIds.length === 0) {
+      if (!disciplinasIds || disciplinasIds.length === 0 || !cursoSelecionado) {
         setFrentes([])
         return
       }
@@ -142,6 +340,7 @@ export function ScheduleWizard() {
       const { data } = await supabase
         .from('frentes')
         .select('*')
+        .eq('curso_id', cursoSelecionado)
         .in('disciplina_id', disciplinasIds)
         .order('nome')
 
@@ -151,6 +350,351 @@ export function ScheduleWizard() {
     }
 
     loadFrentes()
+  }, [form.watch('disciplinas_ids'), cursoSelecionado])
+
+  useEffect(() => {
+    if (!cursoSelecionado || !userId) {
+      setModulosCurso([])
+      setModulosSelecionados([])
+      setCompletedLessonsCount(0)
+      return
+    }
+
+    const disciplinasIds = form.watch('disciplinas_ids')
+    if (!disciplinasIds || disciplinasIds.length === 0) {
+      setModulosCurso([])
+      setModulosSelecionados([])
+      setCompletedLessonsCount(0)
+      return
+    }
+
+    let cancelled = false
+
+    const loadModulosDoCurso = async () => {
+      setModulosLoading(true)
+      const supabase = createClient()
+
+      try {
+        // Buscar frentes com informações da disciplina
+        const { data: frentesData, error: frentesError } = await supabase
+          .from('frentes')
+          .select('id, nome, disciplina_id, disciplinas(nome)')
+          .eq('curso_id', cursoSelecionado)
+          .in('disciplina_id', disciplinasIds)
+          .order('nome', { ascending: true })
+
+        if (frentesError) {
+          console.error('Erro ao buscar frentes:', {
+            message: frentesError.message,
+            details: frentesError.details,
+            hint: frentesError.hint,
+            code: frentesError.code,
+            cursoSelecionado,
+            disciplinasIds,
+          })
+          throw frentesError
+        }
+
+        if (!frentesData || frentesData.length === 0) {
+          console.log('Nenhuma frente encontrada para o curso e disciplinas selecionadas')
+          setModulosCurso([])
+          setModulosCursoAgrupadosPorDisciplina({})
+          setModulosSelecionados([])
+          setCompletedLessonsCount(0)
+          setError(null)
+          return
+        }
+
+        const frenteIds = frentesData.map((f: any) => f.id)
+
+        // Buscar módulos das frentes
+        const { data: modulosData, error: modulosError } = await supabase
+          .from('modulos')
+          .select('id, nome, numero_modulo, frente_id')
+          .in('frente_id', frenteIds)
+          .order('numero_modulo', { ascending: true })
+
+        if (modulosError) {
+          console.error('Erro ao buscar módulos:', {
+            message: modulosError.message,
+            details: modulosError.details,
+            code: modulosError.code,
+          })
+          throw modulosError
+        }
+
+        if (!modulosData || modulosData.length === 0) {
+          console.log('Nenhum módulo encontrado para as frentes')
+          // Criar estrutura vazia com as frentes
+          const arvore = frentesData.map((frente: any) => ({
+            id: frente.id,
+            nome: frente.nome,
+            modulos: [],
+          }))
+          if (cancelled) {
+            return
+          }
+          setModulosCurso(arvore)
+          setModulosCursoAgrupadosPorDisciplina({})
+          setModulosSelecionados([])
+          setCompletedLessonsCount(0)
+          setError(null)
+          setModulosLoading(false)
+          return
+        }
+
+        const moduloIds = modulosData.map((m: any) => m.id)
+        
+        if (moduloIds.length === 0) {
+          console.log('Nenhum ID de módulo válido encontrado')
+          if (cancelled) {
+            return
+          }
+          setModulosCurso([])
+          setModulosCursoAgrupadosPorDisciplina({})
+          setModulosSelecionados([])
+          setCompletedLessonsCount(0)
+          setError(null)
+          setModulosLoading(false)
+          return
+        }
+
+        // Buscar aulas dos módulos
+        const { data: aulasData, error: aulasError } = await supabase
+          .from('aulas')
+          .select('id, modulo_id, tempo_estimado_minutos')
+          .in('modulo_id', moduloIds)
+
+        if (aulasError) {
+          console.error('Erro ao buscar aulas:', {
+            message: aulasError.message,
+            details: aulasError.details,
+            code: aulasError.code,
+          })
+          // Não falhar se não conseguir buscar aulas, apenas logar
+          console.warn('Continuando sem dados de aulas')
+        }
+
+        // Buscar aulas concluídas (pode não existir a tabela, então tratar erro separadamente)
+        let concluidasSet = new Set<string>()
+        try {
+          const { data: concluidasData, error: concluidasError } = await supabase
+            .from('aulas_concluidas')
+            .select('aula_id')
+            .eq('aluno_id', userId)
+            .eq('curso_id', cursoSelecionado)
+
+          if (concluidasError) {
+            // Se a tabela não existir ou houver erro, apenas logar e continuar
+            console.warn('Aviso ao buscar aulas concluídas (pode não existir a tabela):', {
+              message: concluidasError.message,
+              details: concluidasError.details,
+              code: concluidasError.code,
+            })
+          } else if (concluidasData) {
+            concluidasSet = new Set(concluidasData.map((row) => row.aula_id as string))
+          }
+        } catch (concluidasErr: any) {
+          // Se houver erro na tabela aulas_concluidas, apenas logar e continuar
+          console.warn('Aviso: não foi possível buscar aulas concluídas:', {
+            message: concluidasErr?.message,
+            details: concluidasErr?.details,
+            code: concluidasErr?.code,
+          })
+        }
+
+        // Agrupar módulos por frente
+        const modulosPorFrente = new Map<string, any[]>()
+        modulosData.forEach((modulo: any) => {
+          if (!modulosPorFrente.has(modulo.frente_id)) {
+            modulosPorFrente.set(modulo.frente_id, [])
+          }
+          modulosPorFrente.get(modulo.frente_id)!.push(modulo)
+        })
+
+        // Agrupar aulas por módulo
+        const aulasPorModulo = new Map<string, any[]>()
+        if (aulasData) {
+          aulasData.forEach((aula: any) => {
+            if (!aulasPorModulo.has(aula.modulo_id)) {
+              aulasPorModulo.set(aula.modulo_id, [])
+            }
+            aulasPorModulo.get(aula.modulo_id)!.push(aula)
+          })
+        }
+
+        // Construir árvore de frentes > módulos > aulas
+        const arvore = frentesData.map((frente: any) => {
+          const modulos = (modulosPorFrente.get(frente.id) || []).map((modulo: any) => {
+            const aulas = aulasPorModulo.get(modulo.id) || []
+            const totalAulas = aulas.length
+            const tempoTotal = aulas.reduce(
+              (acc: number, aula: any) => acc + (aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS),
+              0,
+            )
+            const concluidas = aulas.filter((aula: any) => concluidasSet.has(aula.id)).length
+
+            return {
+              id: modulo.id,
+              nome: modulo.nome,
+              numero_modulo: modulo.numero_modulo,
+              totalAulas,
+              tempoTotal,
+              concluidas,
+            }
+          })
+
+          return {
+            id: frente.id,
+            nome: frente.nome,
+            modulos,
+          }
+        })
+
+        if (cancelled) {
+          return
+        }
+
+        // Filtrar frentes que têm pelo menos um módulo
+        const arvoreComModulos = arvore.filter((frente) => frente.modulos.length > 0)
+
+        // Agrupar por disciplina
+        const agrupadosPorDisciplina: Record<string, { disciplinaNome: string; frentes: FrenteResumo[] }> = {}
+        arvoreComModulos.forEach((frente: any) => {
+          const disciplinaId = frentesData.find((f: any) => f.id === frente.id)?.disciplina_id
+          const disciplinaNome = (frentesData.find((f: any) => f.id === frente.id)?.disciplinas as any)?.nome || 'Sem disciplina'
+          
+          if (!agrupadosPorDisciplina[disciplinaId || 'sem-id']) {
+            agrupadosPorDisciplina[disciplinaId || 'sem-id'] = {
+              disciplinaNome,
+              frentes: [],
+            }
+          }
+          agrupadosPorDisciplina[disciplinaId || 'sem-id'].frentes.push(frente)
+        })
+
+        setModulosCurso(arvoreComModulos)
+        setModulosCursoAgrupadosPorDisciplina(agrupadosPorDisciplina)
+        const todosModulos = arvoreComModulos.flatMap((frente) => frente.modulos.map((modulo: any) => modulo.id))
+        setModulosSelecionados(todosModulos)
+        setCompletedLessonsCount(concluidasSet.size)
+        setError(null)
+      } catch (err: any) {
+        console.error('Erro ao carregar módulos do curso:', {
+          message: err?.message,
+          details: err?.details,
+          hint: err?.hint,
+          code: err?.code,
+          error: err,
+          cursoSelecionado,
+          disciplinasIds,
+          userId,
+          errorString: String(err),
+          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
+          errorType: typeof err,
+          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
+        })
+        if (!cancelled) {
+          setError(`Não foi possível carregar os módulos deste curso. ${err?.message || 'Erro desconhecido'}`)
+        }
+      } finally {
+        if (!cancelled) {
+          setModulosLoading(false)
+        }
+      }
+    }
+
+    loadModulosDoCurso()
+
+    return () => {
+      cancelled = true
+    }
+  }, [cursoSelecionado, userId, form.watch('disciplinas_ids')])
+
+  useEffect(() => {
+    form.setValue('modulos_ids', modulosSelecionados)
+  }, [modulosSelecionados, form])
+
+  React.useEffect(() => {
+    const disciplinasSelecionadas = form.getValues('disciplinas_ids')
+
+    if (!disciplinasSelecionadas || disciplinasSelecionadas.length === 0) {
+      setModalidadeStats({})
+      setModalidadeStatsError(null)
+      setModalidadeStatsLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    const calcularEstimativas = async () => {
+      setModalidadeStatsLoading(true)
+      setModalidadeStatsError(null)
+
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('aulas')
+          .select(`
+            id,
+            tempo_estimado_minutos,
+            prioridade,
+            modulos!inner(
+              id,
+              frentes!inner(
+                disciplina_id
+              )
+            )
+          `)
+          .in('modulos.frentes.disciplina_id', disciplinasSelecionadas)
+
+        if (error) {
+          throw error
+        }
+
+        const stats = MODALIDADES.reduce<Record<number, ModalidadeStats>>((acc, modalidade) => {
+          acc[modalidade.nivel] = {
+            tempoAulaMinutos: 0,
+            tempoEstudoMinutos: 0,
+            totalAulas: 0,
+          }
+          return acc
+        }, {})
+
+        data?.forEach((aula) => {
+          const tempoAula = Math.max(aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS, 0)
+          const prioridade = Number(aula.prioridade ?? 0)
+
+          MODALIDADES.forEach(({ nivel }) => {
+            if (prioridade >= nivel) {
+              stats[nivel].tempoAulaMinutos += tempoAula
+              stats[nivel].tempoEstudoMinutos += tempoAula * FATOR_MULTIPLICADOR
+              stats[nivel].totalAulas += 1
+            }
+          })
+        })
+
+        if (!cancelled) {
+          setModalidadeStats(stats)
+        }
+      } catch (err) {
+        console.error('Erro ao calcular estimativas por modalidade:', err)
+        if (!cancelled) {
+          setModalidadeStats({})
+          setModalidadeStatsError('Não foi possível calcular as estimativas no momento.')
+        }
+      } finally {
+        if (!cancelled) {
+          setModalidadeStatsLoading(false)
+        }
+      }
+    }
+
+    calcularEstimativas()
+
+    return () => {
+      cancelled = true
+    }
   }, [form.watch('disciplinas_ids')])
 
   const onSubmit = async (data: WizardFormData) => {
@@ -162,6 +706,18 @@ export function ScheduleWizard() {
     // Validar que o nome foi preenchido
     if (!data.nome || data.nome.trim().length === 0) {
       setError('Por favor, informe um nome para o cronograma')
+      return
+    }
+
+    if (cursos.length > 0 && !data.curso_alvo_id) {
+      setError('Selecione um curso antes de gerar o cronograma.')
+      setCurrentStep(2)
+      return
+    }
+
+    if (data.curso_alvo_id && modulosCurso.length > 0 && modulosSelecionados.length === 0) {
+      setError('Selecione pelo menos um módulo do curso escolhido.')
+      setCurrentStep(2)
       return
     }
 
@@ -192,6 +748,9 @@ export function ScheduleWizard() {
         curso_alvo_id: data.curso_alvo_id,
         nome: data.nome.trim(), // Garantir que não há espaços extras
         ordem_frentes_preferencia: data.ordem_frentes_preferencia,
+        modulos_ids: data.modulos_ids && data.modulos_ids.length > 0 ? data.modulos_ids : undefined,
+        excluir_aulas_concluidas: data.excluir_aulas_concluidas ?? true,
+        velocidade_reproducao: data.velocidade_reproducao ?? 1.0,
       }
 
       // Obter token de autenticação
@@ -303,6 +862,17 @@ export function ScheduleWizard() {
     const isValid = await form.trigger(fieldsToValidate as any)
     
     if (isValid) {
+      if (currentStep === 2) {
+        if (cursos.length > 0 && !form.getValues('curso_alvo_id')) {
+          setError('Selecione um curso antes de continuar.')
+          return
+        }
+        if (cursoSelecionado && modulosCurso.length > 0 && modulosSelecionados.length === 0) {
+          setError('Selecione pelo menos um módulo do curso escolhido.')
+          return
+        }
+      }
+      setError(null)
       setCurrentStep((prev) => Math.min(prev + 1, STEPS.length))
     }
   }
@@ -335,6 +905,35 @@ export function ScheduleWizard() {
   const removeFerias = (index: number) => {
     const ferias = form.getValues('ferias')
     form.setValue('ferias', ferias.filter((_, i) => i !== index))
+  }
+
+  const handleToggleModulo = (moduloId: string, checked: boolean) => {
+    setModulosSelecionados((prev) => {
+      if (checked) {
+        return Array.from(new Set([...prev, moduloId]))
+      }
+      return prev.filter((id) => id !== moduloId)
+    })
+  }
+
+  const handleToggleFrente = (frenteId: string, checked: boolean) => {
+    const frente = modulosCurso.find((item) => item.id === frenteId)
+    if (!frente) return
+    const moduloIds = frente.modulos.map((modulo) => modulo.id)
+    setModulosSelecionados((prev) => {
+      if (checked) {
+        return Array.from(new Set([...prev, ...moduloIds]))
+      }
+      return prev.filter((id) => !moduloIds.includes(id))
+    })
+  }
+
+  const selecionarTodosModulos = (checked: boolean) => {
+    if (checked) {
+      setModulosSelecionados(modulosCurso.flatMap((frente) => frente.modulos.map((modulo) => modulo.id)))
+    } else {
+      setModulosSelecionados([])
+    }
   }
 
   const resetAfterSuggestion = (step: number) => {
@@ -445,80 +1044,43 @@ export function ScheduleWizard() {
             }} 
             className="space-y-6"
           >
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Algo deu errado</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             {/* Step 1: Definições de Tempo */}
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div>
                     <Label>Data de Início</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !form.watch('data_inicio') && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {form.watch('data_inicio') ? (
-                            format(form.watch('data_inicio'), "PPP", { locale: ptBR })
-                          ) : (
-                            <span>Selecione a data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={form.watch('data_inicio')}
-                          onSelect={(date) => form.setValue('data_inicio', date!)}
-                          initialFocus
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {form.formState.errors.data_inicio && (
-                      <p className="text-sm text-destructive">
-                        {form.formState.errors.data_inicio.message}
-                      </p>
-                    )}
+                    <DatePicker
+                      value={form.watch('data_inicio') || null}
+                      onChange={(date) => {
+                        if (date) {
+                          form.setValue('data_inicio', date)
+                        }
+                      }}
+                      placeholder="dd/mm/yyyy"
+                      error={form.formState.errors.data_inicio?.message}
+                    />
                   </div>
 
-                  <div className="space-y-2">
+                  <div>
                     <Label>Data de Término</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !form.watch('data_fim') && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {form.watch('data_fim') ? (
-                            format(form.watch('data_fim'), "PPP", { locale: ptBR })
-                          ) : (
-                            <span>Selecione a data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={form.watch('data_fim')}
-                          onSelect={(date) => form.setValue('data_fim', date!)}
-                          initialFocus
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {form.formState.errors.data_fim && (
-                      <p className="text-sm text-destructive">
-                        {form.formState.errors.data_fim.message}
-                      </p>
-                    )}
+                    <DatePicker
+                      value={form.watch('data_fim') || null}
+                      onChange={(date) => {
+                        if (date) {
+                          form.setValue('data_fim', date)
+                        }
+                      }}
+                      placeholder="dd/mm/yyyy"
+                      error={form.formState.errors.data_fim?.message}
+                    />
                   </div>
                 </div>
 
@@ -558,73 +1120,29 @@ export function ScheduleWizard() {
                   </div>
                   {form.watch('ferias').map((periodo, index) => (
                     <div key={index} className="flex gap-2 items-end">
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1">
                         <Label className="text-xs">Início</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal text-xs",
-                                !periodo.inicio && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {periodo.inicio ? (
-                                format(periodo.inicio, "PPP", { locale: ptBR })
-                              ) : (
-                                <span>Selecione a data</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={periodo.inicio}
-                              onSelect={(date) => {
-                                const ferias = form.getValues('ferias')
-                                ferias[index].inicio = date
-                                form.setValue('ferias', ferias)
-                              }}
-                              initialFocus
-                              locale={ptBR}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <DatePicker
+                          value={periodo.inicio || null}
+                          onChange={(date) => {
+                            const ferias = form.getValues('ferias')
+                            ferias[index].inicio = date || undefined
+                            form.setValue('ferias', ferias)
+                          }}
+                          placeholder="dd/mm/yyyy"
+                        />
                       </div>
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1">
                         <Label className="text-xs">Fim</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal text-xs",
-                                !periodo.fim && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {periodo.fim ? (
-                                format(periodo.fim, "PPP", { locale: ptBR })
-                              ) : (
-                                <span>Selecione a data</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={periodo.fim}
-                              onSelect={(date) => {
-                                const ferias = form.getValues('ferias')
-                                ferias[index].fim = date
-                                form.setValue('ferias', ferias)
-                              }}
-                              initialFocus
-                              locale={ptBR}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <DatePicker
+                          value={periodo.fim || null}
+                          onChange={(date) => {
+                            const ferias = form.getValues('ferias')
+                            ferias[index].fim = date || undefined
+                            form.setValue('ferias', ferias)
+                          }}
+                          placeholder="dd/mm/yyyy"
+                        />
                       </div>
                       <Button
                         type="button"
@@ -643,11 +1161,18 @@ export function ScheduleWizard() {
             {/* Step 2: Disciplinas e Modalidade */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                {cursos.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Curso (Opcional)</Label>
+                {/* Seleção de Curso */}
+                <div className="space-y-2">
+                  <Label>Curso *</Label>
+                  {cursos.length === 0 ? (
+                    <div className="p-4 border rounded-md bg-muted/50">
+                      <p className="text-sm text-muted-foreground">
+                        Você não possui cursos cadastrados. Entre em contato com o administrador.
+                      </p>
+                    </div>
+                  ) : (
                     <Select
-                      value={form.watch('curso_alvo_id')}
+                      value={cursoSelecionado || undefined}
                       onValueChange={(value) => form.setValue('curso_alvo_id', value)}
                     >
                       <SelectTrigger>
@@ -661,49 +1186,248 @@ export function ScheduleWizard() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Disciplinas *</Label>
-                  <div className="grid grid-cols-2 gap-4 max-h-64 overflow-y-auto p-4 border rounded-md">
-                    {disciplinas.map((disciplina) => (
-                      <div key={disciplina.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={disciplina.id}
-                          checked={form.watch('disciplinas_ids').includes(disciplina.id)}
-                          onCheckedChange={(checked) => {
-                            const ids = form.getValues('disciplinas_ids')
-                            if (checked) {
-                              form.setValue('disciplinas_ids', [...ids, disciplina.id])
-                            } else {
-                              form.setValue('disciplinas_ids', ids.filter((id) => id !== disciplina.id))
-                            }
-                          }}
-                        />
-                        <Label htmlFor={disciplina.id} className="font-normal cursor-pointer">
-                          {disciplina.nome}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {form.formState.errors.disciplinas_ids && (
-                    <p className="text-sm text-destructive">
-                      {form.formState.errors.disciplinas_ids.message}
+                  )}
+                  {!cursoSelecionado && cursos.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Escolha o curso para carregar as disciplinas e módulos disponíveis.
                     </p>
                   )}
                 </div>
 
+                {/* Seleção de Disciplinas - DEVE VIR ANTES DOS MÓDULOS */}
+                {cursoSelecionado && (
+                  <div className="space-y-2">
+                    <Label>Disciplinas do Curso *</Label>
+                    {disciplinasDoCurso.length === 0 ? (
+                      <div className="p-4 border rounded-md bg-muted/50">
+                        <p className="text-xs text-muted-foreground">
+                          Este curso não possui disciplinas cadastradas.
+                        </p>
+                      </div>
+                    ) : disciplinasDoCurso.length === 1 ? (
+                      <div className="p-4 border rounded-md bg-muted">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={disciplinasDoCurso[0].id}
+                            checked={form.watch('disciplinas_ids').includes(disciplinasDoCurso[0].id)}
+                            disabled={true}
+                          />
+                          <Label htmlFor={disciplinasDoCurso[0].id} className="font-normal">
+                            {disciplinasDoCurso[0].nome}
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Este curso possui apenas uma disciplina e será incluída automaticamente.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Selecione quais disciplinas deste curso você deseja incluir no cronograma:
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 max-h-64 overflow-y-auto p-4 border rounded-md">
+                          {disciplinasDoCurso.map((disciplina) => (
+                            <div key={disciplina.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={disciplina.id}
+                                checked={form.watch('disciplinas_ids').includes(disciplina.id)}
+                                onCheckedChange={(checked) => {
+                                  const ids = form.getValues('disciplinas_ids')
+                                  if (checked) {
+                                    form.setValue('disciplinas_ids', [...ids, disciplina.id])
+                                  } else {
+                                    form.setValue('disciplinas_ids', ids.filter((id) => id !== disciplina.id))
+                                  }
+                                }}
+                              />
+                              <Label htmlFor={disciplina.id} className="font-normal cursor-pointer">
+                                {disciplina.nome}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    {form.formState.errors.disciplinas_ids && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.disciplinas_ids.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Seleção de Módulos - APÓS AS DISCIPLINAS */}
+                {cursoSelecionado && form.watch('disciplinas_ids').length > 0 && (
+                  <div className="space-y-3 rounded-md border p-4">
+                    {cursoAtual?.nome && (
+                      <p className="text-xs text-muted-foreground">
+                        Conteúdos vinculados ao curso <span className="font-semibold">{cursoAtual.nome}</span>
+                      </p>
+                    )}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">Módulos deste curso</Label>
+                        {modulosCurso.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {modulosSelecionados.length} módulo(s) selecionados de{' '}
+                            {modulosCurso.reduce((acc, frente) => acc + frente.modulos.length, 0)} disponíveis.
+                          </p>
+                        )}
+                        {modulosCurso.length === 0 && !modulosLoading && (
+                          <p className="text-xs text-muted-foreground">
+                            Ainda não há módulos vinculados a este curso para as disciplinas selecionadas.
+                          </p>
+                        )}
+                      </div>
+                      {modulosCurso.length > 0 && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <Button size="sm" variant="outline" onClick={() => selecionarTodosModulos(true)}>
+                            Selecionar todos
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => selecionarTodosModulos(false)}>
+                            Limpar seleção
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    {modulosLoading ? (
+                      <p className="text-sm text-muted-foreground">Carregando módulos...</p>
+                    ) : modulosCurso.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Não encontramos módulos vinculados a este curso para as disciplinas selecionadas.
+                      </p>
+                    ) : Object.keys(modulosCursoAgrupadosPorDisciplina).length > 0 ? (
+                      <div className="space-y-4">
+                        {Object.entries(modulosCursoAgrupadosPorDisciplina).map(([disciplinaId, grupo]) => (
+                          <div key={disciplinaId} className="rounded-md border p-4 space-y-3">
+                            <div className="flex items-center justify-between border-b pb-2">
+                              <h4 className="font-semibold text-sm">{grupo.disciplinaNome}</h4>
+                              <span className="text-xs text-muted-foreground">
+                                {grupo.frentes.length} frente(s)
+                              </span>
+                            </div>
+                            <Accordion type="multiple" className="space-y-2">
+                              {grupo.frentes.map((frente) => {
+                                const selecionadosNaFrente = frente.modulos.filter((modulo) =>
+                                  modulosSelecionados.includes(modulo.id),
+                                ).length
+                                const frenteChecked =
+                                  frente.modulos.length > 0 && selecionadosNaFrente === frente.modulos.length
+                                    ? true
+                                    : selecionadosNaFrente > 0
+                                      ? 'indeterminate'
+                                      : false
+                                return (
+                                  <AccordionItem key={frente.id} value={frente.id} className="rounded-md border">
+                                    <div className="flex items-center gap-3 px-4">
+                                      <Checkbox
+                                        id={`frente-${frente.id}`}
+                                        checked={frenteChecked}
+                                        onCheckedChange={(checked) =>
+                                          handleToggleFrente(frente.id, Boolean(checked))
+                                        }
+                                      />
+                                      <AccordionPrimitive.Header className="flex flex-1">
+                                        <AccordionPrimitive.Trigger
+                                          className={cn(
+                                            'focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180',
+                                          )}
+                                        >
+                                          <div className="text-left">
+                                            <p className="font-medium">{frente.nome}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                              {frente.modulos.length} módulo(s)
+                                            </p>
+                                          </div>
+                                          <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" />
+                                        </AccordionPrimitive.Trigger>
+                                      </AccordionPrimitive.Header>
+                                    </div>
+                                    <AccordionContent>
+                                      <div className="space-y-2 border-t px-4 py-3">
+                                        {frente.modulos.map((modulo) => (
+                                          <div
+                                            key={modulo.id}
+                                            className="flex flex-col gap-1 rounded-md border p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <Checkbox
+                                                id={`modulo-${modulo.id}`}
+                                                checked={modulosSelecionados.includes(modulo.id)}
+                                                onCheckedChange={(checked) =>
+                                                  handleToggleModulo(modulo.id, Boolean(checked))
+                                                }
+                                                onClick={(event) => event.stopPropagation()}
+                                              />
+                                              <div>
+                                                <p className="font-medium">{modulo.nome}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {modulo.totalAulas} aula(s) • {formatHorasFromMinutes(modulo.tempoTotal)}
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                              {modulo.concluidas > 0 ? (
+                                                <span className="text-green-600 dark:text-green-400">
+                                                  {modulo.concluidas} aula(s) já concluídas
+                                                </span>
+                                              ) : (
+                                                <span>Nenhuma aula concluída</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                )
+                              })}
+                            </Accordion>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Não há módulos agrupados por disciplina.
+                      </p>
+                    )}
+
+                    {cursoSelecionado && modulosCurso.length > 0 && modulosSelecionados.length === 0 && (
+                      <p className="text-xs text-destructive">
+                        Selecione pelo menos um módulo para gerar o cronograma.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Box separado para Excluir aulas já concluídas */}
+                {cursoSelecionado && modulosCurso.length > 0 && (
+                  <div className="space-y-3 rounded-md border p-4">
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="excluir-concluidas"
+                        checked={form.watch('excluir_aulas_concluidas') ?? true}
+                        onCheckedChange={(checked) =>
+                          form.setValue('excluir_aulas_concluidas', Boolean(checked))
+                        }
+                      />
+                      <div className="space-y-1">
+                        <Label htmlFor="excluir-concluidas" className="text-sm font-medium">
+                          Excluir aulas já concluídas
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Detectamos {completedLessonsCount} aula(s) concluídas neste curso.
+                          Ao manter essa opção marcada, elas serão removidas do novo cronograma.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <Label>Modalidade</Label>
                   <div className="grid grid-cols-5 gap-2">
-                    {[
-                      { nivel: 1, label: 'Super Extensivo' },
-                      { nivel: 2, label: 'Extensivo' },
-                      { nivel: 3, label: 'Semi Extensivo' },
-                      { nivel: 4, label: 'Intensivo' },
-                      { nivel: 5, label: 'Superintensivo' },
-                    ].map(({ nivel, label }) => (
+                    {MODALIDADES.map(({ nivel, label }) => (
                       <Card
                         key={nivel}
                         className={cn(
@@ -714,12 +1438,52 @@ export function ScheduleWizard() {
                         )}
                         onClick={() => form.setValue('prioridade_minima', nivel)}
                       >
-                        <CardContent className="p-4 text-center">
+                        <CardContent className="p-4 text-center space-y-3">
                           <div className="font-bold text-sm">{label}</div>
+                          <div className="space-y-2 text-xs">
+                            {form.watch('disciplinas_ids').length === 0 ? (
+                              <p className="text-muted-foreground">
+                                Selecione disciplinas para estimar o tempo.
+                              </p>
+                            ) : modalidadeStatsLoading ? (
+                              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Calculando...
+                              </div>
+                            ) : modalidadeStatsError ? (
+                              <p className="text-destructive text-[11px]">
+                                {modalidadeStatsError}
+                              </p>
+                            ) : (
+                              <>
+                                <div className="space-y-1">
+                                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    Tempo de aula
+                                  </p>
+                                  <p className="text-base font-semibold">
+                                    {formatHorasFromMinutes(modalidadeStats[nivel]?.tempoAulaMinutos)}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    Tempo de estudo
+                                  </p>
+                                  <p className="text-base font-semibold">
+                                    {formatHorasFromMinutes(Math.round((modalidadeStats[nivel]?.tempoAulaMinutos || 0) * (FATOR_MULTIPLICADOR - 1)))}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
+                  {form.watch('disciplinas_ids').length > 0 && !modalidadeStatsLoading && !modalidadeStatsError && (
+                    <p className="text-[12px] text-muted-foreground">
+                      O tempo de estudo exibido considera apenas anotações e exercícios (tempo extra calculado além do tempo de assistir as gravações).
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -733,20 +1497,126 @@ export function ScheduleWizard() {
                     value={form.watch('modalidade')}
                     onValueChange={(value) => form.setValue('modalidade', value as 'paralelo' | 'sequencial')}
                   >
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="paralelo" id="paralelo" />
+                        <Label htmlFor="paralelo" className="font-semibold cursor-pointer">
+                          Frentes em Paralelo
+                        </Label>
+                      </div>
+                      <p className="text-sm text-muted-foreground pl-6">
+                        Toda semana você estuda um pouquinho de cada uma das frentes do curso, para distribuir melhor os conteúdos.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sequencial" id="sequencial" />
+                        <Label htmlFor="sequencial" className="font-semibold cursor-pointer">
+                          Estudo Sequencial (Para os mais tradicionais)
+                        </Label>
+                      </div>
+                      <p className="text-sm text-muted-foreground pl-6">
+                        Você estudará uma frente completa e, ao finalizar, passará para a próxima até finalizar o curso.
+                      </p>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <Label>Em qual velocidade você assiste as aulas?</Label>
+                  <RadioGroup
+                    value={(form.watch('velocidade_reproducao') ?? 1.0).toFixed(2)}
+                    onValueChange={(value) => form.setValue('velocidade_reproducao', Number(value))}
+                  >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="paralelo" id="paralelo" />
-                      <Label htmlFor="paralelo" className="font-normal cursor-pointer">
-                        Estudo Paralelo (Todas as frentes juntas - Recomendado)
+                      <RadioGroupItem value="1.00" id="velocidade-1.00" />
+                      <Label htmlFor="velocidade-1.00" className="font-normal cursor-pointer">
+                        1,00 x (ideal)
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="sequencial" id="sequencial" />
-                      <Label htmlFor="sequencial" className="font-normal cursor-pointer">
-                        Estudo Sequencial (Uma frente por vez)
+                      <RadioGroupItem value="1.25" id="velocidade-1.25" />
+                      <Label htmlFor="velocidade-1.25" className="font-normal cursor-pointer">
+                        1,25 x (até que vai...)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="1.50" id="velocidade-1.50" />
+                      <Label htmlFor="velocidade-1.50" className="font-normal cursor-pointer">
+                        1,50 x (não recomendo, mas você que sabe...)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="2.00" id="velocidade-2.00" />
+                      <Label htmlFor="velocidade-2.00" className="font-normal cursor-pointer">
+                        2,00 x (ver rápido pra ver duas vezes, né?)
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
+
+                {/* Exibir tempos recalculados */}
+                {form.watch('disciplinas_ids').length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Tempos Recalculados</CardTitle>
+                      <CardDescription className="text-xs">
+                        Valores ajustados considerando a velocidade de reprodução selecionada
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {modalidadeStatsLoading ? (
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground py-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Calculando...
+                        </div>
+                      ) : modalidadeStatsError ? (
+                        <p className="text-destructive text-sm py-4">{modalidadeStatsError}</p>
+                      ) : (
+                        <div className="grid grid-cols-5 gap-2">
+                          {MODALIDADES.map(({ nivel, label }) => {
+                            const stats = modalidadeStats[nivel]
+                            if (!stats) return null
+                            
+                            const velocidade = form.watch('velocidade_reproducao') || 1.0
+                            // Tempo de aula ajustado pela velocidade
+                            const tempoAulaAjustado = stats.tempoAulaMinutos / velocidade
+                            // Tempo de estudo = tempo de aula ajustado * (FATOR_MULTIPLICADOR - 1)
+                            const tempoEstudoAjustado = tempoAulaAjustado * (FATOR_MULTIPLICADOR - 1)
+                            
+                            return (
+                              <Card key={nivel} className="p-3">
+                                <div className="text-center space-y-2">
+                                  <div className="font-bold text-xs">{label}</div>
+                                  <div className="space-y-1 text-xs">
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                        Tempo de aula
+                                      </p>
+                                      <p className="text-sm font-semibold">
+                                        {formatHorasFromMinutes(tempoAulaAjustado)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                        Tempo de estudo
+                                      </p>
+                                      <p className="text-sm font-semibold">
+                                        {formatHorasFromMinutes(Math.round(tempoEstudoAjustado))}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Card>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {form.watch('modalidade') === 'sequencial' && frentes.length > 0 && (
                   <div className="space-y-2">
@@ -791,8 +1661,8 @@ export function ScheduleWizard() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Período:</span>
                       <span>
-                        {form.watch('data_inicio') && format(form.watch('data_inicio'), "dd/MM/yyyy", { locale: ptBR })} - {' '}
-                        {form.watch('data_fim') && format(form.watch('data_fim'), "dd/MM/yyyy", { locale: ptBR })}
+                        {form.watch('data_inicio') ? format(form.watch('data_inicio')!, "dd/MM/yyyy", { locale: ptBR }) : '--'} - {' '}
+                        {form.watch('data_fim') ? format(form.watch('data_fim')!, "dd/MM/yyyy", { locale: ptBR }) : '--'}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -842,13 +1712,6 @@ export function ScheduleWizard() {
                   </CardContent>
                 </Card>
 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Erro</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
               </div>
             )}
 

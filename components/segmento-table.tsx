@@ -371,7 +371,7 @@ export function SegmentoTable() {
     <div className="w-full space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Segmentos</CardTitle>
               <CardDescription>Gerencie os segmentos do sistema</CardDescription>
@@ -379,12 +379,12 @@ export function SegmentoTable() {
             {mounted ? (
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Segmento
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-[95vw] md:max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Criar Segmento</DialogTitle>
                   <DialogDescription>
@@ -468,7 +468,7 @@ export function SegmentoTable() {
               onChange={(event) =>
                 table.getColumn('name')?.setFilterValue(event.target.value)
               }
-              className="max-w-sm"
+              className="w-full md:max-w-sm"
             />
           </div>
           {loading ? (
@@ -584,7 +584,7 @@ export function SegmentoTable() {
       {/* Edit Dialog */}
       {mounted && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] md:max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar Segmento</DialogTitle>
             <DialogDescription>

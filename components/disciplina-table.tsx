@@ -351,7 +351,7 @@ export function DisciplinaTable() {
     <div className="w-full space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Disciplinas</CardTitle>
               <CardDescription>Gerencie as disciplinas do sistema</CardDescription>
@@ -359,12 +359,12 @@ export function DisciplinaTable() {
             {mounted ? (
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Nova Disciplina
                   </Button>
                 </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-[95vw] md:max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Criar Disciplina</DialogTitle>
                   <DialogDescription>
@@ -432,7 +432,7 @@ export function DisciplinaTable() {
               onChange={(event) =>
                 table.getColumn('name')?.setFilterValue(event.target.value)
               }
-              className="max-w-sm"
+              className="w-full md:max-w-sm"
             />
           </div>
           {loading ? (
@@ -548,7 +548,7 @@ export function DisciplinaTable() {
       {/* Edit Dialog */}
       {mounted && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] md:max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar Disciplina</DialogTitle>
             <DialogDescription>

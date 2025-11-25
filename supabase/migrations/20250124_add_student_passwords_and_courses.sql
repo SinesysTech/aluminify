@@ -19,3 +19,7 @@ CREATE TABLE IF NOT EXISTS public.alunos_cursos (
 -- Optional index to speed up lookups by curso
 CREATE INDEX IF NOT EXISTS idx_alunos_cursos_curso_id ON public.alunos_cursos (curso_id);
 
+
+
+
+

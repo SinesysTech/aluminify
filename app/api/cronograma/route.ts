@@ -79,8 +79,18 @@ async function postHandler(request: AuthenticatedRequest) {
       );
     }
 
+    const payload = {
+      ...body,
+      prioridade_minima: Math.max(1, Number(body?.prioridade_minima ?? 1)),
+      modulos_ids: Array.isArray(body?.modulos_ids) ? body.modulos_ids : undefined,
+      excluir_aulas_concluidas:
+        typeof body?.excluir_aulas_concluidas === 'boolean'
+          ? body.excluir_aulas_concluidas
+          : true,
+    };
+
     console.log('[Cronograma API] Chamando serviço...');
-    const result = await cronogramaService.gerarCronograma(body, request.user.id, request.user.email);
+    const result = await cronogramaService.gerarCronograma(payload, request.user.id, request.user.email);
     console.log('[Cronograma API] Cronograma gerado com sucesso:', result.cronograma?.id);
 
     return NextResponse.json(result, { status: 201 });

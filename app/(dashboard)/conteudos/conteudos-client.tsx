@@ -42,6 +42,14 @@ type Disciplina = {
   nome: string
 }
 
+type CursoOption = {
+  id: string
+  nome: string
+  disciplina_id: string | null // deprecated, manter para compatibilidade
+  disciplina_nome: string | null // deprecated, manter para compatibilidade
+  disciplinaIds: string[] // IDs das disciplinas do curso
+}
+
 type Frente = {
   id: string
   nome: string
@@ -81,7 +89,11 @@ export default function ConteudosClientPage() {
   const router = useRouter()
   const supabase = createClient()
   
+  const [userId, setUserId] = React.useState<string | null>(null)
+  const [cursos, setCursos] = React.useState<CursoOption[]>([])
+  const [cursoSelecionado, setCursoSelecionado] = React.useState<string>('')
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
+  const [disciplinasDoCurso, setDisciplinasDoCurso] = React.useState<Disciplina[]>([]) // Disciplinas do curso selecionado
   const [disciplinaSelecionada, setDisciplinaSelecionada] = React.useState<string>('')
   const [frenteNome, setFrenteNome] = React.useState<string>('')
   const [arquivo, setArquivo] = React.useState<File | null>(null)
@@ -104,6 +116,7 @@ export default function ConteudosClientPage() {
           router.push('/auth/login')
           return
         }
+        setUserId(user.id)
 
         const { data, error } = await supabase
           .from('professores')
@@ -130,7 +143,7 @@ export default function ConteudosClientPage() {
     checkProfessor()
   }, [supabase, router])
 
-  // Carregar disciplinas
+  // Carregar disciplinas (todas - usado para outros propósitos)
   React.useEffect(() => {
     const fetchDisciplinas = async () => {
       try {
@@ -152,10 +165,163 @@ export default function ConteudosClientPage() {
     }
   }, [supabase, isProfessor])
 
+  // Carregar disciplinas do curso selecionado
+  React.useEffect(() => {
+    const fetchDisciplinasDoCurso = async () => {
+      if (!cursoSelecionado) {
+        setDisciplinasDoCurso([])
+        setDisciplinaSelecionada('')
+        return
+      }
+
+      try {
+        // Buscar disciplinas do curso através da tabela cursos_disciplinas
+        const { data: cursosDisciplinas, error: cdError } = await supabase
+          .from('cursos_disciplinas')
+          .select('disciplina_id')
+          .eq('curso_id', cursoSelecionado)
+
+        if (cdError) {
+          console.error('Erro ao carregar disciplinas do curso:', cdError)
+          setDisciplinasDoCurso([])
+          return
+        }
+
+        if (!cursosDisciplinas || cursosDisciplinas.length === 0) {
+          setDisciplinasDoCurso([])
+          setDisciplinaSelecionada('')
+          return
+        }
+
+        // Buscar detalhes das disciplinas
+        const disciplinaIds = cursosDisciplinas.map((cd) => cd.disciplina_id)
+        const { data: disciplinasData, error: discError } = await supabase
+          .from('disciplinas')
+          .select('id, nome')
+          .in('id', disciplinaIds)
+          .order('nome', { ascending: true })
+
+        if (discError) {
+          console.error('Erro ao carregar detalhes das disciplinas:', discError)
+          setDisciplinasDoCurso([])
+          return
+        }
+
+        setDisciplinasDoCurso(disciplinasData || [])
+        
+        // Se houver apenas uma disciplina, selecionar automaticamente
+        if (disciplinasData && disciplinasData.length === 1) {
+          setDisciplinaSelecionada(disciplinasData[0].id)
+        } else {
+          setDisciplinaSelecionada('')
+        }
+      } catch (err) {
+        console.error('Erro ao carregar disciplinas do curso:', err)
+        setDisciplinasDoCurso([])
+        setDisciplinaSelecionada('')
+      }
+    }
+
+    fetchDisciplinasDoCurso()
+  }, [supabase, cursoSelecionado])
+
+  React.useEffect(() => {
+    const fetchCursos = async () => {
+      if (!isProfessor || !userId) {
+        setCursos([])
+        return
+      }
+
+      try {
+        // Primeiro, buscar os cursos sem o join para evitar problemas de RLS
+        const { data: cursosData, error: cursosError } = await supabase
+          .from('cursos')
+          .select('id, nome, disciplina_id')
+          .order('nome', { ascending: true })
+
+        if (cursosError) {
+          console.error('Erro na query de cursos:', {
+            message: cursosError.message,
+            details: cursosError.details,
+            hint: cursosError.hint,
+            code: cursosError.code,
+          })
+          throw cursosError
+        }
+
+        console.log('Cursos carregados:', cursosData?.length || 0, cursosData)
+
+        // Buscar disciplinas separadamente se necessário (opcional, para exibir nomes)
+        let disciplinasMap: Map<string, string> = new Map()
+        try {
+          const { data: disciplinasData } = await supabase
+            .from('disciplinas')
+            .select('id, nome')
+          
+          if (disciplinasData) {
+            disciplinasMap = new Map(
+              disciplinasData.map((d) => [d.id, d.nome])
+            )
+          }
+        } catch (discError) {
+          console.warn('Erro ao carregar disciplinas (opcional):', discError)
+          // Não é crítico, continuamos sem os nomes das disciplinas
+        }
+
+        // Buscar disciplinas de cada curso através da tabela cursos_disciplinas
+        const cursoIds = cursosData?.map(c => c.id) || []
+        let cursosDisciplinasMap: Map<string, string[]> = new Map()
+        
+        if (cursoIds.length > 0) {
+          try {
+            const { data: cursosDisciplinasData } = await supabase
+              .from('cursos_disciplinas')
+              .select('curso_id, disciplina_id')
+              .in('curso_id', cursoIds)
+            
+            if (cursosDisciplinasData) {
+              // Agrupar disciplinas por curso
+              cursosDisciplinasData.forEach((cd) => {
+                const existing = cursosDisciplinasMap.get(cd.curso_id) || []
+                cursosDisciplinasMap.set(cd.curso_id, [...existing, cd.disciplina_id])
+              })
+            }
+          } catch (cdError) {
+            console.warn('Erro ao carregar cursos_disciplinas (opcional):', cdError)
+            // Não é crítico, continuamos sem os IDs das disciplinas
+          }
+        }
+
+        const mapped =
+          cursosData?.map((curso) => ({
+            id: curso.id,
+            nome: curso.nome,
+            disciplina_id: curso.disciplina_id,
+            disciplina_nome: curso.disciplina_id ? disciplinasMap.get(curso.disciplina_id) ?? null : null,
+            disciplinaIds: cursosDisciplinasMap.get(curso.id) || [],
+          })) ?? []
+
+        console.log('Cursos mapeados:', mapped.length, mapped)
+        setCursos(mapped)
+      } catch (err) {
+        console.error('Erro ao carregar cursos:', {
+          error: err,
+          errorString: String(err),
+          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
+          errorType: typeof err,
+          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
+        })
+        setError('Erro ao carregar cursos disponíveis. Verifique se você tem permissão para acessar os cursos.')
+      }
+    }
+
+    fetchCursos()
+  }, [supabase, isProfessor, userId])
+
   // Carregar frentes quando disciplina for selecionada
   React.useEffect(() => {
     const fetchFrentes = async () => {
-      if (!disciplinaSelecionada) {
+      if (!disciplinaSelecionada || !cursoSelecionado) {
         setFrentes([])
         setModulos([])
         return
@@ -163,24 +329,44 @@ export default function ConteudosClientPage() {
 
       try {
         setIsLoadingContent(true)
+        // Buscar frentes da disciplina que pertencem ao curso selecionado OU não têm curso_id definido
         const { data, error } = await supabase
           .from('frentes')
-          .select('id, nome, disciplina_id')
+          .select('id, nome, disciplina_id, curso_id')
           .eq('disciplina_id', disciplinaSelecionada)
+          .or(`curso_id.eq.${cursoSelecionado},curso_id.is.null`)
           .order('nome', { ascending: true })
 
-        if (error) throw error
+        if (error) {
+          console.error('Erro na query de frentes:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+            disciplinaSelecionada,
+            cursoSelecionado,
+          })
+          throw error
+        }
+
+        console.log('Frentes carregadas:', data?.length || 0, data)
         setFrentes(data || [])
       } catch (err) {
-        console.error('Erro ao carregar frentes:', err)
-        setError('Erro ao carregar frentes')
+        console.error('Erro ao carregar frentes:', {
+          error: err,
+          errorString: String(err),
+          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
+          disciplinaSelecionada,
+          cursoSelecionado,
+        })
+        setError('Erro ao carregar frentes. Verifique se a disciplina e o curso estão corretos.')
       } finally {
         setIsLoadingContent(false)
       }
     }
 
     fetchFrentes()
-  }, [supabase, disciplinaSelecionada])
+  }, [supabase, disciplinaSelecionada, cursoSelecionado])
 
   // Carregar módulos e aulas quando frente for selecionada
   React.useEffect(() => {
@@ -270,6 +456,20 @@ export default function ConteudosClientPage() {
       }, 0)
     }, 0)
     return { totalAulas, tempoTotal }
+  }
+
+  const cursoAtual = React.useMemo(
+    () => cursos.find((curso) => curso.id === cursoSelecionado) ?? null,
+    [cursos, cursoSelecionado],
+  )
+
+  const handleCursoChange = (value: string) => {
+    setCursoSelecionado(value)
+    setFrenteSelecionada('')
+    setFrentes([])
+    setModulos([])
+    setFrenteNome('')
+    // A disciplina será definida automaticamente pelo useEffect quando as disciplinas do curso forem carregadas
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -381,11 +581,9 @@ export default function ConteudosClientPage() {
           // Remove apenas espaços em branco (o PapaParse já lida com aspas corretamente)
           return value.trim()
         },
-        quotes: true, // Permite campos com aspas
         quoteChar: '"',
         escapeChar: '"',
-        delimiter: '', // Auto-detect delimiter
-        newline: '', // Auto-detect newline
+        // delimiter e newline omitidos para auto-detecção
         preview: 0, // Processa todo o arquivo
         worker: false, // Não usar worker para melhor compatibilidade
         fastMode: false, // Modo normal para melhor tratamento de erros
@@ -666,7 +864,9 @@ export default function ConteudosClientPage() {
         'Prioridade',
         'pri',
         'prio',
+        'prioridade (0-5)',
         'prioridade (1-5)',
+        'prioridade 0-5',
         'prioridade 1-5',
       ])
 
@@ -679,7 +879,10 @@ export default function ConteudosClientPage() {
         aula_numero: aulaNumero,
         aula_nome: aulaNomeFinal.trim(), // Garantir que está limpo e usar o nome correto
         tempo: tempo && !isNaN(tempo) && tempo > 0 ? tempo : null,
-        prioridade: prioridade && !isNaN(prioridade) && prioridade >= 1 && prioridade <= 5 ? prioridade : null,
+        prioridade:
+          prioridade !== null && !isNaN(prioridade) && prioridade >= 0 && prioridade <= 5
+            ? prioridade
+            : null,
       }
 
       // Log para debug (apenas em desenvolvimento) - primeiras 3 linhas
@@ -713,6 +916,11 @@ export default function ConteudosClientPage() {
       setIsLoading(true)
       setError(null)
       setSuccessMessage(null)
+
+      if (!cursoSelecionado) {
+        setError('Selecione um curso antes de importar.')
+        return
+      }
 
       // Detectar tipo de arquivo e fazer parse apropriado
       const isXLSX = arquivo.name.toLowerCase().endsWith('.xlsx') || 
@@ -778,15 +986,44 @@ export default function ConteudosClientPage() {
 
       // Recarregar conteúdo
       if (disciplinaSelecionada) {
-        const { data: frentesData } = await supabase
+        const { data: frenteData } = await supabase
           .from('frentes')
-          .select('id, nome')
+          .select('id')
           .eq('disciplina_id', disciplinaSelecionada)
           .eq('nome', frenteNome.trim())
           .maybeSingle()
 
-        if (frentesData) {
-          setFrenteSelecionada(frentesData.id)
+        if (frenteData) {
+          try {
+            await supabase
+              .from('frentes')
+              .update({ curso_id: cursoSelecionado })
+              .eq('id', frenteData.id)
+
+            await supabase
+              .from('modulos')
+              .update({ curso_id: cursoSelecionado })
+              .eq('frente_id', frenteData.id)
+
+            const { data: moduloRegistros } = await supabase
+              .from('modulos')
+              .select('id')
+              .eq('frente_id', frenteData.id)
+
+            if (moduloRegistros && moduloRegistros.length > 0) {
+              await supabase
+                .from('aulas')
+                .update({ curso_id: cursoSelecionado })
+                .in(
+                  'modulo_id',
+                  moduloRegistros.map((modulo) => modulo.id),
+                )
+            }
+          } catch (updateError) {
+            console.warn('Não foi possível vincular o conteúdo ao curso selecionado:', updateError)
+          }
+
+          setFrenteSelecionada(frenteData.id)
         }
       }
     } catch (err) {
@@ -838,7 +1075,7 @@ export default function ConteudosClientPage() {
         <CardHeader>
           <CardTitle>Upload de Arquivo</CardTitle>
           <CardDescription>
-            Selecione a disciplina, informe o nome da frente e faça upload do arquivo CSV
+            Escolha o curso, informe a disciplina e a frente correspondente, depois envie o arquivo da planilha.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -856,39 +1093,95 @@ export default function ConteudosClientPage() {
             </div>
           )}
 
+          {cursos.length === 0 && (
+            <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+              Nenhum curso encontrado.{' '}
+              <Button variant="link" className="h-auto p-0 align-baseline" onClick={() => router.push('/curso')}>
+                Crie um curso antes de importar conteúdos.
+              </Button>
+            </div>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="disciplina">Disciplina</Label>
-              <Select
-                value={disciplinaSelecionada}
-                onValueChange={(value) => {
-                  setDisciplinaSelecionada(value)
-                  setFrenteSelecionada('')
-                  setModulos([])
-                }}
-              >
-                <SelectTrigger id="disciplina">
-                  <SelectValue placeholder="Selecione uma disciplina" />
+              <Label htmlFor="curso">Curso</Label>
+              <Select value={cursoSelecionado} onValueChange={handleCursoChange}>
+                <SelectTrigger id="curso">
+                  <SelectValue placeholder="Selecione um curso" />
                 </SelectTrigger>
                 <SelectContent>
-                  {disciplinas.map((disciplina) => (
-                    <SelectItem key={disciplina.id} value={disciplina.id}>
-                      {disciplina.nome}
+                  {cursos.map((curso) => (
+                    <SelectItem key={curso.id} value={curso.id}>
+                      {curso.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <div className="text-xs text-muted-foreground">
+                Precisa de um curso novo?{' '}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 align-baseline"
+                  onClick={() => router.push('/curso')}
+                >
+                  Abrir gestão de cursos
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="frente">Nome da Frente</Label>
-              <Input
-                id="frente"
-                placeholder="Ex: Frente A"
-                value={frenteNome}
-                onChange={(e) => setFrenteNome(e.target.value)}
-              />
+              <Label htmlFor="disciplina">Disciplina do Curso</Label>
+              {!cursoSelecionado ? (
+                <Input
+                  id="disciplina"
+                  value="Selecione um curso primeiro"
+                  disabled
+                />
+              ) : disciplinasDoCurso.length === 0 ? (
+                <Input
+                  id="disciplina"
+                  value="Este curso não possui disciplinas cadastradas"
+                  disabled
+                />
+              ) : disciplinasDoCurso.length === 1 ? (
+                <Input
+                  id="disciplina"
+                  value={disciplinasDoCurso[0].nome}
+                  disabled
+                />
+              ) : (
+                <Select
+                  value={disciplinaSelecionada}
+                  onValueChange={(value) => {
+                    setDisciplinaSelecionada(value)
+                    setFrenteSelecionada('')
+                    setModulos([])
+                  }}
+                >
+                  <SelectTrigger id="disciplina">
+                    <SelectValue placeholder="Selecione uma disciplina do curso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {disciplinasDoCurso.map((disciplina) => (
+                      <SelectItem key={disciplina.id} value={disciplina.id}>
+                        {disciplina.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="frente">Nome da Frente</Label>
+            <Input
+              id="frente"
+              placeholder="Ex: Frente A"
+              value={frenteNome}
+              onChange={(e) => setFrenteNome(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -909,13 +1202,19 @@ export default function ConteudosClientPage() {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Formatos aceitos: CSV ou XLSX. O arquivo deve conter colunas: Módulo (ou Nome do Módulo), Aula (ou Nome da Aula), Tempo (opcional), Prioridade (opcional, 1-5)
+              Formatos aceitos: CSV ou XLSX. O arquivo deve conter colunas: Módulo (ou Nome do Módulo), Aula (ou Nome da Aula), Tempo (opcional), Prioridade (opcional, 0-5 — use 0 para ocultar do cronograma)
             </p>
           </div>
 
           <Button
             onClick={handleImport}
-            disabled={isLoading || !disciplinaSelecionada || !frenteNome.trim() || !arquivo}
+            disabled={
+              isLoading ||
+              !cursoSelecionado ||
+              !disciplinaSelecionada ||
+              !frenteNome.trim() ||
+              !arquivo
+            }
             className="w-full"
           >
             {isLoading ? (
@@ -1080,7 +1379,7 @@ export default function ConteudosClientPage() {
                                         : '-'}
                                     </TableCell>
                                   <TableCell>
-                                    {aula.prioridade ? (
+                                    {aula.prioridade !== null && aula.prioridade !== undefined ? (
                                       <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
                                         {aula.prioridade}
                                       </span>

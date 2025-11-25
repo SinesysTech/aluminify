@@ -290,7 +290,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     }
 
     const { data: links, error: linksError } = await this.client
-      .from<CourseLinkRow>(COURSE_LINK_TABLE)
+      .from(COURSE_LINK_TABLE)
       .select('aluno_id, curso_id')
       .in('aluno_id', studentIds);
 
@@ -304,7 +304,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     }
 
     const { data: courses, error: courseError } = await this.client
-      .from<CourseRow>(COURSES_TABLE)
+      .from(COURSES_TABLE)
       .select('id, nome')
       .in('id', courseIds);
 

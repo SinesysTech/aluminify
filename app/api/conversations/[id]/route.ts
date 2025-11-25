@@ -1,6 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { conversationService } from '@/backend/services/conversation';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
 
 /**
  * GET /api/conversations/[id]
@@ -8,7 +12,7 @@ import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
  */
 async function getHandler(
   request: AuthenticatedRequest,
-  { params }: { params: Promise<{ id: string }> }
+  params: { id: string }
 ) {
   try {
     const userId = request.user?.id;
@@ -16,9 +20,7 @@ async function getHandler(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
-
-    const conversation = await conversationService.getConversationById(id, userId);
+    const conversation = await conversationService.getConversationById(params.id, userId);
 
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
@@ -42,15 +44,13 @@ async function getHandler(
  */
 async function putHandler(
   request: AuthenticatedRequest,
-  { params }: { params: Promise<{ id: string }> }
+  params: { id: string }
 ) {
   try {
     const userId = request.user?.id;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { id } = await params;
     
     let body;
     try {
@@ -63,10 +63,10 @@ async function putHandler(
       );
     }
 
-    console.log('[Conversations API] Updating conversation:', id, 'with body:', body);
+    console.log('[Conversations API] Updating conversation:', params.id, 'with body:', body);
 
     const conversation = await conversationService.updateConversation({
-      id,
+      id: params.id,
       userId,
       title: body.title,
       is_active: body.is_active,
@@ -95,7 +95,7 @@ async function putHandler(
  */
 async function deleteHandler(
   request: AuthenticatedRequest,
-  { params }: { params: Promise<{ id: string }> }
+  params: { id: string }
 ) {
   try {
     const userId = request.user?.id;
@@ -103,9 +103,7 @@ async function deleteHandler(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
-
-    await conversationService.deleteConversation({ id, userId });
+    await conversationService.deleteConversation({ id: params.id, userId });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -117,6 +115,17 @@ async function deleteHandler(
   }
 }
 
-export const GET = requireAuth(getHandler);
-export const PUT = requireAuth(putHandler);
-export const DELETE = requireAuth(deleteHandler);
+export async function GET(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return requireAuth((req) => getHandler(req, params))(request);
+}
+
+export async function PUT(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return requireAuth((req) => putHandler(req, params))(request);
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return requireAuth((req) => deleteHandler(req, params))(request);
+}

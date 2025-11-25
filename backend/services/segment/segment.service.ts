@@ -26,7 +26,7 @@ export class SegmentService {
 
   async create(payload: CreateSegmentInput): Promise<Segment> {
     const name = this.validateName(payload.name);
-    const slug = payload.slug ? this.validateSlug(payload.slug) : null;
+    const slug = payload.slug ? this.validateSlug(payload.slug) : undefined;
 
     const existingByName = await this.repository.findByName(name);
     if (existingByName) {
@@ -58,14 +58,14 @@ export class SegmentService {
       }
     }
 
-    if (slug !== undefined) {
+    if (slug !== undefined && slug !== null) {
       const existingBySlug = await this.repository.findBySlug(slug);
       if (existingBySlug && existingBySlug.id !== id) {
         throw new SegmentConflictError(`Segment with slug "${slug}" already exists`);
       }
     }
 
-    return this.repository.update(id, { name, slug });
+    return this.repository.update(id, { name, slug: slug ?? undefined });
   }
 
   async delete(id: string): Promise<void> {

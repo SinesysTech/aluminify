@@ -152,7 +152,7 @@ export function ConversationsPanel({
       <div
         className={cn(
           'flex flex-col h-full border-r bg-background transition-all duration-300',
-          open ? 'w-64' : 'w-0 overflow-hidden'
+          open ? 'w-full md:w-64' : 'w-0 overflow-hidden'
         )}
       >
         {open && (

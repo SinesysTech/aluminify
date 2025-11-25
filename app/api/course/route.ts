@@ -9,7 +9,8 @@ import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({
   id: course.id,
   segmentId: course.segmentId,
-  disciplineId: course.disciplineId,
+  disciplineId: course.disciplineId, // Mantido para compatibilidade
+  disciplineIds: course.disciplineIds, // Nova propriedade
   name: course.name,
   modality: course.modality,
   type: course.type,
@@ -57,7 +58,8 @@ async function postHandler(request: AuthenticatedRequest) {
     const body = await request.json();
     const course = await courseService.create({
       segmentId: body?.segmentId,
-      disciplineId: body?.disciplineId,
+      disciplineId: body?.disciplineId, // Mantido para compatibilidade
+      disciplineIds: body?.disciplineIds, // Nova propriedade
       name: body?.name,
       modality: body?.modality,
       type: body?.type,

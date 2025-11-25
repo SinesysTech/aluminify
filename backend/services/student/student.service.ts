@@ -60,14 +60,14 @@ export class StudentService {
       }
     }
 
-    const fullName = payload.fullName ? this.validateFullName(payload.fullName) : null;
-    const phone = payload.phone ? this.validatePhone(payload.phone) : null;
-    const zipCode = payload.zipCode ? this.validateZipCode(payload.zipCode) : null;
-    const birthDate = payload.birthDate ? this.validateDate(payload.birthDate) : null;
-    const instagram = payload.instagram ? this.validateSocialHandle(payload.instagram) : null;
-    const twitter = payload.twitter ? this.validateSocialHandle(payload.twitter) : null;
+    const fullName = payload.fullName ? this.validateFullName(payload.fullName) : undefined;
+    const phone = payload.phone ? this.validatePhone(payload.phone) : undefined;
+    const zipCode = payload.zipCode ? this.validateZipCode(payload.zipCode) : undefined;
+    const birthDate = payload.birthDate ? this.validateDate(payload.birthDate) : undefined;
+    const instagram = payload.instagram ? this.validateSocialHandle(payload.instagram) : undefined;
+    const twitter = payload.twitter ? this.validateSocialHandle(payload.twitter) : undefined;
 
-    const cpf = payload.cpf ? this.validateCpf(payload.cpf) : null;
+    const cpf = payload.cpf ? this.validateCpf(payload.cpf) : undefined;
     let temporaryPassword = payload.temporaryPassword?.trim();
 
     if (!temporaryPassword) {
@@ -112,10 +112,10 @@ export class StudentService {
       email,
       cpf,
       phone,
-      birthDate,
-      address: payload.address?.trim() || null,
+      birthDate: birthDate?.toISOString().split('T')[0],
+      address: payload.address?.trim() || undefined,
       zipCode,
-      enrollmentNumber: payload.enrollmentNumber ? this.validateEnrollmentNumber(payload.enrollmentNumber) : null,
+      enrollmentNumber: payload.enrollmentNumber ? this.validateEnrollmentNumber(payload.enrollmentNumber) : undefined,
       instagram,
       twitter,
       courseIds,
@@ -160,7 +160,7 @@ export class StudentService {
     }
 
     if (payload.birthDate !== undefined) {
-      updateData.birthDate = payload.birthDate ? this.validateDate(payload.birthDate) : null;
+      updateData.birthDate = payload.birthDate ? this.validateDate(payload.birthDate).toISOString().split('T')[0] : null;
     }
 
     if (payload.address !== undefined) {

@@ -430,7 +430,7 @@ export function ProfessorTable() {
     <div className="w-full space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Professores</CardTitle>
               <CardDescription>Gerencie os professores do sistema</CardDescription>
@@ -438,12 +438,12 @@ export function ProfessorTable() {
             {mounted ? (
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Professor
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-[95vw] md:max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Criar Professor</DialogTitle>
                     <DialogDescription>
@@ -451,34 +451,36 @@ export function ProfessorTable() {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-                      <FormField
-                        control={createForm.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome Completo *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="João Silva" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email *</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="joao@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-3">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <FormField
+                          control={createForm.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome Completo *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="João Silva" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email *</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="joao@example.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <FormField
                           control={createForm.control}
                           name="cpf"
@@ -505,20 +507,20 @@ export function ProfessorTable() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={createForm.control}
+                          name="specialty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Especialidade</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Matemática, Física" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <FormField
-                        control={createForm.control}
-                        name="specialty"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Especialidade</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Matemática, Física" {...field} value={field.value || ''} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField
                         control={createForm.control}
                         name="biography"
@@ -530,6 +532,7 @@ export function ProfessorTable() {
                                 placeholder="Biografia do professor..."
                                 {...field}
                                 value={field.value || ''}
+                                rows={2}
                               />
                             </FormControl>
                             <FormMessage />
@@ -689,7 +692,7 @@ export function ProfessorTable() {
       {/* Edit Dialog */}
       {mounted && editingProfessor && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Editar Professor</DialogTitle>
               <DialogDescription>
@@ -697,34 +700,36 @@ export function ProfessorTable() {
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-4">
-                <FormField
-                  control={editForm.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Completo *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="João Silva" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email *</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="joao@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <FormField
+                    control={editForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome Completo *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="João Silva" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email *</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="joao@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <FormField
                     control={editForm.control}
                     name="cpf"
@@ -751,20 +756,20 @@ export function ProfessorTable() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={editForm.control}
+                    name="specialty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Especialidade</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Matemática, Física" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <FormField
-                  control={editForm.control}
-                  name="specialty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Especialidade</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Matemática, Física" {...field} value={field.value || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <FormField
                   control={editForm.control}
                   name="biography"
@@ -776,6 +781,7 @@ export function ProfessorTable() {
                           placeholder="Biografia do professor..."
                           {...field}
                           value={field.value || ''}
+                          rows={2}
                         />
                       </FormControl>
                       <FormMessage />

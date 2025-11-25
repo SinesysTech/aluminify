@@ -36,10 +36,10 @@ export class CourseService {
     const modality = this.validateModality(payload.modality);
     const type = this.validateCourseType(payload.type);
     const year = this.validateYear(payload.year);
-    const description = payload.description ? this.validateDescription(payload.description) : null;
-    const accessMonths = payload.accessMonths ? this.validateAccessMonths(payload.accessMonths) : null;
-    const startDate = payload.startDate ? this.validateDate(payload.startDate) : null;
-    const endDate = payload.endDate ? this.validateDate(payload.endDate) : null;
+    const description = payload.description ? this.validateDescription(payload.description) : undefined;
+    const accessMonths = payload.accessMonths ? this.validateAccessMonths(payload.accessMonths) : undefined;
+    const startDate = payload.startDate ? this.validateDate(payload.startDate) : undefined;
+    const endDate = payload.endDate ? this.validateDate(payload.endDate) : undefined;
     
     if (startDate && endDate && startDate > endDate) {
       throw new CourseValidationError('Start date must be before or equal to end date');
@@ -49,23 +49,26 @@ export class CourseService {
       await this.ensureSegmentExists(payload.segmentId);
     }
 
-    if (payload.disciplineId) {
-      await this.ensureDisciplineExists(payload.disciplineId);
+    // Validar disciplinas: usar disciplineIds se fornecido, senão usar disciplineId (compatibilidade)
+    const disciplineIds = payload.disciplineIds ?? (payload.disciplineId ? [payload.disciplineId] : []);
+    for (const disciplineId of disciplineIds) {
+      await this.ensureDisciplineExists(disciplineId);
     }
 
     return this.repository.create({
-      segmentId: payload.segmentId ?? null,
-      disciplineId: payload.disciplineId ?? null,
+      segmentId: payload.segmentId ?? undefined,
+      disciplineId: payload.disciplineId ?? undefined, // Mantido para compatibilidade
+      disciplineIds: disciplineIds, // Nova propriedade
       name,
       modality,
       type,
       description,
       year,
-      startDate,
-      endDate,
+      startDate: startDate?.toISOString().split('T')[0],
+      endDate: endDate?.toISOString().split('T')[0],
       accessMonths,
-      planningUrl: payload.planningUrl ?? null,
-      coverImageUrl: payload.coverImageUrl ?? null,
+      planningUrl: payload.planningUrl ?? undefined,
+      coverImageUrl: payload.coverImageUrl ?? undefined,
     });
   }
 
@@ -99,11 +102,11 @@ export class CourseService {
     }
 
     if (payload.startDate !== undefined) {
-      updateData.startDate = payload.startDate ? this.validateDate(payload.startDate) : null;
+      updateData.startDate = payload.startDate ? this.validateDate(payload.startDate).toISOString().split('T')[0] : null;
     }
 
     if (payload.endDate !== undefined) {
-      updateData.endDate = payload.endDate ? this.validateDate(payload.endDate) : null;
+      updateData.endDate = payload.endDate ? this.validateDate(payload.endDate).toISOString().split('T')[0] : null;
     }
 
     if (updateData.startDate && updateData.endDate && updateData.startDate > updateData.endDate) {
@@ -117,11 +120,21 @@ export class CourseService {
       updateData.segmentId = payload.segmentId;
     }
 
-    if (payload.disciplineId !== undefined) {
+    // Validar disciplinas se fornecidas
+    if (payload.disciplineIds !== undefined) {
+      for (const disciplineId of payload.disciplineIds) {
+        await this.ensureDisciplineExists(disciplineId);
+      }
+      updateData.disciplineIds = payload.disciplineIds;
+    } else if (payload.disciplineId !== undefined) {
+      // Compatibilidade: se disciplineId foi fornecido, validar e converter para array
       if (payload.disciplineId) {
         await this.ensureDisciplineExists(payload.disciplineId);
+        updateData.disciplineIds = [payload.disciplineId];
+      } else {
+        updateData.disciplineIds = [];
       }
-      updateData.disciplineId = payload.disciplineId;
+      updateData.disciplineId = payload.disciplineId; // Mantido para compatibilidade
     }
 
     if (payload.planningUrl !== undefined) {

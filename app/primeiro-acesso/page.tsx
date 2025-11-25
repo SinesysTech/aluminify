@@ -13,7 +13,7 @@ export default async function PrimeiroAcessoPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4 md:p-6">
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>Defina sua nova senha</CardTitle>
@@ -28,4 +28,8 @@ export default async function PrimeiroAcessoPage() {
     </div>
   )
 }
+
+
+
+
 

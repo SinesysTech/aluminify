@@ -41,6 +41,12 @@ const PROFESSOR_ONLY: AppUserRole[] = ["professor", "superadmin"]
 
 const navMainData: NavItem[] = [
   {
+    title: "Calendário",
+    url: "/aluno/cronograma/calendario",
+    icon: Calendar,
+    roles: ALL_ROLES,
+  },
+  {
     title: "TobIAs",
     url: "/tobias",
     icon: MessageSquare,

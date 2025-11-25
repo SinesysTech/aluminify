@@ -54,8 +54,8 @@ export class EnrollmentService {
     return this.repository.create({
       studentId: payload.studentId,
       courseId: payload.courseId,
-      accessStartDate,
-      accessEndDate,
+      accessStartDate: accessStartDate.toISOString().split('T')[0],
+      accessEndDate: accessEndDate.toISOString().split('T')[0],
       active: payload.active ?? true,
     });
   }

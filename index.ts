@@ -1,5 +1,41 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+
+async function buscarAulasConcluidas(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  alunoId: string,
+  cursoId?: string,
+): Promise<Set<string>> {
+  if (!cursoId) {
+    return new Set();
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("aulas_concluidas")
+    .select("aula_id")
+    .eq("aluno_id", alunoId)
+    .eq("curso_id", cursoId);
+
+  if (error) {
+    console.error("Erro ao buscar aulas concluidas:", error);
+  } else if (data && data.length > 0) {
+    return new Set(data.map((row) => row.aula_id as string));
+  }
+
+  const { data: historicoData, error: historicoError } = await supabaseAdmin
+    .from("cronograma_itens")
+    .select("aula_id, cronogramas!inner(aluno_id, curso_alvo_id)")
+    .eq("concluido", true)
+    .eq("cronogramas.aluno_id", alunoId)
+    .eq("cronogramas.curso_alvo_id", cursoId);
+
+  if (historicoError) {
+    console.error("Erro ao buscar histórico de aulas concluidas:", historicoError);
+    return new Set();
+  }
+
+  return new Set((historicoData ?? []).map((row) => row.aula_id as string));
+}
 Deno.serve(async (req)=>{
   console.log("=== INÍCIO DA REQUISIÇÃO ===");
   console.log("Método:", req.method);
@@ -211,6 +247,9 @@ Deno.serve(async (req)=>{
         }
       });
     }
+    const prioridadeMinimaEfetiva = Math.max(1, input.prioridade_minima ?? 1);
+    const cursoId = input.curso_alvo_id || null;
+    const modulosSelecionados = Array.isArray(input.modulos_ids) ? input.modulos_ids : [];
     // ============================================
     // ETAPA 1: Cálculo de Capacidade
     // ============================================
@@ -241,12 +280,20 @@ Deno.serve(async (req)=>{
       semanaNumero++;
     }
     const capacidadeTotal = semanas.filter((s)=>!s.is_ferias).reduce((acc, s)=>acc + s.capacidade_minutos, 0);
+    const excluirConcluidas = input.excluir_aulas_concluidas !== false;
+    const aulasConcluidas = excluirConcluidas
+      ? await buscarAulasConcluidas(supabaseAdmin, userId, cursoId)
+      : new Set<string>();
     // ============================================
     // ETAPA 2: Busca e Filtragem de Aulas
     // ============================================
     // Buscar frentes das disciplinas selecionadas
     // Usar supabaseAdmin para bypass RLS (já validamos o usuário acima)
-    const { data: frentesData, error: frentesError } = await supabaseAdmin.from("frentes").select("id").in("disciplina_id", input.disciplinas_ids);
+    let frentesQuery = supabaseAdmin.from("frentes").select("id").in("disciplina_id", input.disciplinas_ids);
+    if (cursoId) {
+      frentesQuery = frentesQuery.eq("curso_id", cursoId);
+    }
+    const { data: frentesData, error: frentesError } = await frentesQuery;
     if (frentesError) {
       console.error("Erro ao buscar frentes:", frentesError);
       return new Response(JSON.stringify({
@@ -270,7 +317,11 @@ Deno.serve(async (req)=>{
       });
     }
     // Buscar módulos das frentes
-    const { data: modulosData, error: modulosError } = await supabaseAdmin.from("modulos").select("id").in("frente_id", frenteIds);
+    let modulosQuery = supabaseAdmin.from("modulos").select("id").in("frente_id", frenteIds);
+    if (cursoId) {
+      modulosQuery = modulosQuery.eq("curso_id", cursoId);
+    }
+    const { data: modulosData, error: modulosError } = await modulosQuery;
     if (modulosError) {
       console.error("Erro ao buscar módulos:", modulosError);
       return new Response(JSON.stringify({
@@ -282,7 +333,10 @@ Deno.serve(async (req)=>{
         }
       });
     }
-    const moduloIds = modulosData?.map((m)=>m.id) || [];
+    let moduloIds = modulosData?.map((m)=>m.id) || [];
+    if (modulosSelecionados.length > 0) {
+      moduloIds = moduloIds.filter((id)=>modulosSelecionados.includes(id));
+    }
     if (moduloIds.length === 0) {
       return new Response(JSON.stringify({
         error: "Nenhum módulo encontrado para as frentes selecionadas"
@@ -294,7 +348,7 @@ Deno.serve(async (req)=>{
       });
     }
     // Buscar aulas dos módulos com filtro de prioridade
-    const { data: aulasData, error: aulasError } = await supabaseAdmin.from("aulas").select(`
+    let aulasQuery = supabaseAdmin.from("aulas").select(`
         id,
         nome,
         numero_aula,
@@ -313,7 +367,11 @@ Deno.serve(async (req)=>{
             )
           )
         )
-      `).in("modulo_id", moduloIds).gte("prioridade", input.prioridade_minima);
+      `).in("modulo_id", moduloIds).gte("prioridade", prioridadeMinimaEfetiva).neq("prioridade", 0);
+    if (cursoId) {
+      aulasQuery = aulasQuery.eq("curso_id", cursoId);
+    }
+    const { data: aulasData, error: aulasError } = await aulasQuery;
     if (aulasError) {
       console.error("Erro ao buscar aulas:", aulasError);
       return new Response(JSON.stringify({
@@ -336,12 +394,12 @@ Deno.serve(async (req)=>{
       });
     }
     // Mapear dados para estrutura mais simples
-    const aulas = aulasData.map((aula)=>({
+    let aulas = aulasData.map((aula)=>({
         id: aula.id,
         nome: aula.nome,
         numero_aula: aula.numero_aula,
         tempo_estimado_minutos: aula.tempo_estimado_minutos,
-        prioridade: aula.prioridade,
+        prioridade: aula.prioridade ?? 0,
         modulo_id: aula.modulos.id,
         modulo_nome: aula.modulos.nome,
         numero_modulo: aula.modulos.numero_modulo,
@@ -350,6 +408,19 @@ Deno.serve(async (req)=>{
         disciplina_id: aula.modulos.frentes.disciplinas.id,
         disciplina_nome: aula.modulos.frentes.disciplinas.nome
       }));
+    if (excluirConcluidas && aulasConcluidas.size > 0) {
+      aulas = aulas.filter((aula)=>!aulasConcluidas.has(aula.id));
+      if (aulas.length === 0) {
+        return new Response(JSON.stringify({
+          error: "Nenhuma aula restante após excluir concluídas"
+        }), {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+      }
+    }
     // Ordenar aulas: Disciplina > Frente > Numero Modulo > Numero Aula
     aulas.sort((a, b)=>{
       // Ordenar por disciplina
@@ -532,10 +603,12 @@ Deno.serve(async (req)=>{
       dias_estudo_semana: input.dias_semana,
       horas_estudo_dia: input.horas_dia,
       periodos_ferias: input.ferias || [],
-      prioridade_minima: input.prioridade_minima,
+      prioridade_minima: prioridadeMinimaEfetiva,
       modalidade_estudo: input.modalidade,
       disciplinas_selecionadas: input.disciplinas_ids,
-      ordem_frentes_preferencia: input.ordem_frentes_preferencia || null
+        ordem_frentes_preferencia: input.ordem_frentes_preferencia || null,
+        modulos_selecionados: modulosSelecionados.length ? modulosSelecionados : null,
+        excluir_aulas_concluidas: excluirConcluidas
     }).select().single();
     if (cronogramaError || !cronograma) {
       console.error("Erro ao criar cronograma:", cronogramaError);

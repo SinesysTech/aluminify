@@ -27,3 +27,7 @@ export function getDefaultRouteForRole(role: AppUserRole) {
   return DEFAULT_ROUTE_BY_ROLE[role] ?? '/tobias'
 }
 
+
+
+
+

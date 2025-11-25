@@ -4,7 +4,8 @@ export type CourseType = 'Superextensivo' | 'Extensivo' | 'Intensivo' | 'Superin
 export interface Course {
   id: string;
   segmentId: string | null;
-  disciplineId: string | null;
+  disciplineId: string | null; // Mantido para compatibilidade, mas deprecated
+  disciplineIds: string[]; // Nova propriedade para múltiplas disciplinas
   name: string;
   modality: Modality;
   type: CourseType;
@@ -21,7 +22,8 @@ export interface Course {
 
 export interface CreateCourseInput {
   segmentId?: string;
-  disciplineId?: string;
+  disciplineId?: string; // Mantido para compatibilidade
+  disciplineIds?: string[]; // Nova propriedade para múltiplas disciplinas
   name: string;
   modality: Modality;
   type: CourseType;
@@ -36,7 +38,8 @@ export interface CreateCourseInput {
 
 export interface UpdateCourseInput {
   segmentId?: string | null;
-  disciplineId?: string | null;
+  disciplineId?: string | null; // Mantido para compatibilidade
+  disciplineIds?: string[]; // Nova propriedade para múltiplas disciplinas
   name?: string;
   modality?: Modality;
   type?: CourseType;

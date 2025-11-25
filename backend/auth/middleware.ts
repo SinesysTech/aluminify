@@ -112,8 +112,10 @@ export async function isSuperAdmin(userId: string): Promise<boolean> {
   }
 }
 
-export function requireAuth(handler: (request: AuthenticatedRequest) => Promise<NextResponse>) {
-  return async (request: NextRequest) => {
+export function requireAuth(
+  handler: (request: AuthenticatedRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+) {
+  return async (request: NextRequest, context?: Record<string, unknown>) => {
     const auth = await getAuth(request);
     
     if (!auth) {
@@ -127,12 +129,14 @@ export function requireAuth(handler: (request: AuthenticatedRequest) => Promise<
       authenticatedRequest.apiKey = auth.apiKey;
     }
     
-    return handler(authenticatedRequest);
+    return handler(authenticatedRequest, context);
   };
 }
 
-export function requireUserAuth(handler: (request: AuthenticatedRequest) => Promise<NextResponse>) {
-  return async (request: NextRequest) => {
+export function requireUserAuth(
+  handler: (request: AuthenticatedRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+) {
+  return async (request: NextRequest, context?: Record<string, unknown>) => {
     const user = await getAuthUser(request);
     
     if (!user) {
@@ -142,13 +146,15 @@ export function requireUserAuth(handler: (request: AuthenticatedRequest) => Prom
     const authenticatedRequest = request as AuthenticatedRequest;
     authenticatedRequest.user = user;
     
-    return handler(authenticatedRequest);
+    return handler(authenticatedRequest, context);
   };
 }
 
 export function requireRole(role: UserRole) {
-  return (handler: (request: AuthenticatedRequest) => Promise<NextResponse>) => {
-    return async (request: NextRequest) => {
+  return (
+    handler: (request: AuthenticatedRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+  ) => {
+    return async (request: NextRequest, context?: Record<string, unknown>) => {
       const user = await getAuthUser(request);
       
       if (!user) {
@@ -162,13 +168,15 @@ export function requireRole(role: UserRole) {
       const authenticatedRequest = request as AuthenticatedRequest;
       authenticatedRequest.user = user;
       
-      return handler(authenticatedRequest);
+      return handler(authenticatedRequest, context);
     };
   };
 }
 
-export function requireSuperAdmin(handler: (request: AuthenticatedRequest) => Promise<NextResponse>) {
-  return async (request: NextRequest) => {
+export function requireSuperAdmin(
+  handler: (request: AuthenticatedRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+) {
+  return async (request: NextRequest, context?: Record<string, unknown>) => {
     const user = await getAuthUser(request);
     
     if (!user || !user.isSuperAdmin) {
@@ -178,7 +186,7 @@ export function requireSuperAdmin(handler: (request: AuthenticatedRequest) => Pr
     const authenticatedRequest = request as AuthenticatedRequest;
     authenticatedRequest.user = user;
     
-    return handler(authenticatedRequest);
+    return handler(authenticatedRequest, context);
   };
 }
 

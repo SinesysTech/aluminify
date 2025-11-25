@@ -46,7 +46,7 @@ export function getOpenApiSpec() {
   const spec = swaggerJsdoc({
     definition: baseDefinition,
     apis: [],
-  });
+  }) as any;
 
   spec.paths = {
     ...(spec.paths ?? {}),

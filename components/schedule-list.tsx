@@ -54,7 +54,7 @@ interface CronogramaItem {
         }
       }
     }
-  }
+  } | null
 }
 
 interface ScheduleListProps {
@@ -64,6 +64,26 @@ interface ScheduleListProps {
   cronogramaId: string
   onToggleConcluido: (itemId: string, concluido: boolean) => void
   onUpdate: (updater: (prev: any) => any) => void
+}
+
+const formatTempo = (minutes: number) => {
+  const rounded = Math.max(0, Math.round(minutes))
+  const hours = Math.floor(rounded / 60)
+  const mins = rounded % 60
+
+  const parts = []
+  if (hours > 0) {
+    parts.push(`${hours}h`)
+  }
+  if (mins > 0) {
+    parts.push(`${mins} min`)
+  }
+
+  if (parts.length === 0) {
+    return '0 min'
+  }
+
+  return parts.join(' ')
 }
 
 function AulaItem({
@@ -113,29 +133,37 @@ function AulaItem({
         onClick={(e) => e.stopPropagation()}
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant="outline" className="text-xs">
-            Aula {item.aulas.numero_aula || 'N/A'}
-          </Badge>
-          {item.aulas.modulos?.numero_modulo && (
-            <Badge variant="secondary" className="text-xs">
-              Módulo {item.aulas.modulos.numero_modulo}
-            </Badge>
-          )}
-          {item.aulas.modulos?.frentes?.nome && (
-            <Badge variant="outline" className="text-xs">
-              {item.aulas.modulos.frentes.nome}
-            </Badge>
-          )}
-        </div>
-        <div className="font-medium text-sm mb-1">
-          {item.aulas.nome}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {item.aulas.tempo_estimado_minutos
-            ? `${item.aulas.tempo_estimado_minutos} min`
-            : 'Duração não informada'}
-        </div>
+        {item.aulas ? (
+          <>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="outline" className="text-xs">
+                Aula {item.aulas.numero_aula || 'N/A'}
+              </Badge>
+              {item.aulas.modulos?.numero_modulo && (
+                <Badge variant="secondary" className="text-xs">
+                  Módulo {item.aulas.modulos.numero_modulo}
+                </Badge>
+              )}
+              {item.aulas.modulos?.frentes?.nome && (
+                <Badge variant="outline" className="text-xs">
+                  {item.aulas.modulos.frentes.nome}
+                </Badge>
+              )}
+            </div>
+            <div className="font-medium text-sm mb-1">
+              {item.aulas.nome}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {item.aulas.tempo_estimado_minutos && item.aulas.tempo_estimado_minutos > 0
+                ? formatTempo(item.aulas.tempo_estimado_minutos)
+                : 'Duração não informada'}
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            Aula não disponível (ID: {item.aula_id})
+          </div>
+        )}
       </div>
     </div>
   )
@@ -278,20 +306,20 @@ export function ScheduleList({
                     )}
                   </div>
                   {temAulas && (
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex flex-col items-end gap-1">
                         <span>
                           {concluidos} de {itens.length} aulas
                         </span>
                         {(() => {
                           const tempoAulas = itens.reduce((acc, item) => {
-                            return acc + (item.aulas.tempo_estimado_minutos || 0)
+                            return acc + (item.aulas?.tempo_estimado_minutos || 0)
                           }, 0)
                           const tempoAnotacoesExercicios = tempoAulas * 0.5
                           const tempoTotal = tempoAulas + tempoAnotacoesExercicios
                           return (
                             <span className="text-xs">
-                              {Math.round(tempoTotal)} min ({Math.round(tempoTotal / 60)}h)
+                                {formatTempo(tempoTotal)}
                             </span>
                           )
                         })()}
@@ -313,19 +341,34 @@ export function ScheduleList({
                         <div>
                           <span className="text-muted-foreground">Aulas:</span>
                           <p className="font-medium">
-                            {Math.round(itens.reduce((acc, item) => acc + (item.aulas.tempo_estimado_minutos || 0), 0))} min
+                            {formatTempo(
+                              itens.reduce(
+                                (acc, item) => acc + (item.aulas?.tempo_estimado_minutos || 0),
+                                0,
+                              ),
+                            )}
                           </p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Anotações/Exercícios:</span>
                           <p className="font-medium">
-                            {Math.round(itens.reduce((acc, item) => acc + (item.aulas.tempo_estimado_minutos || 0), 0) * 0.5)} min
+                            {formatTempo(
+                              itens.reduce(
+                                (acc, item) => acc + (item.aulas?.tempo_estimado_minutos || 0),
+                                0,
+                              ) * 0.5,
+                            )}
                           </p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Total:</span>
                           <p className="font-semibold">
-                            {Math.round(itens.reduce((acc, item) => acc + (item.aulas.tempo_estimado_minutos || 0), 0) * 1.5)} min ({Math.round(itens.reduce((acc, item) => acc + (item.aulas.tempo_estimado_minutos || 0), 0) * 1.5 / 60)}h)
+                            {formatTempo(
+                              itens.reduce(
+                                (acc, item) => acc + (item.aulas?.tempo_estimado_minutos || 0),
+                                0,
+                              ) * 1.5,
+                            )}
                           </p>
                         </div>
                       </div>
@@ -413,12 +456,14 @@ export function ScheduleList({
             <CardContent className="p-3">
               <div className="flex items-start gap-3">
                 <GripVertical className="h-4 w-4 text-muted-foreground mt-1" />
-                <div className="flex-1">
-                  <Badge variant="outline" className="text-xs mb-1">
-                    Aula {activeItem.aulas.numero_aula || 'N/A'}
-                  </Badge>
-                  <p className="text-sm font-medium">{activeItem.aulas.nome}</p>
-                </div>
+                {activeItem.aulas && (
+                  <div className="flex-1">
+                    <Badge variant="outline" className="text-xs mb-1">
+                      Aula {activeItem.aulas.numero_aula || 'N/A'}
+                    </Badge>
+                    <p className="text-sm font-medium">{activeItem.aulas.nome}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

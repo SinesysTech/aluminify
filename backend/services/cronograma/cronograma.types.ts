@@ -16,6 +16,9 @@ export interface GerarCronogramaInput {
   curso_alvo_id?: string;
   nome?: string;
   ordem_frentes_preferencia?: string[];
+  modulos_ids?: string[];
+  excluir_aulas_concluidas?: boolean;
+  velocidade_reproducao?: number; // 1.00, 1.25, 1.50, 2.00
 }
 
 export interface AulaCompleta {

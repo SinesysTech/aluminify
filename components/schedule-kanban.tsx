@@ -53,7 +53,7 @@ interface CronogramaItem {
         }
       }
     }
-  }
+  } | null
 }
 
 interface ScheduleKanbanProps {
@@ -63,6 +63,20 @@ interface ScheduleKanbanProps {
   modalidadeEstudo: 'paralelo' | 'sequencial'
   onToggleConcluido: (itemId: string, concluido: boolean) => void
   onUpdate: (updater: (prev: any) => any) => void
+}
+
+const formatTempo = (minutes: number) => {
+  const rounded = Math.max(0, Math.round(minutes))
+  const hours = Math.floor(rounded / 60)
+  const mins = rounded % 60
+
+  const parts = []
+  if (hours > 0) parts.push(`${hours}h`)
+  if (mins > 0) parts.push(`${mins} min`)
+
+  if (parts.length === 0) return '0 min'
+
+  return parts.join(' ')
 }
 
 function AulaCard({
@@ -114,26 +128,34 @@ function AulaCard({
                 }
                 onClick={(e) => e.stopPropagation()}
               />
-              <Badge variant="outline" className="text-xs">
-                Aula {item.aulas.numero_aula || 'N/A'}
-              </Badge>
-              {item.aulas.modulos?.numero_modulo && (
-                <Badge variant="secondary" className="text-xs">
-                  Módulo {item.aulas.modulos.numero_modulo}
-                </Badge>
-              )}
-              {item.aulas.modulos?.frentes?.nome && (
+              {item.aulas ? (
+                <>
+                  <Badge variant="outline" className="text-xs">
+                    Aula {item.aulas.numero_aula || 'N/A'}
+                  </Badge>
+                  {item.aulas.modulos?.numero_modulo && (
+                    <Badge variant="secondary" className="text-xs">
+                      Módulo {item.aulas.modulos.numero_modulo}
+                    </Badge>
+                  )}
+                  {item.aulas.modulos?.frentes?.nome && (
+                    <Badge variant="outline" className="text-xs">
+                      {item.aulas.modulos.frentes.nome}
+                    </Badge>
+                  )}
+                </>
+              ) : (
                 <Badge variant="outline" className="text-xs">
-                  {item.aulas.modulos.frentes.nome}
+                  Aula não disponível
                 </Badge>
               )}
             </div>
             <p className="text-sm font-medium line-clamp-2">
-              {item.aulas.nome}
+              {item.aulas?.nome || `Aula ID: ${item.aula_id}`}
             </p>
-            {item.aulas.tempo_estimado_minutos && (
+            {item.aulas?.tempo_estimado_minutos && item.aulas.tempo_estimado_minutos > 0 && (
               <p className="text-xs text-muted-foreground">
-                {item.aulas.tempo_estimado_minutos} min
+                {formatTempo(item.aulas.tempo_estimado_minutos)}
               </p>
             )}
           </div>
@@ -163,6 +185,48 @@ export function ScheduleKanban({
   const semanas = Object.keys(itensPorSemana)
     .map(Number)
     .sort((a, b) => a - b)
+
+  const inicioCronograma = new Date(dataInicio)
+  const diffDias = Math.floor((Date.now() - inicioCronograma.getTime()) / (1000 * 60 * 60 * 24))
+  const semanaAtual = diffDias >= 0 ? Math.floor(diffDias / 7) + 1 : 1
+  const maxSemanaDados = semanas.length ? Math.max(...semanas) : 0
+  const maxSemana = Math.max(maxSemanaDados, semanaAtual + 1, 1)
+  const alvoColunas = Math.min(3, Math.max(maxSemana, 1))
+
+  const visibleSet = new Set<number>()
+  const adicionarSemana = (numero: number) => {
+    if (numero >= 1 && numero <= maxSemana) {
+      visibleSet.add(numero)
+    }
+  }
+
+  adicionarSemana(semanaAtual - 1)
+  adicionarSemana(semanaAtual)
+  adicionarSemana(semanaAtual + 1)
+
+  let offset = 2
+  while (visibleSet.size < alvoColunas) {
+    const anterior = semanaAtual - offset
+    const proximo = semanaAtual + offset
+    if (anterior >= 1) {
+      adicionarSemana(anterior)
+    }
+    if (visibleSet.size >= alvoColunas) break
+    if (proximo <= maxSemana) {
+      adicionarSemana(proximo)
+    }
+    if (anterior < 1 && proximo > maxSemana) {
+      break
+    }
+    offset++
+  }
+
+  if (visibleSet.size === 0) {
+    visibleSet.add(1)
+  }
+
+  const visibleWeeks = Array.from(visibleSet).sort((a, b) => a - b)
+  const visibleWeekSet = new Set(visibleWeeks)
 
   const getSemanaDates = (semanaNumero: number) => {
     const inicio = new Date(dataInicio)
@@ -247,7 +311,7 @@ export function ScheduleKanban({
     }
 
     // Mover para outra semana (arrastar para a coluna)
-    if (novaSemana && novaSemana !== semanaAtual) {
+    if (novaSemana && novaSemana !== semanaAtual && visibleWeekSet.has(novaSemana)) {
       const itensNovaSemana = [...(itensPorSemana[novaSemana] || [])]
       const novaOrdem = itensNovaSemana.length + 1
 
@@ -302,7 +366,7 @@ export function ScheduleKanban({
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {semanas.map((semana) => {
+        {visibleWeeks.map((semana) => {
           const itens = itensPorSemana[semana] || []
           const { inicioSemana, fimSemana } = getSemanaDates(semana)
 
@@ -328,7 +392,7 @@ export function ScheduleKanban({
                       <div className="text-xs space-y-1 pt-2 border-t">
                         {(() => {
                           const tempoAulas = itens.reduce((acc, item) => {
-                            return acc + (item.aulas.tempo_estimado_minutos || 0)
+                            return acc + (item.aulas?.tempo_estimado_minutos || 0)
                           }, 0)
                           const tempoAnotacoesExercicios = tempoAulas * 0.5 // 50% do tempo de aulas para anotações e exercícios
                           const tempoTotal = tempoAulas + tempoAnotacoesExercicios
@@ -337,15 +401,15 @@ export function ScheduleKanban({
                             <>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Aulas:</span>
-                                <span className="font-medium">{Math.round(tempoAulas)} min</span>
+                                <span className="font-medium">{formatTempo(tempoAulas)}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Anotações/Exercícios:</span>
-                                <span className="font-medium">{Math.round(tempoAnotacoesExercicios)} min</span>
+                                <span className="font-medium">{formatTempo(tempoAnotacoesExercicios)}</span>
                               </div>
                               <div className="flex justify-between pt-1 border-t">
                                 <span className="font-semibold">Total:</span>
-                                <span className="font-semibold">{Math.round(tempoTotal)} min ({Math.round(tempoTotal / 60)}h)</span>
+                                <span className="font-semibold">{formatTempo(tempoTotal)}</span>
                               </div>
                             </>
                           )
@@ -382,26 +446,30 @@ export function ScheduleKanban({
               <div className="flex items-start gap-2">
                 <GripVertical className="h-4 w-4 text-muted-foreground mt-1" />
                 <div className="flex-1 space-y-2 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="text-xs">
-                      Aula {activeItem.aulas.numero_aula || 'N/A'}
-                    </Badge>
-                    {activeItem.aulas.modulos?.numero_modulo && (
-                      <Badge variant="secondary" className="text-xs">
-                        Módulo {activeItem.aulas.modulos.numero_modulo}
-                      </Badge>
-                    )}
-                    {activeItem.aulas.modulos?.frentes?.nome && (
-                      <Badge variant="outline" className="text-xs">
-                        {activeItem.aulas.modulos.frentes.nome}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm font-medium">{activeItem.aulas.nome}</p>
-                  {activeItem.aulas.tempo_estimado_minutos && (
-                    <p className="text-xs text-muted-foreground">
-                      {activeItem.aulas.tempo_estimado_minutos} min
-                    </p>
+                  {activeItem.aulas && (
+                    <>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs">
+                          Aula {activeItem.aulas.numero_aula || 'N/A'}
+                        </Badge>
+                        {activeItem.aulas.modulos?.numero_modulo && (
+                          <Badge variant="secondary" className="text-xs">
+                            Módulo {activeItem.aulas.modulos.numero_modulo}
+                          </Badge>
+                        )}
+                        {activeItem.aulas.modulos?.frentes?.nome && (
+                          <Badge variant="outline" className="text-xs">
+                            {activeItem.aulas.modulos.frentes.nome}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm font-medium">{activeItem.aulas.nome}</p>
+                      {activeItem.aulas.tempo_estimado_minutos && activeItem.aulas.tempo_estimado_minutos > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {formatTempo(activeItem.aulas.tempo_estimado_minutos)}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

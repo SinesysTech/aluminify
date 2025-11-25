@@ -1,4 +1,4 @@
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient, clearDatabaseClientCache } from '@/backend/clients/database';
 import {
   GerarCronogramaInput,
   GerarCronogramaResult,
@@ -61,6 +61,11 @@ export class CronogramaService {
     // Deletar cronograma anterior do aluno (se existir)
     await this.deletarCronogramaAnterior(client, userId);
 
+    const excluirConcluidas = input.excluir_aulas_concluidas !== false;
+    const aulasConcluidas = excluirConcluidas
+      ? await this.buscarAulasConcluidas(client, input.aluno_id, input.curso_alvo_id)
+      : new Set<string>();
+
     // ============================================
     // ETAPA 1: Cálculo de Capacidade
     // ============================================
@@ -74,16 +79,43 @@ export class CronogramaService {
     // ETAPA 2: Busca e Filtragem de Aulas
     // ============================================
 
-    const aulas = await this.buscarAulas(client, input.disciplinas_ids, input.prioridade_minima);
+    const aulasBase = await this.buscarAulas(
+      client,
+      input.disciplinas_ids,
+      input.prioridade_minima,
+      input.curso_alvo_id,
+      input.modulos_ids,
+    );
+
+    const aulas = excluirConcluidas
+      ? aulasBase.filter((aula) => !aulasConcluidas.has(aula.id))
+      : aulasBase;
+
+    if (!aulas.length) {
+      throw new CronogramaValidationError(
+        'Nenhuma aula disponível após aplicar os filtros selecionados.',
+      );
+    }
 
     // ============================================
     // ETAPA 3: Cálculo de Custo Real
     // ============================================
 
-    const aulasComCusto = aulas.map((aula) => ({
-      ...aula,
-      custo: (aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS) * FATOR_MULTIPLICADOR,
-    }));
+    // Velocidade de reprodução padrão: 1.00x
+    const velocidadeReproducao = input.velocidade_reproducao ?? 1.0;
+    
+    // Tempo de aula ajustado pela velocidade: se assistir em 1.5x, o tempo real é reduzido
+    // Tempo de estudo (anotações/exercícios) é calculado sobre o tempo de aula ajustado
+    const aulasComCusto = aulas.map((aula) => {
+      const tempoOriginal = aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS;
+      const tempoAulaAjustado = tempoOriginal / velocidadeReproducao;
+      // Custo = tempo de aula (ajustado) + tempo de estudo (calculado sobre o tempo ajustado)
+      const custo = tempoAulaAjustado * FATOR_MULTIPLICADOR;
+      return {
+        ...aula,
+        custo,
+      };
+    });
 
     const custoTotalNecessario = aulasComCusto.reduce((acc, aula) => acc + aula.custo, 0);
 
@@ -267,14 +299,23 @@ export class CronogramaService {
     client: ReturnType<typeof getDatabaseClient>,
     disciplinasIds: string[],
     prioridadeMinima: number,
+    cursoId?: string,
+    modulosSelecionados?: string[],
   ): Promise<AulaCompleta[]> {
+    const prioridadeMinimaEfetiva = Math.max(1, prioridadeMinima ?? 1);
     console.log('[CronogramaService] Buscando aulas para disciplinas:', disciplinasIds);
     
     // Buscar frentes das disciplinas selecionadas
-    const { data: frentesData, error: frentesError } = await client
+    let frentesQuery = client
       .from('frentes')
       .select('id')
       .in('disciplina_id', disciplinasIds);
+
+    if (cursoId) {
+      frentesQuery = frentesQuery.eq('curso_id', cursoId);
+    }
+
+    const { data: frentesData, error: frentesError } = await frentesQuery;
 
     if (frentesError) {
       console.error('[CronogramaService] Erro ao buscar frentes:', frentesError);
@@ -288,24 +329,41 @@ export class CronogramaService {
     }
 
     // Buscar módulos das frentes
-    const { data: modulosData, error: modulosError } = await client
+    let modulosQuery = client
       .from('modulos')
       .select('id')
       .in('frente_id', frenteIds);
+
+    if (cursoId) {
+      modulosQuery = modulosQuery.eq('curso_id', cursoId);
+    }
+
+    const { data: modulosData, error: modulosError } = await modulosQuery;
 
     if (modulosError) {
       console.error('[CronogramaService] Erro ao buscar módulos:', modulosError);
       throw new CronogramaValidationError(`Erro ao buscar módulos: ${modulosError.message}`);
     }
 
-    const moduloIds = modulosData?.map((m) => m.id) || [];
+    let moduloIds = modulosData?.map((m) => m.id) || [];
+
+    if (modulosSelecionados && modulosSelecionados.length > 0) {
+      moduloIds = moduloIds.filter((id) => modulosSelecionados.includes(id));
+      if (moduloIds.length === 0) {
+        throw new CronogramaValidationError(
+          'Nenhum módulo válido encontrado para o curso selecionado.',
+        );
+      }
+    }
 
     if (moduloIds.length === 0) {
       throw new CronogramaValidationError('Nenhum módulo encontrado para as frentes selecionadas');
     }
 
     // Buscar aulas dos módulos com filtro de prioridade
-    const { data: aulasData, error: aulasError } = await client
+    // Não usamos curso_id direto de aulas para evitar problemas de cache/sincronização
+    // Filtramos via join com frentes após buscar
+    let aulasQuery = client
       .from('aulas')
       .select(
         `
@@ -321,6 +379,7 @@ export class CronogramaService {
           frentes!inner(
             id,
             nome,
+            curso_id,
             disciplinas!inner(
               id,
               nome
@@ -330,15 +389,110 @@ export class CronogramaService {
       `,
       )
       .in('modulo_id', moduloIds)
-      .gte('prioridade', prioridadeMinima);
+      .gte('prioridade', prioridadeMinimaEfetiva)
+      .neq('prioridade', 0);
+
+    const { data: aulasDataRaw, error: aulasError } = await aulasQuery;
 
     if (aulasError) {
-      console.error('[CronogramaService] Erro ao buscar aulas:', aulasError);
+      console.error('[CronogramaService] Erro ao buscar aulas:', {
+        message: aulasError.message,
+        details: aulasError.details,
+        hint: aulasError.hint,
+        code: aulasError.code,
+      });
+      
+      // Se o erro for sobre curso_id não existir, tentar buscar sem selecionar curso_id
+      if (aulasError.message?.includes('curso_id')) {
+        console.warn('[CronogramaService] Tentando buscar aulas sem filtro de curso_id...');
+        const { data: aulasDataSemFiltro, error: errorSemFiltro } = await client
+          .from('aulas')
+          .select(
+            `
+            id,
+            nome,
+            numero_aula,
+            tempo_estimado_minutos,
+            prioridade,
+            modulos!inner(
+              id,
+              nome,
+              numero_modulo,
+              frentes!inner(
+                id,
+                nome,
+                curso_id,
+                disciplinas!inner(
+                  id,
+                  nome
+                )
+              )
+            )
+          `,
+          )
+          .in('modulo_id', moduloIds)
+          .gte('prioridade', prioridadeMinimaEfetiva)
+          .neq('prioridade', 0);
+        
+        if (errorSemFiltro) {
+          throw new CronogramaValidationError(`Erro ao buscar aulas: ${errorSemFiltro.message}`);
+        }
+        
+        // Filtrar por curso_id em memória baseado na frente
+        if (aulasDataSemFiltro) {
+          const aulasFiltradas = aulasDataSemFiltro.filter((aula: any) => {
+            const frenteCursoId = aula.modulos?.frentes?.curso_id;
+            return frenteCursoId === cursoId;
+          });
+          
+          if (aulasFiltradas.length === 0) {
+            throw new CronogramaValidationError('Nenhuma aula encontrada com os critérios fornecidos');
+          }
+          
+          // Continuar com aulasFiltradas
+          const aulas: AulaCompleta[] = aulasFiltradas.map((aula: any) => ({
+            id: aula.id,
+            nome: aula.nome,
+            numero_aula: aula.numero_aula,
+            tempo_estimado_minutos: aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS,
+            prioridade: aula.prioridade ?? 1,
+            modulo_id: aula.modulos.id,
+            modulo_nome: aula.modulos.nome,
+            numero_modulo: aula.modulos.numero_modulo,
+            frente_id: aula.modulos.frentes.id,
+            frente_nome: aula.modulos.frentes.nome,
+            disciplina_id: aula.modulos.frentes.disciplinas.id,
+            disciplina_nome: aula.modulos.frentes.disciplinas.nome,
+          }));
+          
+          return aulas;
+        }
+      }
+      
+      console.error('[CronogramaService] Erro ao buscar aulas:', {
+        message: aulasError.message,
+        details: aulasError.details,
+        hint: aulasError.hint,
+        code: aulasError.code,
+      });
       throw new CronogramaValidationError(`Erro ao buscar aulas: ${aulasError.message}`);
     }
 
-    if (!aulasData || aulasData.length === 0) {
+    if (!aulasDataRaw || aulasDataRaw.length === 0) {
       throw new CronogramaValidationError('Nenhuma aula encontrada com os critérios fornecidos');
+    }
+
+    // Filtrar por curso_id usando o join com frentes (se fornecido)
+    let aulasData = aulasDataRaw;
+    if (cursoId) {
+      aulasData = aulasDataRaw.filter((aula: any) => {
+        const frenteCursoId = aula.modulos?.frentes?.curso_id;
+        return frenteCursoId === cursoId;
+      });
+      
+      if (aulasData.length === 0) {
+        throw new CronogramaValidationError('Nenhuma aula encontrada para o curso selecionado');
+      }
     }
 
     // Mapear dados para estrutura mais simples
@@ -347,7 +501,7 @@ export class CronogramaService {
       nome: aula.nome,
       numero_aula: aula.numero_aula,
       tempo_estimado_minutos: aula.tempo_estimado_minutos,
-      prioridade: aula.prioridade,
+      prioridade: aula.prioridade ?? 0,
       modulo_id: aula.modulos.id,
       modulo_nome: aula.modulos.nome,
       numero_modulo: aula.modulos.numero_modulo,
@@ -389,7 +543,10 @@ export class CronogramaService {
     ordemFrentesPreferencia?: string[],
   ): ItemDistribuicao[] {
     // Agrupar aulas por frente
-    const frentesMap = new Map<string, FrenteDistribuicao>();
+    type FrenteComCusto = Omit<FrenteDistribuicao, 'aulas'> & {
+      aulas: Array<AulaCompleta & { custo: number }>;
+    };
+    const frentesMap = new Map<string, FrenteComCusto>();
 
     for (const aula of aulasComCusto) {
       if (!frentesMap.has(aula.frente_id)) {
@@ -407,7 +564,7 @@ export class CronogramaService {
       frente.custo_total += aula.custo;
     }
 
-    const frentes = Array.from(frentesMap.values());
+    const frentes: FrenteComCusto[] = Array.from(frentesMap.values());
     const custoTotalNecessario = aulasComCusto.reduce((acc, aula) => acc + aula.custo, 0);
 
     // Calcular pesos (modo paralelo)
@@ -528,6 +685,42 @@ export class CronogramaService {
     return itens;
   }
 
+  private async buscarAulasConcluidas(
+    client: ReturnType<typeof getDatabaseClient>,
+    alunoId: string,
+    cursoId?: string,
+  ): Promise<Set<string>> {
+    if (!cursoId) {
+      return new Set();
+    }
+
+    const { data, error } = await client
+      .from('aulas_concluidas')
+      .select('aula_id')
+      .eq('aluno_id', alunoId)
+      .eq('curso_id', cursoId);
+
+    if (error) {
+      console.error('[CronogramaService] Erro ao buscar aulas concluídas:', error);
+    } else if (data && data.length > 0) {
+      return new Set(data.map((row) => row.aula_id as string));
+    }
+
+    const { data: historicoData, error: historicoError } = await client
+      .from('cronograma_itens')
+      .select('aula_id, cronogramas!inner(aluno_id, curso_alvo_id)')
+      .eq('concluido', true)
+      .eq('cronogramas.aluno_id', alunoId)
+      .eq('cronogramas.curso_alvo_id', cursoId);
+
+    if (historicoError) {
+      console.error('[CronogramaService] Erro ao buscar histórico de aulas concluídas:', historicoError);
+      return new Set();
+    }
+
+    return new Set((historicoData ?? []).map((row) => row.aula_id as string));
+  }
+
   private async persistirCronograma(
     client: ReturnType<typeof getDatabaseClient>,
     input: GerarCronogramaInput,
@@ -549,17 +742,80 @@ export class CronogramaService {
         modalidade_estudo: input.modalidade,
         disciplinas_selecionadas: input.disciplinas_ids,
         ordem_frentes_preferencia: input.ordem_frentes_preferencia || null,
+        modulos_selecionados: input.modulos_ids?.length ? input.modulos_ids : null,
+        excluir_aulas_concluidas: input.excluir_aulas_concluidas !== false,
+        velocidade_reproducao: input.velocidade_reproducao ?? 1.0,
       })
       .select()
       .single();
 
     if (cronogramaError || !cronograma) {
+      console.error('[CronogramaService] Erro ao criar cronograma:', {
+        message: cronogramaError?.message,
+        details: cronogramaError?.details,
+        hint: cronogramaError?.hint,
+        code: cronogramaError?.code,
+      });
+      
       // Se for erro 409 (Conflict), lançar erro específico
       if (cronogramaError?.code === '23505' || cronogramaError?.code === 'PGRST116') {
         throw new CronogramaConflictError(
           `Erro ao criar cronograma: ${cronogramaError.message || 'Conflito ao criar cronograma'}`,
         );
       }
+      
+      // Se o erro mencionar schema cache, limpar cache e tentar novamente
+      if (cronogramaError?.message?.includes('schema cache') || cronogramaError?.message?.includes('Could not find')) {
+        console.warn('[CronogramaService] Problema com schema cache detectado, limpando cache...');
+        clearDatabaseClientCache();
+        // Continuar com fallback abaixo
+      }
+      
+      // Se o erro mencionar schema cache ou coluna não encontrada, tentar sem as colunas novas
+      if (cronogramaError?.message?.includes('schema cache') || cronogramaError?.message?.includes('Could not find')) {
+        console.warn('[CronogramaService] Problema com schema cache detectado, tentando sem as colunas novas...');
+        // Tentar inserir sem as colunas que podem estar causando problema
+        const { data: cronogramaFallback, error: fallbackError } = await client
+          .from('cronogramas')
+          .insert({
+            aluno_id: input.aluno_id,
+            curso_alvo_id: input.curso_alvo_id || null,
+            nome: input.nome || 'Meu Cronograma',
+            data_inicio: input.data_inicio,
+            data_fim: input.data_fim,
+            dias_estudo_semana: input.dias_semana,
+            horas_estudo_dia: input.horas_dia,
+            periodos_ferias: input.ferias || [],
+            prioridade_minima: input.prioridade_minima,
+            modalidade_estudo: input.modalidade,
+            disciplinas_selecionadas: input.disciplinas_ids,
+            ordem_frentes_preferencia: input.ordem_frentes_preferencia || null,
+          })
+          .select()
+          .single();
+          
+        if (fallbackError || !cronogramaFallback) {
+          throw new Error(`Erro ao criar cronograma: ${fallbackError?.message || cronogramaError?.message || 'Desconhecido'}`);
+        }
+        
+        // Atualizar com as colunas novas separadamente
+        const { data: cronogramaUpdated, error: updateError } = await client
+          .from('cronogramas')
+          .update({
+            modulos_selecionados: input.modulos_ids?.length ? input.modulos_ids : null,
+            excluir_aulas_concluidas: input.excluir_aulas_concluidas !== false,
+          })
+          .eq('id', cronogramaFallback.id)
+          .select()
+          .single();
+          
+        if (updateError) {
+          console.warn('[CronogramaService] Não foi possível atualizar campos novos, mas cronograma foi criado');
+        }
+        
+        return cronogramaUpdated || cronogramaFallback;
+      }
+      
       throw new Error(`Erro ao criar cronograma: ${cronogramaError?.message || 'Desconhecido'}`);
     }
 

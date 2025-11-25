@@ -285,6 +285,48 @@ Content-Type: application/json
 }
 ```
 
+#### Importar alunos via planilha
+```http
+POST /api/student/import
+Authorization: Bearer <token> (professor ou superadmin)
+Content-Type: application/json
+
+{
+  "rows": [
+    {
+      "rowNumber": 2,
+      "fullName": "Maria Souza",
+      "email": "maria@example.com",
+      "cpf": "12345678901",
+      "phone": "11999990000",
+      "enrollmentNumber": "MAT-2025-001",
+      "temporaryPassword": "Senha@123",
+      "courses": ["Extensivo Medicina"]
+    }
+  ]
+}
+```
+
+Campos obrigatórios por linha:
+- `fullName`, `email`, `cpf` (11 dígitos), `phone` (mín. 10 dígitos), `enrollmentNumber`, `courses` (nomes exatos cadastrados) e `temporaryPassword` (mín. 8 caracteres).
+- Cursos duplicados na mesma linha são ignorados automaticamente.
+
+**Resposta**
+```json
+{
+  "data": {
+    "total": 10,
+    "created": 8,
+    "skipped": 1,
+    "failed": 1,
+    "rows": [
+      { "rowNumber": 2, "email": "maria@example.com", "status": "created" },
+      { "rowNumber": 4, "email": "ana@example.com", "status": "failed", "message": "Cursos não encontrados: ..." }
+    ]
+  }
+}
+```
+
 ### Professores
 
 #### Listar Professores (Público)
@@ -348,6 +390,53 @@ Content-Type: application/json
   "type": "Apostila" | "Lista de Exercícios" | "Planejamento" | "Resumo" | "Gabarito" | "Outros",
   "fileUrl": "https://...",
   "order": 0
+}
+```
+
+### Cronogramas
+
+#### Gerar cronograma personalizado
+```http
+POST /api/cronograma
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "aluno_id": "uuid-do-aluno",
+  "nome": "Meu plano ENEM",
+  "data_inicio": "2025-02-01",
+  "data_fim": "2025-06-30",
+  "horas_dia": 3,
+  "dias_semana": 5,
+  "ferias": [{ "inicio": "2025-04-01", "fim": "2025-04-07" }],
+  "disciplinas_ids": ["uuid-disciplina"],
+  "prioridade_minima": 3,
+  "modalidade": "paralelo",
+  "curso_alvo_id": "uuid-curso",
+  "modulos_ids": ["uuid-modulo-1", "uuid-modulo-2"],
+  "excluir_aulas_concluidas": true
+}
+```
+
+Notas importantes:
+- Aulas com `prioridade = 0` são sempre ignoradas pelo gerador e nunca aparecem no cronograma do aluno.
+- `curso_alvo_id` define qual conjunto de aulas/módulos será utilizado. Quando informado, apenas aulas vinculadas a esse curso são consideradas.
+- `modulos_ids` permite restringir o cronograma aos módulos selecionados no wizard (opcional). Caso não seja enviado, todos os módulos do curso são utilizados.
+- `excluir_aulas_concluidas` (padrão `true`) remove automaticamente aulas já concluídas (historicamente ou via tabela `aulas_concluidas`).
+
+**Resposta de sucesso**
+```json
+{
+  "success": true,
+  "cronograma": { ... },
+  "estatisticas": {
+    "total_aulas": 120,
+    "total_semanas": 18,
+    "semanas_uteis": 18,
+    "capacidade_total_minutos": 16200,
+    "custo_total_minutos": 15800,
+    "frentes_distribuidas": 4
+  }
 }
 ```
 

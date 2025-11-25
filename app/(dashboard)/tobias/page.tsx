@@ -307,7 +307,7 @@ export default function TobIAsPage() {
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-2 md:mb-4 flex items-center gap-2">
         <Button
           variant="outline"
           size="icon"
@@ -317,14 +317,14 @@ export default function TobIAsPage() {
           <span className="sr-only">Toggle conversas</span>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">TobIAs</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-xl md:text-2xl font-bold">TobIAs</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">
             Sua monitora de curso. Tire suas dúvidas e receba ajuda personalizada.
           </p>
         </div>
       </div>
 
-      <div className="flex flex-1 gap-4 overflow-hidden">
+      <div className="flex flex-1 gap-2 md:gap-4 overflow-hidden">
         {/* Painel de conversas */}
         <ConversationsPanel
           selectedConversationId={selectedConversationId}
@@ -403,7 +403,7 @@ export default function TobIAsPage() {
             <ConversationScrollButton />
           </Conversation>
 
-          <div className="border-t bg-background p-4">
+          <div className="border-t bg-background p-2 md:p-4">
             <PromptInput onSubmit={handleSubmit}>
               <PromptInputTextarea
                 ref={inputRef}

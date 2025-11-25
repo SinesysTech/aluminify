@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen, CalendarIcon } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -57,6 +57,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { DatePicker } from '@/components/ui/date-picker'
 import {
   Select,
   SelectContent,
@@ -73,6 +76,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Empty,
   EmptyContent,
@@ -82,11 +87,15 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import { apiClient, ApiClientError } from '@/lib/api-client'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale/pt-BR'
+import { cn } from '@/lib/utils'
 
 export type Curso = {
   id: string
   segmentId: string | null
-  disciplineId: string | null
+  disciplineId: string | null // Mantido para compatibilidade
+  disciplineIds?: string[] // Nova propriedade para múltiplas disciplinas
   name: string
   modality: 'EAD' | 'LIVE'
   type: 'Superextensivo' | 'Extensivo' | 'Intensivo' | 'Superintensivo' | 'Revisão'
@@ -114,11 +123,12 @@ export type Disciplina = {
 
 const cursoSchema = z.object({
   segmentId: z.string().optional().nullable(),
-  disciplineId: z.string().optional().nullable(),
+  disciplineId: z.string().optional().nullable(), // Mantido para compatibilidade
+  disciplineIds: z.array(z.string()).optional().default([]), // Nova propriedade para múltiplas disciplinas
   name: z.string().min(1, 'Nome é obrigatório'),
-  modality: z.enum(['EAD', 'LIVE'], { required_error: 'Modalidade é obrigatória' }),
+  modality: z.enum(['EAD', 'LIVE'], { message: 'Modalidade é obrigatória' }),
   type: z.enum(['Superextensivo', 'Extensivo', 'Intensivo', 'Superintensivo', 'Revisão'], {
-    required_error: 'Tipo é obrigatório',
+    message: 'Tipo é obrigatório',
   }),
   description: z.string().optional().nullable(),
   year: z.coerce.number().min(2020, 'Ano inválido').max(2100, 'Ano inválido'),
@@ -156,10 +166,11 @@ export function CursoTable() {
   }, [])
 
   const createForm = useForm<CursoFormValues>({
-    resolver: zodResolver(cursoSchema),
+    resolver: zodResolver(cursoSchema) as any,
     defaultValues: {
       segmentId: null,
       disciplineId: null,
+      disciplineIds: [],
       name: '',
       modality: 'EAD',
       type: 'Extensivo',
@@ -174,10 +185,11 @@ export function CursoTable() {
   })
 
   const editForm = useForm<CursoFormValues>({
-    resolver: zodResolver(cursoSchema),
+    resolver: zodResolver(cursoSchema) as any,
     defaultValues: {
       segmentId: null,
       disciplineId: null,
+      disciplineIds: [],
       name: '',
       modality: 'EAD',
       type: 'Extensivo',
@@ -258,7 +270,8 @@ export function CursoTable() {
       await apiClient.post<{ data: Curso }>('/api/course', {
         ...values,
         segmentId: values.segmentId || undefined,
-        disciplineId: values.disciplineId || undefined,
+        disciplineId: values.disciplineId || undefined, // Mantido para compatibilidade
+        disciplineIds: values.disciplineIds && values.disciplineIds.length > 0 ? values.disciplineIds : undefined,
         planningUrl: values.planningUrl || undefined,
         coverImageUrl: values.coverImageUrl || undefined,
       })
@@ -293,7 +306,8 @@ export function CursoTable() {
     setEditingCurso(curso)
     editForm.reset({
       segmentId: curso.segmentId,
-      disciplineId: curso.disciplineId,
+      disciplineId: curso.disciplineId, // Mantido para compatibilidade
+      disciplineIds: curso.disciplineIds || (curso.disciplineId ? [curso.disciplineId] : []),
       name: curso.name,
       modality: curso.modality,
       type: curso.type,
@@ -317,7 +331,8 @@ export function CursoTable() {
       await apiClient.put<{ data: Curso }>(`/api/course/${editingCurso.id}`, {
         ...values,
         segmentId: values.segmentId || null,
-        disciplineId: values.disciplineId || null,
+        disciplineId: values.disciplineId || null, // Mantido para compatibilidade
+        disciplineIds: values.disciplineIds && values.disciplineIds.length > 0 ? values.disciplineIds : undefined,
         planningUrl: values.planningUrl || null,
         coverImageUrl: values.coverImageUrl || null,
       })
@@ -481,7 +496,7 @@ export function CursoTable() {
     <div className="w-full space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Cursos</CardTitle>
               <CardDescription>Gerencie os cursos do sistema</CardDescription>
@@ -489,12 +504,12 @@ export function CursoTable() {
             {mounted ? (
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Curso
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-[95vw] md:max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Criar Curso</DialogTitle>
                     <DialogDescription>
@@ -502,21 +517,36 @@ export function CursoTable() {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-                      <FormField
-                        control={createForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Matemática Básica" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-3">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <FormField
+                          control={createForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                              <FormLabel>Nome *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Matemática Básica" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="year"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ano *</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="2024" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <FormField
                           control={createForm.control}
                           name="modality"
@@ -562,8 +592,27 @@ export function CursoTable() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={createForm.control}
+                          name="accessMonths"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meses de Acesso</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="12"
+                                  {...field}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <FormField
                           control={createForm.control}
                           name="segmentId"
@@ -594,28 +643,43 @@ export function CursoTable() {
                         />
                         <FormField
                           control={createForm.control}
-                          name="disciplineId"
+                          name="disciplineIds"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Disciplina</FormLabel>
-                              <Select
-                                onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                                value={field.value || '__none__'}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione a disciplina" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="__none__">Nenhuma</SelectItem>
+                              <FormLabel>Disciplinas</FormLabel>
+                              <div className="space-y-2">
+                                <FormDescription>
+                                  Selecione uma ou mais disciplinas para este curso
+                                </FormDescription>
+                                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto border rounded-md p-4">
                                   {disciplinas.map((disciplina) => (
-                                    <SelectItem key={disciplina.id} value={disciplina.id}>
-                                      {disciplina.name}
-                                    </SelectItem>
+                                    <div key={disciplina.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        checked={field.value?.includes(disciplina.id) || false}
+                                        onCheckedChange={(checked) => {
+                                          const currentValue = field.value || []
+                                          if (checked) {
+                                            field.onChange([...currentValue, disciplina.id])
+                                          } else {
+                                            field.onChange(currentValue.filter((id) => id !== disciplina.id))
+                                          }
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor={`discipline-${disciplina.id}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                      >
+                                        {disciplina.name}
+                                      </label>
+                                    </div>
                                   ))}
-                                </SelectContent>
-                              </Select>
+                                  {disciplinas.length === 0 && (
+                                    <p className="text-sm text-muted-foreground col-span-2">
+                                      Nenhuma disciplina cadastrada
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -632,26 +696,14 @@ export function CursoTable() {
                                 placeholder="Descrição do curso..."
                                 {...field}
                                 value={field.value || ''}
+                                rows={2}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={createForm.control}
-                        name="year"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ano *</FormLabel>
-                            <FormControl>
-                              <Input type="number" placeholder="2024" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <FormField
                           control={createForm.control}
                           name="startDate"
@@ -659,7 +711,11 @@ export function CursoTable() {
                             <FormItem>
                               <FormLabel>Data de Início</FormLabel>
                               <FormControl>
-                                <Input type="date" {...field} value={field.value || ''} />
+                                <DatePicker
+                                  value={field.value ? new Date(field.value) : null}
+                                  onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                  placeholder="dd/mm/yyyy"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -672,27 +728,10 @@ export function CursoTable() {
                             <FormItem>
                               <FormLabel>Data de Término</FormLabel>
                               <FormControl>
-                                <Input type="date" {...field} value={field.value || ''} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="accessMonths"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Meses de Acesso</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="12"
-                                  {...field}
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                <DatePicker
+                                  value={field.value ? new Date(field.value) : null}
+                                  onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                  placeholder="dd/mm/yyyy"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -779,7 +818,7 @@ export function CursoTable() {
               onChange={(event) =>
                 table.getColumn('name')?.setFilterValue(event.target.value)
               }
-              className="max-w-sm"
+              className="w-full md:max-w-sm"
             />
           </div>
           {loading ? (
@@ -787,42 +826,93 @@ export function CursoTable() {
               <p>Carregando cursos...</p>
             </div>
           ) : table.getRowModel().rows?.length ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-3">
+                {table.getRowModel().rows.map((row) => {
+                  const curso = row.original
+                  return (
+                    <Card key={row.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{curso.name}</h3>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              <Badge variant="outline" className="text-xs">{curso.modality}</Badge>
+                              <Badge variant="outline" className="text-xs">{curso.type}</Badge>
+                              <Badge variant="outline" className="text-xs">{curso.year}</Badge>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEdit(curso)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(curso)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        {curso.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">{curso.description}</p>
+                        )}
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+              {/* Desktop Table View */}
+              <div className="hidden md:block rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </TableHead>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
             <Empty>
               <EmptyHeader>
@@ -842,34 +932,38 @@ export function CursoTable() {
               </EmptyContent>
             </Empty>
           )}
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
+          {table.getRowModel().rows?.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-4">
+              <div className="text-sm text-muted-foreground">
+                {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  Próxima
+                </Button>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Próxima
-            </Button>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Edit Dialog */}
       {mounted && editingCurso && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Editar Curso</DialogTitle>
               <DialogDescription>
@@ -877,21 +971,36 @@ export function CursoTable() {
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-4">
-                <FormField
-                  control={editForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Matemática Básica" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <FormField
+                    control={editForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Nome *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Matemática Básica" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="year"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ano *</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="2024" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <FormField
                     control={editForm.control}
                     name="modality"
@@ -937,8 +1046,27 @@ export function CursoTable() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={editForm.control}
+                    name="accessMonths"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Meses de Acesso</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="12"
+                            {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <FormField
                     control={editForm.control}
                     name="segmentId"
@@ -1007,26 +1135,14 @@ export function CursoTable() {
                           placeholder="Descrição do curso..."
                           {...field}
                           value={field.value || ''}
+                          rows={2}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={editForm.control}
-                  name="year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ano *</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="2024" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <FormField
                     control={editForm.control}
                     name="startDate"
@@ -1034,7 +1150,11 @@ export function CursoTable() {
                       <FormItem>
                         <FormLabel>Data de Início</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} value={field.value || ''} />
+                          <DatePicker
+                            value={field.value ? new Date(field.value) : null}
+                            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                            placeholder="dd/mm/yyyy"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1047,27 +1167,10 @@ export function CursoTable() {
                       <FormItem>
                         <FormLabel>Data de Término</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} value={field.value || ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="accessMonths"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meses de Acesso</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="12"
-                            {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          <DatePicker
+                            value={field.value ? new Date(field.value) : null}
+                            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                            placeholder="dd/mm/yyyy"
                           />
                         </FormControl>
                         <FormMessage />

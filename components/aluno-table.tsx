@@ -13,10 +13,12 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, FileDown } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
+import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -74,6 +76,7 @@ import {
 } from '@/components/ui/empty'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 
 export type CourseOption = {
@@ -99,6 +102,126 @@ export type Aluno = {
   createdAt: string
   updatedAt: string
 }
+
+type StudentImportPreviewRow = {
+  rowNumber: number
+  fullName: string
+  email: string
+  cpf: string
+  phone: string
+  enrollmentNumber: string
+  temporaryPassword: string
+  coursesRaw: string
+  courses: string[]
+  errors: string[]
+}
+
+type StudentImportApiSummary = {
+  total: number
+  created: number
+  skipped: number
+  failed: number
+  rows: {
+    rowNumber: number
+    email: string
+    status: 'created' | 'skipped' | 'failed'
+    message?: string
+  }[]
+}
+
+type ParsedSpreadsheetRow = Record<string, string>
+
+const STUDENT_IMPORT_COLUMN_ALIASES = {
+  fullName: ['nome completo', 'nome'],
+  email: ['email', 'e-mail'],
+  cpf: ['cpf'],
+  phone: ['telefone', 'celular'],
+  enrollmentNumber: ['numero de matricula', 'número de matrícula', 'matricula', 'matrícula'],
+  courses: ['cursos', 'curso', 'courses'],
+  temporaryPassword: ['senha temporaria', 'senha temporária', 'senha', 'password'],
+} as const
+
+const STUDENT_IMPORT_TEMPLATE = [
+  ['Nome Completo', 'Email', 'CPF', 'Telefone', 'Número de Matrícula', 'Cursos', 'Senha Temporária'],
+  ['Maria Souza', 'maria@example.com', '12345678901', '11999990000', 'MAT-0001', 'Curso A; Curso B', 'Senha@123'],
+] as const
+
+const STUDENT_IMPORT_FILE_ACCEPT = '.csv,.xlsx,.xls'
+
+const normalizeColumnName = (value?: string | null) =>
+  (value ?? '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+
+const splitCourses = (value: string) =>
+  value
+    .split(/[,;|/]/)
+    .map((course) => course.trim())
+    .filter(Boolean)
+
+const filterSpreadsheetRows = (rows: Record<string, string>[]) =>
+  rows.filter((row) =>
+    Object.values(row).some((value) => String(value ?? '').trim()),
+  )
+
+const parseCSVFile = (file: File): Promise<ParsedSpreadsheetRow[]> =>
+  new Promise((resolve, reject) => {
+    Papa.parse<ParsedSpreadsheetRow>(file, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: (header: string) => header.trim(),
+      complete: (results) => {
+        if (results.errors?.length) {
+          reject(new Error(results.errors[0].message ?? 'Erro ao processar CSV.'))
+          return
+        }
+        resolve(filterSpreadsheetRows(results.data ?? []))
+      },
+      error: (error) => reject(new Error(error.message)),
+    })
+  })
+
+const parseXLSXFile = (file: File): Promise<ParsedSpreadsheetRow[]> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const data = event.target?.result
+        if (!data) {
+          reject(new Error('Erro ao ler arquivo XLSX.'))
+          return
+        }
+
+        const workbook = XLSX.read(data, { type: 'array' })
+        const firstSheetName = workbook.SheetNames[0]
+        if (!firstSheetName) {
+          reject(new Error('O arquivo XLSX não contém planilhas.'))
+          return
+        }
+
+        const worksheet = workbook.Sheets[firstSheetName]
+        const jsonData = XLSX.utils.sheet_to_json<ParsedSpreadsheetRow>(worksheet, {
+          defval: '',
+          raw: false,
+          blankrows: false,
+        })
+
+        resolve(filterSpreadsheetRows(jsonData))
+      } catch (error) {
+        reject(
+          new Error(
+            `Erro ao processar XLSX: ${
+              error instanceof Error ? error.message : 'Erro desconhecido'
+            }`,
+          ),
+        )
+      }
+    }
+
+    reader.onerror = () => reject(new Error('Erro ao ler arquivo XLSX.'))
+    reader.readAsArrayBuffer(file)
+  })
 
 const alunoSchema = z.object({
   fullName: z.string().optional().nullable(),
@@ -149,6 +272,12 @@ export function AlunoTable() {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [deletingAluno, setDeletingAluno] = React.useState<Aluno | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [importDialogOpen, setImportDialogOpen] = React.useState(false)
+  const [importRows, setImportRows] = React.useState<StudentImportPreviewRow[]>([])
+  const [importErrors, setImportErrors] = React.useState<string[]>([])
+  const [importSummary, setImportSummary] = React.useState<StudentImportApiSummary | null>(null)
+  const [importLoading, setImportLoading] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
   React.useEffect(() => {
     setMounted(true)
@@ -290,6 +419,206 @@ export function AlunoTable() {
   React.useEffect(() => {
     fetchAlunos()
   }, [fetchAlunos])
+
+  const courseNameLookup = React.useMemo(() => {
+    const map = new Map<string, boolean>()
+    courseOptions.forEach((course) => {
+      map.set(course.name.trim().toLowerCase(), true)
+    })
+    return map
+  }, [courseOptions])
+
+  const transformImportRows = React.useCallback(
+    (rawRows: ParsedSpreadsheetRow[]): StudentImportPreviewRow[] =>
+      rawRows.map((row, index) => {
+        const normalizedRow = new Map<string, string>()
+        Object.entries(row).forEach(([key, value]) => {
+          if (!key) return
+          normalizedRow.set(normalizeColumnName(key), value != null ? String(value).trim() : '')
+        })
+
+        const getValue = (aliases: readonly string[]) => {
+          for (const alias of aliases) {
+            const normalizedKey = normalizeColumnName(alias)
+            if (normalizedRow.has(normalizedKey)) {
+              return normalizedRow.get(normalizedKey) || ''
+            }
+          }
+          return ''
+        }
+
+        const rawRowNumber = (row as Record<string, unknown> & { __rowNum__?: number }).__rowNum__
+        const rowNumber =
+          typeof rawRowNumber === 'number' && Number.isFinite(rawRowNumber)
+            ? rawRowNumber + 1
+            : index + 2
+
+        const fullName = getValue(STUDENT_IMPORT_COLUMN_ALIASES.fullName)
+        const email = getValue(STUDENT_IMPORT_COLUMN_ALIASES.email).toLowerCase()
+        const cpfDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.cpf).replace(/\D/g, '')
+        const phoneDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.phone).replace(/\D/g, '')
+        const enrollmentNumber = getValue(STUDENT_IMPORT_COLUMN_ALIASES.enrollmentNumber)
+        const coursesRaw = getValue(STUDENT_IMPORT_COLUMN_ALIASES.courses)
+        const temporaryPassword = getValue(STUDENT_IMPORT_COLUMN_ALIASES.temporaryPassword)
+        const courses = coursesRaw ? Array.from(new Set(splitCourses(coursesRaw))) : []
+
+        const errors: string[] = []
+
+        if (!fullName) errors.push('Nome completo é obrigatório.')
+        if (!email) errors.push('Email é obrigatório.')
+        if (!cpfDigits || cpfDigits.length !== 11) errors.push('CPF deve ter 11 dígitos.')
+        if (!phoneDigits || phoneDigits.length < 10) errors.push('Telefone deve ter ao menos 10 dígitos.')
+        if (!enrollmentNumber) errors.push('Número de matrícula é obrigatório.')
+        if (!temporaryPassword) {
+          errors.push('Senha temporária é obrigatória.')
+        } else if (temporaryPassword.length < 8) {
+          errors.push('Senha temporária deve ter pelo menos 8 caracteres.')
+        }
+        if (!coursesRaw) {
+          errors.push('Informe pelo menos um curso.')
+        } else if (courseNameLookup.size > 0) {
+          const invalidCourses = courses.filter(
+            (course) => !courseNameLookup.has(course.trim().toLowerCase()),
+          )
+          if (invalidCourses.length) {
+            errors.push(`Cursos não encontrados: ${invalidCourses.join(', ')}`)
+          }
+        }
+
+        return {
+          rowNumber,
+          fullName,
+          email,
+          cpf: cpfDigits,
+          phone: phoneDigits,
+          enrollmentNumber,
+          temporaryPassword,
+          coursesRaw,
+          courses,
+          errors,
+        }
+      }),
+    [courseNameLookup],
+  )
+
+  const validImportRows = React.useMemo(
+    () => importRows.filter((row) => row.errors.length === 0),
+    [importRows],
+  )
+  const invalidImportCount = importRows.length - validImportRows.length
+
+  const resetImportState = React.useCallback(() => {
+    setImportRows([])
+    setImportErrors([])
+    setImportSummary(null)
+    setImportLoading(false)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }, [])
+
+  const handleImportDialogChange = (open: boolean) => {
+    setImportDialogOpen(open)
+    if (!open) {
+      resetImportState()
+    }
+  }
+
+  const handleDownloadTemplate = () => {
+    const csv = STUDENT_IMPORT_TEMPLATE.map((row) => row.join(';')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'modelo-importacao-alunos.csv'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    setImportSummary(null)
+
+    if (!file) {
+      setImportRows([])
+      return
+    }
+
+    const extension = file.name.toLowerCase()
+    if (!extension.endsWith('.csv') && !extension.endsWith('.xlsx') && !extension.endsWith('.xls')) {
+      setImportErrors(['Selecione um arquivo CSV ou XLSX.'])
+      setImportRows([])
+      return
+    }
+
+    try {
+      setImportErrors([])
+      const rawRows = extension.endsWith('.xlsx') || extension.endsWith('.xls')
+        ? await parseXLSXFile(file)
+        : await parseCSVFile(file)
+
+      const previewRows = transformImportRows(rawRows)
+      if (previewRows.length === 0) {
+        setImportErrors(['Nenhum dado válido encontrado na planilha.'])
+        setImportRows([])
+        return
+      }
+
+      setImportRows(previewRows)
+    } catch (error) {
+      setImportRows([])
+      setImportErrors([
+        error instanceof Error ? error.message : 'Não foi possível processar o arquivo.',
+      ])
+    }
+  }
+
+  const handleSubmitImport = async () => {
+    if (!validImportRows.length) {
+      setImportErrors(['Nenhuma linha válida para importação.'])
+      return
+    }
+
+    try {
+      setImportLoading(true)
+      setImportErrors([])
+
+      const payload = {
+        rows: validImportRows.map((row) => ({
+          rowNumber: row.rowNumber,
+          fullName: row.fullName,
+          email: row.email,
+          cpf: row.cpf,
+          phone: row.phone,
+          enrollmentNumber: row.enrollmentNumber,
+          temporaryPassword: row.temporaryPassword,
+          courses: row.courses,
+        })),
+      }
+
+      const response = await apiClient.post<{ data: StudentImportApiSummary }>(
+        '/api/student/import',
+        payload,
+      )
+
+      setImportSummary(response.data)
+      setSuccessMessage('Importação de alunos concluída!')
+      setTimeout(() => setSuccessMessage(null), 3000)
+      await fetchAlunos()
+    } catch (err) {
+      let errorMessage = 'Erro ao importar alunos'
+      if (err instanceof ApiClientError) {
+        errorMessage = err.data?.error || err.message || errorMessage
+      } else if (err instanceof Error) {
+        errorMessage = err.message
+      }
+      setImportErrors([errorMessage])
+    } finally {
+      setImportLoading(false)
+    }
+  }
 
   const handleCreate = async (values: AlunoFormValues) => {
     try {
@@ -606,55 +935,58 @@ export function AlunoTable() {
     <div className="w-full space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Alunos</CardTitle>
               <CardDescription>Gerencie os alunos do sistema</CardDescription>
             </div>
             {mounted ? (
-              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo Aluno
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Criar Aluno</DialogTitle>
-                    <DialogDescription>
-                      Adicione um novo aluno ao sistema.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-                      <FormField
-                        control={createForm.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome Completo</FormLabel>
-                            <FormControl>
-                              <Input placeholder="João Silva" {...field} value={field.value || ''} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email *</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="joao@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full sm:w-auto">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Novo Aluno
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] md:max-w-4xl">
+                    <DialogHeader>
+                      <DialogTitle>Criar Aluno</DialogTitle>
+                      <DialogDescription>
+                        Adicione um novo aluno ao sistema.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...createForm}>
+                      <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-3">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <FormField
+                          control={createForm.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome Completo</FormLabel>
+                              <FormControl>
+                                <Input placeholder="João Silva" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email *</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="joao@example.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <FormField
                           control={createForm.control}
                           name="cpf"
@@ -681,34 +1013,34 @@ export function AlunoTable() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={createForm.control}
+                          name="birthDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Data de Nascimento</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <FormField
-                        control={createForm.control}
-                        name="birthDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Data de Nascimento</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} value={field.value || ''} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Endereço</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Rua, número, bairro" {...field} value={field.value || ''} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <FormField
+                          control={createForm.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                              <FormLabel>Endereço</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Rua, número, bairro" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         <FormField
                           control={createForm.control}
                           name="zipCode"
@@ -722,6 +1054,8 @@ export function AlunoTable() {
                             </FormItem>
                           )}
                         />
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <FormField
                           control={createForm.control}
                           name="enrollmentNumber"
@@ -735,8 +1069,6 @@ export function AlunoTable() {
                             </FormItem>
                           )}
                         />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={createForm.control}
                           name="instagram"
@@ -810,22 +1142,22 @@ export function AlunoTable() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Senha Temporária *</FormLabel>
-                            <div className="flex gap-2">
-                              <FormControl>
-                                <Input
-                                  placeholder="Senha provisória do aluno"
-                                  {...field}
-                                  value={field.value || ''}
-                                  onChange={(event) => {
-                                    setCreatePasswordTouched(true)
-                                    field.onChange(event.target.value)
-                                  }}
-                                />
-                              </FormControl>
-                              <Button type="button" variant="outline" onClick={handleGenerateCreatePassword}>
-                                Gerar
-                              </Button>
-                            </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <FormControl>
+                          <Input
+                            placeholder="Senha provisória do aluno"
+                            {...field}
+                            value={field.value || ''}
+                            onChange={(event) => {
+                              setCreatePasswordTouched(true)
+                              field.onChange(event.target.value)
+                            }}
+                          />
+                        </FormControl>
+                        <Button type="button" variant="outline" onClick={handleGenerateCreatePassword} className="w-full sm:w-auto">
+                          Gerar
+                        </Button>
+                      </div>
                             <p className="text-xs text-muted-foreground">
                               Esta senha será exibida ao professor e o aluno precisará alterá-la no primeiro acesso.
                             </p>
@@ -848,8 +1180,172 @@ export function AlunoTable() {
                       </DialogFooter>
                     </form>
                   </Form>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+                <Dialog open={importDialogOpen} onOpenChange={handleImportDialogChange}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                      Importar planilha
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] md:max-w-5xl">
+                    <DialogHeader>
+                      <DialogTitle>Importar alunos via planilha</DialogTitle>
+                      <DialogDescription>
+                        Faça upload do modelo preenchido com os campos obrigatórios.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="rounded-md border p-3 text-sm text-muted-foreground space-y-2">
+                        <p>Campos obrigatórios: Nome completo, Email, CPF, Telefone, Número de matrícula, Cursos e Senha temporária.</p>
+                        <p>Os nomes dos cursos devem ser exatamente os mesmos cadastrados na plataforma.</p>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <span className="text-xs">Use o modelo base para evitar erros de formatação.</span>
+                          <Button type="button" variant="outline" size="sm" onClick={handleDownloadTemplate}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Baixar modelo (.csv)
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Selecione o arquivo</label>
+                        <Input
+                          ref={fileInputRef}
+                          type="file"
+                          accept={STUDENT_IMPORT_FILE_ACCEPT}
+                          onChange={handleImportFileChange}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Formatos aceitos: CSV, XLS ou XLSX. Separe múltiplos cursos com ponto e vírgula (;).
+                        </p>
+                      </div>
+                      {importErrors.length > 0 && (
+                        <div className="space-y-1 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                          {importErrors.map((err) => (
+                            <p key={err}>{err}</p>
+                          ))}
+                        </div>
+                      )}
+                      {importRows.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap items-center gap-3 text-sm">
+                            <span>Total de linhas: {importRows.length}</span>
+                            <span className="text-green-600 dark:text-green-400">
+                              Válidas: {validImportRows.length}
+                            </span>
+                            {invalidImportCount > 0 && (
+                              <span className="text-destructive">
+                                Com ajustes: {invalidImportCount}
+                              </span>
+                            )}
+                          </div>
+                          <div className="rounded-md border">
+                            <ScrollArea className="h-64">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead className="w-16 text-xs">Linha</TableHead>
+                                    <TableHead>Aluno</TableHead>
+                                    <TableHead>Contato</TableHead>
+                                    <TableHead>Cursos</TableHead>
+                                    <TableHead>Validação</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {importRows.map((row) => (
+                                    <TableRow
+                                      key={`${row.rowNumber}-${row.email}`}
+                                      className={row.errors.length ? 'bg-destructive/5' : undefined}
+                                    >
+                                      <TableCell className="text-xs font-mono">{row.rowNumber}</TableCell>
+                                      <TableCell>
+                                        <div className="text-sm font-medium">{row.fullName || '-'}</div>
+                                        <div className="text-xs text-muted-foreground">{row.email || '-'}</div>
+                                      </TableCell>
+                                      <TableCell className="text-xs text-muted-foreground">
+                                        <div>CPF: {row.cpf || '-'}</div>
+                                        <div>Matrícula: {row.enrollmentNumber || '-'}</div>
+                                        <div>Telefone: {row.phone || '-'}</div>
+                                      </TableCell>
+                                      <TableCell className="text-xs">
+                                        {row.courses.length ? row.courses.join(', ') : row.coursesRaw || '-'}
+                                      </TableCell>
+                                      <TableCell>
+                                        {row.errors.length ? (
+                                          <ul className="list-disc space-y-1 pl-4 text-xs text-destructive">
+                                            {row.errors.map((error, idx) => (
+                                              <li key={`${row.rowNumber}-${idx}`}>{error}</li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          <span className="text-xs text-muted-foreground">
+                                            Pronto para importar
+                                          </span>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </ScrollArea>
+                          </div>
+                        </div>
+                      )}
+                      {importSummary && (
+                        <div className="rounded-md border p-3 text-sm">
+                          <p className="font-medium">Resumo da importação</p>
+                          <div className="mt-2 flex flex-wrap gap-4 text-xs sm:text-sm">
+                            <span>Processados: {importSummary.total}</span>
+                            <span className="text-green-600 dark:text-green-400">
+                              Criados: {importSummary.created}
+                            </span>
+                            <span className="text-yellow-600 dark:text-yellow-500">
+                              Ignorados: {importSummary.skipped}
+                            </span>
+                            <span className="text-destructive">Falhas: {importSummary.failed}</span>
+                          </div>
+                          <ScrollArea className="mt-3 h-32">
+                            <ul className="space-y-1 text-xs">
+                              {importSummary.rows.map((row) => (
+                                <li
+                                  key={`${row.rowNumber}-${row.email}`}
+                                  className="border-b pb-1 last:border-none last:pb-0"
+                                >
+                                  <div className="font-medium">{row.email}</div>
+                                  <div className="text-muted-foreground">
+                                    Linha {row.rowNumber} • {row.status}
+                                    {row.message ? ` — ${row.message}` : ''}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </ScrollArea>
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter className="gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleImportDialogChange(false)}
+                        disabled={importLoading}
+                      >
+                        Fechar
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleSubmitImport}
+                        disabled={importLoading || !validImportRows.length}
+                      >
+                        {importLoading
+                          ? 'Importando...'
+                          : `Importar ${validImportRows.length} aluno${validImportRows.length === 1 ? '' : 's'}`}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             ) : (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -878,7 +1374,7 @@ export function AlunoTable() {
                 table.getColumn('fullName')?.setFilterValue(value)
                 table.getColumn('email')?.setFilterValue(value)
               }}
-              className="max-w-sm"
+              className="w-full md:max-w-sm"
             />
           </div>
           {loading ? (
@@ -886,42 +1382,115 @@ export function AlunoTable() {
               <p>Carregando alunos...</p>
             </div>
           ) : table.getRowModel().rows?.length ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-3">
+                {table.getRowModel().rows.map((row) => {
+                  const aluno = row.original
+                  return (
+                    <Card key={row.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{aluno.fullName || '-'}</h3>
+                            <p className="text-sm text-muted-foreground">{aluno.email}</p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEdit(aluno)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(aluno)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {aluno.cpf && (
+                            <div>
+                              <span className="text-muted-foreground">CPF: </span>
+                              <span>{aluno.cpf}</span>
+                            </div>
+                          )}
+                          {aluno.phone && (
+                            <div>
+                              <span className="text-muted-foreground">Telefone: </span>
+                              <span>{aluno.phone}</span>
+                            </div>
+                          )}
+                          {aluno.enrollmentNumber && (
+                            <div>
+                              <span className="text-muted-foreground">Matrícula: </span>
+                              <span>{aluno.enrollmentNumber}</span>
+                            </div>
+                          )}
+                        </div>
+                        {aluno.courses.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {aluno.courses.map((course) => (
+                              <Badge key={course.id} variant="outline" className="text-xs">
+                                {course.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+              {/* Desktop Table View */}
+              <div className="hidden md:block rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </TableHead>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
             <Empty>
               <EmptyHeader>
@@ -941,34 +1510,38 @@ export function AlunoTable() {
               </EmptyContent>
             </Empty>
           )}
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
+          {table.getRowModel().rows?.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-4">
+              <div className="text-sm text-muted-foreground">
+                {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  Próxima
+                </Button>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Próxima
-            </Button>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Edit Dialog */}
       {mounted && editingAluno && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] md:max-w-4xl">
             <DialogHeader>
               <DialogTitle>Editar Aluno</DialogTitle>
               <DialogDescription>
@@ -976,34 +1549,36 @@ export function AlunoTable() {
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-4">
-                <FormField
-                  control={editForm.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Completo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="João Silva" {...field} value={field.value || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email *</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="joao@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <FormField
+                    control={editForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome Completo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="João Silva" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email *</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="joao@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <FormField
                     control={editForm.control}
                     name="cpf"
@@ -1030,34 +1605,34 @@ export function AlunoTable() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={editForm.control}
+                    name="birthDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Nascimento</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <FormField
-                  control={editForm.control}
-                  name="birthDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data de Nascimento</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} value={field.value || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Endereço</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Rua, número, bairro" {...field} value={field.value || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <FormField
+                    control={editForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Endereço</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Rua, número, bairro" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={editForm.control}
                     name="zipCode"
@@ -1071,6 +1646,8 @@ export function AlunoTable() {
                       </FormItem>
                     )}
                   />
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <FormField
                     control={editForm.control}
                     name="enrollmentNumber"
@@ -1079,6 +1656,32 @@ export function AlunoTable() {
                         <FormLabel>Número de Matrícula</FormLabel>
                         <FormControl>
                           <Input placeholder="12345" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="instagram"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instagram</FormLabel>
+                        <FormControl>
+                          <Input placeholder="@usuario" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="twitter"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Twitter</FormLabel>
+                        <FormControl>
+                          <Input placeholder="@usuario" {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1153,7 +1756,7 @@ export function AlunoTable() {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
                     name="instagram"

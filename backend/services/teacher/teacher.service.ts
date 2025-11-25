@@ -47,9 +47,9 @@ export class TeacherService {
       }
     }
 
-    const phone = payload.phone ? this.validatePhone(payload.phone) : null;
-    const biography = payload.biography ? this.validateBiography(payload.biography) : null;
-    const specialty = payload.specialty ? this.validateSpecialty(payload.specialty) : null;
+    const phone = payload.phone ? this.validatePhone(payload.phone) : undefined;
+    const biography = payload.biography ? this.validateBiography(payload.biography) : undefined;
+    const specialty = payload.specialty ? this.validateSpecialty(payload.specialty) : undefined;
 
     // Se o ID não foi fornecido, precisamos criar o usuário no auth.users primeiro
     // usando o Admin API do Supabase
@@ -82,10 +82,10 @@ export class TeacherService {
       id: teacherId,
       fullName,
       email,
-      cpf: payload.cpf ? this.validateCpf(payload.cpf) : null,
+      cpf: payload.cpf ? this.validateCpf(payload.cpf) : undefined,
       phone,
       biography,
-      photoUrl: payload.photoUrl?.trim() || null,
+      photoUrl: payload.photoUrl?.trim() || undefined,
       specialty,
     });
   }

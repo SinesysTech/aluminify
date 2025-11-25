@@ -1,5 +1,5 @@
 import { updateSession } from '@/lib/middleware'
-import { type NextRequest, NextResponse } from 'next/server'
+import { type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
   // Aplicar autenticação do Supabase em todas as rotas
@@ -19,3 +19,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
+

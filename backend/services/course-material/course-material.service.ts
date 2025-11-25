@@ -44,7 +44,7 @@ export class CourseMaterialService {
     const title = this.validateTitle(payload.title);
     const type = this.validateMaterialType(payload.type);
     const fileUrl = this.validateFileUrl(payload.fileUrl);
-    const description = payload.description ? this.validateDescription(payload.description) : null;
+    const description = payload.description ? this.validateDescription(payload.description) : undefined;
     const order = payload.order !== undefined ? this.validateOrder(payload.order) : 0;
 
     return this.repository.create({

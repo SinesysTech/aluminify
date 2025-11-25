@@ -39,9 +39,9 @@ async function apiRequest<T>(
 ): Promise<T> {
   const token = await getAuthToken()
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   }
 
   if (token) {
@@ -85,7 +85,7 @@ async function apiRequest<T>(
       // Verificar se a resposta é HTML (página de erro do Next.js)
       if (contentType.includes('text/html') || text.trim().startsWith('<!DOCTYPE html>')) {
         // Tentar extrair mensagem de erro do JSON embutido no HTML
-        const jsonMatch = text.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s)
+        const jsonMatch = text.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
         if (jsonMatch) {
           try {
             const nextData = JSON.parse(jsonMatch[1])
