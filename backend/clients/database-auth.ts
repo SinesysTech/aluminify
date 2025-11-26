@@ -1,27 +1,30 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { AuthenticatedRequest } from '@/backend/auth/middleware';
 
-const DATABASE_URL = process.env.SUPABASE_URL;
-const DATABASE_KEY = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
-
-if (!DATABASE_URL || !DATABASE_KEY) {
-  throw new Error(
-    'Database credentials are not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
-  );
-}
-
-// TypeScript type narrowing - após a verificação acima, sabemos que estas variáveis estão definidas
-const DB_URL: string = DATABASE_URL;
-const DB_KEY: string = DATABASE_KEY;
-const SR_KEY: string | undefined = SERVICE_ROLE_KEY;
-
 let cachedClient: SupabaseClient | null = null;
 let cachedServiceClient: SupabaseClient | null = null;
 
+function getDatabaseCredentials() {
+  const DATABASE_URL = process.env.SUPABASE_URL;
+  const DATABASE_KEY = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+
+  if (!DATABASE_URL || !DATABASE_KEY) {
+    throw new Error(
+      'Database credentials are not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
+    );
+  }
+
+  return { DATABASE_URL, DATABASE_KEY };
+}
+
+function getServiceRoleKey() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
+}
+
 export function getDatabaseClient(): SupabaseClient {
   if (!cachedClient) {
-    cachedClient = createClient(DB_URL, DB_KEY, {
+    const { DATABASE_URL, DATABASE_KEY } = getDatabaseCredentials();
+    cachedClient = createClient(DATABASE_URL, DATABASE_KEY, {
       auth: {
         persistSession: false,
       },
@@ -31,12 +34,14 @@ export function getDatabaseClient(): SupabaseClient {
 }
 
 export function getServiceRoleClient(): SupabaseClient {
-  if (!SR_KEY) {
+  const SERVICE_ROLE_KEY = getServiceRoleKey();
+  if (!SERVICE_ROLE_KEY) {
     throw new Error('Service role key is required for API key operations');
   }
 
   if (!cachedServiceClient) {
-    cachedServiceClient = createClient(DB_URL, SR_KEY, {
+    const { DATABASE_URL } = getDatabaseCredentials();
+    cachedServiceClient = createClient(DATABASE_URL, SERVICE_ROLE_KEY, {
       auth: {
         persistSession: false,
       },

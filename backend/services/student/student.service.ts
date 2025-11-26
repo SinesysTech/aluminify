@@ -19,7 +19,14 @@ const SOCIAL_HANDLE_MAX_LENGTH = 100;
 const COURSE_MIN_SELECTION = 1;
 const COURSE_NAME_MAX_LENGTH_FOR_PASSWORD = 32;
 
-const adminClient = getDatabaseClient();
+let _adminClient: ReturnType<typeof getDatabaseClient> | null = null;
+
+function getAdminClient() {
+  if (!_adminClient) {
+    _adminClient = getDatabaseClient();
+  }
+  return _adminClient;
+}
 
 export class StudentService {
   constructor(private readonly repository: StudentRepository) {}
@@ -88,7 +95,7 @@ export class StudentService {
     let studentId = payload.id;
     if (!studentId) {
       // Criar o usuário no auth.users usando Admin API
-      const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
+      const { data: authUser, error: authError } = await getAdminClient().auth.admin.createUser({
         email: email,
         password: temporaryPassword,
         email_confirm: true, // Confirmar email automaticamente
@@ -377,7 +384,7 @@ export class StudentService {
       return [];
     }
 
-    const { data, error } = await adminClient
+    const { data, error } = await getAdminClient()
       .from('cursos')
       .select('id, nome')
       .in('id', courseIds);
@@ -410,7 +417,7 @@ export class StudentService {
     newPassword: string,
     mustChangePassword: boolean,
   ): Promise<void> {
-    const { error } = await adminClient.auth.admin.updateUserById(userId, {
+    const { error } = await getAdminClient().auth.admin.updateUserById(userId, {
       password: newPassword,
       user_metadata: {
         must_change_password: mustChangePassword,
