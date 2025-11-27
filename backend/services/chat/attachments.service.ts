@@ -4,10 +4,30 @@ import { randomUUID } from 'crypto';
 import { ChatAttachment } from './chat.types';
 import { ChatValidationError } from './errors';
 
-const DEFAULT_UPLOAD_ROOT =
-  process.env.CHAT_UPLOAD_DIR ||
-  (process.platform === 'win32' ? path.join(process.cwd(), 'tmp') : '/tmp');
-const UPLOAD_DIR = path.join(DEFAULT_UPLOAD_ROOT, 'chat-uploads');
+// Determinar o diretório para uploads
+// Em ambientes serverless (Vercel/Lambda), usar /tmp diretamente (sem subdiretórios)
+// Em Windows, usar tmp/chat-uploads local; caso contrário, usar /tmp/chat-uploads
+function getUploadDir(): string {
+  if (process.env.CHAT_UPLOAD_DIR) {
+    return process.env.CHAT_UPLOAD_DIR;
+  }
+  
+  // Em ambientes serverless, usar /tmp diretamente (sem criar subdiretórios)
+  const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_ENV;
+  if (isServerless) {
+    return '/tmp';
+  }
+  
+  // Em Windows, usar tmp/chat-uploads local
+  if (process.platform === 'win32') {
+    return path.join(process.cwd(), 'tmp', 'chat-uploads');
+  }
+  
+  // Default: /tmp/chat-uploads
+  return '/tmp/chat-uploads';
+}
+
+const UPLOAD_DIR = getUploadDir();
 const ALLOWED_MIME_TYPES = [
   'image/png',
   'image/jpeg',
@@ -21,7 +41,23 @@ const ATTACHMENT_TTL_MS = 10 * 60 * 1000; // 10 minutos
 const METADATA_FILENAME = 'meta.json';
 
 async function ensureUploadDir() {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  try {
+    // Tentar criar o diretório com recursive
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  } catch (error) {
+    // Em serverless, se UPLOAD_DIR for /tmp, não precisa criar (já existe)
+    if (UPLOAD_DIR === '/tmp') {
+      // Verificar se /tmp existe e é acessível
+      try {
+        await fs.access('/tmp');
+        return; // /tmp existe, tudo ok
+      } catch {
+        throw new Error(`Cannot access /tmp directory: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    // Para outros casos, relançar o erro
+    throw error;
+  }
 }
 
 function assertAllowedMimeType(type: string | undefined): asserts type {
@@ -43,10 +79,26 @@ function assertFileSize(size: number) {
 }
 
 function getAttachmentDir(id: string) {
+  // Em serverless (/tmp), não criar subdiretórios, usar o diretório raiz
+  if (UPLOAD_DIR === '/tmp') {
+    return UPLOAD_DIR;
+  }
   return path.join(UPLOAD_DIR, id);
 }
 
+function getFilePath(id: string, fileName: string) {
+  // Em serverless (/tmp), salvar arquivo diretamente com nome único
+  if (UPLOAD_DIR === '/tmp') {
+    return path.join(UPLOAD_DIR, `${id}-${fileName}`);
+  }
+  return path.join(getAttachmentDir(id), fileName);
+}
+
 function getMetaPath(id: string) {
+  // Em serverless (/tmp), salvar metadata com nome único
+  if (UPLOAD_DIR === '/tmp') {
+    return path.join(UPLOAD_DIR, `${id}-meta.json`);
+  }
   return path.join(getAttachmentDir(id), METADATA_FILENAME);
 }
 
@@ -59,6 +111,29 @@ export async function cleanupExpiredAttachments(): Promise<void> {
     return;
   }
 
+  // Em serverless (/tmp), arquivos estão diretamente no diretório, não em subdiretórios
+  if (UPLOAD_DIR === '/tmp') {
+    // Processar apenas arquivos de metadata
+    const metaFiles = entries.filter((entry) => entry.endsWith('-meta.json'));
+    await Promise.all(metaFiles.map(async (metaFile) => {
+      try {
+        const id = metaFile.replace('-meta.json', '');
+        const meta = await loadAttachmentMetadata(id);
+        const expiresAt = meta?.expiresAt ?? 0;
+        const expired = !meta || expiresAt < Date.now();
+        if (expired && meta) {
+          // Remover arquivo e metadata
+          await fs.rm(meta.path, { force: true }).catch(() => undefined);
+          await fs.rm(getMetaPath(id), { force: true }).catch(() => undefined);
+        }
+      } catch {
+        // Ignorar erros na limpeza
+      }
+    }));
+    return;
+  }
+
+  // Para ambientes não-serverless, processar subdiretórios
   await Promise.all(entries.map(async (entry) => {
     const dir = path.join(UPLOAD_DIR, entry);
     try {
@@ -105,9 +180,13 @@ export async function saveChatAttachments(files: File[]): Promise<ChatAttachment
     const buffer = Buffer.from(await file.arrayBuffer());
     const id = randomUUID();
     const token = randomUUID();
-    const attachmentDir = getAttachmentDir(id);
-    await fs.mkdir(attachmentDir, { recursive: true });
-    const filePath = path.join(attachmentDir, file.name);
+    const filePath = getFilePath(id, file.name);
+
+    // Em serverless, não criar subdiretórios
+    if (UPLOAD_DIR !== '/tmp') {
+      const attachmentDir = getAttachmentDir(id);
+      await fs.mkdir(attachmentDir, { recursive: true });
+    }
 
     await fs.writeFile(filePath, buffer);
 
@@ -142,7 +221,14 @@ export async function cleanupChatAttachments(attachments: ChatAttachment[]) {
   await Promise.all(
     attachments.map(async (attachment) => {
       try {
-        await fs.rm(getAttachmentDir(attachment.id), { recursive: true, force: true });
+        // Em serverless, remover arquivo e metadata diretamente
+        if (UPLOAD_DIR === '/tmp') {
+          await fs.rm(attachment.path, { force: true }).catch(() => undefined);
+          await fs.rm(getMetaPath(attachment.id), { force: true }).catch(() => undefined);
+        } else {
+          // Em ambientes não-serverless, remover o diretório inteiro
+          await fs.rm(getAttachmentDir(attachment.id), { recursive: true, force: true });
+        }
       } catch (error) {
         console.warn(`[Chat Attachments] Falha ao remover arquivo temporário ${attachment.path}`, error);
       }
