@@ -20,8 +20,13 @@ async function getHandler(request: AuthenticatedRequest) {
 
     if (activeOnly) {
       const activeConversation = await conversationService.getActiveConversation({ userId });
+      if (!activeConversation) {
+        return NextResponse.json({ conversations: [] });
+      }
+
+      const history = await conversationService.getConversationHistory(activeConversation.id, userId);
       return NextResponse.json({
-        conversations: activeConversation ? [activeConversation] : []
+        conversations: [{ ...activeConversation, history }],
       });
     }
 

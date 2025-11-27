@@ -7,5 +7,5 @@ export type {
   ListConversationsRequest,
   DeleteConversationRequest,
   GetActiveConversationRequest,
-  AddMessageToConversationRequest,
+  ConversationHistoryRecord,
 } from './conversation.types';

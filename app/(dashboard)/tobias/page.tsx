@@ -56,13 +56,15 @@ export default function TobIAsPage() {
     setCurrentConversation(conversation)
     setSelectedConversationId(conversation.id)
 
-    // Carregar mensagens da conversa
-    if (conversation.messages && conversation.messages.length > 0) {
-      console.log('[TobIAs] Loaded', conversation.messages.length, 'messages from conversation')
-      setMessages(conversation.messages)
-    } else {
-      setMessages([])
+    const history = conversation.history && Array.isArray(conversation.history)
+      ? conversation.history
+      : conversation.messages || []
+
+    if (history.length > 0) {
+      console.log('[TobIAs] Loaded', history.length, 'messages from conversation')
     }
+
+    setMessages(history)
   }, [accessToken])
 
   // Inicializar userId, accessToken e carregar histórico
@@ -339,7 +341,11 @@ export default function TobIAsPage() {
         timestamp: Date.now(),
       }
 
-      setMessages(prev => [...prev, assistantMessage])
+      if (Array.isArray(data.history)) {
+        setMessages(data.history as ChatMessage[])
+      } else {
+        setMessages(prev => [...prev, assistantMessage])
+      }
       setAttachments([])
 
       // Recarregar conversa para ter os dados atualizados

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/server';
 import type {
   Conversation,
+  ChatMessage,
   CreateConversationRequest,
   UpdateConversationRequest,
   ListConversationsRequest,
@@ -222,49 +223,50 @@ export class ConversationService {
   }
 
   /**
-   * Adicionar mensagens à conversa
+   * Atualiza o histórico completo da conversa (JSONB)
    */
-  async addMessagesToConversation(
-    conversationId: string,
-    userId: string,
-    userMessage: { id: string; role: 'user'; content: string; timestamp: number },
-    assistantMessage: { id: string; role: 'assistant'; content: string; timestamp: number }
-  ): Promise<Conversation> {
+  async updateConversationHistory(conversationId: string, userId: string, history: ChatMessage[]): Promise<void> {
     const supabase = await createClient();
 
-    // Obter conversa atual
-    const { data: conversation, error: fetchError } = await supabase
-      .from('chat_conversations')
-      .select('messages')
-      .eq('id', conversationId)
-      .eq('user_id', userId)
-      .single();
-
-    if (fetchError || !conversation) {
-      console.error('[Conversation Service] Error fetching conversation:', fetchError);
-      throw new Error(`Failed to fetch conversation: ${fetchError?.message}`);
-    }
-
-    // Adicionar novas mensagens ao array existente
-    const currentMessages = conversation.messages || [];
-    const updatedMessages = [...currentMessages, userMessage, assistantMessage];
-
-    // Atualizar conversa com novas mensagens
-    const { data, error } = await supabase
-      .from('chat_conversations')
-      .update({ messages: updatedMessages })
-      .eq('id', conversationId)
-      .eq('user_id', userId)
-      .select()
-      .single();
+    const { error } = await supabase
+      .from('chat_conversation_history')
+      .upsert(
+        {
+          conversation_id: conversationId,
+          user_id: userId,
+          history,
+        },
+        { onConflict: 'conversation_id' },
+      );
 
     if (error) {
-      console.error('[Conversation Service] Error updating messages:', error);
-      throw new Error(`Failed to update messages: ${error.message}`);
+      console.error('[Conversation Service] Error updating conversation history:', error);
+      throw new Error(`Failed to update conversation history: ${error.message}`);
     }
 
-    console.log('[Conversation Service] ✅ Messages added to conversation:', conversationId);
-    return data;
+    console.log('[Conversation Service] ✅ Conversation history saved:', conversationId);
+  }
+
+  async getConversationHistory(conversationId: string, userId: string): Promise<ChatMessage[]> {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('chat_conversation_history')
+      .select('history')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[Conversation Service] Error fetching conversation history:', error);
+      throw new Error(`Failed to fetch conversation history: ${error.message}`);
+    }
+
+    if (Array.isArray(data?.history)) {
+      return data?.history as ChatMessage[];
+    }
+
+    return [];
   }
 }
 

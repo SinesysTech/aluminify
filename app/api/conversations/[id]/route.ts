@@ -26,7 +26,9 @@ async function getHandler(
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ data: conversation });
+    const history = await conversationService.getConversationHistory(params.id, userId);
+
+    return NextResponse.json({ data: { ...conversation, history } });
   } catch (error) {
     console.error('[Conversations API] Error getting conversation:', error);
     return NextResponse.json(
@@ -72,7 +74,9 @@ async function putHandler(
       is_active: body.is_active,
     });
 
-    return NextResponse.json({ data: conversation });
+    const history = await conversationService.getConversationHistory(params.id, userId);
+
+    return NextResponse.json({ data: { ...conversation, history } });
   } catch (error) {
     console.error('[Conversations API] Error updating conversation:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';

@@ -5,11 +5,34 @@ import {
   ChatServiceError,
 } from '@/backend/services/chat';
 import { conversationService } from '@/backend/services/conversation';
+import type { ChatMessage } from '@/backend/services/conversation';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 import { saveChatAttachments, cleanupChatAttachments } from '@/backend/services/chat/attachments.service';
 import type { ChatAttachment } from '@/backend/services/chat/chat.types';
 
 export const runtime = 'nodejs';
+
+function isChatMessage(value: unknown): value is ChatMessage {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.id === 'string' &&
+    (record.role === 'user' || record.role === 'assistant') &&
+    typeof record.content === 'string' &&
+    typeof record.timestamp === 'number'
+  );
+}
+
+function normalizeHistory(history: unknown): ChatMessage[] {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history.filter(isChatMessage);
+}
 
 function handleError(error: unknown) {
   if (error instanceof ChatValidationError) {
@@ -140,7 +163,7 @@ async function postHandler(request: AuthenticatedRequest) {
     console.log('[Chat API] Output preview:', response.output?.substring(0, 100));
 
     // Salvar mensagens no histórico da conversa
-    const userMessage = {
+    const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user' as const,
       content: attachments.length
@@ -149,26 +172,31 @@ async function postHandler(request: AuthenticatedRequest) {
       timestamp: Date.now(),
     };
 
-    const assistantMessage = {
+    const assistantMessage: ChatMessage = {
       id: `assistant-${Date.now()}`,
       role: 'assistant' as const,
       content: response.output || '',
       timestamp: Date.now(),
     };
 
-    await conversationService.addMessagesToConversation(
-      conversation.id,
-      userId,
-      userMessage,
-      assistantMessage
+    const existingHistory = normalizeHistory(
+      await conversationService.getConversationHistory(conversation.id, userId)
     );
+    const historyFromAgent = normalizeHistory(response.history);
+    const historyToSave =
+      historyFromAgent.length > 0
+        ? historyFromAgent
+        : [...existingHistory, userMessage, assistantMessage];
+
+    await conversationService.updateConversationHistory(conversation.id, userId, historyToSave);
 
     console.log('[Chat API] ✅ Messages saved to conversation history');
     console.log('[Chat API] ==========================================');
 
     return NextResponse.json({
       data: response,
-      conversationId: conversation.id
+      conversationId: conversation.id,
+      history: historyToSave,
     });
   } catch (error) {
     if (attachments.length > 0) {

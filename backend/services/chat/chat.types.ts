@@ -20,6 +20,7 @@ export interface ChatAttachment {
 
 export interface ChatResponse {
   output: string;
+  history?: unknown;
 }
 
 export interface ChatRequest {

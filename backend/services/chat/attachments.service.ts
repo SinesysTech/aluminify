@@ -4,7 +4,10 @@ import { randomUUID } from 'crypto';
 import { ChatAttachment } from './chat.types';
 import { ChatValidationError } from './errors';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'tmp', 'chat-uploads');
+const DEFAULT_UPLOAD_ROOT =
+  process.env.CHAT_UPLOAD_DIR ||
+  (process.platform === 'win32' ? path.join(process.cwd(), 'tmp') : '/tmp');
+const UPLOAD_DIR = path.join(DEFAULT_UPLOAD_ROOT, 'chat-uploads');
 const ALLOWED_MIME_TYPES = [
   'image/png',
   'image/jpeg',

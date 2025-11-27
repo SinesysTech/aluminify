@@ -37,9 +37,11 @@ export class ChatService {
       }
 
       let data;
+      let history: unknown;
       try {
         data = JSON.parse(text);
         console.log('[Chat Service] Parsed JSON:', JSON.stringify(data).substring(0, 200));
+        history = this.extractHistory(data);
       } catch {
         // Se não for JSON, tratar como texto simples
         console.log('[Chat Service] Não é JSON, tratando como texto');
@@ -55,6 +57,7 @@ export class ChatService {
           console.log('[Chat Service] Resposta encontrada em array[0].output');
           return {
             output: firstItem.output,
+            history,
           };
         }
       }
@@ -64,26 +67,27 @@ export class ChatService {
         console.log('[Chat Service] Resposta encontrada em data.output');
         return {
           output: data.output,
+          history,
         };
       }
       
       // Se não tiver output, tentar outros campos possíveis
       if (data.message) {
         console.log('[Chat Service] Resposta encontrada em data.message');
-        return { output: data.message };
+        return { output: data.message, history };
       }
       if (data.response) {
         console.log('[Chat Service] Resposta encontrada em data.response');
-        return { output: data.response };
+        return { output: data.response, history };
       }
       if (data.text) {
         console.log('[Chat Service] Resposta encontrada em data.text');
-        return { output: data.text };
+        return { output: data.text, history };
       }
       // Se for uma string direta
       if (typeof data === 'string') {
         console.log('[Chat Service] Resposta é string direta');
-        return { output: data };
+        return { output: data, history };
       }
       
       console.error('[Chat Service] Formato de resposta não reconhecido:', JSON.stringify(data).substring(0, 500));
@@ -331,6 +335,27 @@ export class ChatService {
       sessionId: session,
       userId: user,
     };
+  }
+
+  private extractHistory(payload: unknown): unknown {
+    if (Array.isArray(payload)) {
+      for (const item of payload) {
+        const history = this.extractHistory(item);
+        if (history !== undefined) {
+          return history;
+        }
+      }
+      return undefined;
+    }
+
+    if (payload && typeof payload === 'object') {
+      const candidate = (payload as { history?: unknown }).history;
+      if (candidate !== undefined) {
+        return candidate;
+      }
+    }
+
+    return undefined;
   }
 }
 

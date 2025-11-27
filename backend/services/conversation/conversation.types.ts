@@ -10,10 +10,11 @@ export interface Conversation {
   user_id: string;
   session_id: string;
   title: string;
-  messages: ChatMessage[];
+  messages?: ChatMessage[] | null;
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  history?: ChatMessage[];
 }
 
 export interface CreateConversationRequest {
@@ -43,8 +44,10 @@ export interface GetActiveConversationRequest {
   userId: string;
 }
 
-export interface AddMessageToConversationRequest {
-  conversationId: string;
-  userId: string;
-  message: ChatMessage;
+export interface ConversationHistoryRecord {
+  conversation_id: string;
+  user_id: string;
+  history: ChatMessage[];
+  created_at: string;
+  updated_at: string;
 }
