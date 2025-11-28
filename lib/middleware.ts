@@ -38,10 +38,18 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
 
+  // Rotas públicas que não precisam de autenticação
+  const publicPaths = [
+    '/login',
+    '/auth',
+    '/api/chat/attachments', // Anexos usam token na URL, não precisam de autenticação de sessão
+  ]
+
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !isPublicPath
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()

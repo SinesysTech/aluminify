@@ -96,11 +96,86 @@ Para testar se a URL está funcionando, você pode:
 2. Colar no navegador (deve fazer download do arquivo)
 3. Se funcionar no navegador, funcionará no N8N
 
-### 9. Notas Importantes
+### 9. Configuração do "Extract from PDF" no N8N
+
+#### Passo a Passo:
+
+**1. HTTP Request Node (ANTES do Extract from PDF):**
+
+Configurações obrigatórias:
+- **Method:** `GET`
+- **URL:** `{{ $json.attachments_metadata[0].url }}` (ou a URL completa do anexo)
+- **Response Format:** `File` ⚠️ **MUITO IMPORTANTE: Deve ser "File", não "JSON"!**
+- **Options → Response → Response Format:** Selecione `File` no dropdown
+
+**2. Extract from PDF Node:**
+
+Configurações:
+- **Binary Property:** Deixe como `data` (padrão) ou o nome da propriedade binária que vem do HTTP Request
+- **Options → Pages:** Deixe vazio para extrair todas as páginas, ou especifique (ex: `1-3` para páginas 1 a 3)
+- **Options → Include Page Numbers:** Marque se quiser incluir números de página
+
+**3. Verificação do Fluxo de Dados:**
+
+O HTTP Request deve retornar um objeto com propriedade binária. Verifique:
+- O output do HTTP Request deve ter uma propriedade `data` (ou outra configurada)
+- Essa propriedade deve conter o arquivo binário, não HTML ou JSON
+
+**4. Exemplo de Configuração Visual:**
+
+```
+Webhook → HTTP Request (Response Format: File) → Extract from PDF → Process Text
+```
+
+**5. Troubleshooting Específico para Extract from PDF:**
+
+**Erro: "This operation expects the node's input data to contain a binary file"**
+
+Causas possíveis:
+1. ❌ HTTP Request está retornando JSON ao invés de File
+   - **Solução:** Mude "Response Format" para `File` no HTTP Request
+
+2. ❌ HTTP Request está recebendo HTML (página de login)
+   - **Solução:** Verifique se o middleware está permitindo acesso (já corrigido)
+   - Teste a URL no navegador primeiro
+
+3. ❌ Binary Property incorreta no Extract from PDF
+   - **Solução:** Verifique qual propriedade binária o HTTP Request está retornando
+   - Normalmente é `data`, mas pode ser `binary.data` dependendo da versão do N8N
+
+4. ❌ URL incorreta ou token expirado
+   - **Solução:** Verifique se a URL está completa com `?token=...`
+   - Verifique se o arquivo não expirou (10 minutos)
+
+**6. Como Verificar se o HTTP Request está Retornando o Arquivo Corretamente:**
+
+Adicione um nó "Set" ou "Code" entre HTTP Request e Extract from PDF para inspecionar:
+
+```javascript
+// No nó Code, antes do Extract from PDF
+const binaryData = $input.item(0).binary;
+console.log('Binary keys:', Object.keys(binaryData));
+console.log('Has data property:', !!binaryData.data);
+console.log('Data type:', typeof binaryData.data);
+
+// Se binaryData.data existir, está correto
+return $input.all();
+```
+
+**7. Configuração Alternativa (Se ainda não funcionar):**
+
+Se o Extract from PDF não reconhecer o arquivo, tente:
+- No HTTP Request, adicione header: `Accept: application/pdf`
+- No Extract from PDF, verifique se "Binary Property" está como `data`
+- Se usar versão antiga do N8N, pode ser necessário usar `binary.data`
+
+### 10. Notas Importantes
 
 - ✅ O token está na URL, não precisa de autenticação adicional
 - ✅ CORS está habilitado para todos os domínios
 - ✅ O Content-Type é detectado automaticamente pela extensão
 - ⚠️ Arquivos expiram em 10 minutos
 - ⚠️ Use a URL completa com o token
+- ⚠️ **CRÍTICO:** HTTP Request deve ter Response Format = `File`, não `JSON`
+- ⚠️ Verifique se o arquivo binário está na propriedade correta antes do Extract from PDF
 
