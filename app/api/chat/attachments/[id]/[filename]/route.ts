@@ -26,27 +26,50 @@ export async function GET(
 ) {
   const { id, filename } = await context.params;
   const token = request.nextUrl.searchParams.get('token');
+  
+  console.log('[Chat Attachments] Requisição recebida:', {
+    id,
+    filename,
+    hasToken: !!token,
+    userAgent: request.headers.get('user-agent'),
+    referer: request.headers.get('referer'),
+  });
 
   if (!token) {
-    return NextResponse.json({ error: 'Token é obrigatório' }, { status: 400 });
+    console.error('[Chat Attachments] Token não fornecido na URL');
+    return NextResponse.json(
+      { error: 'Token é obrigatório. Adicione ?token=... na URL' },
+      { status: 401, headers: { 'Access-Control-Allow-Origin': '*' } }
+    );
   }
 
   const attachment = await loadAttachmentMetadata(id);
 
   if (!attachment) {
     console.error('[Chat Attachments] Metadata não encontrada para ID:', id);
-    return NextResponse.json({ error: 'Arquivo não encontrado' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Arquivo não encontrado' },
+      { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } }
+    );
   }
 
   if (!attachment.token || attachment.token !== token) {
     console.error('[Chat Attachments] Token inválido para ID:', id);
-    return NextResponse.json({ error: 'Token inválido' }, { status: 403 });
+    console.error('[Chat Attachments] Token esperado:', attachment.token?.substring(0, 8), '...');
+    console.error('[Chat Attachments] Token recebido:', token.substring(0, 8), '...');
+    return NextResponse.json(
+      { error: 'Token inválido ou expirado' },
+      { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } }
+    );
   }
 
   if (attachment.expiresAt && attachment.expiresAt < Date.now()) {
     console.warn('[Chat Attachments] Arquivo expirado:', id);
     await cleanupChatAttachments([attachment]);
-    return NextResponse.json({ error: 'Arquivo expirado' }, { status: 410 });
+    return NextResponse.json(
+      { error: 'Arquivo expirado' },
+      { status: 410, headers: { 'Access-Control-Allow-Origin': '*' } }
+    );
   }
 
   // Verificar se o arquivo existe
@@ -59,7 +82,10 @@ export async function GET(
   } catch (error) {
     console.error('[Chat Attachments] Arquivo não encontrado no caminho:', attachment.path);
     console.error('[Chat Attachments] Erro:', error);
-    return NextResponse.json({ error: 'Arquivo não encontrado no servidor' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Arquivo não encontrado no servidor' },
+      { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } }
+    );
   }
 
   const buffer = await fs.readFile(attachment.path);
