@@ -69,9 +69,10 @@ type WizardFormData = z.infer<typeof wizardSchema>
 
 const STEPS = [
   { id: 1, title: 'Definições de Tempo' },
-  { id: 2, title: 'Disciplinas e Modalidade' },
-  { id: 3, title: 'Estratégia de Estudo' },
-  { id: 4, title: 'Revisão e Geração' },
+  { id: 2, title: 'Disciplinas e Módulos' },
+  { id: 3, title: 'Modalidade' },
+  { id: 4, title: 'Estratégia de Estudo' },
+  { id: 5, title: 'Revisão e Geração' },
 ]
 
 const MODALIDADES = [
@@ -118,6 +119,76 @@ const formatHorasFromMinutes = (minutos?: number) => {
     minimumFractionDigits: isInt ? 0 : 1,
     maximumFractionDigits: 1,
   })}h`
+}
+
+// Função para calcular semanas disponibilizadas (período entre data início e fim, descontando férias)
+const calcularSemanasDisponibilizadas = (
+  dataInicio: Date | undefined,
+  dataFim: Date | undefined,
+  ferias: Array<{ inicio?: Date; fim?: Date }>,
+): number => {
+  if (!dataInicio || !dataFim) return 0
+
+  const inicio = new Date(dataInicio)
+  let semanas = 0
+
+  while (inicio <= dataFim) {
+    const fimSemana = new Date(inicio)
+    fimSemana.setDate(fimSemana.getDate() + 6) // 7 dias (0-6)
+
+    // Verificar se a semana cai em período de férias
+    let isFerias = false
+    for (const periodo of ferias || []) {
+      if (!periodo.inicio || !periodo.fim) continue
+      const inicioFerias = new Date(periodo.inicio)
+      const fimFerias = new Date(periodo.fim)
+      if (
+        (inicio >= inicioFerias && inicio <= fimFerias) ||
+        (fimSemana >= inicioFerias && fimSemana <= fimFerias) ||
+        (inicio <= inicioFerias && fimSemana >= fimFerias)
+      ) {
+        isFerias = true
+        break
+      }
+    }
+
+    if (!isFerias) {
+      semanas++
+    }
+
+    inicio.setDate(inicio.getDate() + 7)
+  }
+
+  return semanas
+}
+
+// Função para calcular semanas necessárias do cronograma (baseado no conteúdo selecionado e tempo necessário)
+const calcularSemanasCronograma = (
+  modalidadeStats: Record<number, ModalidadeStats>,
+  prioridadeMinima: number,
+  velocidadeReproducao: number,
+  horasDia: number,
+  diasSemana: number,
+): number => {
+  const stats = modalidadeStats[prioridadeMinima]
+  if (!stats) return 0
+
+  // Tempo de aula ajustado pela velocidade
+  const tempoAulaAjustadoMinutos = stats.tempoAulaMinutos / velocidadeReproducao
+  // Tempo de estudo = tempo de aula ajustado * (FATOR_MULTIPLICADOR - 1)
+  const tempoEstudoAjustadoMinutos = tempoAulaAjustadoMinutos * (FATOR_MULTIPLICADOR - 1)
+  // Tempo total necessário em minutos
+  const tempoTotalMinutos = tempoAulaAjustadoMinutos + tempoEstudoAjustadoMinutos
+
+  // Capacidade por semana em minutos
+  const capacidadeSemanaMinutos = horasDia * diasSemana * 60
+
+  if (capacidadeSemanaMinutos <= 0) return 0
+
+  // Calcular semanas necessárias (arredondar para cima)
+  const semanasNecessarias = Math.ceil(tempoTotalMinutos / capacidadeSemanaMinutos)
+
+  return semanasNecessarias
 }
 
 export function ScheduleWizard() {
@@ -721,6 +792,12 @@ export function ScheduleWizard() {
       return
     }
 
+    if (data.disciplinas_ids.length === 0) {
+      setError('Selecione pelo menos uma disciplina antes de gerar o cronograma.')
+      setCurrentStep(2)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -872,6 +949,12 @@ export function ScheduleWizard() {
           return
         }
       }
+      if (currentStep === 3) {
+        if (form.getValues('disciplinas_ids').length === 0) {
+          setError('Selecione pelo menos uma disciplina antes de continuar.')
+          return
+        }
+      }
       setError(null)
       setCurrentStep((prev) => Math.min(prev + 1, STEPS.length))
     }
@@ -886,8 +969,10 @@ export function ScheduleWizard() {
       case 1:
         return ['data_inicio', 'data_fim', 'dias_semana', 'horas_dia']
       case 2:
-        return ['disciplinas_ids', 'prioridade_minima']
+        return ['disciplinas_ids']
       case 3:
+        return ['prioridade_minima']
+      case 4:
         return ['modalidade']
       default:
         return []
@@ -1000,7 +1085,7 @@ export function ScheduleWizard() {
               Configure seu plano de estudos personalizado em {STEPS.length} passos
             </CardDescription>
           </div>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
             {STEPS.map((step) => {
               const completed = currentStep > step.id
               const active = currentStep === step.id
@@ -1158,7 +1243,7 @@ export function ScheduleWizard() {
               </div>
             )}
 
-            {/* Step 2: Disciplinas e Modalidade */}
+            {/* Step 2: Disciplinas e Módulos */}
             {currentStep === 2 && (
               <div className="space-y-6">
                 {/* Seleção de Curso */}
@@ -1423,7 +1508,12 @@ export function ScheduleWizard() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
 
+            {/* Step 3: Modalidade */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
                 <div className="space-y-4">
                   <Label>Modalidade</Label>
                   <div className="grid grid-cols-5 gap-2">
@@ -1488,7 +1578,7 @@ export function ScheduleWizard() {
               </div>
             )}
 
-            {/* Step 3: Estratégia de Estudo */}
+            {/* Step 4: Estratégia de Estudo */}
             {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="space-y-4">
@@ -1637,8 +1727,8 @@ export function ScheduleWizard() {
               </div>
             )}
 
-            {/* Step 4: Revisão e Geração */}
-            {currentStep === 4 && (
+            {/* Step 5: Revisão e Geração */}
+            {currentStep === 5 && (
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label>Nome do Cronograma *</Label>
@@ -1674,8 +1764,48 @@ export function ScheduleWizard() {
                       <span>{form.watch('horas_dia')}</span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total de semanas disponibilizadas:</span>
+                      <span>
+                        {calcularSemanasDisponibilizadas(
+                          form.watch('data_inicio'),
+                          form.watch('data_fim'),
+                          form.watch('ferias')
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total de semanas do cronograma:</span>
+                      <span>
+                        {calcularSemanasCronograma(
+                          modalidadeStats,
+                          form.watch('prioridade_minima'),
+                          form.watch('velocidade_reproducao') ?? 1.0,
+                          form.watch('horas_dia'),
+                          form.watch('dias_semana')
+                        )}
+                      </span>
+                    </div>
+                    {cursoAtual?.nome && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Curso:</span>
+                        <span className="font-medium">{cursoAtual.nome}</span>
+                      </div>
+                    )}
+                    <div className="space-y-1 pt-2">
                       <span className="text-muted-foreground">Disciplinas:</span>
-                      <span>{form.watch('disciplinas_ids').length}</span>
+                      {form.watch('disciplinas_ids').length === 0 ? (
+                        <p className="text-muted-foreground pl-5">Nenhuma disciplina selecionada</p>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-1">
+                          {disciplinasDoCurso
+                            .filter((d) => form.watch('disciplinas_ids').includes(d.id))
+                            .map((disciplina) => (
+                              <li key={disciplina.id} className="text-muted-foreground">
+                                {disciplina.nome}
+                              </li>
+                            ))}
+                        </ul>
+                      )}
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Modalidade:</span>
@@ -1792,7 +1922,7 @@ export function ScheduleWizard() {
                 Ao diminuir a prioridade para {prioridadeSugerida}, menos conteúdos obrigatórios serão incluídos.
               </p>
               <Button variant="outline" onClick={handleAjustarPrioridade}>
-                Ajustar prioridade e voltar para o passo 2
+                Ajustar prioridade e voltar para o passo 3
               </Button>
             </div>
           </div>
