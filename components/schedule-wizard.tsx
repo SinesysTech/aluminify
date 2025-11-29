@@ -1546,8 +1546,9 @@ export function ScheduleWizard() {
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Label>Modalidade</Label>
+                  {/* Primeiros 3 cards em grid de 3 colunas */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {MODALIDADES.map(({ nivel, label, descricao, texto, tempo }) => (
+                    {MODALIDADES.slice(0, 3).map(({ nivel, label, descricao, texto, tempo }) => (
                       <Card
                         key={nivel}
                         className={cn(
@@ -1558,14 +1559,40 @@ export function ScheduleWizard() {
                         )}
                         onClick={() => form.setValue('prioridade_minima', nivel)}
                       >
-                        <CardContent className="p-4 space-y-3">
-                          <div className="text-center space-y-1">
-                            <div className="font-bold text-base">{label}</div>
-                            <div className="text-xs font-medium text-muted-foreground">({descricao})</div>
+                        <CardContent className="p-5 space-y-3">
+                          <div className="text-center space-y-1.5 border-b border-border pb-3">
+                            <div className="font-bold text-lg text-foreground">{label}</div>
+                            <div className="text-sm font-semibold text-primary">({descricao})</div>
                           </div>
-                          <div className="space-y-2 text-xs text-muted-foreground">
+                          <div className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
                             <p>{texto}</p>
-                            <p className="font-medium text-primary">{tempo}</p>
+                            <p className="font-semibold text-primary">{tempo}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {/* Últimos 2 cards centralizados */}
+                  <div className="flex justify-center gap-4 flex-wrap items-stretch">
+                    {MODALIDADES.slice(3).map(({ nivel, label, descricao, texto, tempo }) => (
+                      <Card
+                        key={nivel}
+                        className={cn(
+                          "cursor-pointer transition-colors w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] flex flex-col",
+                          form.watch('prioridade_minima') === nivel
+                            ? "border-primary bg-primary/5"
+                            : "hover:bg-muted"
+                        )}
+                        onClick={() => form.setValue('prioridade_minima', nivel)}
+                      >
+                        <CardContent className="p-5 flex flex-col flex-1">
+                          <div className="text-center space-y-1.5 border-b border-border pb-3 flex-shrink-0">
+                            <div className="font-bold text-lg text-foreground">{label}</div>
+                            <div className="text-sm font-semibold text-primary">({descricao})</div>
+                          </div>
+                          <div className="flex flex-col flex-1 space-y-2.5 text-sm text-muted-foreground leading-relaxed pt-3">
+                            <p className="flex-1">{texto}</p>
+                            <p className="font-semibold text-primary mt-auto pt-2">{tempo}</p>
                           </div>
                         </CardContent>
                       </Card>
