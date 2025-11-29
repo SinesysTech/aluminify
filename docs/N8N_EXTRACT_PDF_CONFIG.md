@@ -145,3 +145,4 @@ return item;
 3. **Verifique logs do servidor:** Veja se a requisição está chegando
 4. **Verifique versão do N8N:** Versões antigas podem ter sintaxe diferente para binary data
 
+

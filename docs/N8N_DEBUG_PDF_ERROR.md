@@ -180,3 +180,4 @@ Teste baixar o arquivo manualmente e verificar se abre corretamente no leitor de
 2. **Tente outro método:** Use "Download File" ao invés de HTTP Request
 3. **Verifique o servidor:** Veja se o arquivo está sendo servido corretamente nos logs
 
+
