@@ -922,25 +922,53 @@ export function ScheduleWizard() {
         console.error('Erro na API - Result:', result)
         console.error('Erro na API - Keys:', result ? Object.keys(result) : 'result é null/undefined')
         
+        // Verificar se é erro de tempo insuficiente (comparação mais flexível)
+        const errorText = result?.error ? String(result.error).toLowerCase() : ''
+        const isTempoInsuficiente = errorText.includes('tempo insuficiente') && result?.detalhes
+        
         // Se o erro contém detalhes, mostrar mensagem mais específica
-        if (result?.error === 'Tempo insuficiente' && result?.detalhes) {
-          const horasNecessarias = Number(result.detalhes.horas_necessarias) || 0
-          const horasDisponiveis = Number(result.detalhes.horas_disponiveis) || 0
-          const horasDiaNecessarias = Number(result.detalhes.horas_dia_necessarias) || 0
+        if (isTempoInsuficiente) {
+          const detalhes = result?.detalhes || {}
+          const horasNecessarias = Number(detalhes.horas_necessarias) || 0
+          const horasDisponiveis = Number(detalhes.horas_disponiveis) || 0
+          const horasDiaNecessarias = Number(detalhes.horas_dia_necessarias) || 0
 
-          setTempoInsuficienteDetalhes({
+          console.log('Erro de tempo insuficiente detectado:', {
             horasNecessarias,
             horasDisponiveis,
             horasDiaNecessarias,
+            detalhesCompletos: detalhes,
           })
-          setShowTempoInsuficienteDialog(true)
-          setError(
-            `Tempo insuficiente! Necessário ${horasNecessarias}h, disponível ${horasDisponiveis}h. ` +
-            `Sugestão: ${horasDiaNecessarias}h por dia.`
-          )
+
+          // Só mostrar o diálogo se tivermos detalhes válidos
+          if (horasNecessarias > 0 || horasDisponiveis > 0) {
+            setTempoInsuficienteDetalhes({
+              horasNecessarias,
+              horasDisponiveis,
+              horasDiaNecessarias,
+            })
+            setShowTempoInsuficienteDialog(true)
+            setError(
+              `Tempo insuficiente! Necessário ${horasNecessarias}h, disponível ${horasDisponiveis}h. ` +
+              (horasDiaNecessarias > 0 ? `Sugestão: ${horasDiaNecessarias}h por dia.` : '')
+            )
+          } else {
+            // Se não temos detalhes, mostrar apenas a mensagem de erro
+            const errorMessage = result?.error || 'Tempo insuficiente para gerar o cronograma'
+            console.warn('Erro de tempo insuficiente sem detalhes completos')
+            setError(errorMessage)
+          }
         } else {
-          const errorMessage = result?.error || result?.message || result?.details || `Erro ${response.status}: ${response.statusText || 'Erro ao gerar cronograma'}`
+          // Extrair mensagem de erro de forma mais robusta
+          const errorMessage = 
+            result?.error || 
+            result?.message || 
+            result?.details || 
+            (typeof result === 'string' ? result : null) ||
+            `Erro ${response.status}: ${response.statusText || 'Erro ao gerar cronograma'}`
+          
           console.error('Mensagem de erro final:', errorMessage)
+          console.error('Result completo para debug:', JSON.stringify(result, null, 2))
           setError(errorMessage)
         }
         setLoading(false)

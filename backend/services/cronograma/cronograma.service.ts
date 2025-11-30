@@ -100,6 +100,45 @@ export class CronogramaService {
       );
     }
 
+    // Validar que todas as frentes das disciplinas selecionadas têm aulas
+    // Buscar todas as frentes das disciplinas selecionadas para validação
+    let validacaoFrentesQuery = client
+      .from('frentes')
+      .select('id, nome, disciplina_id, curso_id, disciplinas(nome)')
+      .in('disciplina_id', input.disciplinas_ids);
+    
+    if (input.curso_alvo_id) {
+      validacaoFrentesQuery = validacaoFrentesQuery.eq('curso_id', input.curso_alvo_id);
+    }
+    
+    const { data: todasFrentes, error: frentesError } = await validacaoFrentesQuery;
+    
+    if (!frentesError && todasFrentes && todasFrentes.length > 0) {
+      const frentesComAulas = new Set(aulas.map(a => a.frente_id));
+      const frentesSemAulas = todasFrentes.filter((f: any) => !frentesComAulas.has(f.id));
+      
+      if (frentesSemAulas.length > 0) {
+        console.warn('[CronogramaService] ⚠️ Frentes sem aulas no cronograma gerado:', {
+          total_frentes_sem_aulas: frentesSemAulas.length,
+          total_frentes_esperadas: todasFrentes.length,
+          total_frentes_com_aulas: frentesComAulas.size,
+          frentes: frentesSemAulas.map((f: any) => ({
+            id: f.id,
+            nome: f.nome,
+            disciplina: (f.disciplinas as any)?.nome || 'Desconhecida',
+            curso_id: f.curso_id
+          })),
+          motivo_possivel: excluirConcluidas 
+            ? 'Aulas podem ter sido excluídas por estarem concluídas ou não terem prioridade suficiente'
+            : 'Aulas podem não ter prioridade suficiente ou módulos não foram selecionados',
+          prioridade_minima: input.prioridade_minima,
+          modulos_selecionados: input.modulos_ids?.length || 0
+        });
+      } else {
+        console.log('[CronogramaService] ✅ Todas as frentes selecionadas têm aulas no cronograma');
+      }
+    }
+
     // ============================================
     // ETAPA 3: Cálculo de Custo Real
     // ============================================
@@ -323,12 +362,91 @@ export class CronogramaService {
     modulosSelecionados?: string[],
   ): Promise<AulaCompleta[]> {
     const prioridadeMinimaEfetiva = Math.max(1, prioridadeMinima ?? 1);
-    console.log('[CronogramaService] Buscando aulas para disciplinas:', disciplinasIds);
+    console.log('🔍 [CronogramaService] ===========================================');
+    console.log('🔍 [CronogramaService] INICIANDO BUSCA DE AULAS');
+    console.log('🔍 [CronogramaService] Disciplinas:', disciplinasIds);
+    console.log('🔍 [CronogramaService] Curso ID:', cursoId);
+    console.log('🔍 [CronogramaService] Módulos selecionados:', modulosSelecionados?.length || 0);
+    console.log('🔍 [CronogramaService] Prioridade mínima:', prioridadeMinimaEfetiva);
+    console.log('🔍 [CronogramaService] ===========================================');
     
-    // Buscar frentes das disciplinas selecionadas
+    // Buscar frentes das disciplinas selecionadas (com informações completas para validação)
+    console.log('🔍 [CronogramaService] ========== DIAGNÓSTICO DE FRENTES ==========');
+    console.log('[CronogramaService] Buscando frentes para:', {
+      disciplinas_ids: disciplinasIds,
+      curso_id: cursoId,
+      total_disciplinas: disciplinasIds.length
+    });
+
+    // PRIMEIRO: Buscar TODAS as frentes das disciplinas (sem filtro de curso) para diagnóstico
+    const { data: todasFrentesSemFiltro, error: todasFrentesError } = await client
+      .from('frentes')
+      .select('id, nome, disciplina_id, curso_id, disciplinas(nome)')
+      .in('disciplina_id', disciplinasIds);
+
+    if (todasFrentesError) {
+      console.error('[CronogramaService] Erro ao buscar todas as frentes (diagnóstico):', todasFrentesError);
+    } else {
+      console.log('[CronogramaService] TOTAL de frentes encontradas (SEM filtro de curso):', todasFrentesSemFiltro?.length || 0);
+      
+      // Agrupar por disciplina e curso
+      const frentesPorDisciplinaECurso = new Map<string, { disciplina: string; frentes: any[] }>();
+      todasFrentesSemFiltro?.forEach((frente: any) => {
+        const discId = frente.disciplina_id;
+        const discNome = (frente.disciplinas as any)?.nome || 'Desconhecida';
+        const key = `${discId}_${frente.curso_id || 'sem-curso'}`;
+        
+        if (!frentesPorDisciplinaECurso.has(key)) {
+          frentesPorDisciplinaECurso.set(key, {
+            disciplina: discNome,
+            frentes: []
+          });
+        }
+        frentesPorDisciplinaECurso.get(key)!.frentes.push({
+          id: frente.id,
+          nome: frente.nome,
+          curso_id: frente.curso_id
+        });
+      });
+
+      console.log('[CronogramaService] Frentes agrupadas por disciplina e curso:', 
+        Array.from(frentesPorDisciplinaECurso.entries()).map(([key, info]) => ({
+          disciplina: info.disciplina,
+          curso_id: key.split('_')[1] === 'sem-curso' ? null : key.split('_')[1],
+          total_frentes: info.frentes.length,
+          frentes: info.frentes.map((f: any) => f.nome)
+        }))
+      );
+
+      // Verificar frentes do curso selecionado
+      if (cursoId) {
+        const frentesDoCurso = todasFrentesSemFiltro?.filter((f: any) => f.curso_id === cursoId) || [];
+        console.log('[CronogramaService] Frentes do curso selecionado:', {
+          curso_id: cursoId,
+          total: frentesDoCurso.length,
+          frentes: frentesDoCurso.map((f: any) => ({
+            id: f.id,
+            nome: f.nome,
+            disciplina: (f.disciplinas as any)?.nome
+          }))
+        });
+
+        // Verificar se há frentes sem curso_id
+        const frentesSemCurso = todasFrentesSemFiltro?.filter((f: any) => !f.curso_id) || [];
+        if (frentesSemCurso.length > 0) {
+          console.warn('[CronogramaService] ⚠️ Frentes SEM curso_id encontradas:', frentesSemCurso.map((f: any) => ({
+            id: f.id,
+            nome: f.nome,
+            disciplina: (f.disciplinas as any)?.nome
+          })));
+        }
+      }
+    }
+
+    // AGORA: Buscar frentes com filtro de curso (query real)
     let frentesQuery = client
       .from('frentes')
-      .select('id')
+      .select('id, nome, disciplina_id, curso_id, disciplinas(nome)')
       .in('disciplina_id', disciplinasIds);
 
     if (cursoId) {
@@ -342,16 +460,146 @@ export class CronogramaService {
       throw new CronogramaValidationError(`Erro ao buscar frentes: ${frentesError.message}`);
     }
 
+    console.log('🔍 [CronogramaService] RESULTADO DA BUSCA DE FRENTES:', {
+      total_encontradas: frentesData?.length || 0,
+      frentes: frentesData?.map((f: any) => ({
+        id: f.id,
+        nome: f.nome,
+        disciplina_id: f.disciplina_id,
+        curso_id: f.curso_id,
+        disciplina_nome: Array.isArray(f.disciplinas) 
+          ? f.disciplinas[0]?.nome 
+          : (f.disciplinas as any)?.nome
+      }))
+    });
+
     const frenteIds = frentesData?.map((f) => f.id) || [];
+    const frentesPorDisciplina = new Map<string, string[]>();
+    
+    // Agrupar frentes por disciplina para validação
+    frentesData?.forEach((frente: any) => {
+      const discId = frente.disciplina_id;
+      if (!frentesPorDisciplina.has(discId)) {
+        frentesPorDisciplina.set(discId, []);
+      }
+      frentesPorDisciplina.get(discId)!.push(frente.nome);
+    });
+
+    console.log('[CronogramaService] Frentes encontradas por disciplina (COM filtro):', 
+      Array.from(frentesPorDisciplina.entries()).map(([discId, nomes]) => {
+        const primeiraFrente = frentesData?.find((f: any) => f.disciplina_id === discId);
+        const disciplinaNome = primeiraFrente?.disciplinas 
+          ? (Array.isArray(primeiraFrente.disciplinas) 
+              ? primeiraFrente.disciplinas[0]?.nome 
+              : (primeiraFrente.disciplinas as any)?.nome)
+          : 'Desconhecida';
+        return {
+          disciplina_id: discId,
+          disciplina_nome: disciplinaNome,
+          frentes: nomes,
+          total: nomes.length
+        };
+      })
+    );
+
+    // Validação crítica: verificar se todas as disciplinas têm frentes
+    disciplinasIds.forEach(discId => {
+      const frentesDaDisciplina = frentesPorDisciplina.get(discId) || [];
+      if (frentesDaDisciplina.length === 0) {
+        console.error(`[CronogramaService] ❌❌❌ DISCIPLINA ${discId} NÃO TEM FRENTES ENCONTRADAS!`);
+      } else {
+        console.log(`[CronogramaService] ✅ Disciplina ${discId} tem ${frentesDaDisciplina.length} frente(s):`, frentesDaDisciplina);
+      }
+    });
+
+    console.log('[CronogramaService] Total de frentes encontradas:', frenteIds.length);
+    console.log('[CronogramaService] ===========================================');
 
     if (frenteIds.length === 0) {
       throw new CronogramaValidationError('Nenhuma frente encontrada para as disciplinas selecionadas');
     }
 
-    // Buscar módulos das frentes
+    // Buscar módulos das frentes (com informações da frente para validação)
+    console.log('[CronogramaService] ========== DIAGNÓSTICO DE MÓDULOS ==========');
+    console.log('[CronogramaService] Buscando módulos para:', {
+      total_frentes: frenteIds.length,
+      frente_ids: frenteIds,
+      curso_id: cursoId
+    });
+
+    // PRIMEIRO: Buscar TODOS os módulos das frentes (sem filtro de curso) para diagnóstico
+    const { data: todosModulosSemFiltro, error: todosModulosError } = await client
+      .from('modulos')
+      .select('id, nome, frente_id, curso_id, frentes(id, nome, disciplina_id, curso_id, disciplinas(nome))')
+      .in('frente_id', frenteIds);
+
+    if (todosModulosError) {
+      console.error('[CronogramaService] Erro ao buscar todos os módulos (diagnóstico):', todosModulosError);
+    } else {
+      console.log('[CronogramaService] TOTAL de módulos encontrados (SEM filtro de curso):', todosModulosSemFiltro?.length || 0);
+      
+      // Agrupar módulos por frente
+      const modulosPorFrenteSemFiltro = new Map<string, { frente: any; modulos: any[] }>();
+      todosModulosSemFiltro?.forEach((modulo: any) => {
+        const frenteId = modulo.frente_id;
+        if (!modulosPorFrenteSemFiltro.has(frenteId)) {
+          const frente = modulo.frentes;
+          modulosPorFrenteSemFiltro.set(frenteId, {
+            frente: {
+              id: frente?.id,
+              nome: frente?.nome,
+              disciplina: (frente?.disciplinas as any)?.nome,
+              curso_id: frente?.curso_id
+            },
+            modulos: []
+          });
+        }
+        modulosPorFrenteSemFiltro.get(frenteId)!.modulos.push({
+          id: modulo.id,
+          nome: modulo.nome,
+          curso_id: modulo.curso_id
+        });
+      });
+
+      console.log('[CronogramaService] Módulos agrupados por frente (SEM filtro):', 
+        Array.from(modulosPorFrenteSemFiltro.entries()).map(([frenteId, info]) => ({
+          frente_id: frenteId,
+          frente_nome: info.frente.nome,
+          disciplina: info.frente.disciplina,
+          frente_curso_id: info.frente.curso_id,
+          total_modulos: info.modulos.length,
+          modulos: info.modulos.map((m: any) => ({ id: m.id, nome: m.nome, curso_id: m.curso_id }))
+        }))
+      );
+
+      // Verificar módulos do curso selecionado
+      if (cursoId) {
+        const modulosDoCurso = todosModulosSemFiltro?.filter((m: any) => m.curso_id === cursoId) || [];
+        console.log('[CronogramaService] Módulos do curso selecionado:', {
+          curso_id: cursoId,
+          total: modulosDoCurso.length
+        });
+
+        // Verificar frentes sem módulos no curso
+        frenteIds.forEach(frenteId => {
+          const frente = frentesData?.find((f: any) => f.id === frenteId);
+          const modulosDaFrente = todosModulosSemFiltro?.filter((m: any) => 
+            m.frente_id === frenteId && m.curso_id === cursoId
+          ) || [];
+          
+          if (modulosDaFrente.length === 0) {
+            console.error(`[CronogramaService] ❌❌❌ FRENTE "${frente?.nome}" (${frenteId}) NÃO TEM MÓDULOS NO CURSO ${cursoId}!`);
+          } else {
+            console.log(`[CronogramaService] ✅ Frente "${frente?.nome}" tem ${modulosDaFrente.length} módulo(s) no curso`);
+          }
+        });
+      }
+    }
+
+    // AGORA: Buscar módulos com filtro de curso (query real)
     let modulosQuery = client
       .from('modulos')
-      .select('id')
+      .select('id, frente_id, curso_id, frentes(nome, disciplina_id, curso_id, disciplinas(nome))')
       .in('frente_id', frenteIds);
 
     if (cursoId) {
@@ -365,10 +613,181 @@ export class CronogramaService {
       throw new CronogramaValidationError(`Erro ao buscar módulos: ${modulosError.message}`);
     }
 
+    console.log('🔍 [CronogramaService] RESULTADO DA BUSCA DE MÓDULOS:', {
+      total_encontrados: modulosData?.length || 0,
+      frentes_com_modulos: new Set(modulosData?.map((m: any) => m.frente_id) || []).size,
+      total_frentes_esperadas: frenteIds.length,
+      modulos_por_frente: modulosData?.reduce((acc: any, m: any) => {
+        const frenteId = m.frente_id;
+        if (!acc[frenteId]) {
+          acc[frenteId] = 0;
+        }
+        acc[frenteId]++;
+        return acc;
+      }, {} as Record<string, number>)
+    });
+
+    // Verificar quais frentes NÃO têm módulos
+    const frentesComModulos = new Set(modulosData?.map((m: any) => m.frente_id) || []);
+    const frentesSemModulos = frenteIds.filter(id => !frentesComModulos.has(id));
+    if (frentesSemModulos.length > 0) {
+      console.error('🔍 [CronogramaService] ❌❌❌ FRENTES SEM MÓDULOS ENCONTRADAS:', 
+        frentesSemModulos.map(id => {
+          const frente = frentesData?.find((f: any) => f.id === id);
+          return {
+            frente_id: id,
+            frente_nome: frente?.nome || 'Desconhecida',
+            disciplina_id: frente?.disciplina_id
+          };
+        })
+      );
+    }
+
     let moduloIds = modulosData?.map((m) => m.id) || [];
+    const modulosPorFrente = new Map<string, string[]>();
+    
+    // Agrupar módulos por frente para validação
+    modulosData?.forEach((modulo: any) => {
+      const frenteId = modulo.frente_id;
+      if (!modulosPorFrente.has(frenteId)) {
+        modulosPorFrente.set(frenteId, []);
+      }
+      modulosPorFrente.get(frenteId)!.push(modulo.id);
+    });
+
+    console.log('[CronogramaService] Módulos encontrados por frente (COM filtro):', 
+      Array.from(modulosPorFrente.entries()).map(([frenteId, moduloIds]) => {
+        const frente = frentesData?.find((f: any) => f.id === frenteId);
+        const moduloComFrente = modulosData?.find((m: any) => m.frente_id === frenteId);
+        const frenteInfo: any = moduloComFrente?.frentes;
+        let disciplinaNome = 'Desconhecida';
+        if (frenteInfo?.disciplinas) {
+          if (Array.isArray(frenteInfo.disciplinas)) {
+            disciplinaNome = frenteInfo.disciplinas[0]?.nome || 'Desconhecida';
+          } else {
+            disciplinaNome = frenteInfo.disciplinas.nome || 'Desconhecida';
+          }
+        }
+        return {
+          frente_id: frenteId,
+          frente_nome: frente?.nome || frenteInfo?.nome || 'Desconhecida',
+          disciplina: disciplinaNome,
+          total_modulos: moduloIds.length,
+          modulo_ids: moduloIds
+        };
+      })
+    );
+
+    // Validação crítica: verificar se todas as frentes têm módulos
+    frenteIds.forEach(frenteId => {
+      const modulosDaFrente = modulosPorFrente.get(frenteId) || [];
+      const frente = frentesData?.find((f: any) => f.id === frenteId);
+      if (modulosDaFrente.length === 0) {
+        console.error(`[CronogramaService] ❌❌❌ FRENTE "${frente?.nome}" (${frenteId}) NÃO TEM MÓDULOS!`);
+      } else {
+        console.log(`[CronogramaService] ✅ Frente "${frente?.nome}" tem ${modulosDaFrente.length} módulo(s)`);
+      }
+    });
+
+    console.log('[CronogramaService] Total de módulos encontrados:', moduloIds.length);
+    console.log('[CronogramaService] ===========================================');
 
     if (modulosSelecionados && modulosSelecionados.length > 0) {
+      const modulosAntesFiltro = moduloIds.length;
+      
+      // Log detalhado dos módulos antes do filtro
+      const modulosPorFrenteAntes = new Map<string, { total: number; ids: string[] }>();
+      modulosData?.forEach((modulo: any) => {
+        const frenteId = modulo.frente_id;
+        if (!modulosPorFrenteAntes.has(frenteId)) {
+          modulosPorFrenteAntes.set(frenteId, { total: 0, ids: [] });
+        }
+        const frente = modulosPorFrenteAntes.get(frenteId)!;
+        frente.total++;
+        frente.ids.push(modulo.id);
+      });
+      
+      console.log('[CronogramaService] Módulos ANTES do filtro por frente:', 
+        Array.from(modulosPorFrenteAntes.entries()).map(([frenteId, info]) => {
+          const frente = frentesData?.find((f: any) => f.id === frenteId);
+          return {
+            frente_id: frenteId,
+            frente_nome: frente?.nome || 'Desconhecida',
+            total_modulos: info.total,
+            modulo_ids: info.ids
+          };
+        })
+      );
+      
       moduloIds = moduloIds.filter((id) => modulosSelecionados.includes(id));
+      
+      console.log('[CronogramaService] Filtro de módulos aplicado:', {
+        modulos_antes: modulosAntesFiltro,
+        modulos_depois: moduloIds.length,
+        modulos_selecionados_total: modulosSelecionados.length,
+        modulos_selecionados_primeiros_10: modulosSelecionados.slice(0, 10)
+      });
+      
+      // Validar que todas as frentes têm pelo menos um módulo selecionado
+      const frentesComModulosSelecionados = new Set<string>();
+      const modulosPorFrenteDepois = new Map<string, { total: number; ids: string[] }>();
+      
+      modulosData?.forEach((modulo: any) => {
+        if (moduloIds.includes(modulo.id)) {
+          frentesComModulosSelecionados.add(modulo.frente_id);
+          const frenteId = modulo.frente_id;
+          if (!modulosPorFrenteDepois.has(frenteId)) {
+            modulosPorFrenteDepois.set(frenteId, { total: 0, ids: [] });
+          }
+          const frente = modulosPorFrenteDepois.get(frenteId)!;
+          frente.total++;
+          frente.ids.push(modulo.id);
+        }
+      });
+      
+      console.log('[CronogramaService] Módulos DEPOIS do filtro por frente:', 
+        Array.from(modulosPorFrenteDepois.entries()).map(([frenteId, info]) => {
+          const frente = frentesData?.find((f: any) => f.id === frenteId);
+          return {
+            frente_id: frenteId,
+            frente_nome: frente?.nome || 'Desconhecida',
+            total_modulos: info.total,
+            modulo_ids: info.ids
+          };
+        })
+      );
+      
+      // Verificar se há módulos selecionados que não pertencem a nenhuma frente encontrada
+      const modulosSelecionadosValidos = new Set(moduloIds);
+      const modulosSelecionadosInvalidos = modulosSelecionados.filter(id => !modulosSelecionadosValidos.has(id));
+      if (modulosSelecionadosInvalidos.length > 0) {
+        console.warn('[CronogramaService] ⚠️ Módulos selecionados que não pertencem às frentes encontradas:', {
+          total_invalidos: modulosSelecionadosInvalidos.length,
+          modulo_ids: modulosSelecionadosInvalidos.slice(0, 10)
+        });
+      }
+      
+      const frentesSemModulos = frenteIds.filter(id => !frentesComModulosSelecionados.has(id));
+      if (frentesSemModulos.length > 0) {
+        const frentesSemModulosNomes = frentesSemModulos.map(id => {
+          const frente = frentesData?.find((f: any) => f.id === id);
+          return {
+            frente_id: id,
+            frente_nome: frente?.nome || 'Desconhecida',
+            disciplina_id: frente?.disciplina_id || 'Desconhecida'
+          };
+        });
+        console.warn('[CronogramaService] ⚠️⚠️⚠️ Frentes sem módulos selecionados (CRÍTICO):', JSON.stringify(frentesSemModulosNomes, null, 2));
+        
+        // Tentar identificar se há módulos dessas frentes que não foram selecionados
+        frentesSemModulos.forEach(frenteId => {
+          const modulosDaFrente = modulosPorFrenteAntes.get(frenteId);
+          if (modulosDaFrente && modulosDaFrente.ids.length > 0) {
+            console.warn(`[CronogramaService] ⚠️ Frente ${frentesData?.find((f: any) => f.id === frenteId)?.nome} tem ${modulosDaFrente.ids.length} módulo(s) disponível(is) mas nenhum foi selecionado:`, modulosDaFrente.ids.slice(0, 5));
+          }
+        });
+      }
+      
       if (moduloIds.length === 0) {
         throw new CronogramaValidationError(
           'Nenhum módulo válido encontrado para o curso selecionado.',
@@ -531,6 +950,57 @@ export class CronogramaService {
       disciplina_nome: aula.modulos.frentes.disciplinas.nome,
     }));
 
+    // Validar que todas as frentes selecionadas têm aulas
+    const frentesComAulas = new Set<string>();
+    aulas.forEach(aula => {
+      frentesComAulas.add(aula.frente_id);
+    });
+    
+    const frentesSemAulasInicial = frenteIds.filter(id => !frentesComAulas.has(id));
+    if (frentesSemAulasInicial.length > 0) {
+      const frentesSemAulasNomes = frentesSemAulasInicial.map(id => {
+        const frente = frentesData?.find((f: any) => f.id === id);
+        return frente?.nome || id;
+      });
+      console.warn('[CronogramaService] ⚠️ Frentes sem aulas encontradas (após filtros):', {
+        frentes: frentesSemAulasNomes,
+        motivo_possivel: 'Nenhuma aula encontrada com prioridade >= ' + prioridadeMinimaEfetiva + ' ou módulos não selecionados'
+      });
+      
+      // Verificar se há módulos selecionados para essas frentes
+      if (modulosSelecionados && modulosSelecionados.length > 0) {
+        frentesSemAulasInicial.forEach(frenteId => {
+          const modulosDaFrente = modulosPorFrente.get(frenteId) || [];
+          const modulosSelecionadosDaFrente = modulosDaFrente.filter(id => modulosSelecionados.includes(id));
+          if (modulosSelecionadosDaFrente.length > 0) {
+            console.warn(`[CronogramaService] ⚠️ Frente ${frentesData?.find((f: any) => f.id === frenteId)?.nome} tem ${modulosSelecionadosDaFrente.length} módulo(s) selecionado(s) mas nenhuma aula foi encontrada`);
+          }
+        });
+      }
+    }
+
+    // Agrupar aulas por frente e disciplina para log
+    const aulasPorFrente = new Map<string, { frente_nome: string; disciplina_nome: string; total: number }>();
+    aulas.forEach(aula => {
+      if (!aulasPorFrente.has(aula.frente_id)) {
+        aulasPorFrente.set(aula.frente_id, {
+          frente_nome: aula.frente_nome,
+          disciplina_nome: aula.disciplina_nome,
+          total: 0
+        });
+      }
+      aulasPorFrente.get(aula.frente_id)!.total++;
+    });
+
+    console.log('[CronogramaService] Aulas encontradas por frente:', 
+      Array.from(aulasPorFrente.entries()).map(([frenteId, info]) => ({
+        frente_id: frenteId,
+        frente_nome: info.frente_nome,
+        disciplina_nome: info.disciplina_nome,
+        total_aulas: info.total
+      }))
+    );
+
     // Ordenar aulas: Disciplina > Frente > Numero Modulo > Numero Aula
     aulas.sort((a, b) => {
       // Ordenar por disciplina
@@ -552,6 +1022,35 @@ export class CronogramaService {
       const numAulaB = b.numero_aula ?? 0;
       return numAulaA - numAulaB;
     });
+
+    console.log('[CronogramaService] ========== RESUMO FINAL ==========');
+    console.log('[CronogramaService] Total de aulas encontradas:', aulas.length);
+    console.log('[CronogramaService] Total de frentes com aulas:', frentesComAulas.size);
+    console.log('[CronogramaService] Total de frentes esperadas:', frenteIds.length);
+    
+    // Listar todas as frentes e se têm aulas
+    const frentesComStatus = frenteIds.map(frenteId => {
+      const frente = frentesData?.find((f: any) => f.id === frenteId);
+      const temAulas = frentesComAulas.has(frenteId);
+      const totalAulas = aulas.filter(a => a.frente_id === frenteId).length;
+      return {
+        frente_id: frenteId,
+        frente_nome: frente?.nome || 'Desconhecida',
+        disciplina_id: frente?.disciplina_id || 'Desconhecida',
+        tem_aulas: temAulas,
+        total_aulas: totalAulas
+      };
+    });
+    
+    console.log('[CronogramaService] Status de todas as frentes:', JSON.stringify(frentesComStatus, null, 2));
+    
+    const frentesSemAulas = frentesComStatus.filter(f => !f.tem_aulas);
+    if (frentesSemAulas.length > 0) {
+      console.error('[CronogramaService] ❌❌❌ FRENTES SEM AULAS NO CRONOGRAMA:', JSON.stringify(frentesSemAulas, null, 2));
+    } else {
+      console.log('[CronogramaService] ✅ Todas as frentes têm aulas!');
+    }
+    console.log('[CronogramaService] ====================================');
 
     return aulas;
   }

@@ -551,16 +551,44 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         return
       }
 
+      // Aguardar um pouco antes de buscar para garantir que o backend terminou
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       // Carregar itens (incluindo data_prevista atualizada)
-      // Adicionar timestamp para evitar cache
+      // Forçar busca sem cache usando uma query única
+      const timestamp = Date.now()
       const { data: itensData, error: itensError } = await supabase
         .from('cronograma_itens')
         .select('id, aula_id, semana_numero, ordem_na_semana, concluido, data_conclusao, data_prevista')
         .eq('cronograma_id', cronogramaId)
         .order('semana_numero', { ascending: true })
         .order('ordem_na_semana', { ascending: true })
+        // Forçar busca sem cache usando um filtro que sempre retorna true mas força nova query
+        .gte('semana_numero', 0) // Sempre verdadeiro, mas força nova query
+        .limit(999999) // Limite alto para garantir que busca todos
       
       console.log('[RecarregarCronograma] Itens carregados do banco:', itensData?.length || 0)
+      
+      // Verificar distribuição de data_prevista por dia da semana ANTES de processar
+      if (itensData && itensData.length > 0) {
+        const distribuicaoDataPrevistaAntes: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+        const exemplosDataPrevista = itensData
+          .filter(i => i.data_prevista)
+          .slice(0, 20)
+          .map(i => {
+            const [year, month, day] = i.data_prevista.split('-').map(Number)
+            const data = new Date(year, month - 1, day)
+            const diaSemana = data.getDay()
+            distribuicaoDataPrevistaAntes[diaSemana] += 1
+            return { id: i.id, data_prevista: i.data_prevista, diaSemana, nomeDia: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][diaSemana] }
+          })
+        console.log('[RecarregarCronograma] Distribuição de data_prevista ANTES de processar (primeiros 20):', {
+          distribuicao: distribuicaoDataPrevistaAntes,
+          exemplos: exemplosDataPrevista,
+          totalComDataPrevista: itensData.filter(i => i.data_prevista).length,
+          totalSemDataPrevista: itensData.filter(i => !i.data_prevista).length,
+        })
+      }
 
       if (itensError) {
         console.error('Erro ao carregar itens:', itensError)
@@ -688,24 +716,39 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       console.log('[RecarregarCronograma] Itens com data_prevista:', itensCompletos.filter(i => i.data_prevista).length)
       console.log('[RecarregarCronograma] Itens sem data_prevista:', itensCompletos.filter(i => !i.data_prevista).length)
       
-      // Verificar distribuição de data_prevista por dia da semana
+      // Verificar distribuição de data_prevista por dia da semana ANTES de calcular
       const distribuicaoDataPrevista: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+      const exemplosPorDia: Record<number, string[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
       itensCompletos.forEach(item => {
         if (item.data_prevista) {
           const [year, month, day] = item.data_prevista.split('-').map(Number)
           const data = new Date(year, month - 1, day)
           const diaSemana = data.getDay()
           distribuicaoDataPrevista[diaSemana] += 1
+          if (exemplosPorDia[diaSemana].length < 3) {
+            exemplosPorDia[diaSemana].push(item.data_prevista)
+          }
         }
       })
-      console.log('[RecarregarCronograma] Distribuição de data_prevista por dia da semana:', distribuicaoDataPrevista)
+      console.log('[RecarregarCronograma] Distribuição de data_prevista por dia da semana (do banco):', {
+        distribuicao: distribuicaoDataPrevista,
+        exemplos: exemplosPorDia,
+        diasSelecionados: diasSelecionados,
+      })
       
-      // Mostrar algumas datas_prevista de exemplo
-      const exemplosDataPrevista = itensCompletos
-        .filter(i => i.data_prevista)
-        .slice(0, 10)
-        .map(i => ({ id: i.id, data_prevista: i.data_prevista, semana: i.semana_numero, ordem: i.ordem_na_semana }))
-      console.log('[RecarregarCronograma] Exemplos de data_prevista (primeiros 10):', exemplosDataPrevista)
+      // Verificar se há itens com data_prevista nos dias selecionados
+      const itensNosDiasSelecionados = itensCompletos.filter(item => {
+        if (!item.data_prevista) return false
+        const [year, month, day] = item.data_prevista.split('-').map(Number)
+        const data = new Date(year, month - 1, day)
+        const diaSemana = data.getDay()
+        return diasSelecionados.includes(diaSemana)
+      })
+      console.log('[RecarregarCronograma] Itens com data_prevista nos dias selecionados:', {
+        total: itensNosDiasSelecionados.length,
+        esperado: itensCompletos.length,
+        percentual: itensCompletos.length > 0 ? ((itensNosDiasSelecionados.length / itensCompletos.length) * 100).toFixed(1) + '%' : '0%',
+      })
       
       const itensComData = calcularDatasItens(data as Cronograma, itensCompletos)
       const mapaPorData = new Map<string, ItemComData[]>()
@@ -742,6 +785,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       })
 
       setItensPorData(mapaPorData)
+      
+      // Recarregar distribuição de dias da semana para garantir sincronização
+      const { data: distribuicaoData, error: distError } = await supabase
+        .from('cronograma_semanas_dias')
+        .select('dias_semana')
+        .eq('cronograma_id', cronogramaId)
+        .maybeSingle()
+
+      if (!distError && distribuicaoData?.dias_semana) {
+        setDiasSelecionados(distribuicaoData.dias_semana)
+        console.log('[RecarregarCronograma] Dias selecionados recarregados:', distribuicaoData.dias_semana)
+      }
     } catch (err) {
       console.error('Erro ao recarregar cronograma:', err)
     }
@@ -779,14 +834,92 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         throw new Error(errorData.error || 'Erro ao salvar distribuição')
       }
 
-      // Recarregar dados do cronograma para atualizar as datas sem recarregar a página
-      // Aguardar um pouco mais para garantir que o backend terminou de processar
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const responseData = await response.json()
       
+      // Atualizar dias selecionados com o que foi salvo no banco
+      if (responseData.distribuicao?.dias_semana) {
+        setDiasSelecionados(responseData.distribuicao.dias_semana)
+        console.log('[SalvarDistribuicao] Dias selecionados atualizados:', responseData.distribuicao.dias_semana)
+      }
+
+      // Recarregar dados do cronograma para atualizar as datas sem recarregar a página
+      // Aguardar mais tempo para garantir que o backend terminou de processar todas as atualizações
+      // O backend pode levar alguns segundos para atualizar 998 itens
+      console.log('[SalvarDistribuicao] Aguardando backend finalizar atualizações...')
+      
+      // Aguardar um tempo baseado no número de dias selecionados e número de itens
+      // Estimativa: ~100ms por dia selecionado + tempo base de 3 segundos
+      const tempoEstimado = Math.max(3000, diasSelecionados.length * 1000)
+      console.log('[SalvarDistribuicao] Aguardando', tempoEstimado, 'ms para backend processar...')
+      await new Promise(resolve => setTimeout(resolve, tempoEstimado))
+      
+      // Fazer verificações progressivas para ver se as datas foram atualizadas
+      const supabaseCheck = createClient()
+      let tentativas = 0
+      const maxTentativas = 10
+      let datasAtualizadas = false
+      
+      while (tentativas < maxTentativas && !datasAtualizadas) {
+        // Buscar uma amostra maior de itens para verificar distribuição
+        const { data: amostraItens } = await supabaseCheck
+          .from('cronograma_itens')
+          .select('data_prevista')
+          .eq('cronograma_id', cronogramaId)
+          .limit(100) // Amostra maior para verificar melhor
+      
+        if (amostraItens && amostraItens.length > 0) {
+          const amostraDias = amostraItens
+            .filter(i => i.data_prevista)
+            .map(i => {
+              const [year, month, day] = i.data_prevista.split('-').map(Number)
+              return new Date(year, month - 1, day).getDay()
+            })
+          const amostraDiasUnicos = [...new Set(amostraDias)]
+          
+          // Verificar se todos os dias selecionados aparecem na amostra
+          const todosDiasPresentes = diasSelecionados.every(d => amostraDiasUnicos.includes(d))
+          
+          console.log('[SalvarDistribuicao] Tentativa', tentativas + 1, '- Amostra de datas:', {
+            amostraDias: amostraDiasUnicos,
+            diasSelecionados,
+            todosDiasPresentes,
+            totalItensNaAmostra: amostraItens.length,
+          })
+          
+          if (todosDiasPresentes && amostraDiasUnicos.length >= diasSelecionados.length) {
+            datasAtualizadas = true
+            console.log('[SalvarDistribuicao] ✅ Datas atualizadas confirmadas!')
+          } else {
+            // Aguardar mais um pouco antes da próxima tentativa
+            await new Promise(resolve => setTimeout(resolve, 500))
+            tentativas++
+          }
+        } else {
+          // Se não há itens, aguardar um pouco mais
+          await new Promise(resolve => setTimeout(resolve, 500))
+          tentativas++
+        }
+      }
+      
+      if (!datasAtualizadas) {
+        console.warn('[SalvarDistribuicao] ⚠️ Não foi possível confirmar atualização das datas após', maxTentativas, 'tentativas. Continuando mesmo assim...')
+      }
+      
+      // Recarregar cronograma com cache desabilitado
       await recarregarCronograma()
       
       // Pequeno delay adicional para garantir que o estado foi atualizado
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Forçar atualização do calendário após recarregar
+      setCalendarForceUpdate(v => v + 1)
+      setCurrentMonth(prev => {
+        const newMonth = new Date(prev)
+        newMonth.setMilliseconds(newMonth.getMilliseconds() + 1)
+        return newMonth
+      })
+      
+      console.log('[SalvarDistribuicao] Atualização completa')
     } catch (error) {
       console.error('Erro ao salvar distribuição:', error)
       const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar distribuição de dias. Tente novamente.'
@@ -947,46 +1080,19 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         // Normalizar data para dataKey usando a função helper
         const dataKey = normalizarDataParaKey(date)
         const diaSemana = date.getDay()
-        const temAulas = filtradosMap.has(dataKey)
-        const nomeDia = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][diaSemana]
-        const estaIncluido = diasSelecionadosSorted.includes(diaSemana)
         
-        // Log detalhado apenas para primeiras chamadas de cada dia ou quando não encontrar
-        // Reduzir verbosidade do log para não poluir o console
-        const shouldLog = !temAulas && estaIncluido
+        // Verificar diretamente se há itens nessa data específica no mapa filtrado
+        const temAulas = filtradosMap.has(dataKey) && (filtradosMap.get(dataKey)?.length || 0) > 0
         
-        if (shouldLog) {
-          console.log(`[Modifier] hasAulas para ${dataKey} (${nomeDia} - dia ${diaSemana})`)
-          console.log(`[Modifier] - temAulas: ${temAulas}, estáIncluído: ${estaIncluido}`)
-          
-          // Verificar se há itens no mapa original para essa data específica
-          const originalItems = itensPorDataCopy.get(dataKey)
-          if (originalItems && originalItems.length > 0) {
-            console.log(`[Modifier] ⚠️ Item encontrado no mapa original mas não no filtrado! (${originalItems.length} itens)`)
-            console.log(`[Modifier] - Isso indica um problema no filtro para ${nomeDia}`)
-          } else {
-            // Verificar se há alguma data para esse dia da semana no mapa original
-            let encontrouAlgumaData = false
-            let exemploData = ''
-            itensPorDataCopy.forEach((itens, key) => {
-              const [y, m, d] = key.split('-').map(Number)
-              const dt = new Date(y, m - 1, d)
-              if (dt.getDay() === diaSemana && itens.length > 0) {
-                if (!encontrouAlgumaData) {
-                  exemploData = key
-                  encontrouAlgumaData = true
-                }
-              }
-            })
-            if (encontrouAlgumaData) {
-              console.log(`[Modifier] ℹ️ Há itens para ${nomeDia} em outras datas (ex: ${exemploData}), mas não para ${dataKey}`)
-            } else {
-              console.log(`[Modifier] ⚠️ NENHUMA data encontrada no mapa original para ${nomeDia} (dia ${diaSemana})`)
-            }
-          }
+        // Se há itens nessa data específica, retornar true
+        if (temAulas) {
+          return true
         }
         
-        return temAulas
+        // Se não há itens nessa data específica, retornar false
+        // Não tentar inferir baseado em outras datas do mesmo dia da semana,
+        // pois isso pode causar marcações incorretas
+        return false
       },
       hasConcluidas: (date: Date) => {
         // Normalizar data para dataKey usando a função helper
@@ -1138,6 +1244,30 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                 <CardDescription className="text-xs mt-1">
                   Selecione os dias em que deseja ver as aulas no calendário
                 </CardDescription>
+                {(() => {
+                  // Verificar se há dias selecionados sem itens
+                  const diasComItens = new Set<number>()
+                  itensPorDataFiltrados.forEach((itens, dataKey) => {
+                    const [year, month, day] = dataKey.split('-').map(Number)
+                    const data = new Date(year, month - 1, day)
+                    const diaSemana = data.getDay()
+                    if (itens.length > 0) {
+                      diasComItens.add(diaSemana)
+                    }
+                  })
+                  const diasSemItens = diasSelecionados.filter(dia => !diasComItens.has(dia))
+                  
+                  if (diasSemItens.length > 0 && diasSelecionados.length < 7) {
+                    const nomesDiasSemItens = diasSemItens.map(d => ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d])
+                    return (
+                      <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-200">
+                        <p className="font-medium">Atenção:</p>
+                        <p>Os dias {nomesDiasSemItens.join(', ')} estão selecionados mas não têm aulas ainda. Clique em "Salvar e Atualizar Calendário" para recalcular as datas.</p>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
               </CardHeader>
               <CardContent className="flex-1 flex flex-col px-4 pb-4 pt-0">
                 <div className="space-y-2.5 flex-1">
@@ -1202,7 +1332,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
           {/* Lista de itens por data (quando uma data é selecionada) */}
           {dateRange?.from && (
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-4" key={`lista-aulas-${itensPorData.size}-${dateRange.from?.getTime()}-${dateRange.to?.getTime()}`}>
               <h3 className="text-lg font-semibold">
                 Aulas do período selecionado
               </h3>
