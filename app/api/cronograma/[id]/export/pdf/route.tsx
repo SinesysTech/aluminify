@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireUserAuth, type AuthenticatedRequest } from '@/backend/auth/middleware'
 import { getDatabaseClient } from '@/backend/clients/database'
-import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { pdf, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
 
 export const runtime = 'nodejs'
@@ -116,13 +116,15 @@ function formatTempo(minutos?: number | null) {
 }
 
 function buildPdf(cronograma: any, itens: any[]) {
+  Font.registerHyphenationCallback((word) => [word])
   const styles = StyleSheet.create({
     page: { padding: 32, fontSize: 11, color: '#111' },
     title: { fontSize: 20, marginBottom: 6, fontWeight: 700 },
     subtitle: { fontSize: 12, marginBottom: 16, color: '#666' },
     sectionTitle: { fontSize: 14, marginTop: 12, marginBottom: 6, fontWeight: 700 },
-    row: { flexDirection: 'row', borderBottomWidth: 0.5, borderColor: '#ddd', paddingVertical: 6 },
+    row: { flexDirection: 'row', borderBottomWidth: 0.5, borderColor: '#ddd', paddingVertical: 4, alignItems: 'center' },
     cell: { paddingRight: 8 },
+    textCell: { lineHeight: 1.2 },
     headerRow: { flexDirection: 'row', backgroundColor: '#f5f7ff', borderBottomWidth: 0.5, borderColor: '#ccc', paddingVertical: 6 },
     headerCell: { fontWeight: 700 },
     chip: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 0.5, borderColor: '#ccc', marginLeft: 6 },
@@ -163,27 +165,27 @@ function buildPdf(cronograma: any, itens: any[]) {
 
         <Text style={styles.sectionTitle}>Cronograma</Text>
         <View style={styles.headerRow}>
-          <Text style={[styles.cell, styles.headerCell, { width: 80 }]}>Data</Text>
-          <Text style={[styles.cell, styles.headerCell, { width: 44 }]}>Sem.</Text>
-          <Text style={[styles.cell, styles.headerCell, { width: 44 }]}>Ord.</Text>
-          <Text style={[styles.cell, styles.headerCell, { width: 120 }]}>Disciplina</Text>
-          <Text style={[styles.cell, styles.headerCell, { width: 120 }]}>Frente</Text>
-          <Text style={[styles.cell, styles.headerCell, { width: 90 }]}>Módulo</Text>
-          <Text style={[styles.cell, styles.headerCell, { flex: 1 }]}>Aula</Text>
-          <Text style={[styles.cell, styles.headerCell, { width: 80 }]}>Tempo</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 90 }]}>Data</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 50 }]}>Sem.</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 50 }]}>Ord.</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 110 }]}>Disciplina</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 110 }]}>Frente</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 140 }]}>Módulo</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 220 }]}>Aula</Text>
+          <Text style={[styles.cell, styles.headerCell, { width: 70 }]}>Tempo</Text>
           <Text style={[styles.cell, styles.headerCell, { width: 70 }]}>Status</Text>
         </View>
         {itens.map((it, idx) => (
           <View key={idx} style={styles.row}>
-            <Text style={[styles.cell, { width: 80 }]}>{it.data_prevista || ''}</Text>
-            <Text style={[styles.cell, { width: 44 }]}>{String(it.semana_numero)}</Text>
-            <Text style={[styles.cell, { width: 44 }]}>{String(it.ordem_na_semana)}</Text>
-            <Text style={[styles.cell, { width: 120 }]}>{it.aulas?.modulos?.frentes?.disciplinas?.nome || ''}</Text>
-            <Text style={[styles.cell, { width: 120 }]}>{it.aulas?.modulos?.frentes?.nome || ''}</Text>
-            <Text style={[styles.cell, { width: 90 }]}>{it.aulas?.modulos?.nome || ''}</Text>
-            <Text style={[styles.cell, { flex: 1 }]}>{it.aulas?.nome || ''}</Text>
-            <Text style={[styles.cell, { width: 80 }]}>{formatTempo(it.aulas?.tempo_estimado_minutos || null)}</Text>
-            <Text style={[styles.cell, { width: 70 }]}>{it.concluido ? 'Concluída' : 'Pendente'}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 90 }]}>{it.data_prevista || ''}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 50 }]}>{String(it.semana_numero)}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 50 }]}>{String(it.ordem_na_semana)}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 110 }]}>{it.aulas?.modulos?.frentes?.disciplinas?.nome || ''}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 110 }]}>{it.aulas?.modulos?.frentes?.nome || ''}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 140 }]}>{it.aulas?.modulos?.nome || ''}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 220 }]}>{it.aulas?.nome || ''}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 70 }]}>{formatTempo(it.aulas?.tempo_estimado_minutos || null)}</Text>
+            <Text style={[styles.cell, styles.textCell, { width: 70 }]}>{it.concluido ? 'Concluída' : 'Pendente'}</Text>
           </View>
         ))}
       </Page>
