@@ -734,10 +734,81 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button variant="outline" disabled className="w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={async () => {
+                  try {
+                    const supabase = createClient()
+                    const { data: { session } } = await supabase.auth.getSession()
+                    if (!session?.access_token) {
+                      alert('Sessão expirada. Faça login novamente.')
+                      return
+                    }
+                    const res = await fetch(`/api/cronograma/${cronogramaId}/export/pdf`, {
+                      headers: { Authorization: `Bearer ${session.access_token}` },
+                    })
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({ error: 'Erro ao exportar PDF' }))
+                      alert(err.error || 'Erro ao exportar PDF')
+                      return
+                    }
+                    const blob = await res.blob()
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `cronograma_${cronogramaId}.pdf`
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                    URL.revokeObjectURL(url)
+                  } catch (e) {
+                    console.error('Erro ao exportar PDF:', e)
+                    alert('Erro ao exportar PDF')
+                  }
+                }}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Exportar PDF</span>
                 <span className="sm:hidden">PDF</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={async () => {
+                  try {
+                    const supabase = createClient()
+                    const { data: { session } } = await supabase.auth.getSession()
+                    if (!session?.access_token) {
+                      alert('Sessão expirada. Faça login novamente.')
+                      return
+                    }
+                    const res = await fetch(`/api/cronograma/${cronogramaId}/export/xlsx`, {
+                      headers: { Authorization: `Bearer ${session.access_token}` },
+                    })
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({ error: 'Erro ao exportar XLSX' }))
+                      alert(err.error || 'Erro ao exportar XLSX')
+                      return
+                    }
+                    const blob = await res.blob()
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `cronograma_${cronogramaId}.xlsx`
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                    URL.revokeObjectURL(url)
+                  } catch (e) {
+                    console.error('Erro ao exportar XLSX:', e)
+                    alert('Erro ao exportar XLSX')
+                  }
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Exportar XLSX</span>
+                <span className="sm:hidden">XLSX</span>
               </Button>
               <AlertDialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
                 <AlertDialogTrigger asChild>
