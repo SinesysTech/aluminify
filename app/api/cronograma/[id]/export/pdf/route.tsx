@@ -193,9 +193,25 @@ function buildPdf(cronograma: any, itens: any[]) {
   return Doc
 }
 
-async function getHandler(request: AuthenticatedRequest, context: { params: { id: string } }) {
+async function getHandler(
+  request: AuthenticatedRequest,
+  context?: Record<string, unknown>,
+) {
   if (!request.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const cronogramaId = context?.params?.id
+  let cronogramaId: string | null = null
+  if (context && 'params' in context) {
+    const anyCtx: any = context
+    const params = anyCtx.params
+    if (params && typeof params === 'object' && 'id' in params) {
+      cronogramaId = String(params.id)
+    }
+  }
+  if (!cronogramaId) {
+    const url = new URL(request.url)
+    const parts = url.pathname.split('/')
+    const idx = parts.indexOf('export') - 1
+    if (idx >= 0 && parts[idx]) cronogramaId = parts[idx]
+  }
   if (!cronogramaId) return NextResponse.json({ error: 'cronograma_id é obrigatório' }, { status: 400 })
 
   const client = getDatabaseClient()
@@ -210,10 +226,10 @@ async function getHandler(request: AuthenticatedRequest, context: { params: { id
 
   const { cronograma, itens } = await fetchCronogramaCompleto(cronogramaId)
   const Doc = buildPdf(cronograma, itens)
-  const buffer = await pdf(Doc).toBuffer()
-  const data = new Uint8Array(buffer)
+  const blob = await pdf(Doc).toBlob()
+  const arr = await blob.arrayBuffer()
 
-  return new NextResponse(data, {
+  return new NextResponse(arr, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
