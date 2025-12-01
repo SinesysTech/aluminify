@@ -54,3 +54,5 @@ ORDER BY nome_completo, email;
 -- manualmente no Dashboard do Supabase (Authentication > Users) ou usar o Admin API.
 
 
+
+

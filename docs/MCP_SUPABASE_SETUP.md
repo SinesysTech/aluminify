@@ -106,3 +106,5 @@ Uma vez configurado, você pode usar comandos como:
 - [GitHub - supabase-community/supabase-mcp](https://github.com/supabase-community/supabase-mcp)
 
 
+
+

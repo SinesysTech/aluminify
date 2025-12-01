@@ -13,3 +13,5 @@ CREATE POLICY "Users can update their own aluno data"
     WITH CHECK (auth.uid() = id);
 
 
+
+

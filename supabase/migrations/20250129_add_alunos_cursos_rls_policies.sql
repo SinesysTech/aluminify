@@ -28,3 +28,5 @@ CREATE POLICY "Authenticated users can delete course associations"
     USING (true);
 
 
+
+

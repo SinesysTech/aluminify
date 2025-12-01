@@ -18,3 +18,5 @@ COMMENT ON POLICY "Professores podem criar seu próprio registro" ON public.prof
     'Allows authenticated users to create their own professor record when logging in';
 
 
+
+

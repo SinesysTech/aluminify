@@ -109,3 +109,5 @@ console.log('   4. Cole o conteúdo de: supabase/migrations/20250129_add_alunos_
 console.log('   5. Clique em "Run"\n');
 
 
+
+

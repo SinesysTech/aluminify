@@ -71,3 +71,5 @@ WHERE d.id IN ('d40e20e4-7a2b-4c22-9184-a8504b9c1c6c', '53b4164b-c3cb-43e2-bb1a-
   AND m.curso_id IS NULL;
 
 
+
+

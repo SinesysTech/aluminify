@@ -56,3 +56,5 @@ echo "   3. O MCP do Supabase deve estar disponível"
 echo ""
 
 
+
+

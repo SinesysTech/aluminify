@@ -46,3 +46,5 @@ Write-Host "   3. O MCP do Supabase deve estar disponível"
 Write-Host ""
 
 
+
+
