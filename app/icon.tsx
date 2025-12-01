@@ -1,4 +1,4 @@
-import { ImageResponse } from "next/server";
+import { ImageResponse } from "next/og";
 import { GraduationCap } from "lucide-react";
 
 export const size = 64;
@@ -27,4 +27,3 @@ export default function Icon() {
     }
   );
 }
-
