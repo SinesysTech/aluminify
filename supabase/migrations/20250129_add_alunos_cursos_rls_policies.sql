@@ -27,3 +27,4 @@ CREATE POLICY "Authenticated users can delete course associations"
     ON public.alunos_cursos FOR DELETE
     USING (true);
 
+

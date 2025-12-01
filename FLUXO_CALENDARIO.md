@@ -398,3 +398,4 @@ const distribuicao = await cronogramaService.atualizarDistribuicaoDias(
 5. **Adicionar tratamento de erros** mais robusto
 6. **Testar edge cases** (mudança de dias, muitos itens, etc.)
 
+

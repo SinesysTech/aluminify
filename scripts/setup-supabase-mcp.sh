@@ -55,3 +55,4 @@ echo "   2. Abra o Cursor novamente"
 echo "   3. O MCP do Supabase deve estar disponível"
 echo ""
 
+

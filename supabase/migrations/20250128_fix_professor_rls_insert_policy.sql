@@ -17,3 +17,4 @@ CREATE POLICY "Professores podem criar seu próprio registro" ON public.professo
 COMMENT ON POLICY "Professores podem criar seu próprio registro" ON public.professores IS 
     'Allows authenticated users to create their own professor record when logging in';
 
+

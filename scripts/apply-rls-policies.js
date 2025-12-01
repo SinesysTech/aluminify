@@ -108,3 +108,4 @@ console.log('   3. Vá em SQL Editor');
 console.log('   4. Cole o conteúdo de: supabase/migrations/20250129_add_alunos_cursos_rls_policies.sql');
 console.log('   5. Clique em "Run"\n');
 
+

@@ -29,3 +29,4 @@ CREATE INDEX IF NOT EXISTS idx_alunos_cursos_curso_id ON public.alunos_cursos (c
 
 
 
+

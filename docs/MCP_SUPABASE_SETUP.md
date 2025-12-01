@@ -105,3 +105,4 @@ Uma vez configurado, você pode usar comandos como:
 - [Documentação oficial do Supabase MCP](https://supabase.com/docs/guides/getting-started/mcp)
 - [GitHub - supabase-community/supabase-mcp](https://github.com/supabase-community/supabase-mcp)
 
+

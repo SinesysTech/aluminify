@@ -45,3 +45,4 @@ Write-Host "   2. Abra o Cursor novamente"
 Write-Host "   3. O MCP do Supabase deve estar disponível"
 Write-Host ""
 
+

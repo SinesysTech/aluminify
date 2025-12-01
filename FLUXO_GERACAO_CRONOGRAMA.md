@@ -311,3 +311,4 @@ Se o problema for que as aulas não têm prioridade suficiente:
 1. **Ajustar prioridade mínima** ou
 2. **Ajustar prioridade das aulas** da frente C no banco de dados
 
+

@@ -53,3 +53,4 @@ ORDER BY nome_completo, email;
 -- permanecerão. Para uma limpeza completa, você precisará deletar os usuários 
 -- manualmente no Dashboard do Supabase (Authentication > Users) ou usar o Admin API.
 
+

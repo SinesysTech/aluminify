@@ -91,3 +91,4 @@ Ao atualizar ou criar nova funcionalidade:
 
 **Última atualização:** Janeiro 2025
 
+
