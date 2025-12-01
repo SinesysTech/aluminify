@@ -211,8 +211,9 @@ async function getHandler(request: AuthenticatedRequest, context: { params: { id
   const { cronograma, itens } = await fetchCronogramaCompleto(cronogramaId)
   const Doc = buildPdf(cronograma, itens)
   const buffer = await pdf(Doc).toBuffer()
+  const data = new Uint8Array(buffer)
 
-  return new NextResponse(buffer, {
+  return new NextResponse(data, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
