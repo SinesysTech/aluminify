@@ -258,3 +258,4 @@ const pdfData = await pdf(pdfBuffer, { password: 'senha123' });
 - [Debug de Erros de PDF](./N8N_DEBUG_PDF_ERROR.md)
 
 
+

@@ -58,3 +58,4 @@ Se ainda tiver problemas:
 2. Verifique se o bucket está marcado como **Public**
 3. Verifique se as políticas RLS foram aplicadas: Supabase Dashboard > Storage > Policies
 
+
