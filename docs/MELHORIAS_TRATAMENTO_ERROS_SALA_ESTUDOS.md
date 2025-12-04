@@ -124,3 +124,5 @@ Erro ao carregar matrículas: [42501] new row violates row-level security policy
 **Status**: ✅ Implementado e testado
 **Build**: ✅ Passando sem erros
 
+
+

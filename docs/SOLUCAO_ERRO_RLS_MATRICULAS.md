@@ -119,3 +119,5 @@ const cursoIds = matriculas.map((m: { curso_id: string }) => m.curso_id)
 
 **Status**: ✅ **Resolvido e Testado**
 
+
+

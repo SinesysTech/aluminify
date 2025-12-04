@@ -53,3 +53,5 @@ Se tudo funcionar, está 100% pronto! 🎉
 **Última atualização:** Políticas RLS aplicadas via MCP
 **Status:** Aguardando criação do bucket no Dashboard
 
+
+

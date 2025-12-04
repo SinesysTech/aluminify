@@ -215,3 +215,5 @@ ORDER BY
 
 **Documento de Referência**: Use este documento durante a implementação para garantir que todos os refinamentos sejam aplicados corretamente.
 
+
+

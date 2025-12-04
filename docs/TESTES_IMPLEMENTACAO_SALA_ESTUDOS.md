@@ -127,3 +127,5 @@ app/(dashboard)/aluno/sala-de-estudos/
 
 **Status Geral**: ✅ **Backend 100% funcional e testado** | Frontend pendente
 
+
+

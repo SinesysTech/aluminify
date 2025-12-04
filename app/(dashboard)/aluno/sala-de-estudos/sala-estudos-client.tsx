@@ -417,16 +417,33 @@ export default function SalaEstudosClientPage() {
 
         // 6. Buscar progresso do aluno (incluindo campos de desempenho)
         const atividadeIds = atividadesData.map((a) => a.id)
-        const { data: progressosData, error: progressosError } = await supabase
-          .from('progresso_atividades')
-          .select('atividade_id, status, data_inicio, data_conclusao, questoes_totais, questoes_acertos, dificuldade_percebida, anotacoes_pessoais')
-          .eq('aluno_id', alunoId)
-          .in('atividade_id', atividadeIds)
+        
+        // Dividir em lotes para evitar URLs muito longas (limite de ~2000 caracteres)
+        // Usar lotes de 100 IDs por vez (cada UUID tem ~36 caracteres + separadores)
+        const BATCH_SIZE = 100
+        const progressosData: any[] = []
+        
+        // Só buscar progressos se houver atividades
+        if (atividadeIds.length > 0) {
+          for (let i = 0; i < atividadeIds.length; i += BATCH_SIZE) {
+            const batch = atividadeIds.slice(i, i + BATCH_SIZE)
+            
+            const { data: batchData, error: progressosError } = await supabase
+              .from('progresso_atividades')
+              .select('atividade_id, status, data_inicio, data_conclusao, questoes_totais, questoes_acertos, dificuldade_percebida, anotacoes_pessoais')
+              .eq('aluno_id', alunoId)
+              .in('atividade_id', batch)
 
-        if (progressosError) {
-          console.error('Erro na query de progressos:', progressosError)
-          const errorMsg = formatSupabaseError(progressosError)
-          throw new Error(`Erro ao buscar progressos: ${errorMsg}`)
+            if (progressosError) {
+              console.error('Erro na query de progressos (lote):', progressosError)
+              const errorMsg = formatSupabaseError(progressosError)
+              throw new Error(`Erro ao buscar progressos: ${errorMsg}`)
+            }
+            
+            if (batchData) {
+              progressosData.push(...batchData)
+            }
+          }
         }
 
         const progressosMap = new Map(

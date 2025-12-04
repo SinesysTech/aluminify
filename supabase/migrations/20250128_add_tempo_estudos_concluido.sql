@@ -31,7 +31,7 @@ DROP TRIGGER IF EXISTS on_update_tempo_estudos ON public.cronograma_tempo_estudo
 CREATE TRIGGER on_update_tempo_estudos 
     BEFORE UPDATE ON public.cronograma_tempo_estudos 
     FOR EACH ROW 
-    EXECUTE PROCEDURE public.handle_updated_at();
+    EXECUTE FUNCTION public.handle_updated_at();
 
 -- Segurança (RLS)
 ALTER TABLE public.cronograma_tempo_estudos ENABLE ROW LEVEL SECURITY;
@@ -48,5 +48,7 @@ CREATE POLICY "Aluno gerencia tempo de estudos do seu cronograma"
             AND c.aluno_id = auth.uid()
         )
     );
+
+
 
 

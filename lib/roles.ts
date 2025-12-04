@@ -3,7 +3,7 @@ import type { AppUserRole } from '@/types/user'
 export const PROFESSOR_ROLES: AppUserRole[] = ['professor', 'superadmin']
 
 const DEFAULT_ROUTE_BY_ROLE: Record<AppUserRole, string> = {
-  aluno: '/tobias',
+  aluno: '/aluno/cronograma/calendario',
   professor: '/tobias',
   superadmin: '/tobias',
 }

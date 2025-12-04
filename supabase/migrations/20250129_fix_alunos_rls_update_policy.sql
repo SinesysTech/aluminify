@@ -19,3 +19,5 @@ CREATE POLICY "Users can update their own aluno data"
 
 
 
+
+

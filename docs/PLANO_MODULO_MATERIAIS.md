@@ -158,3 +158,5 @@ app/(dashboard)/admin/materiais/
 - Apenas professores têm acesso
 - RPC `gerar_atividades_padrao` recebe `p_frente_id UUID`
 
+
+

@@ -140,3 +140,5 @@ Após criar o bucket, execute a migration SQL das políticas:
 **Bucket Storage**: ⏳ Aguardando criação manual no Dashboard
 **Políticas RLS Storage**: ⏳ Aguardando aplicação após criação do bucket
 
+
+

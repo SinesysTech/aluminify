@@ -597,3 +597,5 @@ interface AtividadeComProgresso extends AtividadeBase {
 **Complexidade**: Média-Alta  
 **Tempo Estimado**: 4-6 horas
 
+
+

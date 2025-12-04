@@ -99,3 +99,5 @@ const [userRole, setUserRole] = React.useState<string | null>(null)
 
 **Nota**: Se ainda aparecer erros de RLS, pode ser cache do browser. Faça um hard refresh (Ctrl+Shift+R) para limpar o cache.
 
+
+

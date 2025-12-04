@@ -55,3 +55,5 @@ As APIs criadas usam `requireAuth` que espera JWT token ou API key. Para funcion
 
 **Status**: Backend ~90% completo | Frontend ~10% completo
 
+
+

@@ -216,3 +216,5 @@ Veja o guia completo em: `docs/PROXIMOS_PASSOS_MATERIAIS.md`
 
 **Status Final**: 🎉 **Pronto para uso após configuração do bucket!**
 
+
+

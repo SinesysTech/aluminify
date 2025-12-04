@@ -835,6 +835,71 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       await Promise.all(operacoes)
     }
     
+    // Se estiver marcando todas as aulas, também marcar os tempos de estudos
+    if (novoEstado && cronogramaId) {
+      // Agrupar itens por data/disciplina/frente para marcar tempos de estudos
+      const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDoDia>()
+      
+      itensDoDia.forEach((item) => {
+        const dataKey = normalizarDataParaKey(item.data)
+        const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
+        const frenteId = item.aulas?.modulos?.frentes?.id || ''
+        
+        if (disciplinaId && frenteId) {
+          const chave = `${dataKey}|${disciplinaId}|${frenteId}`
+          if (!gruposPorDataDisciplinaFrente.has(chave)) {
+            gruposPorDataDisciplinaFrente.set(chave, [])
+          }
+          gruposPorDataDisciplinaFrente.get(chave)!.push(item)
+        }
+      })
+      
+      // Marcar tempos de estudos para cada grupo que tem tempo estimado > 0
+      const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave, itensGrupo]) => {
+        const [dataKey, disciplinaId, frenteId] = chave.split('|')
+        
+        // Verificar se o grupo tem tempo de estudos (tempo estimado > 0)
+        const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
+        const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
+          return acc + (item.aulas?.tempo_estimado_minutos || 0)
+        }, 0)
+        const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
+        const tempoEstudosExercicios = tempoAulasAjustado * 0.5
+        
+        // Só marcar se houver tempo de estudos
+        if (tempoEstudosExercicios > 0) {
+          await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, true)
+        }
+      })
+      
+      await Promise.all(tempoEstudosOperacoes)
+    } else if (!novoEstado && cronogramaId) {
+      // Se estiver desmarcando todas as aulas, também desmarcar os tempos de estudos
+      const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDoDia>()
+      
+      itensDoDia.forEach((item) => {
+        const dataKey = normalizarDataParaKey(item.data)
+        const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
+        const frenteId = item.aulas?.modulos?.frentes?.id || ''
+        
+        if (disciplinaId && frenteId) {
+          const chave = `${dataKey}|${disciplinaId}|${frenteId}`
+          if (!gruposPorDataDisciplinaFrente.has(chave)) {
+            gruposPorDataDisciplinaFrente.set(chave, [])
+          }
+          gruposPorDataDisciplinaFrente.get(chave)!.push(item)
+        }
+      })
+      
+      // Desmarcar tempos de estudos para cada grupo
+      const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave]) => {
+        const [dataKey, disciplinaId, frenteId] = chave.split('|')
+        await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, false)
+      })
+      
+      await Promise.all(tempoEstudosOperacoes)
+    }
+    
     // Atualizar estado local de uma vez
     const updatedItems = itensCompletosCache.map((item) => {
       if (itemIds.includes(item.id)) {
@@ -936,6 +1001,71 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       })
       
       await Promise.all(operacoes)
+    }
+    
+    // Se estiver marcando todas as aulas da frente, também marcar os tempos de estudos
+    if (novoEstado && cronogramaId) {
+      // Agrupar itens por data/disciplina/frente para marcar tempos de estudos
+      const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDaFrente>()
+      
+      itensDaFrente.forEach((item) => {
+        const dataKey = normalizarDataParaKey(item.data)
+        const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
+        const frenteId = item.aulas?.modulos?.frentes?.id || ''
+        
+        if (disciplinaId && frenteId) {
+          const chave = `${dataKey}|${disciplinaId}|${frenteId}`
+          if (!gruposPorDataDisciplinaFrente.has(chave)) {
+            gruposPorDataDisciplinaFrente.set(chave, [])
+          }
+          gruposPorDataDisciplinaFrente.get(chave)!.push(item)
+        }
+      })
+      
+      // Marcar tempos de estudos para cada grupo que tem tempo estimado > 0
+      const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave, itensGrupo]) => {
+        const [dataKey, disciplinaId, frenteId] = chave.split('|')
+        
+        // Verificar se o grupo tem tempo de estudos (tempo estimado > 0)
+        const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
+        const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
+          return acc + (item.aulas?.tempo_estimado_minutos || 0)
+        }, 0)
+        const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
+        const tempoEstudosExercicios = tempoAulasAjustado * 0.5
+        
+        // Só marcar se houver tempo de estudos
+        if (tempoEstudosExercicios > 0) {
+          await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, true)
+        }
+      })
+      
+      await Promise.all(tempoEstudosOperacoes)
+    } else if (!novoEstado && cronogramaId) {
+      // Se estiver desmarcando todas as aulas da frente, também desmarcar os tempos de estudos
+      const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDaFrente>()
+      
+      itensDaFrente.forEach((item) => {
+        const dataKey = normalizarDataParaKey(item.data)
+        const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
+        const frenteId = item.aulas?.modulos?.frentes?.id || ''
+        
+        if (disciplinaId && frenteId) {
+          const chave = `${dataKey}|${disciplinaId}|${frenteId}`
+          if (!gruposPorDataDisciplinaFrente.has(chave)) {
+            gruposPorDataDisciplinaFrente.set(chave, [])
+          }
+          gruposPorDataDisciplinaFrente.get(chave)!.push(item)
+        }
+      })
+      
+      // Desmarcar tempos de estudos para cada grupo
+      const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave]) => {
+        const [dataKey, disciplinaId, frenteId] = chave.split('|')
+        await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, false)
+      })
+      
+      await Promise.all(tempoEstudosOperacoes)
     }
     
     // Atualizar estado local de uma vez
@@ -1545,16 +1675,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     console.log('[Modifiers] Tempo de estudos concluídos:', tempoEstudosMap.size, 'registros')
     
     return {
-      hasAulas: (date: Date) => {
-        // Normalizar data para dataKey usando a função helper
-        const dataKey = normalizarDataParaKey(date)
-        
-        // Verificar diretamente se há itens nessa data específica no mapa ORIGINAL (não filtrado)
-        // Isso garante que as marcações de aulas sempre apareçam, independente da seleção de dias
-        const temAulas = itensPorDataMap.has(dataKey) && (itensPorDataMap.get(dataKey)?.length || 0) > 0
-        
-        return temAulas
-      },
       hasConcluidas: (date: Date) => {
         // Normalizar data para dataKey usando a função helper
         const dataKey = normalizarDataParaKey(date)
@@ -1622,6 +1742,23 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         
         // Pendente = tem aulas, tem pelo menos uma concluída, mas nem todas
         return temConcluidas && !todasConcluidas
+      },
+      hasAulas: (date: Date) => {
+        // Normalizar data para dataKey usando a função helper
+        const dataKey = normalizarDataParaKey(date)
+        
+        // Verificar diretamente se há itens nessa data específica no mapa ORIGINAL (não filtrado)
+        const itens = itensPorDataMap.get(dataKey) || []
+        const temAulas = itens.length > 0
+        
+        if (!temAulas) return false
+        
+        // hasAulas só deve ser true quando NÃO há aulas concluídas E NÃO há aulas pendentes
+        // Ou seja, quando há aulas mas nenhuma está marcada como concluída
+        const concluidas = itens.filter(item => item.concluido).length
+        const nenhumaAulaMarcada = concluidas === 0
+        
+        return nenhumaAulaMarcada
       },
       hasSemanaSobrecarregada: (date: Date) => {
         if (!estatisticasSemanas || !cronograma) return false
@@ -2637,10 +2774,21 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                         const key = `${dataKey}|${disciplinaId}|${frenteId}`
                                         const tempoEstudosConcluido = tempoEstudosConcluidos.get(key) || false
                                         
+                                        const checkboxId = `tempo-estudos-${key}`
+                                        
                                         return (
                                           <div className="mt-3 pt-3 border-t">
-                                            <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+                                            <div 
+                                              className="flex items-center gap-3 p-3 rounded-md bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors"
+                                              onClick={() => toggleTempoEstudosConcluido(
+                                                dataKey,
+                                                disciplinaId,
+                                                frenteId,
+                                                !tempoEstudosConcluido
+                                              )}
+                                            >
                                               <Checkbox
+                                                id={checkboxId}
                                                 checked={tempoEstudosConcluido}
                                                 onCheckedChange={(checked) =>
                                                   toggleTempoEstudosConcluido(
@@ -2651,9 +2799,10 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                                   )
                                                 }
                                                 className="mt-0.5"
+                                                onClick={(e) => e.stopPropagation()}
                                               />
                                               <div className="flex-1">
-                                                <Label htmlFor={`tempo-estudos-${key}`} className="text-sm font-medium cursor-pointer">
+                                                <Label htmlFor={checkboxId} className="text-sm font-medium cursor-pointer">
                                                   Tempo de Estudos + Exercícios
                                                 </Label>
                                                 <p className="text-xs text-muted-foreground mt-0.5">

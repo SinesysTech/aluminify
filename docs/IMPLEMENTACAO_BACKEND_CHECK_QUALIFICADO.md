@@ -281,3 +281,5 @@ O backend está pronto para receber requisições do frontend com dados de desem
 **Status**: ✅ Completo  
 **Próximo**: Implementação do Frontend
 
+
+

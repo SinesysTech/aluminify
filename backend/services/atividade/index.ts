@@ -24,3 +24,5 @@ export * from './atividade.service';
 export * from './atividade.repository';
 export * from './errors';
 
+
+

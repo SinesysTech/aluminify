@@ -93,3 +93,5 @@ Para verificar se está tudo funcionando:
 - Componente de Upload: `components/activity-upload-row.tsx`
 - Service Layer: `backend/services/atividade/`
 
+
+

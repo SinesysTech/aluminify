@@ -144,3 +144,5 @@ A tabela `progresso_atividades` já possui todos os campos necessários:
 **Complexidade**: Média-Alta  
 **Tempo Estimado**: 4-6 horas
 
+
+

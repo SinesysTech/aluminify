@@ -104,3 +104,5 @@ Após criar o bucket e aplicar as políticas:
 
 Assim que o bucket for criado e as políticas aplicadas, o sistema estará 100% funcional!
 
+
+

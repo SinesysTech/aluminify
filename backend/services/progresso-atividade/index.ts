@@ -24,3 +24,5 @@ export * from './progresso-atividade.service';
 export * from './progresso-atividade.repository';
 export * from './progresso-atividade.errors';
 
+
+

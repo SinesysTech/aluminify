@@ -63,3 +63,5 @@ O bucket está configurado e pronto para uso. Agora você pode testar:
 
 Tudo está configurado e funcionando. O sistema está 100% operacional!
 
+
+
