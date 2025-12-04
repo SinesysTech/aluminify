@@ -51,7 +51,7 @@ Nenhum erro de tipo encontrado. Todos os arquivos TypeScript estão corretos.
 - ✅ `/aluno/sala-de-estudos` - Sala de Estudos
 - ✅ `/aluno/cronograma` - Cronograma do Aluno
 - ✅ `/aluno/cronograma/calendario` - Visualização de Calendário
-- ✅ `/aluno/cronograma/kanban` - Visualização Kanban
+- ❌ `/aluno/cronograma/kanban` - Visualização Kanban (REMOVIDO)
 
 **API Routes**:
 - ✅ `/api/atividade` - Listar atividades

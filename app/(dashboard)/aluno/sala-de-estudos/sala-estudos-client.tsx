@@ -135,23 +135,27 @@ export default function SalaEstudosClientPage() {
 
           cursoIds = cursosData?.map((c) => c.id) || []
         } else {
-          // Se for aluno, buscar matrículas ativas usando função RPC
-          const { data: matriculas, error: matError } = await supabase
-            .rpc('get_matriculas_aluno', { p_aluno_id: alunoId })
+          // Se for aluno, buscar cursos através da tabela alunos_cursos (mesmo método do cronograma)
+          const { data: alunosCursos, error: alunosCursosError } = await supabase
+            .from('alunos_cursos')
+            .select('curso_id, cursos(*)')
+            .eq('aluno_id', alunoId)
 
-          if (matError) {
-            console.error('Erro na query de matrículas:', matError)
-            const errorMsg = formatSupabaseError(matError)
-            throw new Error(`Erro ao buscar matrículas: ${errorMsg}`)
+          if (alunosCursosError) {
+            console.error('Erro ao buscar cursos do aluno:', alunosCursosError)
+            const errorMsg = formatSupabaseError(alunosCursosError)
+            throw new Error(`Erro ao buscar cursos: ${errorMsg}`)
           }
 
-          if (!matriculas || matriculas.length === 0) {
+          if (!alunosCursos || alunosCursos.length === 0) {
             setCursos([])
             setIsLoading(false)
             return
           }
 
-          cursoIds = matriculas.map((m: { curso_id: string }) => m.curso_id)
+          // Extrair os cursos do resultado (mesmo método do cronograma)
+          const cursosData = alunosCursos.map((ac: any) => ac.cursos).filter(Boolean)
+          cursoIds = cursosData.map((c: any) => c.id)
         }
 
         if (cursoIds.length === 0) {
@@ -305,24 +309,28 @@ export default function SalaEstudosClientPage() {
 
           cursoIds = cursosData?.map((c) => c.id) || []
         } else {
-          // Se for aluno, buscar matrículas ativas usando função RPC
-          const { data: matriculas, error: matError } = await supabase
-            .rpc('get_matriculas_aluno', { p_aluno_id: alunoId })
+          // Se for aluno, buscar cursos através da tabela alunos_cursos (mesmo método do cronograma)
+          const { data: alunosCursos, error: alunosCursosError } = await supabase
+            .from('alunos_cursos')
+            .select('curso_id, cursos(*)')
+            .eq('aluno_id', alunoId)
 
-          if (matError) {
-            console.error('Erro na query de matrículas (atividades):', matError)
-            const errorMsg = formatSupabaseError(matError)
-            throw new Error(`Erro ao buscar matrículas: ${errorMsg}`)
+          if (alunosCursosError) {
+            console.error('Erro ao buscar cursos do aluno (atividades):', alunosCursosError)
+            const errorMsg = formatSupabaseError(alunosCursosError)
+            throw new Error(`Erro ao buscar cursos: ${errorMsg}`)
           }
 
-          if (!matriculas || matriculas.length === 0) {
-            console.log('Aluno não possui matrículas ativas')
+          if (!alunosCursos || alunosCursos.length === 0) {
+            console.log('Aluno não possui cursos cadastrados')
             setAtividades([])
             setEstruturaHierarquica([])
             return
           }
 
-          cursoIds = matriculas.map((m: { curso_id: string }) => m.curso_id)
+          // Extrair os cursos do resultado (mesmo método do cronograma)
+          const cursosData = alunosCursos.map((ac: any) => ac.cursos).filter(Boolean)
+          cursoIds = cursosData.map((c: any) => c.id)
         }
 
         if (cursoIds.length === 0) {

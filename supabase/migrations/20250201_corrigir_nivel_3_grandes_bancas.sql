@@ -1,7 +1,12 @@
--- Atualizar a stored procedure para deletar atividades existentes antes de criar novas
--- Isso evita duplicação quando o professor gera a estrutura novamente
--- O progresso dos alunos será preservado (apenas ficará órfão temporariamente)
+-- Correção: Atualizar Nível 3 de "Desafio" para "Grandes Bancas"
+-- Também atualiza a stored procedure para gerar corretamente no futuro
 
+-- 1. Atualizar atividades existentes do tipo Nivel_3
+UPDATE public.atividades
+SET titulo = REPLACE(titulo, 'Lista Nível 3 (Desafio)', 'Lista Nível 3 (Grandes Bancas)')
+WHERE tipo = 'Nivel_3' AND titulo LIKE '%Desafio%';
+
+-- 2. Atualizar a stored procedure para usar "Grandes Bancas" no futuro
 CREATE OR REPLACE FUNCTION public.gerar_atividades_padrao(
     p_frente_id UUID
 )
@@ -11,9 +16,7 @@ DECLARE
     v_contador INTEGER := 0;
     v_total_modulos INTEGER;
 BEGIN
-    -- NOVO: Deletar atividades existentes da frente ANTES de criar novas
-    -- Isso garante que não haverá duplicação ao gerar a estrutura novamente
-    -- O progresso dos alunos será preservado (não deletamos progresso_atividades)
+    -- Deletar atividades existentes da frente ANTES de criar novas
     DELETE FROM public.atividades
     WHERE modulo_id IN (
         SELECT id FROM public.modulos WHERE frente_id = p_frente_id

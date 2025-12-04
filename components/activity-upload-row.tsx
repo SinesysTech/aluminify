@@ -143,7 +143,6 @@ export function ActivityUploadRow({
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="text-sm font-medium truncate">{titulo}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">({tipo})</span>
                 </div>
                 <span className="text-xs text-muted-foreground truncate block">
                   {arquivoUrl.split('/').pop()?.substring(0, 50)}...
@@ -156,7 +155,6 @@ export function ActivityUploadRow({
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">{titulo}</span>
-                  <span className="text-xs text-muted-foreground">({tipo})</span>
                 </div>
                 <span className="text-xs text-muted-foreground">Arquivo não enviado</span>
               </div>

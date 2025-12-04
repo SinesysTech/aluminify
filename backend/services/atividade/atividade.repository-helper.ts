@@ -40,22 +40,21 @@ export async function listByAlunoMatriculasHelper(
   client: SupabaseClient,
   alunoId: string,
 ): Promise<AtividadeComProgressoEHierarquia[]> {
-  // 1. Buscar matrículas ativas do aluno
-  const { data: matriculas, error: matError } = await client
-    .from('matriculas')
+  // 1. Buscar cursos do aluno através da tabela alunos_cursos (mesmo método do cronograma)
+  const { data: alunosCursos, error: alunosCursosError } = await client
+    .from('alunos_cursos')
     .select('curso_id')
-    .eq('aluno_id', alunoId)
-    .eq('ativo', true);
+    .eq('aluno_id', alunoId);
 
-  if (matError) {
-    throw new Error(`Failed to fetch matriculas: ${matError.message}`);
+  if (alunosCursosError) {
+    throw new Error(`Failed to fetch alunos_cursos: ${alunosCursosError.message}`);
   }
 
-  if (!matriculas || matriculas.length === 0) {
+  if (!alunosCursos || alunosCursos.length === 0) {
     return [];
   }
 
-  const cursoIds = matriculas.map((m) => m.curso_id);
+  const cursoIds = alunosCursos.map((ac: any) => ac.curso_id);
 
   // 2. Buscar cursos_disciplinas para esses cursos
   const { data: cursosDisciplinas, error: cdError } = await client

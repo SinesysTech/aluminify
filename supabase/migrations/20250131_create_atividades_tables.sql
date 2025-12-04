@@ -184,7 +184,7 @@ BEGIN
 
         (r_modulo.id, 'Nivel_2', 'Lista Nível 2 (Aprofundamento)', 3),
 
-        (r_modulo.id, 'Nivel_3', 'Lista Nível 3 (Desafio)', 4);
+        (r_modulo.id, 'Nivel_3', 'Lista Nível 3 (Grandes Bancas)', 4);
 
         
 

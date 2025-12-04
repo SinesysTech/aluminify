@@ -7,7 +7,7 @@
 - ✅ AlunoTable: Já tem versão mobile com cards
 - ✅ Layout Dashboard: Já usa breakpoints responsivos
 - ⚠️ TobIAs (Chat): Precisa otimização mobile
-- ⚠️ Cronograma: Dashboard, Lista e Kanban precisam adaptação
+- ⚠️ Cronograma: Dashboard e Lista precisam adaptação (Kanban foi removido)
 - ⚠️ Calendário: Precisa versão mobile otimizada
 - ⚠️ Tabelas (Professores, Cursos, Disciplinas, Segmentos): Precisam versão mobile
 - ⚠️ Conteúdos Programáticos: Precisa adaptação mobile
@@ -151,28 +151,14 @@
 
 ---
 
-### 6. Cronograma - Kanban (`components/schedule-kanban.tsx`)
+### 6. Cronograma - Kanban (`components/schedule-kanban.tsx`) - ⚠️ REMOVIDO
 
-**Problemas Identificados:**
-- Colunas muito estreitas em mobile
-- Cards pequenos demais
-- Scroll horizontal pode ser confuso
+**Status**: Esta funcionalidade foi removida do sistema. A visualização kanban não está mais disponível.
 
-**Soluções:**
-- **Layout alternativo em mobile**: Lista vertical com filtro por semana
-- **Ou**: Scroll horizontal com snap points
-- **Cards**: Tamanho mínimo adequado
-- **Drag & drop**: Desabilitar em mobile (usar botões de ação)
-
-**Implementação:**
-```tsx
-// Mobile: Lista vertical
-{isMobile ? (
-  <ScheduleListMobile itensPorSemana={itensPorSemana} />
-) : (
-  <ScheduleKanbanDesktop itensPorSemana={itensPorSemana} />
-)}
-```
+**Alternativas disponíveis:**
+- **Lista**: Visualização em lista (`components/schedule-list.tsx`)
+- **Calendário**: Visualização em calendário (`/aluno/cronograma/calendario`)
+- **Dashboard**: Dashboard do cronograma (`components/schedule-dashboard.tsx`)
 
 ---
 
@@ -320,7 +306,7 @@
 - [ ] Otimizar TobIAs (Chat) para mobile
 - [ ] Adaptar Dashboard de Cronograma
 - [ ] Melhorar Lista de Cronograma
-- [ ] Adaptar Kanban ou criar alternativa mobile
+- [x] ~~Adaptar Kanban ou criar alternativa mobile~~ (REMOVIDO)
 - [ ] Otimizar Calendário
 
 ### Fase 3: Tabelas e Formulários
@@ -354,7 +340,7 @@
 
 ### Média Prioridade
 5. Calendário mobile
-6. Kanban alternativa mobile
+6. ~~Kanban alternativa mobile~~ (REMOVIDO)
 7. Formulários mobile
 8. Conteúdos Programáticos mobile
 
@@ -389,7 +375,7 @@
 ## ❓ Questões para Decisão
 
 1. **Bottom Navigation**: Quais itens incluir? (TobIAs, Calendário, Cronograma, Perfil?)
-2. **Kanban Mobile**: Criar alternativa de lista ou manter scroll horizontal?
+2. ~~**Kanban Mobile**: Criar alternativa de lista ou manter scroll horizontal?~~ (REMOVIDO)
 3. **Calendário Mobile**: Usar biblioteca específica ou componente custom?
 4. **Gestos**: Implementar swipe para ações ou manter botões?
 5. **Offline**: Considerar suporte offline para mobile?

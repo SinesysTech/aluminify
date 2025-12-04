@@ -1221,7 +1221,7 @@ export function ScheduleWizard() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg border p-3 text-sm transition',
                     completed
-                      ? 'border-emerald-200 bg-emerald-50 text-foreground'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-100'
                       : active
                         ? 'border-primary bg-primary/5'
                         : 'border-border',

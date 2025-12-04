@@ -1669,8 +1669,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         const dataKey = normalizarDataParaKey(date)
         
         return cronograma.periodos_ferias.some(periodo => {
-          const inicio = normalizarDataParaKey(new Date(periodo.inicio))
-          const fim = normalizarDataParaKey(new Date(periodo.fim))
+          if (!periodo.inicio || !periodo.fim) return false
+          
+          const inicioDate = new Date(periodo.inicio)
+          const fimDate = new Date(periodo.fim)
+          
+          // Validar se as datas são válidas
+          if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) {
+            return false
+          }
+          
+          const inicio = normalizarDataParaKey(inicioDate)
+          const fim = normalizarDataParaKey(fimDate)
           return dataKey >= inicio && dataKey <= fim
         })
       },

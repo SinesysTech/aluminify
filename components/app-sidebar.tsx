@@ -10,7 +10,6 @@ import {
   Layers,
   MessageSquare,
   Users,
-  LayoutGrid,
   FolderOpen,
   School,
 } from "lucide-react"
@@ -66,12 +65,6 @@ const navMainData: NavItem[] = [
     title: "Meu Cronograma",
     url: "/aluno/cronograma",
     icon: CalendarCheck,
-    roles: ALL_ROLES,
-  },
-  {
-    title: "Quadro Kanban",
-    url: "/aluno/cronograma/kanban",
-    icon: LayoutGrid,
     roles: ALL_ROLES,
   },
   {

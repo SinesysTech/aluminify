@@ -169,12 +169,11 @@ export function AtividadeChecklistRow({
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium">{atividade.titulo}</span>
-              <Badge variant="outline" className={cn('text-xs', statusBadgeColor)}>
-                {status}
-              </Badge>
-              <span className="text-xs text-muted-foreground">({atividade.tipo})</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium">{atividade.titulo}</span>
+                    <Badge variant="outline" className={cn('text-xs', statusBadgeColor)}>
+                      {status}
+                    </Badge>
             </div>
 
             {(isIniciado || isConcluido) && atividade.progressoDataInicio && (

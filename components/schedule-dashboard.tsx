@@ -41,6 +41,22 @@ const formatHorasFromMinutes = (minutos?: number | null) => {
   })}h`
 }
 
+const formatDateSafe = (dateString: string | null | undefined): string => {
+  if (!dateString) {
+    return 'Data inválida'
+  }
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'Data inválida'
+    }
+    return format(date, 'dd/MM/yyyy', { locale: ptBR })
+  } catch (error) {
+    return 'Data inválida'
+  }
+}
+
 interface CronogramaItem {
   id: string
   aula_id: string
@@ -619,8 +635,16 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
       // Verificar se a semana cai em período de férias
       let isFerias = false
       for (const periodo of ferias || []) {
+        if (!periodo.inicio || !periodo.fim) continue
+        
         const inicioFerias = new Date(periodo.inicio)
         const fimFerias = new Date(periodo.fim)
+        
+        // Validar se as datas são válidas
+        if (isNaN(inicioFerias.getTime()) || isNaN(fimFerias.getTime())) {
+          continue
+        }
+        
         if (
           (dataAtual >= inicioFerias && dataAtual <= fimFerias) ||
           (fimSemana >= inicioFerias && fimSemana <= fimFerias) ||
@@ -970,8 +994,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                 {cronograma.periodos_ferias.map((periodo, index) => (
                   <li key={index}>
-                    {format(new Date(periodo.inicio), "dd/MM/yyyy", { locale: ptBR })} -{' '}
-                    {format(new Date(periodo.fim), "dd/MM/yyyy", { locale: ptBR })}
+                    {formatDateSafe(periodo.inicio)} - {formatDateSafe(periodo.fim)}
                   </li>
                 ))}
               </ul>
