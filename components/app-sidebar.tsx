@@ -11,6 +11,8 @@ import {
   MessageSquare,
   Users,
   LayoutGrid,
+  FolderOpen,
+  School,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -55,6 +57,12 @@ const navMainData: NavItem[] = [
     roles: ALL_ROLES,
   },
   {
+    title: "Sala de Estudos",
+    url: "/aluno/sala-de-estudos",
+    icon: School,
+    roles: ALL_ROLES,
+  },
+  {
     title: "Meu Cronograma",
     url: "/aluno/cronograma",
     icon: CalendarCheck,
@@ -94,6 +102,12 @@ const navMainData: NavItem[] = [
     title: "Conteúdo Programático",
     url: "/conteudos",
     icon: Calendar,
+    roles: PROFESSOR_ONLY,
+  },
+  {
+    title: "Materiais",
+    url: "/admin/materiais",
+    icon: FolderOpen,
     roles: PROFESSOR_ONLY,
   },
   {
