@@ -270,7 +270,7 @@ export default function ModoFocoClient({ searchParams }: Props) {
         const resp = await fetch(`/api/atividade?modulo_id=${moduloId}`);
         if (!resp.ok) throw new Error('Falha ao carregar atividades');
         const { data } = await resp.json();
-        const opts = (data ?? []).map((a: any) => ({ id: a.id, nome: a.titulo }));
+        const opts: Option[] = (data ?? []).map((a: any) => ({ id: a.id, nome: a.titulo }));
         setAtividades(opts);
         if (atividadeId && !opts.some((a) => a.id === atividadeId)) {
           setAtividadeId('');

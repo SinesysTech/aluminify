@@ -159,8 +159,7 @@ export class AtividadeService {
         if (geraPrincipal) {
           let titulo = regra.nome_padrao;
           if (regra.acumulativo) {
-            // Para cumulativos, o intervalo deve cobrir todos os módulos até aqui (1..contador)
-            const moduloInicio = 1;
+            const moduloInicio = Math.max(contador - frequencia + 1, inicio);
             titulo =
               moduloInicio === contador
                 ? `${regra.nome_padrao} (Módulo ${contador})`
@@ -210,4 +209,3 @@ export class AtividadeService {
     return atividade;
   }
 }
-
