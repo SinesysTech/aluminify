@@ -56,5 +56,28 @@ export async function GET(request: NextRequest) {
   }
 }
 
+async function postHandler(request: AuthenticatedRequest) {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
+  try {
+    const body = await request.json();
+    const atividade = await atividadeService.create({
+      moduloId: body?.modulo_id,
+      tipo: body?.tipo,
+      titulo: body?.titulo,
+      arquivoUrl: body?.arquivo_url,
+      gabaritoUrl: body?.gabarito_url,
+      linkExterno: body?.link_externo,
+      obrigatorio: body?.obrigatorio,
+      ordemExibicao: body?.ordem_exibicao,
+    });
 
+    return NextResponse.json({ data: serializeAtividade(atividade) }, { status: 201 });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export const POST = requireAuth(postHandler);

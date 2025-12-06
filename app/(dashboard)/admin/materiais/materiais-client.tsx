@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { MaterialsFilters } from '@/components/materials-filters'
 import { ModuleAccordion } from '@/components/module-accordion'
+import RulesPanel from '@/components/rules-panel'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { ModuloComAtividades } from './types'
 import { useRouter } from 'next/navigation'
@@ -21,40 +22,139 @@ type Disciplina = {
   nome: string
 }
 
+type Curso = {
+  id: string
+  nome: string
+}
+
 type Frente = {
   id: string
   nome: string
   disciplina_id: string
+  curso_id?: string | null
+}
+
+type TipoAtividade =
+  | 'Nivel_1'
+  | 'Nivel_2'
+  | 'Nivel_3'
+  | 'Nivel_4'
+  | 'Conceituario'
+  | 'Lista_Mista'
+  | 'Simulado_Diagnostico'
+  | 'Simulado_Cumulativo'
+  | 'Simulado_Global'
+  | 'Flashcards'
+  | 'Revisao'
+
+type RegraAtividade = {
+  id: string
+  cursoId: string | null
+  tipoAtividade: TipoAtividade
+  nomePadrao: string
+  frequenciaModulos: number
+  comecarNoModulo: number
+  acumulativo: boolean
+  gerarNoUltimo: boolean
 }
 
 export default function MateriaisClientPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const [cursos, setCursos] = React.useState<Curso[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
   const [frentes, setFrentes] = React.useState<Frente[]>([])
+  const [cursoSelecionado, setCursoSelecionado] = React.useState<string>('')
   const [disciplinaSelecionada, setDisciplinaSelecionada] = React.useState<string>('')
   const [frenteSelecionada, setFrenteSelecionada] = React.useState<string>('')
+  const [frenteCursoId, setFrenteCursoId] = React.useState<string | null>(null)
   const [modulosComAtividades, setModulosComAtividades] = React.useState<ModuloComAtividades[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
   const [isLoadingFrentes, setIsLoadingFrentes] = React.useState(false)
   const [isLoadingAtividades, setIsLoadingAtividades] = React.useState(false)
   const [isGenerating, setIsGenerating] = React.useState(false)
+  const [isUpdatingEstrutura, setIsUpdatingEstrutura] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
+  const [regras, setRegras] = React.useState<RegraAtividade[]>([])
 
-  // Carregar disciplinas
+  const fetchWithAuth = React.useCallback(
+    async (input: string, init?: RequestInit) => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente.')
+      }
+
+      const headers = new Headers(init?.headers || {})
+      if (!(init?.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json')
+      }
+      headers.set('Authorization', `Bearer ${session.access_token}`)
+
+      return fetch(input, {
+        ...init,
+        headers,
+      })
+    },
+    [supabase],
+  )
+
+  // Carregar cursos
   React.useEffect(() => {
-    const fetchDisciplinas = async () => {
+    const fetchCursos = async () => {
       try {
         setIsLoading(true)
         const { data, error } = await supabase
-          .from('disciplinas')
+          .from('cursos')
           .select('id, nome')
           .order('nome', { ascending: true })
 
         if (error) throw error
-        setDisciplinas(data || [])
+        setCursos(data || [])
+      } catch (err) {
+        console.error('Erro ao carregar cursos:', err)
+        setError('Erro ao carregar cursos')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchCursos()
+  }, [supabase])
+
+  // Carregar disciplinas ao selecionar curso
+  React.useEffect(() => {
+    const fetchDisciplinas = async () => {
+      setDisciplinas([])
+      setDisciplinaSelecionada('')
+      setFrentes([])
+      setFrenteSelecionada('')
+      setFrenteCursoId(null)
+      setModulosComAtividades([])
+
+      if (!cursoSelecionado) return
+
+      try {
+        setIsLoading(true)
+        const { data, error } = await supabase
+          .from('cursos_disciplinas')
+          .select('disciplina:disciplina_id ( id, nome )')
+          .eq('curso_id', cursoSelecionado)
+          .order('disciplina(nome)', { ascending: true })
+
+        if (error) throw error
+
+        const mapped =
+          data
+            ?.map((row: any) => row.disciplina)
+            .filter(Boolean)
+            .map((d: any) => ({ id: d.id, nome: d.nome })) ?? []
+
+        const unique = Array.from(new Map(mapped.map((d) => [d.id, d])).values())
+        setDisciplinas(unique)
       } catch (err) {
         console.error('Erro ao carregar disciplinas:', err)
         setError('Erro ao carregar disciplinas')
@@ -64,12 +164,12 @@ export default function MateriaisClientPage() {
     }
 
     fetchDisciplinas()
-  }, [supabase])
+  }, [supabase, cursoSelecionado])
 
   // Carregar frentes quando disciplina muda
   React.useEffect(() => {
     const fetchFrentes = async () => {
-      if (!disciplinaSelecionada) {
+      if (!disciplinaSelecionada || !cursoSelecionado) {
         setFrentes([])
         setFrenteSelecionada('')
         setModulosComAtividades([])
@@ -80,13 +180,15 @@ export default function MateriaisClientPage() {
         setIsLoadingFrentes(true)
         const { data, error } = await supabase
           .from('frentes')
-          .select('id, nome, disciplina_id')
+          .select('id, nome, disciplina_id, curso_id')
           .eq('disciplina_id', disciplinaSelecionada)
+          .eq('curso_id', cursoSelecionado)
           .order('nome', { ascending: true })
 
         if (error) throw error
         setFrentes(data || [])
         setFrenteSelecionada('')
+        setFrenteCursoId(null)
         setModulosComAtividades([])
       } catch (err) {
         console.error('Erro ao carregar frentes:', err)
@@ -97,13 +199,14 @@ export default function MateriaisClientPage() {
     }
 
     fetchFrentes()
-  }, [supabase, disciplinaSelecionada])
+  }, [supabase, disciplinaSelecionada, cursoSelecionado])
 
   // Carregar módulos e atividades quando frente muda
   React.useEffect(() => {
     const fetchModulosEAtividades = async () => {
       if (!frenteSelecionada) {
         setModulosComAtividades([])
+        setFrenteCursoId(null)
         return
       }
 
@@ -173,11 +276,44 @@ export default function MateriaisClientPage() {
     }
 
     fetchModulosEAtividades()
-  }, [frenteSelecionada])
+  }, [frenteSelecionada, frentes])
+
+  React.useEffect(() => {
+    const fetchRegras = async () => {
+      if (!cursoSelecionado) {
+        setRegras([])
+        return
+      }
+
+      try {
+        const response = await fetchWithAuth(`/api/regras-atividades?curso_id=${cursoSelecionado}`)
+        const body = await response.json()
+        if (!response.ok) {
+          throw new Error(body?.error || 'Erro ao carregar regras')
+        }
+        setRegras(body.data || [])
+      } catch (err) {
+        console.error('Erro ao carregar regras:', err)
+        setError(err instanceof Error ? err.message : 'Erro ao carregar regras de atividades')
+      }
+    }
+
+    fetchRegras()
+  }, [cursoSelecionado, fetchWithAuth])
 
   const handleGenerateStructure = async () => {
+    if (!cursoSelecionado) {
+      setError('Selecione um curso')
+      return
+    }
+
     if (!frenteSelecionada) {
       setError('Selecione uma frente primeiro')
+      return
+    }
+
+    if (!frenteCursoId) {
+      setError('Não foi possível identificar o curso da frente selecionada')
       return
     }
 
@@ -198,6 +334,7 @@ export default function MateriaisClientPage() {
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
+          curso_id: frenteCursoId,
           frente_id: frenteSelecionada,
         }),
       })
@@ -226,6 +363,98 @@ export default function MateriaisClientPage() {
     }
   }
 
+  const handleAtualizarEstrutura = async () => {
+    if (!cursoSelecionado || !frenteSelecionada) {
+      setError('Selecione curso e frente para atualizar a estrutura')
+      return
+    }
+
+    try {
+      setIsUpdatingEstrutura(true)
+      setError(null)
+      const response = await fetchWithAuth('/api/atividade/gerar-estrutura', {
+        method: 'POST',
+        body: JSON.stringify({
+          curso_id: cursoSelecionado,
+          frente_id: frenteSelecionada,
+          force: true,
+        }),
+      })
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao atualizar estrutura')
+      }
+
+      const frenteId = frenteSelecionada
+      setFrenteSelecionada('')
+      setTimeout(() => {
+        setFrenteSelecionada(frenteId)
+      }, 100)
+      setSuccessMessage('Estrutura atualizada com sucesso!')
+    } catch (err) {
+      console.error('Erro ao atualizar estrutura:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar estrutura de atividades')
+    } finally {
+      setIsUpdatingEstrutura(false)
+    }
+  }
+
+  const handleCreateRegra = async (payload: {
+    tipoAtividade: TipoAtividade
+    nomePadrao: string
+    frequenciaModulos: number
+    comecarNoModulo: number
+    acumulativo: boolean
+    gerarNoUltimo: boolean
+  }) => {
+    if (!cursoSelecionado) {
+      setError('Selecione um curso para criar regras')
+      return
+    }
+
+    try {
+      const response = await fetchWithAuth('/api/regras-atividades', {
+        method: 'POST',
+        body: JSON.stringify({
+          curso_id: cursoSelecionado,
+          tipo_atividade: payload.tipoAtividade,
+          nome_padrao: payload.nomePadrao,
+          frequencia_modulos: payload.frequenciaModulos,
+          comecar_no_modulo: payload.comecarNoModulo,
+          acumulativo: payload.acumulativo,
+          gerar_no_ultimo: payload.gerarNoUltimo,
+        }),
+      })
+
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao criar regra')
+      }
+
+      setRegras((prev) => [...prev, body.data])
+    } catch (err) {
+      console.error('Erro ao criar regra:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao criar regra de atividade')
+    }
+  }
+
+  const handleDeleteRegra = async (regraId: string) => {
+    try {
+      const response = await fetchWithAuth(`/api/regras-atividades/${regraId}`, {
+        method: 'DELETE',
+      })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao remover regra')
+      }
+
+      setRegras((prev) => prev.filter((regra) => regra.id !== regraId))
+    } catch (err) {
+      console.error('Erro ao remover regra:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao remover regra')
+    }
+  }
+
   const handleUploadSuccess = () => {
     // Recarregar atividades após upload
     const frenteId = frenteSelecionada
@@ -235,10 +464,16 @@ export default function MateriaisClientPage() {
     }, 100)
   }
 
+  const handleFrenteChange = (frenteId: string) => {
+    setFrenteSelecionada(frenteId)
+    const frente = frentes.find((f) => f.id === frenteId)
+    setFrenteCursoId(frente?.curso_id ?? null)
+  }
+
   return (
     <div className="w-full space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Área de Estudo e Gestão de Materiais</h1>
+        <h1 className="text-3xl font-bold">Gestão de Materiais</h1>
         <p className="text-muted-foreground">
           Gerencie materiais complementares (listas, simulados, conceituários) para os módulos das
           aulas
@@ -267,16 +502,33 @@ export default function MateriaisClientPage() {
       )}
 
       <MaterialsFilters
+        cursos={cursos}
         disciplinas={disciplinas}
         frentes={frentes}
+        cursoSelecionado={cursoSelecionado}
         disciplinaSelecionada={disciplinaSelecionada}
         frenteSelecionada={frenteSelecionada}
+        onCursoChange={setCursoSelecionado}
         onDisciplinaChange={setDisciplinaSelecionada}
-        onFrenteChange={setFrenteSelecionada}
+        onFrenteChange={handleFrenteChange}
         onGenerateStructure={handleGenerateStructure}
         isGenerating={isGenerating}
         isLoadingFrentes={isLoadingFrentes}
       />
+
+      {cursoSelecionado && frenteSelecionada && (
+        <RulesPanel
+          cursoSelecionado={cursoSelecionado}
+          frenteSelecionada={frenteSelecionada}
+          regras={regras}
+          onCreate={handleCreateRegra}
+          onDelete={handleDeleteRegra}
+          onGerarEstrutura={handleGenerateStructure}
+          isGenerating={isGenerating}
+          onAtualizarEstrutura={handleAtualizarEstrutura}
+          isUpdating={isUpdatingEstrutura}
+        />
+      )}
 
       {isLoadingAtividades && (
         <div className="flex items-center justify-center py-8">

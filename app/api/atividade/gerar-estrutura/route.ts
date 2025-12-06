@@ -11,10 +11,15 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
+
+  if (error instanceof Error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
-// POST - Gerar estrutura de atividades padrão para uma frente
+// POST - Gerar estrutura de atividades personalizadas para uma frente baseado nas regras do curso
 async function postHandler(request: AuthenticatedRequest) {
   if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -22,16 +27,22 @@ async function postHandler(request: AuthenticatedRequest) {
 
   try {
     const body = await request.json();
+    const cursoId = body?.curso_id;
     const frenteId = body?.frente_id;
+    const force = Boolean(body?.force);
+
+    if (!cursoId) {
+      return NextResponse.json({ error: 'curso_id is required' }, { status: 400 });
+    }
 
     if (!frenteId) {
       return NextResponse.json({ error: 'frente_id is required' }, { status: 400 });
     }
 
-    await atividadeService.gerarAtividadesPadrao(frenteId);
+    await atividadeService.gerarAtividadesPersonalizadas(cursoId, frenteId, force);
 
     return NextResponse.json(
-      { message: 'Atividades padrão geradas com sucesso' },
+      { message: force ? 'Estrutura de atividades recriada com sucesso' : 'Atividades personalizadas geradas com sucesso' },
       { status: 200 },
     );
   } catch (error) {

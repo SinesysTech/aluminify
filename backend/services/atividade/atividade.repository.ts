@@ -11,7 +11,9 @@ export interface AtividadeRepository {
   listByModulo(moduloId: string): Promise<Atividade[]>;
   listByFrente(frenteId: string): Promise<Atividade[]>;
   findById(id: string): Promise<Atividade | null>;
+  create(input: CreateAtividadeInput): Promise<Atividade>;
   update(id: string, payload: UpdateAtividadeInput): Promise<Atividade>;
+  delete(id: string): Promise<void>;
   listByAlunoMatriculas(alunoId: string): Promise<AtividadeComProgressoEHierarquia[]>;
 }
 
@@ -112,6 +114,29 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
     return data ? mapRow(data) : null;
   }
 
+  async create(input: CreateAtividadeInput): Promise<Atividade> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .insert({
+        modulo_id: input.moduloId,
+        tipo: input.tipo,
+        titulo: input.titulo,
+        arquivo_url: input.arquivoUrl ?? null,
+        gabarito_url: input.gabaritoUrl ?? null,
+        link_externo: input.linkExterno ?? null,
+        obrigatorio: input.obrigatorio ?? true,
+        ordem_exibicao: input.ordemExibicao ?? 0,
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create activity: ${error.message}`);
+    }
+
+    return mapRow(data);
+  }
+
   async update(id: string, payload: UpdateAtividadeInput): Promise<Atividade> {
     const updateData: Record<string, unknown> = {};
 
@@ -151,6 +176,17 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
     }
 
     return mapRow(data);
+  }
+
+  async delete(id: string): Promise<void> {
+    const { error } = await this.client
+      .from(TABLE)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete activity: ${error.message}`);
+    }
   }
 
   async listByAlunoMatriculas(alunoId: string): Promise<AtividadeComProgressoEHierarquia[]> {

@@ -43,12 +43,7 @@ const ALL_ROLES: AppUserRole[] = ["aluno", "professor", "superadmin"]
 const PROFESSOR_ONLY: AppUserRole[] = ["professor", "superadmin"]
 
 const navMainData: NavItem[] = [
-  {
-    title: "TobIAs",
-    url: "/tobias",
-    icon: MessageSquare,
-    roles: ALL_ROLES,
-  },
+  // Estudante
   {
     title: "Calendário",
     url: "/aluno/cronograma/calendario",
@@ -62,27 +57,22 @@ const navMainData: NavItem[] = [
     roles: ALL_ROLES,
   },
   {
+    title: "TobIAs",
+    url: "/tobias",
+    icon: MessageSquare,
+    roles: ALL_ROLES,
+  },
+  {
     title: "Meu Cronograma",
     url: "/aluno/cronograma",
     icon: CalendarCheck,
     roles: ALL_ROLES,
   },
+  // Professor
   {
-    title: "Alunos",
-    url: "/aluno",
-    icon: Users,
-    roles: PROFESSOR_ONLY,
-  },
-  {
-    title: "Professores",
-    url: "/professor",
-    icon: GraduationCap,
-    roles: PROFESSOR_ONLY,
-  },
-  {
-    title: "Cursos",
-    url: "/curso",
-    icon: BookOpen,
+    title: "Segmentos",
+    url: "/segmento",
+    icon: Layers,
     roles: PROFESSOR_ONLY,
   },
   {
@@ -92,21 +82,21 @@ const navMainData: NavItem[] = [
     roles: PROFESSOR_ONLY,
   },
   {
+    title: "Cursos",
+    url: "/curso",
+    icon: BookOpen,
+    roles: PROFESSOR_ONLY,
+  },
+  {
     title: "Conteúdo Programático",
     url: "/conteudos",
     icon: Calendar,
     roles: PROFESSOR_ONLY,
   },
   {
-    title: "Materiais",
+    title: "Gestão de Materiais",
     url: "/admin/materiais",
     icon: FolderOpen,
-    roles: PROFESSOR_ONLY,
-  },
-  {
-    title: "Segmentos",
-    url: "/segmento",
-    icon: Layers,
     roles: PROFESSOR_ONLY,
   },
 ]
@@ -123,6 +113,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ...item,
     isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
   }))
+
+  const studentItems = navMainWithActive.filter((item) => hasRequiredRole("aluno", item.roles))
+  const professorItems = navMainWithActive.filter((item) => hasRequiredRole("professor", item.roles) && !hasRequiredRole("aluno", item.roles))
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -147,7 +140,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMainWithActive} />
+        {studentItems.length > 0 && <NavMain items={studentItems} label="Menu Estudante" />}
+        {studentItems.length > 0 && professorItems.length > 0 && (
+          <div className="h-px bg-border/60 mx-3 my-2" aria-hidden="true" />
+        )}
+        {professorItems.length > 0 && <NavMain items={professorItems} label="Menu Professor" />}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

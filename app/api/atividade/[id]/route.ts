@@ -79,3 +79,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   return requireAuth((req) => patchHandler(req, params))(request);
 }
 
+async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  try {
+    await atividadeService.delete(params.id);
+    return NextResponse.json({ message: 'Atividade removida com sucesso' });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return requireAuth((req) => deleteHandler(req, params))(request);
+}

@@ -1,9 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(test:*)",
-      "Bash(npm install:*)",
-      "Bash(npm view:*)"
+      "FileSystem(*:*)",
+      "Bash(*:*)",
+      "Git(*:*)",
+      "Read(*:*)",
+      "Write(*:*)",
+      "Delete(*:*)"
     ],
     "deny": [],
     "ask": []

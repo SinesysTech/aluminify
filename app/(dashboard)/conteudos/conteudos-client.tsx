@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -42,10 +43,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ChevronDown, Upload, FileText, AlertCircle, CheckCircle2, Trash2 } from 'lucide-react'
+import { ChevronDown, Upload, FileText, AlertCircle, CheckCircle2, Trash2, Plus, Loader2 } from 'lucide-react'
 import Papa from 'papaparse'
 import ExcelJS from 'exceljs'
 import { useRouter } from 'next/navigation'
+import AddActivityModal from '../../../components/add-activity-modal'
+import InlineEditableTitle from '../../../components/inline-editable-title'
 
 type Disciplina = {
   id: string
@@ -64,6 +67,7 @@ type Frente = {
   id: string
   nome: string
   disciplina_id: string
+  curso_id: string | null
 }
 
 type Modulo = {
@@ -95,6 +99,38 @@ type CSVRow = {
   frente?: string
 }
 
+type TipoAtividade =
+  | 'Nivel_1'
+  | 'Nivel_2'
+  | 'Nivel_3'
+  | 'Nivel_4'
+  | 'Conceituario'
+  | 'Lista_Mista'
+  | 'Simulado_Diagnostico'
+  | 'Simulado_Cumulativo'
+  | 'Simulado_Global'
+  | 'Flashcards'
+  | 'Revisao'
+
+type AtividadeItem = {
+  id: string
+  moduloId: string
+  tipo: TipoAtividade
+  titulo: string
+  ordemExibicao: number
+}
+
+type RegraAtividade = {
+  id: string
+  cursoId: string | null
+  tipoAtividade: TipoAtividade
+  nomePadrao: string
+  frequenciaModulos: number
+  comecarNoModulo: number
+  acumulativo: boolean
+  gerarNoUltimo: boolean
+}
+
 export default function ConteudosClientPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -122,6 +158,35 @@ export default function ConteudosClientPage() {
     hasCronogramas: boolean
     count: number
   } | null>(null)
+  const [regras, setRegras] = React.useState<RegraAtividade[]>([])
+  const [isAddingActivity, setIsAddingActivity] = React.useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = React.useState<string | null>(null)
+  const [atividadesPorModulo, setAtividadesPorModulo] = React.useState<Record<string, AtividadeItem[]>>({})
+  const [isGeneratingEstrutura, setIsGeneratingEstrutura] = React.useState(false)
+  const [isCreatingActivity, setIsCreatingActivity] = React.useState(false)
+  const [isUpdatingEstrutura, setIsUpdatingEstrutura] = React.useState(false)
+  const [showUpdateDialog, setShowUpdateDialog] = React.useState(false)
+
+  const fetchWithAuth = React.useCallback(
+    async (input: string, init?: RequestInit) => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente.')
+      }
+
+      const headers = new Headers(init?.headers || {})
+      if (!(init?.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json')
+      }
+      headers.set('Authorization', `Bearer ${session.access_token}`)
+
+      return fetch(input, {
+        ...init,
+        headers,
+      })
+    },
+    [supabase],
+  )
 
   // Verificar se o usuário é professor
   React.useEffect(() => {
@@ -334,6 +399,68 @@ export default function ConteudosClientPage() {
     fetchCursos()
   }, [supabase, isProfessor, userId])
 
+  React.useEffect(() => {
+    const fetchRegras = async () => {
+      if (!cursoSelecionado) {
+        setRegras([])
+        return
+      }
+
+      try {
+        const response = await fetchWithAuth(`/api/regras-atividades?curso_id=${cursoSelecionado}`)
+        const body = await response.json()
+        if (!response.ok) {
+          throw new Error(body?.error || 'Erro ao carregar regras')
+        }
+        setRegras(body.data || [])
+      } catch (err) {
+        console.error('Erro ao carregar regras:', err)
+        setError(err instanceof Error ? err.message : 'Erro ao carregar regras de atividades')
+      }
+    }
+
+    if (isProfessor) {
+      fetchRegras()
+    }
+  }, [cursoSelecionado, fetchWithAuth, isProfessor])
+
+  const loadAtividadesForModulos = React.useCallback(
+    async (moduloIds: string[]) => {
+      if (moduloIds.length === 0) {
+        setAtividadesPorModulo({})
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('atividades')
+        .select('id, modulo_id, tipo, titulo, ordem_exibicao')
+        .in('modulo_id', moduloIds)
+        .order('ordem_exibicao', { ascending: true })
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Erro ao carregar atividades:', error)
+        return
+      }
+
+      const agrupado = (data || []).reduce<Record<string, AtividadeItem[]>>((acc, atividade) => {
+        const lista = acc[atividade.modulo_id] || []
+        lista.push({
+          id: atividade.id,
+          moduloId: atividade.modulo_id,
+          titulo: atividade.titulo,
+          tipo: atividade.tipo as TipoAtividade,
+          ordemExibicao: atividade.ordem_exibicao ?? 0,
+        })
+        acc[atividade.modulo_id] = lista
+        return acc
+      }, {})
+
+      setAtividadesPorModulo(agrupado)
+    },
+    [supabase],
+  )
+
   // Carregar frentes quando disciplina for selecionada
   React.useEffect(() => {
     const fetchFrentes = async () => {
@@ -345,12 +472,12 @@ export default function ConteudosClientPage() {
 
       try {
         setIsLoadingContent(true)
-        // Buscar frentes da disciplina que pertencem ao curso selecionado OU não têm curso_id definido
+        // Buscar frentes da disciplina que pertencem ao curso selecionado
         const { data, error } = await supabase
           .from('frentes')
           .select('id, nome, disciplina_id, curso_id')
           .eq('disciplina_id', disciplinaSelecionada)
-          .or(`curso_id.eq.${cursoSelecionado},curso_id.is.null`)
+          .eq('curso_id', cursoSelecionado)
           .order('nome', { ascending: true })
 
         if (error) {
@@ -426,9 +553,11 @@ export default function ConteudosClientPage() {
             })
           )
 
-          setModulos(modulosComAulas)
+        setModulos(modulosComAulas)
+        await loadAtividadesForModulos(modulosData.map((m) => m.id))
         } else {
           setModulos([])
+        setAtividadesPorModulo({})
         }
       } catch (err) {
         console.error('Erro ao carregar módulos e aulas:', err)
@@ -439,7 +568,7 @@ export default function ConteudosClientPage() {
     }
 
     fetchModulosEAulas()
-  }, [supabase, frenteSelecionada])
+}, [supabase, frenteSelecionada, loadAtividadesForModulos])
 
   // Função auxiliar para formatar tempo (minutos para minutos/horas)
   const formatTempo = (minutos: number): string => {
@@ -947,6 +1076,7 @@ export default function ConteudosClientPage() {
 
       // Chamar RPC
       const { data: rpcData, error: rpcError } = await supabase.rpc('importar_cronograma_aulas', {
+        p_curso_id: cursoSelecionado,
         p_disciplina_nome: disciplina.nome,
         p_frente_nome: frenteNome.trim(),
         p_conteudo: jsonData,
@@ -970,48 +1100,13 @@ export default function ConteudosClientPage() {
         fileInput.value = ''
       }
 
-      // Recarregar conteúdo
+      // Recarregar conteúdo (apenas refetch de frentes)
       if (disciplinaSelecionada) {
-        const { data: frenteData } = await supabase
-          .from('frentes')
-          .select('id')
-          .eq('disciplina_id', disciplinaSelecionada)
-          .eq('nome', frenteNome.trim())
-          .maybeSingle()
-
-        if (frenteData) {
-          try {
-            await supabase
-              .from('frentes')
-              .update({ curso_id: cursoSelecionado })
-              .eq('id', frenteData.id)
-
-            await supabase
-              .from('modulos')
-              .update({ curso_id: cursoSelecionado })
-              .eq('frente_id', frenteData.id)
-
-            const { data: moduloRegistros } = await supabase
-              .from('modulos')
-              .select('id')
-              .eq('frente_id', frenteData.id)
-
-            if (moduloRegistros && moduloRegistros.length > 0) {
-              await supabase
-                .from('aulas')
-                .update({ curso_id: cursoSelecionado })
-                .in(
-                  'modulo_id',
-                  moduloRegistros.map((modulo) => modulo.id),
-                )
-            }
-          } catch (updateError) {
-            console.warn('Não foi possível vincular o conteúdo ao curso selecionado:', updateError)
-          }
-
-          setFrenteSelecionada(frenteData.id)
-        }
+        setFrenteSelecionada('')
       }
+
+      // Forçar refresh da página para atualizar seletores
+      router.refresh()
     } catch (err) {
       console.error('Erro ao importar:', err)
       const errorMessage = err instanceof Error ? err.message : 'Erro ao importar cronograma'
@@ -1139,6 +1234,201 @@ export default function ConteudosClientPage() {
       setError(errorMessage)
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleCreateActivity = async (
+    moduloId: string,
+    payload: { tipo: TipoAtividade; titulo: string; ordemExibicao?: number },
+  ) => {
+    try {
+      setIsCreatingActivity(true)
+      const response = await fetchWithAuth('/api/atividade', {
+        method: 'POST',
+        body: JSON.stringify({
+          modulo_id: moduloId,
+          tipo: payload.tipo,
+          titulo: payload.titulo,
+          ordem_exibicao: payload.ordemExibicao,
+        }),
+      })
+
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao criar atividade')
+      }
+
+      await loadAtividadesForModulos([moduloId])
+      setSuccessMessage('Atividade criada com sucesso')
+    } catch (err) {
+      console.error('Erro ao criar atividade:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao criar atividade')
+    } finally {
+      setIsCreatingActivity(false)
+    }
+  }
+
+  const handleUpdateActivityTitle = async (atividadeId: string, moduloId: string, titulo: string) => {
+    try {
+      const response = await fetchWithAuth(`/api/atividade/${atividadeId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ titulo }),
+      })
+
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao atualizar atividade')
+      }
+
+      await loadAtividadesForModulos([moduloId])
+      setSuccessMessage('Título atualizado')
+    } catch (err) {
+      console.error('Erro ao atualizar título:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar atividade')
+    } finally {
+      setEditingTitle(null)
+    }
+  }
+
+  const handleDeleteActivity = async (atividadeId: string, moduloId: string) => {
+    try {
+      const response = await fetchWithAuth(`/api/atividade/${atividadeId}`, {
+        method: 'DELETE',
+      })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao remover atividade')
+      }
+
+      await loadAtividadesForModulos([moduloId])
+      setSuccessMessage('Atividade removida')
+    } catch (err) {
+      console.error('Erro ao remover atividade:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao remover atividade')
+    }
+  }
+
+  const handleGerarEstrutura = async () => {
+    if (!cursoSelecionado || !frenteSelecionada) {
+      setError('Selecione curso e frente para gerar atividades')
+      return
+    }
+
+    try {
+      setIsGeneratingEstrutura(true)
+      setError(null)
+      const response = await fetchWithAuth('/api/atividade/gerar-estrutura', {
+        method: 'POST',
+        body: JSON.stringify({
+          curso_id: cursoSelecionado,
+          frente_id: frenteSelecionada,
+        }),
+      })
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao gerar estrutura')
+      }
+
+      if (modulos.length > 0) {
+        await loadAtividadesForModulos(modulos.map((m) => m.id))
+      }
+      setSuccessMessage('Estrutura de atividades gerada com sucesso')
+    } catch (err) {
+      console.error('Erro ao gerar estrutura:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao gerar estrutura de atividades')
+    } finally {
+      setIsGeneratingEstrutura(false)
+    }
+  }
+
+  const handleAtualizarEstrutura = async () => {
+    if (!cursoSelecionado || !frenteSelecionada) {
+      setError('Selecione curso e frente para atualizar a estrutura')
+      return
+    }
+
+    try {
+      setIsUpdatingEstrutura(true)
+      setError(null)
+      const response = await fetchWithAuth('/api/atividade/gerar-estrutura', {
+        method: 'POST',
+        body: JSON.stringify({
+          curso_id: cursoSelecionado,
+          frente_id: frenteSelecionada,
+          force: true,
+        }),
+      })
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao atualizar estrutura')
+      }
+
+      if (modulos.length > 0) {
+        await loadAtividadesForModulos(modulos.map((m) => m.id))
+      }
+      setSuccessMessage('Estrutura atualizada com sucesso')
+    } catch (err) {
+      console.error('Erro ao atualizar estrutura:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar estrutura de atividades')
+    } finally {
+      setIsUpdatingEstrutura(false)
+      setShowUpdateDialog(false)
+    }
+  }
+
+  const handleCreateRegra = async (payload: {
+    tipoAtividade: TipoAtividade
+    nomePadrao: string
+    frequenciaModulos: number
+    comecarNoModulo: number
+    acumulativo: boolean
+    gerarNoUltimo: boolean
+  }) => {
+    if (!cursoSelecionado) {
+      setError('Selecione um curso para criar regras')
+      return
+    }
+
+    try {
+      const response = await fetchWithAuth('/api/regras-atividades', {
+        method: 'POST',
+        body: JSON.stringify({
+          curso_id: cursoSelecionado,
+          tipo_atividade: payload.tipoAtividade,
+          nome_padrao: payload.nomePadrao,
+          frequencia_modulos: payload.frequenciaModulos,
+          comecar_no_modulo: payload.comecarNoModulo,
+          acumulativo: payload.acumulativo,
+          gerar_no_ultimo: payload.gerarNoUltimo,
+        }),
+      })
+
+      const body = await response.json()
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao criar regra')
+      }
+
+      setRegras((prev) => [...prev, body.data])
+    } catch (err) {
+      console.error('Erro ao criar regra:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao criar regra de atividade')
+    }
+  }
+
+  const handleDeleteRegra = async (regraId: string) => {
+    try {
+      const response = await fetchWithAuth(`/api/regras-atividades/${regraId}`, {
+        method: 'DELETE',
+      })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(body?.error || 'Erro ao remover regra')
+      }
+
+      setRegras((prev) => prev.filter((regra) => regra.id !== regraId))
+    } catch (err) {
+      console.error('Erro ao remover regra:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao remover regra')
     }
   }
 
@@ -1456,83 +1746,138 @@ export default function ConteudosClientPage() {
                         </span>
                       </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <div className="mt-2 rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-20">Aula</TableHead>
-                              <TableHead>Nome da Aula</TableHead>
-                              <TableHead className="w-24">Tempo (min)</TableHead>
-                              <TableHead className="w-24">Prioridade</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {modulo.aulas.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
-                                  Nenhuma aula cadastrada
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              modulo.aulas.map((aula) => {
-                                // Debug: verificar dados da aula
-                                if (process.env.NODE_ENV === 'development') {
-                                  console.log('Aula renderizada:', {
-                                    id: aula.id,
-                                    nome: aula.nome,
-                                    tempo_estimado_minutos: aula.tempo_estimado_minutos,
-                                    numero_aula: aula.numero_aula,
-                                    prioridade: aula.prioridade,
-                                  })
-                                }
-                                
-                                return (
-                                  <TableRow key={aula.id}>
-                                    <TableCell>{aula.numero_aula ?? 'N/A'}</TableCell>
-                                    <TableCell className="font-medium">
-                                      {aula.nome || 'Sem nome'}
-                                    </TableCell>
-                                    <TableCell>
-                                      {aula.tempo_estimado_minutos != null && aula.tempo_estimado_minutos > 0
-                                        ? `${aula.tempo_estimado_minutos} min`
-                                        : '-'}
-                                    </TableCell>
-                                  <TableCell>
-                                    {aula.prioridade !== null && aula.prioridade !== undefined ? (
-                                      <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                                        {aula.prioridade}
-                                      </span>
-                                    ) : (
-                                      '-'
-                                    )}
-                                  </TableCell>
-                                </TableRow>
-                                )
-                              })
-                            )}
-                          </TableBody>
-                        </Table>
-                        {/* Resumo do Módulo */}
-                        {modulo.aulas.length > 0 && (() => {
-                          const { totalAulas, tempoTotal } = calcularEstatisticasModulo(modulo.aulas)
-                          return (
-                            <div className="border-t bg-muted/50 px-4 py-3">
-                              <div className="flex items-center justify-between text-sm font-medium">
-                                <span>Total do Módulo:</span>
-                                <div className="flex items-center gap-4">
-                                  <span className="text-muted-foreground">
-                                    {totalAulas} aula{totalAulas !== 1 ? 's' : ''}
-                                  </span>
-                                  {tempoTotal > 0 && (
-                                    <span className="text-muted-foreground">
-                                      {formatTempo(tempoTotal)}
+                      <div className="mt-2 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm font-semibold">Atividades</div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setIsAddingActivity(modulo.id)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Atividade
+                          </Button>
+                        </div>
+
+                        <div className="space-y-2">
+                          {(atividadesPorModulo[modulo.id] || []).length === 0 ? (
+                            <div className="text-sm text-muted-foreground">Nenhuma atividade cadastrada</div>
+                          ) : (
+                            (atividadesPorModulo[modulo.id] || []).map((atividade) => (
+                              <div
+                                key={atividade.id}
+                                className="flex items-center justify-between rounded-md border p-3"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Badge variant="secondary">{atividade.tipo}</Badge>
+                                  <InlineEditableTitle
+                                    value={atividade.titulo}
+                                    isEditing={editingTitle === atividade.id}
+                                    onStartEdit={() => setEditingTitle(atividade.id)}
+                                    onCancel={() => setEditingTitle(null)}
+                                    onSave={(novoTitulo) =>
+                                      handleUpdateActivityTitle(atividade.id, atividade.moduloId, novoTitulo)
+                                    }
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {atividade.ordemExibicao !== undefined && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Ordem: {atividade.ordemExibicao}
                                     </span>
                                   )}
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteActivity(atividade.id, atividade.moduloId)}
+                                    aria-label="Excluir atividade"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </div>
-                            </div>
-                          )
-                        })()}
+                            ))
+                          )}
+                        </div>
+
+                        <div className="rounded-md border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-20">Aula</TableHead>
+                                <TableHead>Nome da Aula</TableHead>
+                                <TableHead className="w-24">Tempo (min)</TableHead>
+                                <TableHead className="w-24">Prioridade</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {modulo.aulas.length === 0 ? (
+                                <TableRow>
+                                  <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                                    Nenhuma aula cadastrada
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                modulo.aulas.map((aula) => {
+                                  // Debug: verificar dados da aula
+                                  if (process.env.NODE_ENV === 'development') {
+                                    console.log('Aula renderizada:', {
+                                      id: aula.id,
+                                      nome: aula.nome,
+                                      tempo_estimado_minutos: aula.tempo_estimado_minutos,
+                                      numero_aula: aula.numero_aula,
+                                      prioridade: aula.prioridade,
+                                    })
+                                  }
+                                  
+                                  return (
+                                    <TableRow key={aula.id}>
+                                      <TableCell>{aula.numero_aula ?? 'N/A'}</TableCell>
+                                      <TableCell className="font-medium">
+                                        {aula.nome || 'Sem nome'}
+                                      </TableCell>
+                                      <TableCell>
+                                        {aula.tempo_estimado_minutos != null && aula.tempo_estimado_minutos > 0
+                                          ? `${aula.tempo_estimado_minutos} min`
+                                          : '-'}
+                                      </TableCell>
+                                    <TableCell>
+                                      {aula.prioridade !== null && aula.prioridade !== undefined ? (
+                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                                          {aula.prioridade}
+                                        </span>
+                                      ) : (
+                                        '-'
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                  )
+                                })
+                              )}
+                            </TableBody>
+                          </Table>
+                          {/* Resumo do Módulo */}
+                          {modulo.aulas.length > 0 && (() => {
+                            const { totalAulas, tempoTotal } = calcularEstatisticasModulo(modulo.aulas)
+                            return (
+                              <div className="border-t bg-muted/50 px-4 py-3">
+                                <div className="flex items-center justify-between text-sm font-medium">
+                                  <span>Total do Módulo:</span>
+                                  <div className="flex items-center gap-4">
+                                    <span className="text-muted-foreground">
+                                      {totalAulas} aula{totalAulas !== 1 ? 's' : ''}
+                                    </span>
+                                    {tempoTotal > 0 && (
+                                      <span className="text-muted-foreground">
+                                        {formatTempo(tempoTotal)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })()}
+                        </div>
                       </div>
                     </CollapsibleContent>
                     </Collapsible>
@@ -1544,6 +1889,41 @@ export default function ConteudosClientPage() {
           </CardContent>
         </Card>
       )}
+
+      <AddActivityModal
+        open={!!isAddingActivity}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsAddingActivity(null)
+          }
+        }}
+        onSubmit={async (data) => {
+          if (!isAddingActivity) return
+          await handleCreateActivity(isAddingActivity, data)
+          setIsAddingActivity(null)
+        }}
+        isSubmitting={isCreatingActivity}
+      />
+
+      <AlertDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Atualizar Estrutura?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação vai apagar todas as atividades (incluindo manuais) da frente selecionada e gerar novamente pela regras configuradas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdatingEstrutura}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleAtualizarEstrutura}
+              disabled={isUpdatingEstrutura}
+            >
+              {isUpdatingEstrutura ? 'Atualizando...' : 'Confirmar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Dialog de confirmação de deleção */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

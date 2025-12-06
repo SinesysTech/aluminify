@@ -673,7 +673,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const dataInicioCalc = new Date(cronograma.data_inicio)
   const diffTime = hoje.getTime() - dataInicioCalc.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  const semanaAtual = Math.floor(diffDays / 7) + 1
 
   // Calcular todas as semanas do cronograma (incluindo férias)
   const dataInicio = new Date(cronograma.data_inicio)
@@ -697,6 +696,10 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     return acc
   }, {} as Record<number, CronogramaItem[]>)
 
+  // Calcular total de semanas e semana atual (depois de itensPorSemana estar definido)
+  const totalSemanas = Math.max(1, Object.keys(itensPorSemana).length || todasSemanas.length || 1)
+  const semanaAtual = Math.min(totalSemanas, Math.max(1, Math.floor(diffDays / 7) + 1))
+
   // Garantir que todas as semanas tenham uma entrada (mesmo que vazia)
   // Isso é importante para exibir todas as semanas do período, mesmo sem aulas
   todasSemanas.forEach((semana) => {
@@ -719,7 +722,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             <div>
               <CardTitle className="text-lg md:text-xl">{cronograma.nome || 'Meu Cronograma'}</CardTitle>
               <CardDescription className="text-xs md:text-sm">
-                Semana {semanaAtual} de {Object.keys(itensPorSemana).length} |{' '}
+                Semana: {semanaAtual} de {totalSemanas} |{' '}
                 {format(new Date(cronograma.data_inicio), "dd 'de' MMMM", { locale: ptBR })} -{' '}
                 {format(new Date(cronograma.data_fim), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </CardDescription>

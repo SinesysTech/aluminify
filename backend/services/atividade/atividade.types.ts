@@ -68,8 +68,8 @@ export interface AtividadeComProgressoEHierarquia extends Atividade {
 
 // Helper para verificar se um tipo de atividade requer check qualificado (modal de desempenho)
 export function atividadeRequerDesempenho(tipo: TipoAtividade): boolean {
-  // Check simples: Apenas Revisao
-  // Check qualificado: Todos os outros tipos (incluindo Conceituario)
-  return tipo !== 'Revisao';
+  // Check simples: Revisao e Conceituario
+  // Check qualificado: Todos os outros tipos
+  return tipo !== 'Revisao' && tipo !== 'Conceituario';
 }
 

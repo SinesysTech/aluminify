@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CheckCircle2, Circle, PlayCircle, Eye, FileX, Loader2, FileText } from 'lucide-react'
+import { CheckCircle2, Circle, PlayCircle, Eye, FileX, Loader2, FileText, Timer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +11,7 @@ import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progre
 import { atividadeRequerDesempenho } from '@/backend/services/atividade'
 import { AtividadeComProgresso } from '@/app/(dashboard)/aluno/sala-de-estudos/types'
 import { RegistrarDesempenhoModal } from './registrar-desempenho-modal'
+import Link from 'next/link'
 
 interface AtividadeChecklistRowProps {
   atividade: AtividadeComProgresso
@@ -222,6 +223,24 @@ export function AtividadeChecklistRow({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={`/aluno/modo-foco?cursoId=${atividade.cursoId}&atividadeId=${atividade.id}&disciplinaId=${atividade.disciplinaId}&frenteId=${atividade.frenteId}`}
+                  >
+                    <Button type="button" variant="secondary" size="sm">
+                      <Timer className="h-4 w-4 mr-1" />
+                      Focar
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Ir para o Modo Foco</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {isPendente && (
               <Button
                 type="button"

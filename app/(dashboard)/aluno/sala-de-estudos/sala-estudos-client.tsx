@@ -43,7 +43,15 @@ function formatSupabaseError(error: unknown): string {
   return String(error)
 }
 
-export default function SalaEstudosClientPage() {
+type SalaEstudosClientProps = {
+  title?: string
+  description?: string
+}
+
+export default function SalaEstudosClientPage({
+  title = 'Sala de Estudos',
+  description = 'Checklist e acompanhamento do seu progresso nas atividades',
+}: SalaEstudosClientProps) {
   const supabase = createClient()
 
   const [atividades, setAtividades] = React.useState<AtividadeComProgresso[]>([])
@@ -55,6 +63,7 @@ export default function SalaEstudosClientPage() {
   const [frenteSelecionada, setFrenteSelecionada] = React.useState<string>('')
   const [alunoId, setAlunoId] = React.useState<string | null>(null)
   const [userRole, setUserRole] = React.useState<string | null>(null)
+  const [isSuperAdmin, setIsSuperAdmin] = React.useState<boolean>(false)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isLoadingAtividades, setIsLoadingAtividades] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -83,6 +92,7 @@ export default function SalaEstudosClientPage() {
         // Detectar role do usuário
         const role = (user.user_metadata?.role as string) || 'aluno'
         setUserRole(role)
+        setIsSuperAdmin(role === 'superadmin' || user.user_metadata?.is_superadmin === true)
 
         // Usar o ID do usuário como aluno_id (mesmo para professores, para buscar progresso se necessário)
         setAlunoId(user.id)
@@ -120,12 +130,14 @@ export default function SalaEstudosClientPage() {
 
         let cursoIds: string[] = []
 
-        // Se for professor, buscar todos os cursos
-        if (userRole === 'professor' || userRole === 'superadmin') {
-          const { data: cursosData, error: cursosError } = await supabase
-            .from('cursos')
-            .select('id')
-            .order('nome', { ascending: true })
+        // Se for professor, buscar cursos criados por ele; se superadmin, todos
+        if (userRole === 'professor' || isSuperAdmin) {
+          let query = supabase.from('cursos').select('id, created_by').order('nome', { ascending: true })
+          if (!isSuperAdmin) {
+            query = query.eq('created_by', alunoId)
+          }
+
+          const { data: cursosData, error: cursosError } = await query
 
           if (cursosError) {
             console.error('Erro ao buscar cursos (professor):', cursosError)
@@ -939,10 +951,8 @@ export default function SalaEstudosClientPage() {
   return (
     <div className="w-full space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Sala de Estudos</h1>
-        <p className="text-muted-foreground">
-          Checklist e acompanhamento do seu progresso nas atividades
-        </p>
+        <h1 className="text-3xl font-bold">{title}</h1>
+        <p className="text-muted-foreground">{description}</p>
       </div>
 
       {error && (

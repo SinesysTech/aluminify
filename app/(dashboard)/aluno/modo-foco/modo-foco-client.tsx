@@ -1,0 +1,863 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams as useNextSearchParams, useRouter } from 'next/navigation';
+import { Play, Pause, StopCircle, Activity, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { createClient } from '@/lib/client';
+import { useStudyTimer } from '@/hooks/use-study-timer';
+import { MetodoEstudo } from '@/types/sessao-estudo';
+
+type Props = {
+  searchParams: {
+    disciplinaId?: string;
+    frenteId?: string;
+    atividadeId?: string;
+  };
+};
+
+type PresenceCounter = {
+  count: number;
+  channel: string;
+};
+
+type Option = { id: string; nome: string };
+type ModuloOption = { id: string; nome: string; numero_modulo: number | null };
+
+const POMODORO_DEFAULT = {
+  focusMs: 25 * 60 * 1000,
+  shortBreakMs: 5 * 60 * 1000,
+  longBreakMs: 15 * 60 * 1000,
+  cyclesBeforeLongBreak: 4,
+  totalCycles: 4,
+};
+
+function formatMs(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600)
+    .toString()
+    .padStart(2, '0');
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0');
+  const seconds = Math.floor(totalSeconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+export default function ModoFocoClient({ searchParams }: Props) {
+  const { state, start, pause, resume, finalize, latestState } = useStudyTimer();
+  const [metodo, setMetodo] = useState<MetodoEstudo>('cronometro');
+  const [timerMin, setTimerMin] = useState<number>(25);
+  const [pomodoroConfig, setPomodoroConfig] = useState(POMODORO_DEFAULT);
+  const [cursoId, setCursoId] = useState<string>('');
+  const [disciplinaId, setDisciplinaId] = useState(searchParams.disciplinaId ?? '');
+  const [frenteId, setFrenteId] = useState(searchParams.frenteId ?? '');
+  const [moduloId, setModuloId] = useState<string>('');
+  const [atividadeId, setAtividadeId] = useState(searchParams.atividadeId ?? '');
+  const [sessaoId, setSessaoId] = useState<string | null>(null);
+  const [nivelFoco, setNivelFoco] = useState<number>(3);
+  const [concluiuAtividade, setConcluiuAtividade] = useState<boolean>(false);
+  const [finalizando, setFinalizando] = useState(false);
+  const [iniciando, setIniciando] = useState(false);
+  const [presence, setPresence] = useState<PresenceCounter>({ count: 1, channel: 'geral' });
+  const [erro, setErro] = useState<string | null>(null);
+  const [erroCarregamento, setErroCarregamento] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [cursos, setCursos] = useState<Option[]>([]);
+  const [disciplinas, setDisciplinas] = useState<Option[]>([]);
+  const [frentes, setFrentes] = useState<Option[]>([]);
+  const [modulos, setModulos] = useState<ModuloOption[]>([]);
+  const [atividades, setAtividades] = useState<Option[]>([]);
+  const [carregandoCursos, setCarregandoCursos] = useState(false);
+  const [carregandoDisciplinas, setCarregandoDisciplinas] = useState(false);
+  const [carregandoFrentes, setCarregandoFrentes] = useState(false);
+  const [carregandoModulos, setCarregandoModulos] = useState(false);
+  const [carregandoAtividades, setCarregandoAtividades] = useState(false);
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const heartbeatTimerRef = useState<NodeJS.Timeout | null>(null)[0];
+
+  const supabase = useMemo(() => createClient(), []);
+  const nextSearchParams = useNextSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const cursoParam = nextSearchParams.get('cursoId') ?? '';
+    const disciplinaParam = nextSearchParams.get('disciplinaId') ?? '';
+    const frenteParam = nextSearchParams.get('frenteId') ?? '';
+    const atividadeParam = nextSearchParams.get('atividadeId') ?? '';
+    setCursoId(cursoParam);
+    setDisciplinaId(disciplinaParam);
+    setFrenteId(frenteParam);
+    setModuloId('');
+    setAtividadeId(atividadeParam);
+  }, [nextSearchParams]);
+
+  // Limpar dependentes ao trocar curso
+  useEffect(() => {
+    setDisciplinaId('');
+    setFrenteId('');
+    setModuloId('');
+    setAtividadeId('');
+  }, [cursoId]);
+
+  // Carregar cursos com base no papel
+  useEffect(() => {
+    const loadCursos = async () => {
+      setCarregandoCursos(true);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) return;
+        const role = (user.user_metadata?.role as string) || 'aluno';
+        const isSuperAdmin = role === 'superadmin' || user.user_metadata?.is_superadmin === true;
+        setUserRole(isSuperAdmin ? 'superadmin' : role);
+        setUserId(user.id);
+
+        if (role === 'professor' && !isSuperAdmin) {
+          const { data, error: cursosError } = await supabase
+            .from('cursos')
+            .select('id, nome, created_by')
+            .eq('created_by', user.id)
+            .order('nome', { ascending: true });
+          if (cursosError) throw cursosError;
+          setCursos((data ?? []).map((c) => ({ id: c.id, nome: c.nome })));
+          if (!cursoId && data && data.length > 0) setCursoId(data[0].id);
+        } else if (isSuperAdmin) {
+          const { data, error: cursosError } = await supabase
+            .from('cursos')
+            .select('id, nome')
+            .order('nome', { ascending: true });
+          if (cursosError) throw cursosError;
+          setCursos((data ?? []).map((c) => ({ id: c.id, nome: c.nome })));
+          if (!cursoId && data && data.length > 0) setCursoId(data[0].id);
+        } else {
+          const { data, error: acError } = await supabase
+            .from('alunos_cursos')
+            .select('curso_id, cursos(id, nome)')
+            .eq('aluno_id', user.id);
+          if (acError) throw acError;
+          const lista = (data ?? [])
+            .map((ac) => ac.cursos)
+            .filter(Boolean)
+            .map((c: any) => ({ id: c.id, nome: c.nome }));
+          setCursos(lista);
+          if (!cursoId && lista.length > 0) setCursoId(lista[0].id);
+        }
+      } catch (err) {
+        console.error('[modo-foco] erro ao carregar cursos', err);
+        setErroCarregamento('Erro ao carregar cursos.');
+      } finally {
+        setCarregandoCursos(false);
+      }
+    };
+    loadCursos();
+  }, [cursoId, supabase]);
+
+  // Carregar disciplinas (independente do curso, mas será filtrado nas frentes)
+  useEffect(() => {
+    const load = async () => {
+      setCarregandoDisciplinas(true);
+      try {
+        const { data: sessionData, error } = await supabase.auth.getSession();
+        if (error || !sessionData?.session) return;
+        const { data, error: qError } = await supabase
+          .from('disciplinas')
+          .select('id, nome')
+          .order('nome', { ascending: true });
+        if (qError) {
+          throw qError;
+        }
+        setDisciplinas((data ?? []).map((d) => ({ id: d.id, nome: d.nome })));
+      } catch (err) {
+        console.error('[modo-foco] erro ao carregar disciplinas', err);
+        setErroCarregamento('Erro ao carregar disciplinas.');
+      } finally {
+        setCarregandoDisciplinas(false);
+      }
+    };
+    load();
+  }, [supabase]);
+
+  // Carregar frentes ao escolher disciplina e curso
+  useEffect(() => {
+    if (!disciplinaId || !cursoId) {
+      setFrentes([]);
+      setFrenteId('');
+      setModulos([]);
+      setModuloId('');
+      setAtividades([]);
+      setAtividadeId('');
+      return;
+    }
+    const load = async () => {
+      setCarregandoFrentes(true);
+      try {
+        const { data, error } = await supabase
+          .from('frentes')
+          .select('id, nome')
+          .eq('disciplina_id', disciplinaId)
+          .eq('curso_id', cursoId)
+          .order('nome', { ascending: true });
+        if (error) throw error;
+        setFrentes((data ?? []).map((f) => ({ id: f.id, nome: f.nome })));
+        // Se frente atual não pertence, limpar
+        if (frenteId && !(data ?? []).some((f) => f.id === frenteId)) {
+          setFrenteId('');
+        }
+      } catch (err) {
+        console.error('[modo-foco] erro ao carregar frentes', err);
+        setErroCarregamento('Erro ao carregar frentes.');
+      } finally {
+        setCarregandoFrentes(false);
+      }
+    };
+    load();
+  }, [disciplinaId, cursoId, supabase]);
+
+  // Carregar módulos ao escolher frente
+  useEffect(() => {
+    if (!frenteId) {
+      setModulos([]);
+      setModuloId('');
+      setAtividades([]);
+      setAtividadeId('');
+      return;
+    }
+    const load = async () => {
+      setCarregandoModulos(true);
+      try {
+        const { data, error } = await supabase
+          .from('modulos')
+          .select('id, nome, numero_modulo')
+          .eq('frente_id', frenteId)
+          .order('numero_modulo', { ascending: true, nullsFirst: false });
+        if (error) throw error;
+        setModulos((data ?? []).map((m) => ({ id: m.id, nome: m.nome, numero_modulo: m.numero_modulo })));
+        setModuloId('');
+        setAtividades([]);
+        setAtividadeId('');
+      } catch (err) {
+        console.error('[modo-foco] erro ao carregar módulos', err);
+        setErroCarregamento('Erro ao carregar módulos.');
+      } finally {
+        setCarregandoModulos(false);
+      }
+    };
+    load();
+  }, [frenteId, supabase]);
+
+  // Carregar atividades via API interna usando moduloId
+  useEffect(() => {
+    if (!moduloId) {
+      setAtividades([]);
+      setAtividadeId('');
+      return;
+    }
+    const load = async () => {
+      setCarregandoAtividades(true);
+      try {
+        const resp = await fetch(`/api/atividade?modulo_id=${moduloId}`);
+        if (!resp.ok) throw new Error('Falha ao carregar atividades');
+        const { data } = await resp.json();
+        const opts: Option[] = (data ?? []).map((a: any) => ({ id: a.id, nome: a.titulo }));
+        setAtividades(opts);
+        if (atividadeId && !opts.some((a) => a.id === atividadeId)) {
+          setAtividadeId('');
+        }
+      } catch (err) {
+        console.error('[modo-foco] erro ao carregar atividades', err);
+        setErroCarregamento('Erro ao carregar atividades.');
+      } finally {
+        setCarregandoAtividades(false);
+      }
+    };
+    load();
+  }, [moduloId]);
+
+  useEffect(() => {
+    let mounted = true;
+    let channelCleanup: (() => void) | null = null;
+
+    const joinPresence = async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData?.user) {
+          setErro('Falha ao obter usuário para Presence');
+          return;
+        }
+
+        const key = userData.user.id;
+        const room = `modo-foco:${disciplinaId || 'geral'}`;
+        const channel = supabase.channel(room, {
+          config: {
+            presence: { key },
+          },
+        });
+
+        channel.on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          const total = Object.keys(state).length;
+          if (mounted) {
+            setPresence({ count: total || 1, channel: room });
+          }
+        });
+
+        await channel.subscribe();
+        await channel.track({
+          user_id: key,
+          disciplina_id: disciplinaId || null,
+          frente_id: frenteId || null,
+          atividade_id: atividadeId || null,
+        });
+
+        channelCleanup = () => {
+          channel.unsubscribe();
+        };
+      } catch (err) {
+        console.error('[modo-foco] erro ao iniciar presence', err);
+      }
+    };
+
+    joinPresence();
+
+    return () => {
+      mounted = false;
+      if (channelCleanup) channelCleanup();
+    };
+  }, [supabase, disciplinaId, frenteId, atividadeId]);
+
+  // Heartbeat enquanto rodando e não pausado
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    const startHeartbeat = async () => {
+      if (!sessaoId) return;
+      try {
+        const { data: sessionData, error } = await supabase.auth.getSession();
+        if (error || !sessionData?.session) return;
+        await fetch('/api/sessao/heartbeat', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: JSON.stringify({ sessao_id: sessaoId }),
+        });
+      } catch (err) {
+        console.warn('[modo-foco] heartbeat falhou', err);
+      }
+    };
+
+    if (state.running && !state.paused && sessaoId) {
+      startHeartbeat();
+      timer = setInterval(startHeartbeat, 30000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [state.running, state.paused, sessaoId, supabase]);
+
+  const iniciarSessao = async () => {
+    if (iniciando) return;
+    setErro(null);
+    if (!disciplinaId) {
+      setErro('Selecione uma disciplina para iniciar.');
+      return;
+    }
+    setIniciando(true);
+    try {
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      if (error || !sessionData?.session) {
+        throw new Error('Sessão não encontrada para iniciar foco');
+      }
+
+      const body = {
+        disciplina_id: disciplinaId || null,
+        frente_id: frenteId || null,
+        atividade_relacionada_id: atividadeId || null,
+        metodo_estudo: metodo,
+        inicio: new Date().toISOString(),
+      };
+
+      const resp = await fetch('/api/sessao/iniciar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.error || 'Erro ao iniciar sessão');
+      }
+
+      const { data } = await resp.json();
+      setSessaoId(data.id);
+
+      if (metodo === 'timer') {
+        start({
+          mode: 'timer',
+          durationMs: timerMin * 60 * 1000,
+          startIso: data.inicio,
+        });
+      } else if (metodo === 'pomodoro') {
+        start({
+          mode: 'pomodoro',
+          pomodoro: pomodoroConfig,
+          startIso: data.inicio,
+        });
+      } else {
+        start({ mode: 'cronometro', startIso: data.inicio });
+      }
+    } catch (err) {
+      console.error(err);
+      setErro(err instanceof Error ? err.message : 'Erro ao iniciar');
+    } finally {
+      setIniciando(false);
+    }
+  };
+
+  const finalizarSessao = async () => {
+    if (finalizando) return;
+    if (!sessaoId) {
+      setErro('Sessão ainda não iniciada');
+      return;
+    }
+    setErro(null);
+    setFinalizando(true);
+
+    try {
+      finalize();
+      const snapshot = latestState();
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      if (error || !sessionData?.session) {
+        throw new Error('Sessão expirada');
+      }
+
+      const resp = await fetch('/api/sessao/finalizar', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({
+          sessao_id: sessaoId,
+          log_pausas: snapshot.logPausas,
+          fim: snapshot.lastTickAt ?? new Date().toISOString(),
+          nivel_foco: nivelFoco,
+          status: 'concluido',
+        }),
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.error || 'Erro ao finalizar sessão');
+      }
+
+      if (concluiuAtividade && atividadeId) {
+        try {
+          await fetch(`/api/progresso-atividade/atividade/${atividadeId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sessionData.session.access_token}`,
+            },
+            body: JSON.stringify({ status: 'Concluido' }),
+          });
+        } catch (err) {
+          console.warn('[modo-foco] Falha ao marcar atividade concluída', err);
+        }
+      }
+
+      router.push('/aluno/sala-de-estudos');
+    } catch (err) {
+      console.error(err);
+      setErro(err instanceof Error ? err.message : 'Erro ao finalizar');
+    } finally {
+      setFinalizando(false);
+    }
+  };
+
+  const elapsedLabel = formatMs(state.elapsedMs);
+  const remainingLabel =
+    state.remainingMs !== null ? formatMs(state.remainingMs) : (state.running ? '...' : '-');
+
+  const disabledControls = iniciando || finalizando;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Modo Foco</h1>
+          <p className="text-muted-foreground">
+            Estudo imersivo com worker dedicado e monitoramento de distrações.
+          </p>
+        </div>
+        <Badge variant="outline" className="text-sm">
+          🟢 {presence.count} estudando aqui
+        </Badge>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Contexto</CardTitle>
+          <CardDescription>Selecione disciplina/frente ou use os parâmetros da URL.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="curso">Curso</Label>
+              <Select
+                value={cursoId || undefined}
+                onValueChange={(v) => setCursoId(v)}
+                disabled={carregandoCursos}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={carregandoCursos ? 'Carregando...' : 'Selecione'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {cursos.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="disciplina">Disciplina</Label>
+              <Select
+                value={disciplinaId || undefined}
+                onValueChange={(v) => setDisciplinaId(v)}
+                disabled={carregandoDisciplinas || !cursoId}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      cursoId
+                        ? carregandoDisciplinas
+                          ? 'Carregando...'
+                          : 'Selecione'
+                        : 'Selecione curso'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {disciplinas.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="frente">Frente (opcional)</Label>
+              <Select
+                value={frenteId || undefined}
+                onValueChange={(v) => setFrenteId(v)}
+                disabled={!disciplinaId || carregandoFrentes}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      disciplinaId
+                        ? carregandoFrentes
+                          ? 'Carregando...'
+                          : 'Selecione'
+                        : 'Selecione disciplina'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {frentes.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="modulo">Módulo (opcional)</Label>
+              <Select
+                value={moduloId || undefined}
+                onValueChange={(v) => setModuloId(v)}
+                disabled={!frenteId || carregandoModulos}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      frenteId
+                        ? carregandoModulos
+                          ? 'Carregando...'
+                          : 'Selecione'
+                        : 'Selecione frente'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {modulos.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.numero_modulo ? `Módulo ${m.numero_modulo} - ${m.nome}` : m.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="atividade">Atividade relacionada (opcional)</Label>
+              <Select
+                value={atividadeId || undefined}
+                onValueChange={(v) => setAtividadeId(v)}
+                disabled={!moduloId || carregandoAtividades}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      moduloId
+                        ? carregandoAtividades
+                          ? 'Carregando...'
+                          : 'Selecione'
+                        : 'Selecione módulo'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {atividades.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {erroCarregamento && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          {erroCarregamento}
+        </div>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Timer</CardTitle>
+          <CardDescription>O worker roda fora da main thread.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Modo</Label>
+              <Select value={metodo} onValueChange={(v) => setMetodo(v as MetodoEstudo)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha o modo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cronometro">Cronômetro</SelectItem>
+                  <SelectItem value="timer">Timer regressivo</SelectItem>
+                  <SelectItem value="pomodoro">Pomodoro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {metodo === 'timer' && (
+              <div className="space-y-2">
+                <Label>Minutos (timer)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={timerMin}
+                  onChange={(e) => setTimerMin(Number(e.target.value))}
+                />
+              </div>
+            )}
+            {metodo === 'pomodoro' && (
+              <div className="space-y-2">
+                <Label>Ciclos (pomodoro)</Label>
+                <Slider
+                  defaultValue={[pomodoroConfig.totalCycles ?? 4]}
+                  min={1}
+                  max={8}
+                  step={1}
+                  onValueChange={([v]) => setPomodoroConfig((prev) => ({ ...prev, totalCycles: v }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Foco {pomodoroConfig.focusMs / 60000}m / Pausa curta {pomodoroConfig.shortBreakMs / 60000}
+                  m / Longa {pomodoroConfig.longBreakMs! / 60000}m
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="text-5xl font-bold tabular-nums">{elapsedLabel}</div>
+              <div className="text-sm text-muted-foreground">
+                {metodo === 'timer' || metodo === 'pomodoro' ? `Restante: ${remainingLabel}` : 'Contagem livre'}
+                <br />
+                {state.phase && (
+                  <span className="text-xs">
+                    Fase: {state.phase.phase} (ciclo {state.phase.cycle}
+                    {state.phase.totalCycles ? `/${state.phase.totalCycles}` : ''})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {!state.running && (
+                <Button onClick={iniciarSessao} disabled={disabledControls}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Iniciar
+                </Button>
+              )}
+              {state.running && !state.paused && (
+                <Button variant="outline" onClick={pause} disabled={disabledControls}>
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pausar
+                </Button>
+              )}
+              {state.running && state.paused && (
+                <Button variant="outline" onClick={resume} disabled={disabledControls}>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Retomar
+                </Button>
+              )}
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (!state.startedAt || !sessaoId) {
+                    setErro('Inicie a sessão antes de encerrar.');
+                    return;
+                  }
+                  setShowFinalizeModal(true);
+                }}
+                disabled={disabledControls || !state.startedAt}
+              >
+                <StopCircle className="h-4 w-4 mr-2" />
+                Encerrar
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Encerramento</CardTitle>
+          <CardDescription>Feedback rápido antes de salvar.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Status da sessão</Label>
+              <Input value={sessaoId ? 'Em andamento' : 'Não iniciada'} readOnly />
+            </div>
+            <div className="space-y-2">
+              <Label>Nível de foco (1-5)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={5}
+                value={nivelFoco}
+                onChange={(e) => setNivelFoco(Number(e.target.value))}
+              />
+            </div>
+            {atividadeId && (
+              <div className="space-y-2">
+                <Label>Concluiu a atividade?</Label>
+                <Select
+                  value={concluiuAtividade ? 'sim' : 'nao'}
+                  onValueChange={(v) => setConcluiuAtividade(v === 'sim')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sim">Sim, concluí</SelectItem>
+                    <SelectItem value="nao">Ainda não</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {erro && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              {erro}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Encerrar sessão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Como foi o foco?</p>
+              <div className="flex gap-2 mt-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Button
+                    key={n}
+                    type="button"
+                    variant={nivelFoco === n ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={() => setNivelFoco(n)}
+                    aria-label={`Nota ${n}`}
+                  >
+                    <Star className="h-4 w-4" fill={nivelFoco >= n ? 'currentColor' : 'none'} />
+                  </Button>
+                ))}
+              </div>
+            </div>
+            {atividadeId && (
+              <div className="space-y-2">
+                <Label>Concluiu a atividade?</Label>
+                <Select
+                  value={concluiuAtividade ? 'sim' : 'nao'}
+                  onValueChange={(v) => setConcluiuAtividade(v === 'sim')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sim">Sim, concluí</SelectItem>
+                    <SelectItem value="nao">Ainda não</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowFinalizeModal(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={finalizarSessao} disabled={finalizando}>
+              {finalizando ? 'Salvando...' : 'Salvar e encerrar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -619,8 +619,11 @@ export class CronogramaService {
       .select('id, frente_id, curso_id, frentes(nome, disciplina_id, curso_id, disciplinas(nome))')
       .in('frente_id', frenteIds);
 
+    // Alguns módulos antigos podem não ter curso_id definido.
+    // Quando um curso é informado, aceitamos módulos que pertençam às frentes do curso
+    // mesmo se o curso_id estiver null, para manter compatibilidade com dados legados.
     if (cursoId) {
-      modulosQuery = modulosQuery.eq('curso_id', cursoId);
+      modulosQuery = modulosQuery.or(`curso_id.eq.${cursoId},curso_id.is.null`);
     }
 
     const { data: modulosData, error: modulosError } = await modulosQuery;
@@ -806,10 +809,43 @@ export class CronogramaService {
       }
       
       if (moduloIds.length === 0) {
-        throw new CronogramaValidationError(
-          'Nenhum módulo válido encontrado para o curso selecionado.',
-        );
+        console.warn('[CronogramaService] Nenhum módulo selecionado permaneceu após o filtro por frentes/curso.');
       }
+    }
+
+    // Diagnóstico adicional quando o usuário selecionou módulos mas nenhum foi considerado válido
+    if (moduloIds.length === 0 && modulosSelecionados && modulosSelecionados.length > 0) {
+      const { data: modulosSelecionadosData, error: modulosSelecionadosError } = await client
+        .from('modulos')
+        .select('id, frente_id, curso_id, frentes(id, nome, curso_id, disciplinas(nome))')
+        .in('id', modulosSelecionados);
+
+      if (modulosSelecionadosError) {
+        console.warn('[CronogramaService] Não foi possível diagnosticar módulos selecionados:', modulosSelecionadosError);
+      } else {
+        const frentesValidasSet = new Set(frenteIds);
+        const modulosForaDasFrentes = (modulosSelecionadosData || []).filter(
+          (m: any) => !frentesValidasSet.has(m.frente_id),
+        );
+
+        console.warn('[CronogramaService] ⚠️ Módulos selecionados não pertencem às frentes/curso informados:', {
+          cursoId,
+          total_modulos_selecionados: modulosSelecionados.length,
+          total_modulos_encontrados: modulosSelecionadosData?.length || 0,
+          modulos_fora_das_frentes: modulosForaDasFrentes.map((m: any) => ({
+            id: m.id,
+            frente_id: m.frente_id,
+            curso_id: m.curso_id,
+            frente_nome: (m.frentes as any)?.nome,
+            frente_curso_id: (m.frentes as any)?.curso_id,
+            disciplina_nome: (m.frentes as any)?.disciplinas?.nome,
+          })),
+        });
+      }
+
+      throw new CronogramaValidationError(
+        'Nenhum módulo válido encontrado para o curso selecionado. Verifique se os módulos estão vinculados às frentes e disciplinas escolhidas.',
+      );
     }
 
     if (moduloIds.length === 0) {
