@@ -30,7 +30,13 @@ export class DisciplineService {
       throw new DisciplineConflictError(`Discipline "${name}" already exists`);
     }
 
-    return this.repository.create({ name });
+    const discipline = await this.repository.create({ name });
+
+    // Invalidar cache de estrutura hierárquica
+    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    await courseStructureCacheService.invalidateDisciplines([discipline.id]);
+
+    return discipline;
   }
 
   async update(id: string, payload: UpdateDisciplineInput): Promise<Discipline> {
@@ -44,7 +50,13 @@ export class DisciplineService {
       throw new DisciplineConflictError(`Discipline "${name}" already exists`);
     }
 
-    return this.repository.update(id, { name });
+    const discipline = await this.repository.update(id, { name });
+
+    // Invalidar cache de estrutura hierárquica
+    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    await courseStructureCacheService.invalidateDisciplines([id]);
+
+    return discipline;
   }
 
   async delete(id: string): Promise<void> {
@@ -54,6 +66,10 @@ export class DisciplineService {
     }
 
     await this.repository.delete(id);
+
+    // Invalidar cache de estrutura hierárquica
+    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    await courseStructureCacheService.invalidateDisciplines([id]);
   }
 
   async getById(id: string): Promise<Discipline> {

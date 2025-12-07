@@ -266,3 +266,5 @@ type FlashcardAdmin = {
 
 **Última atualização:** 2025-01-31
 **Status:** Análise completa - Aguardando implementação
+
+

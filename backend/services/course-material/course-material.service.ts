@@ -11,6 +11,7 @@ import {
   CourseMaterialNotFoundError,
   CourseMaterialValidationError,
 } from './errors';
+import { cacheService } from '@/backend/services/cache';
 
 const TITLE_MIN_LENGTH = 3;
 const TITLE_MAX_LENGTH = 200;
@@ -35,7 +36,13 @@ export class CourseMaterialService {
   }
 
   async listByCourse(courseId: string): Promise<CourseMaterial[]> {
-    return this.repository.findByCourseId(courseId);
+    const cacheKey = `cache:curso:${courseId}:materiais`;
+    
+    return cacheService.getOrSet(
+      cacheKey,
+      () => this.repository.findByCourseId(courseId),
+      1800 // TTL: 30 minutos
+    );
   }
 
   async create(payload: CreateCourseMaterialInput): Promise<CourseMaterial> {
@@ -47,7 +54,7 @@ export class CourseMaterialService {
     const description = payload.description ? this.validateDescription(payload.description) : undefined;
     const order = payload.order !== undefined ? this.validateOrder(payload.order) : 0;
 
-    return this.repository.create({
+    const material = await this.repository.create({
       courseId: payload.courseId,
       title,
       description,
@@ -55,10 +62,15 @@ export class CourseMaterialService {
       fileUrl,
       order,
     });
+
+    // Invalidar cache do curso
+    await cacheService.del(`cache:curso:${payload.courseId}:materiais`);
+
+    return material;
   }
 
   async update(id: string, payload: UpdateCourseMaterialInput): Promise<CourseMaterial> {
-    await this.ensureExists(id);
+    const existing = await this.ensureExists(id);
 
     const updateData: UpdateCourseMaterialInput = {};
 
@@ -82,12 +94,20 @@ export class CourseMaterialService {
       updateData.order = this.validateOrder(payload.order);
     }
 
-    return this.repository.update(id, updateData);
+    const material = await this.repository.update(id, updateData);
+
+    // Invalidar cache do curso
+    await cacheService.del(`cache:curso:${material.courseId}:materiais`);
+
+    return material;
   }
 
   async delete(id: string): Promise<void> {
-    await this.ensureExists(id);
+    const material = await this.ensureExists(id);
     await this.repository.delete(id);
+
+    // Invalidar cache do curso
+    await cacheService.del(`cache:curso:${material.courseId}:materiais`);
   }
 
   async getById(id: string): Promise<CourseMaterial> {

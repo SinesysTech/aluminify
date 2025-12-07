@@ -1,2 +1,10 @@
 export { responseStore } from './response-store';
 export type { ChatResponseData } from './response-store';
+export { cacheService } from './cache.service';
+export { courseStructureCacheService } from './course-structure-cache.service';
+export type { CourseStructure, DisciplineStructure, FrenteStructure, ModuloStructure, AulaStructure } from './course-structure-cache.service';
+export { userProfileCacheService } from './user-profile-cache.service';
+export type { UserProfile } from './user-profile-cache.service';
+export { activityCacheService } from './activity-cache.service';
+export type { CachedActivity } from './activity-cache.service';
+export { cacheMonitorService } from './cache-monitor.service';

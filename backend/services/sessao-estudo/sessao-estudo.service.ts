@@ -7,6 +7,7 @@ import {
 } from '@/types/sessao-estudo';
 import { SessaoEstudoRepository } from './sessao-estudo.repository';
 import { SessaoEstudoNotFoundError, SessaoEstudoValidationError } from './errors';
+import { cacheService } from '@/backend/services/cache';
 
 function isISODate(value: string): boolean {
   return !Number.isNaN(Date.parse(value));
@@ -132,7 +133,7 @@ export class SessaoEstudoService {
       logPausas,
     );
 
-    return this.repository.updateFinalizacao(input.sessaoId, alunoId, {
+    const result = await this.repository.updateFinalizacao(input.sessaoId, alunoId, {
       fimIso,
       logPausas,
       tempoTotalBrutoSegundos,
@@ -140,6 +141,11 @@ export class SessaoEstudoService {
       nivelFoco: input.nivelFoco,
       status: input.status ?? 'concluido',
     });
+
+    // Invalidar cache da sessão
+    await cacheService.del(`cache:sessao:${input.sessaoId}:estado`);
+
+    return result;
   }
 
   async heartbeat(alunoId: string, sessaoId: string): Promise<void> {
@@ -150,6 +156,18 @@ export class SessaoEstudoService {
       throw new SessaoEstudoValidationError('sessao_id é obrigatório');
     }
 
+    // Verificar cache primeiro (estado temporário)
+    const cacheKey = `cache:sessao:${sessaoId}:estado`;
+    const cachedState = await cacheService.get<{ lastHeartbeat: number; needsUpdate: boolean }>(cacheKey);
+    const now = Date.now();
+    
+    // Se há cache e foi atualizado recentemente (< 5 minutos), apenas atualizar cache
+    if (cachedState && (now - cachedState.lastHeartbeat) < 5 * 60 * 1000) {
+      await cacheService.set(cacheKey, { lastHeartbeat: now, needsUpdate: true }, 600); // TTL: 10 minutos
+      return; // Não atualizar banco ainda
+    }
+
+    // Buscar do banco e validar
     const sessao = await this.repository.findById(sessaoId);
     if (!sessao || sessao.alunoId !== alunoId) {
       throw new SessaoEstudoNotFoundError(sessaoId);
@@ -158,10 +176,16 @@ export class SessaoEstudoService {
       throw new SessaoEstudoValidationError('Sessão já finalizada');
     }
 
+    // Atualizar banco
     await this.repository.heartbeat(sessaoId, alunoId);
+    
+    // Atualizar cache
+    await cacheService.set(cacheKey, { lastHeartbeat: now, needsUpdate: false }, 600); // TTL: 10 minutos
   }
 }
 
 export const sessaoEstudoService = new SessaoEstudoService(new SessaoEstudoRepository());
+
+
 
 

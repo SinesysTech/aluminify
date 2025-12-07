@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { conversationService } from '@/backend/services/conversation';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { cacheService } from '@/backend/services/cache';
 
 /**
  * GET /api/conversations
@@ -30,7 +31,13 @@ async function getHandler(request: AuthenticatedRequest) {
       });
     }
 
-    const conversations = await conversationService.listConversations({ userId });
+    // Cachear lista de conversas (metadados apenas, sem histórico)
+    const cacheKey = `cache:user:${userId}:conversas`;
+    const conversations = await cacheService.getOrSet(
+      cacheKey,
+      () => conversationService.listConversations({ userId }),
+      300 // TTL: 5 minutos
+    );
 
     return NextResponse.json({ conversations });
   } catch (error) {
@@ -61,6 +68,9 @@ async function postHandler(request: AuthenticatedRequest) {
       userId,
       title: body.title,
     });
+
+    // Invalidar cache de conversas
+    await cacheService.del(`cache:user:${userId}:conversas`);
 
     return NextResponse.json({ conversation }, { status: 201 });
   } catch (error) {

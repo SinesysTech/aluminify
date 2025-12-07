@@ -13,12 +13,30 @@ import {
   AtividadeValidationError,
 } from './errors';
 import { getDatabaseClient } from '@/backend/clients/database';
+import { activityCacheService } from '@/backend/services/cache/activity-cache.service';
 
 export class AtividadeService {
   constructor(private readonly repository: AtividadeRepository) {}
 
   async listByModulo(moduloId: string): Promise<Atividade[]> {
-    return this.repository.listByModulo(moduloId);
+    // Usar cache para estrutura de atividades (sem progresso)
+    const cached = await activityCacheService.getActivitiesByModulo(moduloId);
+    
+    // Converter dados do cache para formato Atividade completo
+    return cached.map(a => ({
+      id: a.id,
+      moduloId: a.moduloId,
+      tipo: a.tipo as TipoAtividade,
+      titulo: a.titulo,
+      arquivoUrl: a.arquivoUrl,
+      gabaritoUrl: a.gabaritoUrl,
+      linkExterno: a.linkExterno,
+      obrigatorio: a.obrigatorio,
+      ordemExibicao: a.ordemExibicao,
+      createdBy: null, // Não cacheado (não é usado frequentemente)
+      createdAt: new Date(a.createdAt),
+      updatedAt: new Date(a.updatedAt),
+    }));
   }
 
   async listByFrente(frenteId: string): Promise<Atividade[]> {
@@ -40,35 +58,53 @@ export class AtividadeService {
       throw new AtividadeValidationError('titulo is required');
     }
 
-    return this.repository.create({
+    const atividade = await this.repository.create({
       ...input,
       titulo: input.titulo.trim(),
     });
+
+    // Invalidar cache do módulo
+    await activityCacheService.invalidateModulo(input.moduloId);
+
+    return atividade;
   }
 
   async updateArquivoUrl(id: string, arquivoUrl: string): Promise<Atividade> {
-    await this.ensureExists(id);
+    const existing = await this.ensureExists(id);
 
     if (!arquivoUrl || !arquivoUrl.trim()) {
       throw new AtividadeValidationError('arquivo_url is required');
     }
 
-    return this.repository.update(id, { arquivoUrl: arquivoUrl.trim() });
+    const atividade = await this.repository.update(id, { arquivoUrl: arquivoUrl.trim() });
+
+    // Invalidar cache do módulo
+    await activityCacheService.invalidateModulo(existing.moduloId);
+
+    return atividade;
   }
 
   async update(id: string, payload: UpdateAtividadeInput): Promise<Atividade> {
-    await this.ensureExists(id);
+    const existing = await this.ensureExists(id);
 
     if (payload.arquivoUrl !== undefined && (!payload.arquivoUrl || !payload.arquivoUrl.trim())) {
       throw new AtividadeValidationError('arquivo_url cannot be empty');
     }
 
-    return this.repository.update(id, payload);
+    const atividade = await this.repository.update(id, payload);
+
+    // Invalidar cache do módulo (qualquer atualização invalida o cache)
+    await activityCacheService.invalidateModulo(existing.moduloId);
+
+    return atividade;
   }
 
   async delete(id: string): Promise<void> {
-    await this.ensureExists(id);
-    return this.repository.delete(id);
+    const existing = await this.ensureExists(id);
+    await this.repository.delete(id);
+
+    // Invalidar cache do módulo
+    await activityCacheService.invalidateModulo(existing.moduloId);
   }
 
   async listByAlunoMatriculas(alunoId: string): Promise<AtividadeComProgressoEHierarquia[]> {
@@ -141,6 +177,9 @@ export class AtividadeService {
     if (deleteError) {
       throw new Error(`Failed to clean activities before regeneration: ${deleteError.message}`);
     }
+
+    // Invalidar cache de todos os módulos afetados
+    await activityCacheService.invalidateModulos(moduloIds);
 
     // Busca regras do curso
     const { data: regras, error: regrasError } = await client
@@ -217,6 +256,10 @@ export class AtividadeService {
     if (insertError) {
       throw new Error(`Failed to insert generated personalized activities: ${insertError.message}`);
     }
+
+    // Invalidar cache dos módulos onde atividades foram criadas
+    const moduloIdsComAtividades = [...new Set(insertPayload.map(p => p.modulo_id))];
+    await activityCacheService.invalidateModulos(moduloIdsComAtividades);
   }
 
   private async ensureExists(id: string): Promise<Atividade> {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { conversationService } from '@/backend/services/conversation';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { cacheService } from '@/backend/services/cache';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -74,6 +75,9 @@ async function putHandler(
       is_active: body.is_active,
     });
 
+    // Invalidar cache de conversas
+    await cacheService.del(`cache:user:${userId}:conversas`);
+
     const history = await conversationService.getConversationHistory(params.id, userId);
 
     return NextResponse.json({ data: { ...conversation, history } });
@@ -108,6 +112,9 @@ async function deleteHandler(
     }
 
     await conversationService.deleteConversation({ id: params.id, userId });
+
+    // Invalidar cache de conversas
+    await cacheService.del(`cache:user:${userId}:conversas`);
 
     return NextResponse.json({ success: true });
   } catch (error) {

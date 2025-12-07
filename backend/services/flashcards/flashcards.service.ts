@@ -1,10 +1,16 @@
 import { getDatabaseClient } from '@/backend/clients/database';
 import { DificuldadePercebida } from '@/backend/services/progresso-atividade/progresso-atividade.types';
+import { cacheService } from '@/backend/services/cache';
 
 export type FlashcardImportRow = {
-  disciplina: string;
-  frente: string;
-  moduloNumero: number;
+  // Formato antigo (compatibilidade)
+  disciplina?: string;
+  frente?: string;
+  moduloNumero?: number;
+  // Formato novo (direto com moduloId)
+  moduloId?: string;
+  moduloNome?: string;
+  // Campos obrigatórios
   pergunta: string;
   resposta: string;
 };
@@ -87,6 +93,31 @@ export class FlashcardsService {
     }
   }
 
+  /**
+   * Invalidar cache de flashcards baseado na hierarquia
+   */
+  private async invalidateFlashcardCache(disciplinaId?: string, frenteId?: string, moduloId?: string): Promise<void> {
+    const keys: string[] = [];
+    
+    // Invalidar todos os caches relacionados
+    if (moduloId) {
+      // Buscar todas as chaves possíveis para este módulo (diferentes páginas/ordens)
+      // Como não podemos fazer pattern matching, vamos invalidar as mais comuns
+      keys.push(`cache:flashcards:modulo:${moduloId}:page:1:limit:50:order:created_at:desc`);
+    }
+    if (frenteId) {
+      keys.push(`cache:flashcards:frente:${frenteId}:page:1:limit:50:order:created_at:desc`);
+    }
+    if (disciplinaId) {
+      keys.push(`cache:flashcards:disciplina:${disciplinaId}:page:1:limit:50:order:created_at:desc`);
+    }
+    
+    // Invalidar cache geral também
+    keys.push(`cache:flashcards:page:1:limit:50:order:created_at:desc`);
+    
+    await cacheService.delMany(keys);
+  }
+
   async importFlashcards(rows: FlashcardImportRow[], userId: string): Promise<FlashcardImportResult> {
     await this.ensureProfessor(userId);
 
@@ -100,12 +131,52 @@ export class FlashcardsService {
         _index: idx + 1,
         disciplina: row.disciplina?.trim(),
         frente: row.frente?.trim(),
-        moduloNumero: Number(row.moduloNumero),
+        moduloNumero: row.moduloNumero ? Number(row.moduloNumero) : undefined,
+        moduloId: row.moduloId?.trim(),
+        moduloNome: row.moduloNome?.trim(),
         pergunta: row.pergunta?.trim(),
         resposta: row.resposta?.trim(),
       }))
       .filter((r) => r.pergunta && r.resposta);
 
+    let inserted = 0;
+    const errors: { line: number; message: string }[] = [];
+
+    // Se o formato novo (com moduloId) está sendo usado, processar diretamente
+    const isNewFormat = normalizedRows.some(r => r.moduloId);
+    
+    if (isNewFormat) {
+      // Formato novo: moduloId já vem do frontend
+      for (const row of normalizedRows) {
+        if (!row.moduloId) {
+          errors.push({
+            line: row._index,
+            message: `Módulo não especificado`,
+          });
+          continue;
+        }
+
+        const { error: insertError } = await this.client.from('flashcards').insert({
+          modulo_id: row.moduloId,
+          pergunta: row.pergunta,
+          resposta: row.resposta,
+        });
+
+        if (insertError) {
+          errors.push({
+            line: row._index,
+            message: `Erro ao inserir flashcard: ${insertError.message}`,
+          });
+          continue;
+        }
+
+        inserted += 1;
+      }
+
+      return { inserted, errors, total: normalizedRows.length };
+    }
+
+    // Formato antigo: buscar disciplina, frente e módulo
     const { data: disciplinas, error: discError } = await this.client
       .from('disciplinas')
       .select('id, nome');
@@ -117,9 +188,6 @@ export class FlashcardsService {
       disciplinaMap.set(this.normalizeName(d.nome), { id: d.id, nome: d.nome });
     });
 
-    let inserted = 0;
-    const errors: { line: number; message: string }[] = [];
-
     for (const row of normalizedRows) {
       const disciplinaKey = this.normalizeName(row.disciplina);
       const disciplina = disciplinaKey ? disciplinaMap.get(disciplinaKey) : null;
@@ -127,6 +195,14 @@ export class FlashcardsService {
         errors.push({
           line: row._index,
           message: `Disciplina não encontrada: ${row.disciplina || '(vazia)'}`,
+        });
+        continue;
+      }
+
+      if (!row.frente) {
+        errors.push({
+          line: row._index,
+          message: `Frente não especificada`,
         });
         continue;
       }
@@ -222,17 +298,207 @@ export class FlashcardsService {
     return new Map((data ?? []).map((p) => [p.flashcard_id as string, p]));
   }
 
-  async listForReview(alunoId: string, modo: string): Promise<FlashcardReviewItem[]> {
+  async listForReview(
+    alunoId: string,
+    modo: string,
+    filters?: { cursoId?: string; frenteId?: string; moduloId?: string }
+  ): Promise<FlashcardReviewItem[]> {
     const now = new Date();
+    
+    // Modo personalizado: usar filtros fornecidos
+    if (modo === 'personalizado') {
+      if (!filters?.moduloId) {
+        return []; // Módulo é obrigatório para modo personalizado
+      }
+
+      // Validar que o usuário tem acesso ao curso/frente/módulo
+      // 1. Verificar se o módulo pertence a uma frente do curso
+      const { data: moduloData, error: moduloError } = await this.client
+        .from('modulos')
+        .select('id, frente_id, curso_id, frentes(id, disciplina_id, curso_id)')
+        .eq('id', filters.moduloId)
+        .maybeSingle();
+
+      if (moduloError || !moduloData) {
+        throw new Error(`Módulo não encontrado: ${moduloError?.message || 'Módulo inválido'}`);
+      }
+
+      // 2. Verificar se é professor ou aluno
+      const { data: professorData } = await this.client
+        .from('professores')
+        .select('id')
+        .eq('id', alunoId)
+        .maybeSingle();
+
+      const isProfessor = !!professorData;
+
+      // 3. Verificar acesso ao curso
+      let cursoIds: string[] = [];
+      let cursoValido = false;
+
+      if (isProfessor) {
+        // Professores: verificar se o curso foi criado por eles
+        // Para superadmin, vamos permitir acesso a todos (verificação será feita via RLS)
+        const frente = moduloData.frentes as any;
+        const cursoIdParaVerificar = frente?.curso_id || moduloData.curso_id;
+
+        if (cursoIdParaVerificar) {
+          const { data: cursoData } = await this.client
+            .from('cursos')
+            .select('id, created_by')
+            .eq('id', cursoIdParaVerificar)
+            .maybeSingle();
+
+          // Professor pode acessar se criou o curso (RLS também vai validar)
+          cursoValido = cursoData?.created_by === alunoId || !!cursoData;
+        } else {
+          // Módulo sem curso_id (global) - professor pode acessar
+          cursoValido = true;
+        }
+      } else {
+        // Alunos: verificar se estão matriculados no curso
+        const { data: alunosCursos, error: alunosCursosError } = await this.client
+          .from('alunos_cursos')
+          .select('curso_id')
+          .eq('aluno_id', alunoId);
+
+        if (alunosCursosError) {
+          throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
+        }
+
+        cursoIds = alunosCursos?.map((ac: any) => ac.curso_id) || [];
+        const frente = moduloData.frentes as any;
+
+        // Verificar se o módulo pertence a um curso do aluno (via frente ou módulo)
+        cursoValido = 
+          (frente?.curso_id && cursoIds.includes(frente.curso_id)) ||
+          (moduloData.curso_id && cursoIds.includes(moduloData.curso_id)) ||
+          (!frente?.curso_id && !moduloData.curso_id); // Aceitar módulos globais
+      }
+
+      if (!cursoValido) {
+        throw new Error('Você não tem acesso a este módulo');
+      }
+
+      // Buscar flashcards do módulo
+      const { data: flashcards, error: cardsError } = await this.client
+        .from('flashcards')
+        .select('id, modulo_id, pergunta, resposta, modulos(importancia)')
+        .eq('modulo_id', filters.moduloId)
+        .limit(50);
+
+      if (cardsError) {
+        throw new Error(`Erro ao buscar flashcards: ${cardsError.message}`);
+      }
+
+      const cards = (flashcards ?? []).map((c) => ({
+        id: c.id as string,
+        moduloId: c.modulo_id as string,
+        pergunta: c.pergunta as string,
+        resposta: c.resposta as string,
+        importancia: Array.isArray(c.modulos)
+          ? (c.modulos as any)[0]?.importancia
+          : (c as any).modulos?.importancia,
+      }));
+
+      const progressMap = await this.fetchProgressMap(
+        alunoId,
+        cards.map((c) => c.id),
+      );
+
+      const dueCards = cards.filter((card) => {
+        const progress = progressMap.get(card.id);
+        if (!progress) return true;
+        const nextDate = progress.data_proxima_revisao
+          ? new Date(progress.data_proxima_revisao)
+          : null;
+        return !nextDate || nextDate <= now;
+      });
+
+      const shuffled = this.shuffle(dueCards);
+      return shuffled.slice(0, 50).map((c) => {
+        const progress = progressMap.get(c.id);
+        return {
+          ...c,
+          dataProximaRevisao: progress?.data_proxima_revisao ?? null,
+        };
+      });
+    }
+    
+    // Modos automáticos: buscar cursos do aluno
+    // 1. Buscar cursos do aluno
+    const { data: alunosCursos, error: alunosCursosError } = await this.client
+      .from('alunos_cursos')
+      .select('curso_id')
+      .eq('aluno_id', alunoId);
+    
+    if (alunosCursosError) {
+      throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
+    }
+    
+    if (!alunosCursos || alunosCursos.length === 0) {
+      return []; // Aluno sem cursos matriculados
+    }
+    
+    const cursoIds = alunosCursos.map((ac: any) => ac.curso_id);
+    
+    // 2. Buscar disciplinas dos cursos
+    const { data: cursosDisciplinas, error: cdError } = await this.client
+      .from('cursos_disciplinas')
+      .select('disciplina_id')
+      .in('curso_id', cursoIds);
+    
+    if (cdError) {
+      throw new Error(`Erro ao buscar disciplinas: ${cdError.message}`);
+    }
+    
+    if (!cursosDisciplinas || cursosDisciplinas.length === 0) {
+      return []; // Cursos sem disciplinas
+    }
+    
+    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: any) => cd.disciplina_id))];
+    
+    // 3. Buscar frentes das disciplinas (que pertencem aos cursos)
+    const { data: frentesData, error: frentesError } = await this.client
+      .from('frentes')
+      .select('id')
+      .in('disciplina_id', disciplinaIds)
+      .or(
+        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+        (cursoIds.length > 0 ? ',' : '') +
+        'curso_id.is.null',
+      );
+    
+    if (frentesError) {
+      throw new Error(`Erro ao buscar frentes: ${frentesError.message}`);
+    }
+    
+    if (!frentesData || frentesData.length === 0) {
+      return []; // Sem frentes
+    }
+    
+    const frenteIds = frentesData.map((f: any) => f.id);
+    
+    // 4. Buscar módulos das frentes (considerando curso)
+    let modulosQuery = this.client
+      .from('modulos')
+      .select('id, importancia, frente_id, curso_id')
+      .in('frente_id', frenteIds);
+    
+    // Aceitar módulos com curso_id null ou igual aos cursos do aluno
+    if (cursoIds.length > 0) {
+      modulosQuery = modulosQuery.or(
+        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+        ',curso_id.is.null',
+      );
+    }
+    
     let moduloIds: string[] = [];
 
     if (modo === 'mais_cobrados') {
-      const { data, error } = await this.client
-        .from('modulos')
-        .select('id')
-        .eq('importancia', 'Alta');
+      const { data, error } = await modulosQuery.eq('importancia', 'Alta');
       if (error) throw new Error(`Erro ao buscar módulos prioritários: ${error.message}`);
-      moduloIds = (data ?? []).map((m) => m.id);
+      moduloIds = (data ?? []).map((m: any) => m.id);
     } else if (modo === 'mais_errados') {
       const { data: progressos, error: progError } = await this.client
         .from('progresso_atividades')
@@ -282,9 +548,13 @@ export class FlashcardsService {
           new Set((cardsVisitados ?? []).map((c) => c.modulo_id as string)),
         );
       }
-      const { data: cardsQualquer } = await this.client.from('flashcards').select('modulo_id');
+      // Buscar todos os módulos das frentes do aluno (já filtrados acima)
+      const { data: todosModulos, error: todosModulosError } = await modulosQuery;
+      if (todosModulosError) {
+        console.warn('[flashcards] erro ao buscar todos os módulos', todosModulosError);
+      }
       const moduloIdsAll = Array.from(
-        new Set((cardsQualquer ?? []).map((c) => c.modulo_id as string)),
+        new Set((todosModulos ?? []).map((m: any) => m.id)),
       );
       moduloIds = moduloIdsVisited.length ? moduloIdsVisited : moduloIdsAll;
     }
@@ -337,6 +607,20 @@ export class FlashcardsService {
     });
   }
 
+  /**
+   * Registra feedback do aluno sobre um flashcard
+   * 
+   * Valores de feedback:
+   * 1 = Errei o item
+   * 2 = Acertei parcialmente
+   * 3 = Acertei com dificuldade
+   * 4 = Acertei com facilidade
+   * 
+   * Esses feedbacks serão usados para alimentar os algoritmos de:
+   * - Mais Cobrados
+   * - Revisão Geral
+   * - UTI dos Erros
+   */
   async sendFeedback(alunoId: string, cardId: string, feedback: number) {
     if (![1, 2, 3, 4].includes(feedback)) {
       throw new Error('Feedback inválido. Use 1, 2, 3 ou 4.');
@@ -406,6 +690,30 @@ export class FlashcardsService {
     total: number;
   }> {
     await this.ensureProfessor(userId);
+
+    // Não cachear se houver busca por texto (resultados podem variar)
+    const hasSearch = !!filters.search;
+    
+    // Criar chave de cache baseada nos filtros (sem search)
+    if (!hasSearch) {
+      const cacheKeyParts = ['cache:flashcards'];
+      if (filters.disciplinaId) cacheKeyParts.push(`disciplina:${filters.disciplinaId}`);
+      if (filters.frenteId) cacheKeyParts.push(`frente:${filters.frenteId}`);
+      if (filters.moduloId) cacheKeyParts.push(`modulo:${filters.moduloId}`);
+      const page = filters.page || 1;
+      const limit = filters.limit || 50;
+      cacheKeyParts.push(`page:${page}`, `limit:${limit}`);
+      const orderBy = filters.orderBy || 'created_at';
+      const orderDirection = filters.orderDirection || 'desc';
+      cacheKeyParts.push(`order:${orderBy}:${orderDirection}`);
+      
+      const cacheKey = cacheKeyParts.join(':');
+      
+      const cached = await cacheService.get<{ data: FlashcardAdmin[]; total: number }>(cacheKey);
+      if (cached !== null) {
+        return cached;
+      }
+    }
 
     // Primeiro, buscar módulos filtrados se necessário
     let moduloIds: string[] | null = null;
@@ -541,10 +849,29 @@ export class FlashcardsService {
       })
       .filter((f): f is FlashcardAdmin => f !== null);
 
-    return {
+    const result = {
       data: flashcards,
       total: count || 0,
     };
+
+    // Armazenar no cache se não houver busca
+    if (!hasSearch) {
+      const cacheKeyParts = ['cache:flashcards'];
+      if (filters.disciplinaId) cacheKeyParts.push(`disciplina:${filters.disciplinaId}`);
+      if (filters.frenteId) cacheKeyParts.push(`frente:${filters.frenteId}`);
+      if (filters.moduloId) cacheKeyParts.push(`modulo:${filters.moduloId}`);
+      const page = filters.page || 1;
+      const limit = filters.limit || 50;
+      cacheKeyParts.push(`page:${page}`, `limit:${limit}`);
+      const orderBy = filters.orderBy || 'created_at';
+      const orderDirection = filters.orderDirection || 'desc';
+      cacheKeyParts.push(`order:${orderBy}:${orderDirection}`);
+      
+      const cacheKey = cacheKeyParts.join(':');
+      await cacheService.set(cacheKey, result, 900); // TTL: 15 minutos
+    }
+
+    return result;
   }
 
   async getById(id: string, userId: string): Promise<FlashcardAdmin | null> {
@@ -668,7 +995,7 @@ export class FlashcardsService {
       throw new Error(`Erro ao buscar módulo: ${moduloFetchError?.message || 'Módulo não encontrado'}`);
     }
 
-    return {
+    const result = {
       id: flashcard.id,
       modulo_id: flashcard.modulo_id,
       pergunta: flashcard.pergunta,
@@ -688,6 +1015,15 @@ export class FlashcardsService {
         },
       },
     };
+
+    // Invalidar cache
+    await this.invalidateFlashcardCache(
+      (modulo as any).frentes.disciplinas.id,
+      (modulo as any).frentes.id,
+      flashcard.modulo_id
+    );
+
+    return result;
   }
 
   async update(id: string, input: UpdateFlashcardInput, userId: string): Promise<FlashcardAdmin> {
@@ -766,7 +1102,7 @@ export class FlashcardsService {
       throw new Error(`Erro ao buscar módulo: ${moduloFetchError?.message || 'Módulo não encontrado'}`);
     }
 
-    return {
+    const result = {
       id: flashcard.id,
       modulo_id: flashcard.modulo_id,
       pergunta: flashcard.pergunta,
@@ -786,6 +1122,20 @@ export class FlashcardsService {
         },
       },
     };
+
+    // Invalidar cache (tanto do módulo antigo quanto do novo, se mudou)
+    await this.invalidateFlashcardCache(
+      (modulo as any).frentes.disciplinas.id,
+      (modulo as any).frentes.id,
+      flashcard.modulo_id
+    );
+    
+    // Se mudou de módulo, invalidar também o módulo antigo
+    if (input.moduloId && input.moduloId !== existing.modulo_id) {
+      await this.invalidateFlashcardCache(undefined, undefined, existing.modulo_id);
+    }
+
+    return result;
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -825,6 +1175,13 @@ export class FlashcardsService {
     if (error) {
       throw new Error(`Erro ao deletar flashcard: ${error.message}`);
     }
+
+    // Invalidar cache (usar informações do existing que já tem a hierarquia)
+    await this.invalidateFlashcardCache(
+      existing.modulo.frente.disciplina.id,
+      existing.modulo.frente.id,
+      existing.modulo_id
+    );
   }
 }
 

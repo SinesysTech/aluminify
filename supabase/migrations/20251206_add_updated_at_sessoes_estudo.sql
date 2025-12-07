@@ -9,3 +9,5 @@ FOR EACH ROW
 EXECUTE PROCEDURE handle_updated_at();
 
 
+
+

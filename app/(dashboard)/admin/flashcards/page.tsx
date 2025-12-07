@@ -5,3 +5,5 @@ export default async function FlashcardsAdminPage() {
   await requireUser({ allowedRoles: ['professor'] })
   return <FlashcardsAdminClient />
 }
+
+

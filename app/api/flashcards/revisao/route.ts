@@ -6,8 +6,15 @@ async function handler(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const modo = searchParams.get('modo') ?? 'revisao_geral';
+    const cursoId = searchParams.get('cursoId') || undefined;
+    const frenteId = searchParams.get('frenteId') || undefined;
+    const moduloId = searchParams.get('moduloId') || undefined;
 
-    const data = await flashcardsService.listForReview(request.user!.id, modo);
+    const data = await flashcardsService.listForReview(
+      request.user!.id,
+      modo,
+      { cursoId, frenteId, moduloId }
+    );
     return NextResponse.json({ data });
   } catch (error) {
     console.error('[flashcards/revisao]', error);
@@ -17,3 +24,5 @@ async function handler(request: AuthenticatedRequest) {
 }
 
 export const GET = requireUserAuth(handler);
+
+

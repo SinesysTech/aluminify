@@ -117,3 +117,5 @@ begin
   return query select v_modulos_importados, v_aulas_importadas;
 end;
 $$ language plpgsql security definer;
+
+

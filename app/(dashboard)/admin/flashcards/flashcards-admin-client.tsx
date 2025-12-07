@@ -47,8 +47,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, Plus, Loader2, Search, X, Upload, AlertCircle } from 'lucide-react'
-import Papa from 'papaparse'
+import { Pencil, Trash2, Plus, Loader2, Search, X, AlertCircle } from 'lucide-react'
+import { FlashcardUploadCard } from '@/components/flashcard-upload-card'
 import {
   Empty,
   EmptyContent,
@@ -91,6 +91,11 @@ type Frente = {
   disciplina_id: string
 }
 
+type Curso = {
+  id: string
+  nome: string
+}
+
 type Modulo = {
   id: string
   nome: string
@@ -98,16 +103,6 @@ type Modulo = {
   frente_id: string
 }
 
-type FlashcardCsvRow = {
-  disciplina?: string
-  frente?: string
-  'módulo (número)'?: string
-  'modulo (numero)'?: string
-  'módulo'?: string
-  'modulo'?: string
-  pergunta?: string
-  resposta?: string
-}
 
 export default function FlashcardsAdminClient() {
   const supabase = createClient()
@@ -126,9 +121,11 @@ export default function FlashcardsAdminClient() {
   const limit = 20
 
   // Dados para filtros
+  const [cursos, setCursos] = React.useState<Curso[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
   const [frentes, setFrentes] = React.useState<Frente[]>([])
   const [modulos, setModulos] = React.useState<Modulo[]>([])
+  const [loadingCursos, setLoadingCursos] = React.useState(false)
   const [loadingDisciplinas, setLoadingDisciplinas] = React.useState(false)
   const [loadingFrentes, setLoadingFrentes] = React.useState(false)
   const [loadingModulos, setLoadingModulos] = React.useState(false)
@@ -145,11 +142,6 @@ export default function FlashcardsAdminClient() {
   const [formResposta, setFormResposta] = React.useState<string>('')
   const [saving, setSaving] = React.useState(false)
 
-  // Upload CSV
-  const [flashcardsFile, setFlashcardsFile] = React.useState<File | null>(null)
-  const [flashImportLoading, setFlashImportLoading] = React.useState(false)
-  const [flashImportError, setFlashImportError] = React.useState<string | null>(null)
-  const [flashImportSuccess, setFlashImportSuccess] = React.useState<string | null>(null)
 
   const fetchWithAuth = React.useCallback(
     async (input: string, init?: RequestInit) => {
@@ -173,6 +165,28 @@ export default function FlashcardsAdminClient() {
     },
     [supabase],
   )
+
+  // Carregar cursos
+  React.useEffect(() => {
+    const loadCursos = async () => {
+      try {
+        setLoadingCursos(true)
+        const { data, error } = await supabase
+          .from('cursos')
+          .select('id, nome')
+          .order('nome', { ascending: true })
+
+        if (error) throw error
+        setCursos(data || [])
+      } catch (err) {
+        console.error('Erro ao carregar cursos:', err)
+      } finally {
+        setLoadingCursos(false)
+      }
+    }
+
+    loadCursos()
+  }, [supabase])
 
   // Carregar disciplinas
   React.useEffect(() => {
@@ -461,116 +475,6 @@ export default function FlashcardsAdminClient() {
 
   const totalPages = Math.ceil(total / limit)
 
-  const parseFlashcardsCSV = (file: File): Promise<FlashcardCsvRow[]> =>
-    new Promise((resolve, reject) => {
-      Papa.parse<FlashcardCsvRow>(file, {
-        header: true,
-        delimiter: ';', // padrão Excel PT-BR
-        skipEmptyLines: 'greedy',
-        transformHeader: (h) => h.trim().toLowerCase(),
-        complete: (results) => {
-          if (results.errors?.length) {
-            reject(new Error(results.errors[0].message ?? 'Erro ao processar CSV'))
-            return
-          }
-          resolve((results.data || []).filter((row) => Object.values(row).some((v) => String(v ?? '').trim())))
-        },
-        error: (error) => reject(new Error(error.message)),
-      })
-    })
-
-  const handleFlashcardsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    setFlashcardsFile(file)
-    setFlashImportError(null)
-    setFlashImportSuccess(null)
-  }
-
-  const handleImportFlashcards = async () => {
-    if (!flashcardsFile) {
-      setFlashImportError('Selecione um arquivo CSV de flashcards.')
-      return
-    }
-    try {
-      setFlashImportLoading(true)
-      setFlashImportError(null)
-      setFlashImportSuccess(null)
-
-      const rows = await parseFlashcardsCSV(flashcardsFile)
-      if (!rows.length) {
-        throw new Error('Arquivo vazio ou sem linhas válidas.')
-      }
-
-      const mapped = rows.map((row, idx) => {
-        const disciplina = row.disciplina
-        const frente = row.frente
-        const moduloNumeroStr =
-          row['módulo (número)'] ||
-          row['modulo (numero)'] ||
-          row['módulo'] ||
-          row['modulo']
-        const moduloNumero = moduloNumeroStr ? Number(moduloNumeroStr) : NaN
-        const pergunta = row.pergunta
-        const resposta = row.resposta
-        const errors: string[] = []
-        if (!disciplina) errors.push('Disciplina ausente')
-        if (!frente) errors.push('Frente ausente')
-        if (!moduloNumeroStr || Number.isNaN(moduloNumero)) errors.push('Módulo (Número) inválido')
-        if (!pergunta) errors.push('Pergunta ausente')
-        if (!resposta) errors.push('Resposta ausente')
-        return { disciplina, frente, moduloNumero, pergunta, resposta, rowNumber: idx + 2, errors }
-      })
-
-      const invalid = mapped.filter((m) => m.errors.length)
-      if (invalid.length) {
-        const msg = invalid
-          .slice(0, 5)
-          .map((r) => `Linha ${r.rowNumber}: ${r.errors.join(', ')}`)
-          .join(' | ')
-        throw new Error(`Erros no CSV: ${msg}`)
-      }
-
-      const payload = mapped.map((m) => ({
-        disciplina: m.disciplina!,
-        frente: m.frente!,
-        moduloNumero: m.moduloNumero,
-        pergunta: m.pergunta!,
-        resposta: m.resposta!,
-      }))
-
-      const res = await fetchWithAuth('/api/flashcards/import', {
-        method: 'POST',
-        body: JSON.stringify({ rows: payload }),
-      })
-
-      const body = await res.json()
-      if (!res.ok && res.status !== 207) {
-        throw new Error(body?.error || 'Erro ao importar flashcards')
-      }
-
-      const inserted = body?.data?.inserted ?? 0
-      const total = body?.data?.total ?? payload.length
-      const errors = body?.data?.errors ?? []
-
-      const msg =
-        errors.length === 0
-          ? `Importação concluída (${inserted}/${total})`
-          : `Importação parcial (${inserted}/${total}). Erros: ${errors
-              .slice(0, 3)
-              .map((e: any) => `Linha ${e.line}: ${e.message}`)
-              .join(' | ')}`
-
-      setFlashImportSuccess(msg)
-      setFlashcardsFile(null)
-      // Recarregar lista de flashcards
-      loadFlashcards()
-    } catch (err) {
-      setFlashImportError(err instanceof Error ? err.message : 'Erro ao importar flashcards')
-    } finally {
-      setFlashImportLoading(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -587,55 +491,13 @@ export default function FlashcardsAdminClient() {
       </div>
 
       {/* Upload de Flashcards */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Flashcards</CardTitle>
-          <CardDescription>
-            Upload de CSV separado para flashcards (padrão Excel PT-BR com ponto e vírgula).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {flashImportError && (
-            <Alert variant="destructive" className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              <span>{flashImportError}</span>
-            </Alert>
-          )}
-          {flashImportSuccess && (
-            <Alert className="flex items-center gap-2">
-              <span>{flashImportSuccess}</span>
-            </Alert>
-          )}
-          <div className="space-y-2">
-            <Label>Arquivo CSV</Label>
-            <Input
-              type="file"
-              accept=".csv"
-              onChange={handleFlashcardsFileChange}
-            />
-            <p className="text-xs text-muted-foreground">
-              Colunas: Disciplina;Frente;Módulo (Número);Pergunta;Resposta — delimitador ; e UTF-8.
-            </p>
-          </div>
-          <Button
-            onClick={handleImportFlashcards}
-            disabled={flashImportLoading || !flashcardsFile}
-            className="w-full sm:w-auto"
-          >
-            {flashImportLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Importando...
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Importar
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      <FlashcardUploadCard
+        cursos={cursos}
+        onUploadSuccess={() => {
+          // Recarregar lista de flashcards após importação
+          loadFlashcards()
+        }}
+      />
 
       {/* Filtros */}
       <Card>
@@ -1113,3 +975,5 @@ export default function FlashcardsAdminClient() {
     </div>
   )
 }
+
+

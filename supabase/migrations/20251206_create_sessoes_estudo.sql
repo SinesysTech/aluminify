@@ -36,3 +36,5 @@ ALTER TABLE public.sessoes_estudo ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Aluno gerencia suas sessoes" ON public.sessoes_estudo FOR ALL USING (auth.uid() = aluno_id);
 
 
+
+

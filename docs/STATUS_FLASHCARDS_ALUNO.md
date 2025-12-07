@@ -196,3 +196,5 @@ Todas as funcionalidades necessárias foram implementadas:
 
 **Última atualização:** 2025-01-31
 **Versão:** 1.0.0
+
+

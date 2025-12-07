@@ -55,7 +55,7 @@ export class CourseService {
       await this.ensureDisciplineExists(disciplineId);
     }
 
-    return this.repository.create({
+    const course = await this.repository.create({
       segmentId: payload.segmentId ?? undefined,
       disciplineId: payload.disciplineId ?? undefined, // Mantido para compatibilidade
       disciplineIds: disciplineIds, // Nova propriedade
@@ -70,6 +70,12 @@ export class CourseService {
       planningUrl: payload.planningUrl ?? undefined,
       coverImageUrl: payload.coverImageUrl ?? undefined,
     });
+
+    // Invalidar cache de estrutura hierárquica
+    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    await courseStructureCacheService.invalidateCourse(course.id);
+
+    return course;
   }
 
   async update(id: string, payload: UpdateCourseInput): Promise<Course> {
@@ -145,12 +151,22 @@ export class CourseService {
       updateData.coverImageUrl = payload.coverImageUrl;
     }
 
-    return this.repository.update(id, updateData);
+    const course = await this.repository.update(id, updateData);
+
+    // Invalidar cache de estrutura hierárquica
+    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    await courseStructureCacheService.invalidateCourse(id);
+
+    return course;
   }
 
   async delete(id: string): Promise<void> {
     await this.ensureExists(id);
     await this.repository.delete(id);
+
+    // Invalidar cache de estrutura hierárquica
+    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    await courseStructureCacheService.invalidateCourse(id);
   }
 
   async getById(id: string): Promise<Course> {

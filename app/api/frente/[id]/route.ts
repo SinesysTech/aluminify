@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseClient } from '@/backend/clients/database';
 import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { courseStructureCacheService, activityCacheService } from '@/backend/services/cache';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -197,6 +198,14 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
     }
 
     console.log(`[Frente API] Frente ${frenteId} deleted successfully by user ${userId}`);
+
+    // Invalidar cache de estrutura hierárquica e atividades
+    if (frente.disciplina_id) {
+      await courseStructureCacheService.invalidateDisciplines([frente.disciplina_id]);
+    }
+    if (moduloIds.length > 0) {
+      await activityCacheService.invalidateModulos(moduloIds);
+    }
 
     return NextResponse.json({
       success: true,
