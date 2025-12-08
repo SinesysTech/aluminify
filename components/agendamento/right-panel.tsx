@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { getAvailableSlots } from "@/app/actions/agendamentos";
 
@@ -22,8 +22,8 @@ export function RightPanel({
   const locale = 'pt-BR';
   
   // Format day number and name
-  const dayNumber = date.toLocaleDateString(locale, { day: "numeric" });
-  const dayName = date.toLocaleDateString(locale, { weekday: "short" });
+  const dayNumber = date.toLocaleDateString(locale, { day: "numeric", timeZone });
+  const dayName = date.toLocaleDateString(locale, { weekday: "short", timeZone });
   
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -57,10 +57,7 @@ export function RightPanel({
   };
 
   return (
-    <Tabs
-      defaultValue="24"
-      className="flex flex-col gap-4 w-[280px] border-l pl-6"
-    >
+    <div className="flex flex-col gap-4 w-[280px] border-l pl-6">
       <div className="flex justify-between items-center">
         <p
           aria-hidden
@@ -68,10 +65,8 @@ export function RightPanel({
         >
           {dayName} <span className="text-gray-11">{dayNumber}</span>
         </p>
-        {/* Removed 12/24 toggle as we enforce 24h for BR */}
       </div>
       
-        <TabsContent value="24" className="mt-0">
           <ScrollArea
             type="always"
             className="h-full max-h-[320px]"
@@ -94,7 +89,6 @@ export function RightPanel({
               )}
             </div>
           </ScrollArea>
-        </TabsContent>
-    </Tabs>
+    </div>
   );
 }

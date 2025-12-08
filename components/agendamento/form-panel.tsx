@@ -10,9 +10,10 @@ import { Loader2 } from "lucide-react";
 
 interface FormPanelProps {
   professorId: string;
+  timeZone: string;
 }
 
-export function FormPanel({ professorId }: FormPanelProps) {
+export function FormPanel({ professorId, timeZone }: FormPanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const slotParam = searchParams.get("slot");
@@ -61,7 +62,7 @@ export function FormPanel({ professorId }: FormPanelProps) {
       <div className="flex flex-col space-y-1.5">
         <Label>Data e Hora</Label>
         <div className="text-sm font-medium">
-          {startDate.toLocaleString('pt-BR')}
+          {startDate.toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short', timeZone })}
         </div>
       </div>
       

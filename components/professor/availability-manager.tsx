@@ -90,7 +90,6 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
 
   const handleChange = (index: number, field: keyof AvailabilityRule, value: string | number | boolean) => {
     const newRules = [...rules]
-    // @ts-ignore
     newRules[index] = { ...newRules[index], [field]: value }
     setRules(newRules)
   }

@@ -10,9 +10,10 @@ import { useSearchParams } from "next/navigation";
 
 interface LeftPanelProps {
 	showForm: boolean | null;
+    timeZone: string;
 }
 
-export function LeftPanel({ showForm }: LeftPanelProps) {
+export function LeftPanel({ showForm, timeZone }: LeftPanelProps) {
 	const locale = 'pt-BR';
 	const searchParams = useSearchParams();
 	const slotParam = searchParams.get("slot");
@@ -39,11 +40,13 @@ export function LeftPanel({ showForm }: LeftPanelProps) {
 							<p>
 								{new Date(slotParam).toLocaleDateString(locale, {
 									dateStyle: "full",
+                                    timeZone
 								})}
 							</p>
 							<p>
 								{new Date(slotParam).toLocaleTimeString(locale, {
 									timeStyle: "short",
+                                    timeZone
 								})}
 							</p>
 						</div>
@@ -54,7 +57,7 @@ export function LeftPanel({ showForm }: LeftPanelProps) {
 					<p className="text-sm font-semibold">30 min</p>
 				</div>
                 <div className="flex items-center text-gray-12">
-                     <p className="text-xs text-muted-foreground">Fuso horário: Local</p>
+                     <p className="text-xs text-muted-foreground">Fuso horário: Brasília</p>
                 </div>
 			</div>
 		</div>
