@@ -138,3 +138,77 @@ export async function cancelAgendamento(id: string) {
     revalidatePath('/agendamentos')
     return { success: true }
 }
+
+export async function getAvailableSlots(professorId: string, dateStr: string) {
+  const supabase = await createClient()
+  
+  const date = new Date(dateStr)
+  // Ensure we are working with the date part only for dayOfWeek check if possible, but JS Date uses local or UTC. 
+  // Let's rely on the input dateStr being ISO or YYYY-MM-DD.
+  // Ideally, use a library like date-fns for timezone handling, but native is fine if careful.
+  const dayOfWeek = date.getUTCDay() // 0-6
+  
+  // 1. Get availability rules
+  const { data: rules } = await supabase
+    .from('agendamento_disponibilidade')
+    .select('*')
+    .eq('professor_id', professorId)
+    .eq('dia_semana', dayOfWeek)
+    .eq('ativo', true)
+    
+  if (!rules || rules.length === 0) {
+    return []
+  }
+
+  // 2. Get existing bookings
+  const startOfDay = new Date(dateStr)
+  startOfDay.setUTCHours(0, 0, 0, 0)
+  const endOfDay = new Date(dateStr)
+  endOfDay.setUTCHours(23, 59, 59, 999)
+
+  const { data: bookings } = await supabase
+    .from('agendamentos')
+    .select('*')
+    .eq('professor_id', professorId)
+    .gte('data_inicio', startOfDay.toISOString())
+    .lte('data_fim', endOfDay.toISOString())
+    .neq('status', 'cancelado')
+
+  // 3. Generate slots
+  const slots: string[] = []
+  const SLOT_DURATION_MINUTES = 30
+
+  // Helper to parse "HH:MM:SS" or "HH:MM" to minutes from midnight
+  const timeToMinutes = (timeStr: string) => {
+    const [h, m] = timeStr.split(':').map(Number)
+    return h * 60 + m
+  }
+
+  for (const rule of rules) {
+    const startMins = timeToMinutes(rule.hora_inicio)
+    const endMins = timeToMinutes(rule.hora_fim)
+    
+    for (let time = startMins; time + SLOT_DURATION_MINUTES <= endMins; time += SLOT_DURATION_MINUTES) {
+      // Create slot date in UTC
+      const slotStart = new Date(dateStr)
+      slotStart.setUTCHours(Math.floor(time / 60), time % 60, 0, 0)
+      
+      const slotEnd = new Date(slotStart)
+      slotEnd.setUTCMinutes(slotEnd.getUTCMinutes() + SLOT_DURATION_MINUTES)
+
+      // Check collision
+      const isOccupied = bookings?.some(booking => {
+        const bookingStart = new Date(booking.data_inicio)
+        const bookingEnd = new Date(booking.data_fim)
+        // Overlap check
+        return (slotStart < bookingEnd && slotEnd > bookingStart)
+      })
+
+      if (!isOccupied) {
+        slots.push(slotStart.toISOString())
+      }
+    }
+  }
+
+  return slots.sort()
+}
