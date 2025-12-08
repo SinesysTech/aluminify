@@ -6,10 +6,8 @@ import {
   CalendarCheck,
   Command,
   FileText,
-  GraduationCap,
   Layers,
   MessageSquare,
-  Users,
   FolderOpen,
   School,
   BrainCircuit,
@@ -75,6 +73,12 @@ const navMainData: NavItem[] = [
     icon: BrainCircuit,
     roles: ALL_ROLES,
   },
+  {
+    title: "Agendamentos",
+    url: "/agendamentos",
+    icon: Calendar,
+    roles: ALL_ROLES,
+  },
   // Professor
   {
     title: "Segmentos",
@@ -110,6 +114,12 @@ const navMainData: NavItem[] = [
     title: "Gestão de Flashcards",
     url: "/admin/flashcards",
     icon: FolderOpen,
+    roles: PROFESSOR_ONLY,
+  },
+  {
+    title: "Disponibilidade",
+    url: "/professor/disponibilidade",
+    icon: CalendarCheck,
     roles: PROFESSOR_ONLY,
   },
 ]
