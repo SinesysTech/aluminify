@@ -461,3 +461,4 @@ O Redis (Upstash) pode trazer **benefícios significativos** para o app, especia
 3. **Flashcards** - Médio impacto, melhora UX
 
 **Recomendação:** Começar pela **Fase 1** (Estrutura Hierárquica + Materiais) que já trará **80% dos benefícios** com **20% do esforço**.
+

@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Pencil, Trash2, Plus, Loader2, Search, X, AlertCircle } from 'lucide-react'
 import { FlashcardUploadCard } from '@/components/flashcard-upload-card'
 import {
@@ -104,9 +105,21 @@ type Modulo = {
 }
 
 
+// IDs estáveis para evitar erro de hidratação
+const FILTRO_DISCIPLINA_SELECT_ID = 'filtro-disciplina-flashcards'
+const FILTRO_FRENTE_SELECT_ID = 'filtro-frente-flashcards'
+const FILTRO_MODULO_SELECT_ID = 'filtro-modulo-flashcards'
+const CREATE_DISCIPLINA_SELECT_ID = 'create-disciplina-flashcards'
+const CREATE_FRENTE_SELECT_ID = 'create-frente-flashcards'
+const CREATE_MODULO_SELECT_ID = 'create-modulo-flashcards'
+const EDIT_DISCIPLINA_SELECT_ID = 'edit-disciplina-flashcards'
+const EDIT_FRENTE_SELECT_ID = 'edit-frente-flashcards'
+const EDIT_MODULO_SELECT_ID = 'edit-modulo-flashcards'
+
 export default function FlashcardsAdminClient() {
   const supabase = createClient()
 
+  const [mounted, setMounted] = React.useState(false)
   const [flashcards, setFlashcards] = React.useState<Flashcard[]>([])
   const [total, setTotal] = React.useState(0)
   const [loading, setLoading] = React.useState(false)
@@ -135,6 +148,10 @@ export default function FlashcardsAdminClient() {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [selectedFlashcard, setSelectedFlashcard] = React.useState<Flashcard | null>(null)
+  
+  // Seleção múltipla
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
+  const [deleteMultipleDialogOpen, setDeleteMultipleDialogOpen] = React.useState(false)
 
   // Formulário
   const [formModuloId, setFormModuloId] = React.useState<string | undefined>(undefined)
@@ -290,17 +307,141 @@ export default function FlashcardsAdminClient() {
       params.append('orderBy', 'created_at')
       params.append('orderDirection', 'desc')
 
+      console.log('[flashcards client] Carregando flashcards com filtros:', {
+        disciplinaId,
+        frenteId,
+        moduloId,
+        search,
+        page
+      })
+
       const res = await fetchWithAuth(`/api/flashcards?${params.toString()}`)
-      const body = await res.json()
+      
+      // Verificar o content-type e tentar parsear o JSON
+      const contentType = res.headers.get('content-type')
+      console.log('[flashcards client] Content-Type:', contentType)
+      console.log('[flashcards client] Status:', res.status, res.statusText)
+      
+      let body: any = {}
+      let responseText = ''
+      
+      try {
+        responseText = await res.text()
+        console.log('[flashcards client] Resposta raw (primeiros 1000 chars):', responseText.substring(0, 1000))
+        
+        if (responseText && responseText.trim()) {
+          try {
+            body = JSON.parse(responseText)
+          } catch (jsonError) {
+            console.error('[flashcards client] Erro ao parsear JSON:', jsonError)
+            // Se não conseguir parsear, usar o texto como mensagem de erro
+            throw new Error(`Resposta inválida do servidor: ${responseText.substring(0, 200)}`)
+          }
+        } else {
+          console.warn('[flashcards client] Resposta vazia do servidor')
+        }
+      } catch (parseError) {
+        console.error('[flashcards client] Erro ao processar resposta:', parseError)
+        if (parseError instanceof Error) {
+          throw parseError
+        }
+        throw new Error(`Erro ao processar resposta do servidor: ${responseText || 'Resposta vazia ou inválida'}`)
+      }
+
+      console.log('[flashcards client] Resposta da API parseada:', {
+        ok: res.ok,
+        status: res.status,
+        hasData: !!body.data,
+        total: body.total,
+        error: body.error,
+        message: body.message,
+        details: body.details,
+        bodyKeys: Object.keys(body),
+        bodyString: JSON.stringify(body).substring(0, 500)
+      })
 
       if (!res.ok) {
-        throw new Error(body?.error || 'Erro ao carregar flashcards')
+        console.error('[flashcards client] Erro na resposta (status não OK):', {
+          status: res.status,
+          statusText: res.statusText,
+          body: body,
+          bodyString: JSON.stringify(body)
+        })
+        
+        // Tentar extrair mensagem de erro de diferentes formatos
+        let errorMessage = 'Erro ao carregar flashcards'
+        
+        // Primeiro, tentar extrair do body
+        if (body?.error) {
+          const errorValue = body.error
+          if (typeof errorValue === 'string') {
+            errorMessage = errorValue
+            // Se a string parece ser JSON, tentar parsear
+            if (errorMessage.trim().startsWith('{') || errorMessage.trim().startsWith('[')) {
+              try {
+                const parsed = JSON.parse(errorMessage)
+                errorMessage = parsed.error || parsed.message || errorMessage
+              } catch {
+                // Se não conseguir parsear, usar a string original
+              }
+            }
+          } else {
+            errorMessage = JSON.stringify(errorValue)
+          }
+        } else if (body?.message) {
+          const messageValue = body.message
+          if (typeof messageValue === 'string') {
+            errorMessage = messageValue
+          } else {
+            errorMessage = JSON.stringify(messageValue)
+          }
+        } else if (responseText && responseText.trim()) {
+          // Tentar parsear o texto raw
+          try {
+            const parsed = JSON.parse(responseText)
+            errorMessage = parsed.error || parsed.message || 'Erro do servidor'
+          } catch {
+            // Se não for JSON, usar o texto diretamente
+            errorMessage = `Erro do servidor: ${responseText.substring(0, 200)}`
+          }
+        } else {
+          errorMessage = `Erro ao carregar flashcards (${res.status} ${res.statusText})`
+        }
+        
+        // Limpar mensagem de erro se ainda estiver mal formatada
+        if (errorMessage.includes('{"') && errorMessage.length > 10) {
+          try {
+            // Tentar extrair JSON da mensagem
+            const jsonMatch = errorMessage.match(/\{[\s\S]*\}/)
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0])
+              errorMessage = parsed.error || parsed.message || 'Erro ao processar resposta do servidor'
+            }
+          } catch {
+            // Se não conseguir parsear, limpar caracteres problemáticos
+            errorMessage = errorMessage.replace(/[{}"]/g, '').trim() || 'Erro ao processar resposta do servidor'
+          }
+        }
+        
+        // Garantir que a mensagem não esteja vazia ou muito longa
+        if (!errorMessage || errorMessage.trim().length === 0) {
+          errorMessage = `Erro ao carregar flashcards (${res.status})`
+        }
+        if (errorMessage.length > 500) {
+          errorMessage = errorMessage.substring(0, 500) + '...'
+        }
+        
+        console.error('[flashcards client] Mensagem de erro final:', errorMessage)
+        throw new Error(errorMessage)
       }
 
       setFlashcards(body.data || [])
       setTotal(body.total || 0)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar flashcards')
+      console.error('[flashcards client] Erro ao carregar flashcards:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar flashcards'
+      console.error('[flashcards client] Mensagem de erro:', errorMessage)
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -309,6 +450,11 @@ export default function FlashcardsAdminClient() {
   React.useEffect(() => {
     loadFlashcards()
   }, [loadFlashcards])
+
+  // Limpar seleção quando flashcards mudarem (filtros, página, etc)
+  React.useEffect(() => {
+    setSelectedIds(new Set())
+  }, [disciplinaId, frenteId, moduloId, search, page])
 
   const handleCreate = async () => {
     if (!formModuloId || !formPergunta.trim() || !formResposta.trim()) {
@@ -453,6 +599,67 @@ export default function FlashcardsAdminClient() {
     }
   }
 
+  const handleDeleteMultiple = async () => {
+    if (selectedIds.size === 0) return
+
+    try {
+      setSaving(true)
+      setError(null)
+
+      // Deletar todos os flashcards selecionados
+      const deletePromises = Array.from(selectedIds).map((id) =>
+        fetchWithAuth(`/api/flashcards/${id}`, {
+          method: 'DELETE',
+        })
+      )
+
+      const results = await Promise.allSettled(deletePromises)
+      const errors = results
+        .map((result, index) => {
+          if (result.status === 'rejected') {
+            return `Flashcard ${Array.from(selectedIds)[index]}: ${result.reason}`
+          }
+          if (!result.value.ok) {
+            return `Flashcard ${Array.from(selectedIds)[index]}: Erro ao deletar`
+          }
+          return null
+        })
+        .filter(Boolean)
+
+      if (errors.length > 0) {
+        setError(`Erro ao deletar alguns flashcards: ${errors.join(', ')}`)
+      }
+
+      setDeleteMultipleDialogOpen(false)
+      setSelectedIds(new Set())
+      loadFlashcards()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar flashcards')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(flashcards.map((f) => f.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds)
+    if (checked) {
+      newSelected.add(id)
+    } else {
+      newSelected.delete(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const isAllSelected = flashcards.length > 0 && selectedIds.size === flashcards.length
+
   const handleOpenCreate = () => {
     setFormModuloId(undefined)
     setFormPergunta('')
@@ -474,6 +681,10 @@ export default function FlashcardsAdminClient() {
   }
 
   const totalPages = Math.ceil(total / limit)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -505,87 +716,108 @@ export default function FlashcardsAdminClient() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-2">
-              <Label>Disciplina</Label>
-              <Select 
-                value={disciplinaId} 
-                onValueChange={setDisciplinaId} 
-                disabled={loadingDisciplinas}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  {disciplinas.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Frente</Label>
-              <Select
-                value={frenteId}
-                onValueChange={setFrenteId}
-                disabled={!disciplinaId || loadingFrentes}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  {frentes.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {f.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Módulo</Label>
-              <Select
-                value={moduloId}
-                onValueChange={setModuloId}
-                disabled={!frenteId || loadingModulos}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  {modulos.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.numero_modulo ? `Módulo ${m.numero_modulo}: ${m.nome}` : m.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Buscar</Label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Pergunta ou resposta..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-                {(disciplinaId || frenteId || moduloId || search) && (
-                  <Button variant="outline" size="icon" onClick={clearFilters}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+          {!mounted ? (
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="space-y-2">
+                <Label>Disciplina</Label>
+                <div className="h-9 w-full rounded-md border bg-transparent" />
+              </div>
+              <div className="space-y-2">
+                <Label>Frente</Label>
+                <div className="h-9 w-full rounded-md border bg-transparent" />
+              </div>
+              <div className="space-y-2">
+                <Label>Módulo</Label>
+                <div className="h-9 w-full rounded-md border bg-transparent" />
+              </div>
+              <div className="space-y-2">
+                <Label>Buscar</Label>
+                <div className="h-9 w-full rounded-md border bg-transparent" />
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="space-y-2">
+                <Label>Disciplina</Label>
+                <Select 
+                  value={disciplinaId} 
+                  onValueChange={setDisciplinaId} 
+                  disabled={loadingDisciplinas}
+                >
+                  <SelectTrigger id={FILTRO_DISCIPLINA_SELECT_ID}>
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {disciplinas.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Frente</Label>
+                <Select
+                  value={frenteId}
+                  onValueChange={setFrenteId}
+                  disabled={!disciplinaId || loadingFrentes}
+                >
+                  <SelectTrigger id={FILTRO_FRENTE_SELECT_ID}>
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {frentes.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Módulo</Label>
+                <Select
+                  value={moduloId}
+                  onValueChange={setModuloId}
+                  disabled={!frenteId || loadingModulos}
+                >
+                  <SelectTrigger id={FILTRO_MODULO_SELECT_ID}>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modulos.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.numero_modulo ? `Módulo ${m.numero_modulo}: ${m.nome}` : m.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Buscar</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Pergunta ou resposta..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                  {(disciplinaId || frenteId || moduloId || search) && (
+                    <Button variant="outline" size="icon" onClick={clearFilters}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -623,10 +855,32 @@ export default function FlashcardsAdminClient() {
             </Empty>
           ) : (
             <>
+              {selectedIds.size > 0 && (
+                <div className="flex items-center justify-between border-b p-4">
+                  <div className="text-sm text-muted-foreground">
+                    {selectedIds.size} flashcard{selectedIds.size !== 1 ? 's' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteMultipleDialogOpen(true)}
+                    disabled={saving}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Deletar selecionados
+                  </Button>
+                </div>
+              )}
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
                       <TableHead>Pergunta</TableHead>
                       <TableHead>Resposta</TableHead>
                       <TableHead>Disciplina</TableHead>
@@ -638,6 +892,14 @@ export default function FlashcardsAdminClient() {
                   <TableBody>
                     {flashcards.map((flashcard) => (
                       <TableRow key={flashcard.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(flashcard.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOne(flashcard.id, checked as boolean)
+                            }
+                          />
+                        </TableCell>
                         <TableCell className="max-w-xs">
                           <div className="truncate" title={flashcard.pergunta}>
                             {flashcard.pergunta}
@@ -734,7 +996,7 @@ export default function FlashcardsAdminClient() {
                 }}
                 disabled={loadingDisciplinas}
               >
-                <SelectTrigger>
+                <SelectTrigger id={CREATE_DISCIPLINA_SELECT_ID}>
                   <SelectValue placeholder="Selecione uma disciplina" />
                 </SelectTrigger>
                 <SelectContent>
@@ -757,7 +1019,7 @@ export default function FlashcardsAdminClient() {
                 }}
                 disabled={!disciplinaId || loadingFrentes}
               >
-                <SelectTrigger>
+                <SelectTrigger id={CREATE_FRENTE_SELECT_ID}>
                   <SelectValue placeholder="Selecione uma frente" />
                 </SelectTrigger>
                 <SelectContent>
@@ -777,7 +1039,7 @@ export default function FlashcardsAdminClient() {
                 onValueChange={setFormModuloId}
                 disabled={!frenteId || loadingModulos}
               >
-                <SelectTrigger>
+                <SelectTrigger id={CREATE_MODULO_SELECT_ID}>
                   <SelectValue placeholder="Selecione um módulo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -848,7 +1110,7 @@ export default function FlashcardsAdminClient() {
                 }}
                 disabled={loadingDisciplinas}
               >
-                <SelectTrigger>
+                <SelectTrigger id={EDIT_DISCIPLINA_SELECT_ID}>
                   <SelectValue placeholder="Selecione uma disciplina" />
                 </SelectTrigger>
                 <SelectContent>
@@ -871,7 +1133,7 @@ export default function FlashcardsAdminClient() {
                 }}
                 disabled={!disciplinaId || loadingFrentes}
               >
-                <SelectTrigger>
+                <SelectTrigger id={EDIT_FRENTE_SELECT_ID}>
                   <SelectValue placeholder="Selecione uma frente" />
                 </SelectTrigger>
                 <SelectContent>
@@ -891,7 +1153,7 @@ export default function FlashcardsAdminClient() {
                 onValueChange={setFormModuloId}
                 disabled={!frenteId || loadingModulos}
               >
-                <SelectTrigger>
+                <SelectTrigger id={EDIT_MODULO_SELECT_ID}>
                   <SelectValue placeholder="Selecione um módulo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -951,8 +1213,8 @@ export default function FlashcardsAdminClient() {
               Tem certeza que deseja deletar este flashcard? Esta ação não pode ser desfeita.
               {selectedFlashcard && (
                 <div className="mt-2 rounded-md bg-muted p-2">
-                  <p className="text-sm font-medium">Pergunta:</p>
-                  <p className="text-sm">{selectedFlashcard.pergunta}</p>
+                  <div className="text-sm font-medium">Pergunta:</div>
+                  <div className="text-sm">{selectedFlashcard.pergunta}</div>
                 </div>
               )}
             </AlertDialogDescription>
@@ -960,6 +1222,31 @@ export default function FlashcardsAdminClient() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deletando...
+                </>
+              ) : (
+                'Deletar'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog Deletar Múltiplos */}
+      <AlertDialog open={deleteMultipleDialogOpen} onOpenChange={setDeleteMultipleDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão em massa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar {selectedIds.size} flashcard{selectedIds.size !== 1 ? 's' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteMultiple} disabled={saving}>
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

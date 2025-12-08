@@ -71,3 +71,4 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   return requireUserAuth((req) => patchHandler(req, params))(request);
 }
+

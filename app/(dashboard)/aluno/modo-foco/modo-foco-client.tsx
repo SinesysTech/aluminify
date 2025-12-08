@@ -849,10 +849,13 @@ export default function ModoFocoClient({ searchParams }: Props) {
                         return (
                           <div
                             key={`${seg.type}-${idx}`}
-                            className={`rounded-sm px-2 py-2 text-xs font-medium text-center truncate ${colors}`}
+                            className={`rounded-sm px-2 py-2 text-xs font-medium text-center ${colors}`}
                             style={{ width, minHeight: '64px' }}
                           >
-                            {seg.label} · {minutos(seg.ms)}m
+                            <div className="flex flex-col justify-center h-full">
+                              <div>{seg.label}</div>
+                              <div>{minutos(seg.ms)}m</div>
+                            </div>
                           </div>
                         );
                       })}

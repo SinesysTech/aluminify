@@ -37,10 +37,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { CalendarIcon, Loader2, X, AlertCircle } from 'lucide-react'
+import { CalendarIcon, Loader2, X, AlertCircle, Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const wizardSchema = z.object({
   data_inicio: z.date({ message: 'Data de início é obrigatória' }),
@@ -129,6 +136,7 @@ type ModuloResumo = {
   totalAulas: number
   tempoTotal: number
   concluidas: number
+  importancia?: 'Alta' | 'Media' | 'Baixa' | 'Base' | null
 }
 
 type FrenteResumo = {
@@ -515,7 +523,7 @@ export function ScheduleWizard() {
         // Buscar módulos das frentes
         const { data: modulosData, error: modulosError } = await supabase
           .from('modulos')
-          .select('id, nome, numero_modulo, frente_id')
+          .select('id, nome, numero_modulo, frente_id, importancia')
           .in('frente_id', frenteIds)
           .order('numero_modulo', { ascending: true })
 
@@ -646,6 +654,7 @@ export function ScheduleWizard() {
               totalAulas,
               tempoTotal,
               concluidas,
+              importancia: modulo.importancia || null,
             }
           })
 
@@ -1571,7 +1580,60 @@ export function ScheduleWizard() {
                                                 onClick={(event) => event.stopPropagation()}
                                               />
                                               <div>
-                                                <p className="font-medium">{modulo.nome}</p>
+                                                <div className="flex items-center gap-2">
+                                                  <p className="font-medium">{modulo.nome}</p>
+                                                  {modulo.importancia && (
+                                                    <div className="flex items-center gap-1">
+                                                      <Badge
+                                                        variant={
+                                                          modulo.importancia === 'Alta'
+                                                            ? 'destructive'
+                                                            : modulo.importancia === 'Media'
+                                                            ? 'default'
+                                                            : modulo.importancia === 'Baixa'
+                                                            ? 'secondary'
+                                                            : 'outline'
+                                                        }
+                                                        className="text-xs"
+                                                      >
+                                                        {modulo.importancia === 'Alta'
+                                                          ? 'Alta'
+                                                          : modulo.importancia === 'Media'
+                                                          ? 'Média'
+                                                          : modulo.importancia === 'Baixa'
+                                                          ? 'Baixa'
+                                                          : 'Base'}
+                                                      </Badge>
+                                                      <TooltipProvider>
+                                                        <Tooltip>
+                                                          <TooltipTrigger asChild>
+                                                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                                          </TooltipTrigger>
+                                                          <TooltipContent side="right" className="max-w-xs">
+                                                            <div className="space-y-2">
+                                                              <p className="font-semibold">Importância do Módulo</p>
+                                                              <p className="text-xs leading-relaxed">
+                                                                Este indicador mostra a <strong>importância e recorrência</strong> deste módulo nas provas mais tradicionais do país (ENEM, FUVEST, UNICAMP, UERJ, entre outras).
+                                                              </p>
+                                                              <p className="text-xs leading-relaxed">
+                                                                A classificação foi definida pelo seu professor com base na análise histórica de questões e na relevância dos conteúdos.
+                                                              </p>
+                                                              <div className="pt-1 border-t border-background/20">
+                                                                <p className="text-xs font-semibold mb-1">O que significa cada nível?</p>
+                                                                <ul className="text-xs space-y-1 list-disc list-inside">
+                                                                  <li><strong>Alta:</strong> Aparece frequentemente e é essencial para a aprovação</li>
+                                                                  <li><strong>Média:</strong> Importante, mas com recorrência moderada</li>
+                                                                  <li><strong>Baixa:</strong> Menos frequente, mas ainda relevante</li>
+                                                                  <li><strong>Base:</strong> Conhecimento fundamental que serve de alicerce para outros conteúdos</li>
+                                                                </ul>
+                                                              </div>
+                                                            </div>
+                                                          </TooltipContent>
+                                                        </Tooltip>
+                                                      </TooltipProvider>
+                                                    </div>
+                                                  )}
+                                                </div>
                                                 <p className="text-xs text-muted-foreground">
                                                   {modulo.totalAulas} aula(s) • {formatHorasFromMinutes(modulo.tempoTotal)}
                                                 </p>

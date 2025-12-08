@@ -268,3 +268,4 @@ type FlashcardAdmin = {
 **Status:** Análise completa - Aguardando implementação
 
 
+

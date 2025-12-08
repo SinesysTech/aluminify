@@ -9,11 +9,16 @@ async function handler(request: AuthenticatedRequest) {
     const cursoId = searchParams.get('cursoId') || undefined;
     const frenteId = searchParams.get('frenteId') || undefined;
     const moduloId = searchParams.get('moduloId') || undefined;
+    
+    // Parâmetro para excluir cards já vistos na sessão
+    const excludeIdsParam = searchParams.get('excludeIds');
+    const excludeIds = excludeIdsParam ? excludeIdsParam.split(',').filter(Boolean) : undefined;
 
     const data = await flashcardsService.listForReview(
       request.user!.id,
       modo,
-      { cursoId, frenteId, moduloId }
+      { cursoId, frenteId, moduloId },
+      excludeIds
     );
     return NextResponse.json({ data });
   } catch (error) {

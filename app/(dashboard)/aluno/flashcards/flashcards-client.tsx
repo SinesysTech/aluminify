@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Loader2, RefreshCcw, BrainCircuit, Target, Info } from 'lucide-react'
+import { FlashcardSessionSummary } from '@/components/flashcard-session-summary'
 import {
   Tooltip,
   TooltipContent,
@@ -73,8 +74,14 @@ export default function FlashcardsClient() {
   const [moduloSelecionado, setModuloSelecionado] = React.useState<string>('')
   const [loadingFiltros, setLoadingFiltros] = React.useState(false)
   
+  // Estados para rastreamento de sessão
+  const [cardsVistos, setCardsVistos] = React.useState<Set<string>>(new Set())
+  const [feedbacks, setFeedbacks] = React.useState<number[]>([])
+  const [sessaoCompleta, setSessaoCompleta] = React.useState(false)
+  
   const current = cards[idx]
-  const progresso = cards.length > 0 ? ((idx + 1) / cards.length) * 100 : 0
+  const SESSION_SIZE = 10
+  const progresso = cards.length > 0 ? ((idx + 1) / SESSION_SIZE) * 100 : 0
 
   const fetchWithAuth = React.useCallback(
     async (input: string, init?: RequestInit) => {
@@ -100,31 +107,51 @@ export default function FlashcardsClient() {
   )
 
   const fetchCards = React.useCallback(
-    async (modoSelecionado: string, cursoId?: string, frenteId?: string, moduloId?: string) => {
+    async (modoSelecionado: string, cursoId?: string, frenteId?: string, moduloId?: string, resetSession = false) => {
       try {
         setLoading(true)
         setError(null)
         setShowAnswer(false)
-        setIdx(0)
         
+        if (resetSession) {
+          setIdx(0)
+          setCardsVistos(new Set())
+          setFeedbacks([])
+          setSessaoCompleta(false)
+        }
+        
+        // Construir URL com excludeIds
         let url = `/api/flashcards/revisao?modo=${modoSelecionado}`
         if (cursoId) url += `&cursoId=${cursoId}`
         if (frenteId) url += `&frenteId=${frenteId}`
         if (moduloId) url += `&moduloId=${moduloId}`
+        
+        // Adicionar IDs já vistos na sessão
+        if (cardsVistos.size > 0 && !resetSession) {
+          const excludeIds = Array.from(cardsVistos).join(',')
+          url += `&excludeIds=${excludeIds}`
+        }
         
         const res = await fetchWithAuth(url)
         const body = await res.json()
         if (!res.ok) {
           throw new Error(body?.error || 'Não foi possível carregar os flashcards')
         }
-        setCards(body.data || [])
+        
+        const newCards = body.data || []
+        setCards(newCards)
+        
+        // Se resetou, garantir que idx está em 0
+        if (resetSession) {
+          setIdx(0)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao carregar flashcards')
       } finally {
         setLoading(false)
       }
     },
-    [fetchWithAuth],
+    [fetchWithAuth, cardsVistos],
   )
 
   // Carregar cursos (diferente para alunos e professores)
@@ -306,11 +333,14 @@ export default function FlashcardsClient() {
   const handleSelectModo = (id: string) => {
     setModo(id)
     if (id !== 'personalizado') {
-      fetchCards(id)
+      fetchCards(id, undefined, undefined, undefined, true)
     } else {
       // Resetar cards quando selecionar modo personalizado
       setCards([])
       setIdx(0)
+      setCardsVistos(new Set())
+      setFeedbacks([])
+      setSessaoCompleta(false)
     }
   }
 
@@ -319,11 +349,16 @@ export default function FlashcardsClient() {
       setError('Selecione curso, disciplina, frente e módulo para buscar flashcards')
       return
     }
-    fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado)
+    fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
   }
 
   const handleFeedback = async (feedback: number) => {
     if (!current) return
+    
+    // Adicionar card aos vistos e feedback à lista
+    setCardsVistos((prev) => new Set([...prev, current.id]))
+    setFeedbacks((prev) => [...prev, feedback])
+    
     try {
       await fetchWithAuth('/api/flashcards/feedback', {
         method: 'POST',
@@ -331,19 +366,46 @@ export default function FlashcardsClient() {
       })
     } catch (err) {
       console.error('Erro ao enviar feedback', err)
-    } finally {
-      // Avançar para próximo
-      if (idx + 1 < cards.length) {
-        setIdx(idx + 1)
-        setShowAnswer(false)
-      } else {
-        setCards([])
-      }
+    }
+    
+    // Verificar se completou a sessão (10 cards)
+    const nextIdx = idx + 1
+    if (nextIdx >= SESSION_SIZE || nextIdx >= cards.length) {
+      // Sessão completa
+      setSessaoCompleta(true)
+    } else {
+      // Avançar para próximo card
+      setIdx(nextIdx)
+      setShowAnswer(false)
+    }
+  }
+  
+  const handleFinishSession = () => {
+    // Resetar tudo e voltar ao menu
+    setModo(null)
+    setCards([])
+    setIdx(0)
+    setCardsVistos(new Set())
+    setFeedbacks([])
+    setSessaoCompleta(false)
+    setShowAnswer(false)
+  }
+  
+  const handleStudyMore = () => {
+    // Manter modo e filtros, mas resetar sessão
+    if (modo === 'personalizado') {
+      fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
+    } else if (modo) {
+      fetchCards(modo, undefined, undefined, undefined, true)
     }
   }
 
   const handleReload = () => {
-    if (modo) fetchCards(modo)
+    if (modo === 'personalizado') {
+      fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
+    } else if (modo) {
+      fetchCards(modo, undefined, undefined, undefined, true)
+    }
   }
 
   return (
@@ -534,7 +596,17 @@ export default function FlashcardsClient() {
         </Card>
       )}
 
-      {current && (
+      {/* Tela de Resumo da Sessão */}
+      {sessaoCompleta && (
+        <FlashcardSessionSummary
+          feedbacks={feedbacks}
+          onFinish={handleFinishSession}
+          onStudyMore={handleStudyMore}
+        />
+      )}
+
+      {/* Sessão de Estudo Ativa */}
+      {current && !sessaoCompleta && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -546,7 +618,7 @@ export default function FlashcardsClient() {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">
-                {idx + 1} / {cards.length}
+                {idx + 1} / {SESSION_SIZE}
               </span>
               <TooltipProvider>
                 <Tooltip>

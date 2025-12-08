@@ -1,6 +1,35 @@
 import { getDatabaseClient } from '@/backend/clients/database';
 import { DificuldadePercebida } from '@/backend/services/progresso-atividade/progresso-atividade.types';
 import { cacheService } from '@/backend/services/cache';
+import { calculateNextReview, isValidFeedback } from './srs-algorithm';
+import type { FeedbackValue } from './srs-algorithm.types';
+
+/**
+ * Formata erros do Supabase para facilitar debug
+ */
+function formatSupabaseError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  if (typeof error === 'object' && error !== null) {
+    const supabaseError = error as Record<string, unknown>;
+    const message = supabaseError.message;
+    const details = supabaseError.details;
+    const hint = supabaseError.hint;
+    const code = supabaseError.code;
+    
+    const parts: string[] = [];
+    if (code) parts.push(`[${code}]`);
+    if (message) parts.push(String(message));
+    if (details) parts.push(`Detalhes: ${String(details)}`);
+    if (hint) parts.push(`Hint: ${String(hint)}`);
+    
+    return parts.length > 0 ? parts.join(' - ') : JSON.stringify(error);
+  }
+  
+  return String(error);
+}
 
 export type FlashcardImportRow = {
   // Formato antigo (compatibilidade)
@@ -301,7 +330,8 @@ export class FlashcardsService {
   async listForReview(
     alunoId: string,
     modo: string,
-    filters?: { cursoId?: string; frenteId?: string; moduloId?: string }
+    filters?: { cursoId?: string; frenteId?: string; moduloId?: string },
+    excludeIds?: string[]
   ): Promise<FlashcardReviewItem[]> {
     const now = new Date();
     
@@ -407,6 +437,10 @@ export class FlashcardsService {
       );
 
       const dueCards = cards.filter((card) => {
+        // Excluir cards já vistos na sessão
+        if (excludeIds && excludeIds.includes(card.id)) {
+          return false;
+        }
         const progress = progressMap.get(card.id);
         if (!progress) return true;
         const nextDate = progress.data_proxima_revisao
@@ -416,7 +450,7 @@ export class FlashcardsService {
       });
 
       const shuffled = this.shuffle(dueCards);
-      return shuffled.slice(0, 50).map((c) => {
+      return shuffled.slice(0, 10).map((c) => {
         const progress = progressMap.get(c.id);
         return {
           ...c,
@@ -588,7 +622,90 @@ export class FlashcardsService {
       cards.map((c) => c.id),
     );
 
+    // Para modo "mais_errados" (UTI), aplicar distribuição ponderada
+    if (modo === 'mais_errados') {
+      // Separar cards por feedback
+      const cardsPorFeedback: { [key: number]: typeof cards } = {
+        1: [], // Errei
+        2: [], // Parcial
+        3: [], // Dificil
+      };
+
+      cards.forEach((card) => {
+        const progress = progressMap.get(card.id);
+        if (!progress) return;
+
+        // Excluir cards já vistos na sessão
+        if (excludeIds && excludeIds.includes(card.id)) {
+          return;
+        }
+
+        // Verificar se está due
+        const nextDate = progress.data_proxima_revisao
+          ? new Date(progress.data_proxima_revisao)
+          : null;
+        if (nextDate && nextDate > now) {
+          return;
+        }
+
+        const feedback = progress.ultimo_feedback as number | null;
+        if (feedback === 1 || feedback === 2 || feedback === 3) {
+          cardsPorFeedback[feedback].push(card);
+        }
+      });
+
+      // Distribuição: 5 Errei, 3 Parcial, 2 Dificil
+      const selecionados: typeof cards = [];
+      
+      // Embaralhar cada grupo
+      const erreiShuffled = this.shuffle(cardsPorFeedback[1]);
+      const parcialShuffled = this.shuffle(cardsPorFeedback[2]);
+      const dificilShuffled = this.shuffle(cardsPorFeedback[3]);
+
+      // Adicionar 5 de "Errei"
+      selecionados.push(...erreiShuffled.slice(0, 5));
+      
+      // Adicionar 3 de "Parcial"
+      selecionados.push(...parcialShuffled.slice(0, 3));
+      
+      // Adicionar 2 de "Dificil"
+      selecionados.push(...dificilShuffled.slice(0, 2));
+
+      // Se não tiver cards suficientes com feedback, buscar cards novos ou sem feedback
+      if (selecionados.length < 10) {
+        const cardsNovos = cards.filter((card) => {
+          if (excludeIds && excludeIds.includes(card.id)) return false;
+          const progress = progressMap.get(card.id);
+          if (!progress) return true;
+          const nextDate = progress.data_proxima_revisao
+            ? new Date(progress.data_proxima_revisao)
+            : null;
+          return !nextDate || nextDate <= now;
+        });
+
+        const idsSelecionados = new Set(selecionados.map((c) => c.id));
+        const cardsDisponiveis = cardsNovos.filter((c) => !idsSelecionados.has(c.id));
+        const shuffledNovos = this.shuffle(cardsDisponiveis);
+        selecionados.push(...shuffledNovos.slice(0, 10 - selecionados.length));
+      }
+
+      // Embaralhar resultado final e limitar a 10
+      const finalShuffled = this.shuffle(selecionados);
+      return finalShuffled.slice(0, 10).map((c) => {
+        const progress = progressMap.get(c.id);
+        return {
+          ...c,
+          dataProximaRevisao: progress?.data_proxima_revisao ?? null,
+        };
+      });
+    }
+
+    // Para outros modos, usar lógica padrão
     const dueCards = cards.filter((card) => {
+      // Excluir cards já vistos na sessão
+      if (excludeIds && excludeIds.includes(card.id)) {
+        return false;
+      }
       const progress = progressMap.get(card.id);
       if (!progress) return true;
       const nextDate = progress.data_proxima_revisao
@@ -598,7 +715,7 @@ export class FlashcardsService {
     });
 
     const shuffled = this.shuffle(dueCards);
-    return shuffled.slice(0, 20).map((c) => {
+    return shuffled.slice(0, 10).map((c) => {
       const progress = progressMap.get(c.id);
       return {
         ...c,
@@ -622,7 +739,7 @@ export class FlashcardsService {
    * - UTI dos Erros
    */
   async sendFeedback(alunoId: string, cardId: string, feedback: number) {
-    if (![1, 2, 3, 4].includes(feedback)) {
+    if (!isValidFeedback(feedback)) {
       throw new Error('Feedback inválido. Use 1, 2, 3 ou 4.');
     }
 
@@ -637,37 +754,23 @@ export class FlashcardsService {
       throw new Error(`Erro ao buscar progresso do flashcard: ${error.message}`);
     }
 
+    // Usar algoritmo SRS para calcular próxima revisão
+    const srsResult = calculateNextReview(feedback as FeedbackValue, {
+      easeFactor: existing?.nivel_facilidade ?? undefined,
+      interval: existing?.dias_intervalo ?? undefined,
+      repetitions: existing?.numero_revisoes ?? undefined,
+      lastFeedback: existing?.ultimo_feedback ?? null,
+    });
+
     const now = new Date();
-    const prevInterval = existing?.dias_intervalo ?? 0;
-    let diasIntervalo = 1;
-    let nivelFacilidade = existing?.nivel_facilidade ?? 2.5;
-
-    if (feedback === 1) {
-      diasIntervalo = 1;
-      nivelFacilidade = Math.max(1.3, nivelFacilidade - 0.2);
-    } else {
-      const intervaloBase = Math.max(1, prevInterval || 1);
-      const fator = nivelFacilidade || 2.5;
-      diasIntervalo = Math.max(1, Math.round(intervaloBase * fator));
-      if (feedback === 2) {
-        nivelFacilidade = Math.max(1.3, nivelFacilidade - 0.15);
-      } else if (feedback === 3) {
-        nivelFacilidade = Math.min(3.5, nivelFacilidade + 0.05);
-      } else if (feedback === 4) {
-        nivelFacilidade = Math.min(3.5, nivelFacilidade + 0.15);
-      }
-    }
-
-    const proximaRevisao = new Date(now);
-    proximaRevisao.setDate(proximaRevisao.getDate() + diasIntervalo);
 
     const payload = {
       aluno_id: alunoId,
       flashcard_id: cardId,
-      nivel_facilidade: nivelFacilidade,
-      dias_intervalo: diasIntervalo,
-      data_proxima_revisao: proximaRevisao.toISOString(),
-      numero_revisoes: (existing?.numero_revisoes ?? 0) + 1,
+      nivel_facilidade: srsResult.newEaseFactor,
+      dias_intervalo: srsResult.newInterval,
+      data_proxima_revisao: srsResult.nextReviewDate.toISOString(),
+      numero_revisoes: srsResult.newRepetitions,
       ultimo_feedback: feedback,
       updated_at: now.toISOString(),
     };
@@ -689,6 +792,9 @@ export class FlashcardsService {
     data: FlashcardAdmin[];
     total: number;
   }> {
+    console.log('[flashcards] listAll chamado com filtros:', JSON.stringify(filters, null, 2));
+    console.log('[flashcards] userId:', userId);
+    
     await this.ensureProfessor(userId);
 
     // Não cachear se houver busca por texto (resultados podem variar)
@@ -721,29 +827,60 @@ export class FlashcardsService {
     if (filters.moduloId) {
       moduloIds = [filters.moduloId];
     } else if (filters.frenteId) {
-      const { data: modulosData } = await this.client
+      console.log('[flashcards] Buscando módulos da frente:', filters.frenteId);
+      
+      const { data: modulosData, error: modulosError } = await this.client
         .from('modulos')
         .select('id')
         .eq('frente_id', filters.frenteId);
+      
+      if (modulosError) {
+        console.error('[flashcards] Erro completo ao buscar módulos da frente:', JSON.stringify(modulosError, null, 2));
+        const errorMsg = formatSupabaseError(modulosError);
+        console.error('[flashcards] Erro formatado:', errorMsg);
+        throw new Error(`Erro ao buscar módulos da frente: ${errorMsg}`);
+      }
+      
+      console.log('[flashcards] Módulos encontrados:', modulosData?.length || 0);
       moduloIds = modulosData?.map((m) => m.id as string) || [];
+      console.log('[flashcards] IDs dos módulos:', moduloIds);
+      
+      if (moduloIds.length === 0) {
+        // Frente sem módulos - retornar vazio
+        console.log('[flashcards] Frente sem módulos, retornando vazio');
+        return { data: [], total: 0 };
+      }
     } else if (filters.disciplinaId) {
       // Buscar frentes da disciplina
-      const { data: frentesData } = await this.client
+      const { data: frentesData, error: frentesError } = await this.client
         .from('frentes')
         .select('id')
         .eq('disciplina_id', filters.disciplinaId);
+      
+      if (frentesError) {
+        throw new Error(`Erro ao buscar frentes da disciplina: ${frentesError.message}`);
+      }
+      
       const frenteIds = frentesData?.map((f) => f.id as string) || [];
       
       if (frenteIds.length > 0) {
-        const { data: modulosData } = await this.client
+        const { data: modulosData, error: modulosError } = await this.client
           .from('modulos')
           .select('id')
           .in('frente_id', frenteIds);
+        
+        if (modulosError) {
+          throw new Error(`Erro ao buscar módulos das frentes: ${modulosError.message}`);
+        }
+        
         moduloIds = modulosData?.map((m) => m.id as string) || [];
       }
     }
 
     // Construir query de flashcards
+    console.log('[flashcards] Construindo query de flashcards');
+    console.log('[flashcards] moduloIds:', moduloIds);
+    
     let query = this.client
       .from('flashcards')
       .select('id, modulo_id, pergunta, resposta, created_at', { count: 'exact' });
@@ -751,13 +888,16 @@ export class FlashcardsService {
     if (moduloIds !== null) {
       if (moduloIds.length === 0) {
         // Nenhum módulo encontrado, retornar vazio
+        console.log('[flashcards] Nenhum módulo encontrado, retornando vazio');
         return { data: [], total: 0 };
       }
+      console.log('[flashcards] Aplicando filtro de módulos:', moduloIds.length, 'módulos');
       query = query.in('modulo_id', moduloIds);
     }
 
     if (filters.search) {
       const searchTerm = `%${filters.search}%`;
+      console.log('[flashcards] Aplicando busca:', searchTerm);
       query = query.or(`pergunta.ilike.${searchTerm},resposta.ilike.${searchTerm}`);
     }
 
@@ -772,11 +912,20 @@ export class FlashcardsService {
 
     query = query.range(from, to);
 
+    console.log('[flashcards] Executando query de flashcards...');
     const { data: flashcardsData, error, count } = await query;
 
     if (error) {
-      throw new Error(`Erro ao listar flashcards: ${error.message}`);
+      console.error('[flashcards] Erro completo na query de flashcards:', JSON.stringify(error, null, 2));
+      console.error('[flashcards] Filtros aplicados:', JSON.stringify(filters, null, 2));
+      console.error('[flashcards] Módulos IDs:', moduloIds);
+      const errorMsg = formatSupabaseError(error);
+      console.error('[flashcards] Erro formatado:', errorMsg);
+      throw new Error(`Erro ao listar flashcards: ${errorMsg}`);
     }
+    
+    console.log('[flashcards] Flashcards encontrados:', flashcardsData?.length || 0);
+    console.log('[flashcards] Total:', count);
 
     if (!flashcardsData || flashcardsData.length === 0) {
       return { data: [], total: count || 0 };
@@ -787,49 +936,110 @@ export class FlashcardsService {
       ...new Set(flashcardsData.map((f) => f.modulo_id as string)),
     ];
 
-    const { data: modulosData, error: modulosError } = await this.client
-      .from('modulos')
-      .select(
-        `
-        id,
-        nome,
-        numero_modulo,
-        frente_id,
-        frentes!inner(
+    if (moduloIdsFromFlashcards.length === 0) {
+      return { data: [], total: count || 0 };
+    }
+
+    console.log('[flashcards] Buscando módulos com relacionamentos para', moduloIdsFromFlashcards.length, 'módulos');
+    console.log('[flashcards] IDs dos módulos a buscar:', moduloIdsFromFlashcards);
+    
+    let modulosData: any[] | null = null;
+    let modulosError: any = null;
+
+    try {
+      console.log('[flashcards] Executando query de módulos com relacionamentos...');
+      
+      const result = await this.client
+        .from('modulos')
+        .select(
+          `
           id,
           nome,
-          disciplina_id,
-          disciplinas!inner(
+          numero_modulo,
+          frente_id,
+          frentes!inner(
             id,
-            nome
+            nome,
+            disciplina_id,
+            disciplinas!inner(
+              id,
+              nome
+            )
           )
+        `,
         )
-      `,
-      )
-      .in('id', moduloIdsFromFlashcards);
+        .in('id', moduloIdsFromFlashcards);
+      
+      modulosData = result.data;
+      modulosError = result.error;
+      
+      if (modulosError) {
+        console.error('[flashcards] Erro na query de módulos:', JSON.stringify(modulosError, null, 2));
+        console.error('[flashcards] Tipo do erro:', typeof modulosError);
+        console.error('[flashcards] Erro é objeto?', typeof modulosError === 'object');
+      } else {
+        console.log('[flashcards] Módulos com relacionamentos encontrados:', modulosData?.length || 0);
+        if (modulosData && modulosData.length > 0) {
+          console.log('[flashcards] Primeiro módulo exemplo:', JSON.stringify(modulosData[0], null, 2).substring(0, 500));
+        }
+      }
+    } catch (err) {
+      console.error('[flashcards] Exceção ao buscar módulos (catch):', err);
+      console.error('[flashcards] Tipo da exceção:', typeof err);
+      if (err instanceof Error) {
+        console.error('[flashcards] Mensagem da exceção:', err.message);
+        console.error('[flashcards] Stack da exceção:', err.stack);
+      }
+      modulosError = err;
+    }
 
     if (modulosError) {
-      throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
+      console.error('[flashcards] Erro completo ao buscar módulos:', JSON.stringify(modulosError, null, 2));
+      console.error('[flashcards] Módulos IDs buscados:', moduloIdsFromFlashcards);
+      
+      const errorMsg = formatSupabaseError(modulosError);
+      console.error('[flashcards] Erro formatado:', errorMsg);
+      
+      // Criar mensagem de erro mais clara
+      let finalErrorMessage = `Erro ao buscar módulos: ${errorMsg}`;
+      
+      // Se o erro for sobre relacionamentos faltando, dar mensagem mais específica
+      if (errorMsg.includes('inner') || errorMsg.includes('relation') || errorMsg.includes('foreign key')) {
+        finalErrorMessage = `Erro ao buscar relacionamentos dos módulos. Verifique se todos os módulos têm frente e disciplina associadas. Detalhes: ${errorMsg}`;
+      }
+      
+      throw new Error(finalErrorMessage);
+    }
+    
+    if (!modulosData || modulosData.length === 0) {
+      console.warn('[flashcards] Nenhum módulo encontrado com relacionamentos, mas havia flashcards. Isso pode indicar problema de integridade de dados.');
+      // Retornar vazio ao invés de erro, pois pode ser que os módulos foram deletados
+      return { data: [], total: count || 0 };
     }
 
     // Criar map de módulos
     const modulosMap = new Map(
-      (modulosData || []).map((m: any) => [
-        m.id,
-        {
-          id: m.id,
-          nome: m.nome,
-          numero_modulo: m.numero_modulo,
-          frente: {
-            id: m.frentes.id,
-            nome: m.frentes.nome,
-            disciplina: {
-              id: m.frentes.disciplinas.id,
-              nome: m.frentes.disciplinas.nome,
+      (modulosData || [])
+        .filter((m: any) => {
+          // Verificar se o módulo tem os relacionamentos necessários
+          return m && m.frentes && m.frentes.disciplinas;
+        })
+        .map((m: any) => [
+          m.id,
+          {
+            id: m.id,
+            nome: m.nome,
+            numero_modulo: m.numero_modulo,
+            frente: {
+              id: m.frentes.id,
+              nome: m.frentes.nome,
+              disciplina: {
+                id: m.frentes.disciplinas.id,
+                nome: m.frentes.disciplinas.nome,
+              },
             },
           },
-        },
-      ]),
+        ]),
     );
 
     // Montar resposta final

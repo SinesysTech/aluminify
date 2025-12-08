@@ -23,6 +23,11 @@ import { FileText, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-rea
 import Papa from 'papaparse'
 import ExcelJS from 'exceljs'
 
+// IDs estáveis para evitar erro de hidratação
+const CURSO_SELECT_ID = 'flashcard-curso'
+const DISCIPLINA_SELECT_ID = 'flashcard-disciplina'
+const FRENTE_SELECT_ID = 'flashcard-frente'
+
 type Disciplina = {
   id: string
   nome: string
@@ -51,6 +56,7 @@ interface FlashcardUploadCardProps {
 
 export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUploadCardProps) {
   const supabase = createClient()
+  const [mounted, setMounted] = React.useState(false)
   const [cursoSelecionado, setCursoSelecionado] = React.useState<string>('')
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
   const [disciplinaSelecionada, setDisciplinaSelecionada] = React.useState<string>('')
@@ -60,6 +66,10 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Carregar disciplinas ao selecionar curso
   React.useEffect(() => {
@@ -539,6 +549,42 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
     }
   }
 
+  // Renderizar placeholder durante SSR para evitar erro de hidratação
+  if (!mounted) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Flashcards</CardTitle>
+          <CardDescription>
+            Upload de CSV separado para flashcards (padrão Excel PT-BR com ponto e vírgula). 
+            Arquivo CSV: Colunas: Módulo; Pergunta; Resposta — delimitador ; e UTF-8.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor={CURSO_SELECT_ID}>Curso</Label>
+            <div className="h-9 w-full rounded-md border bg-transparent" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={DISCIPLINA_SELECT_ID}>Disciplina</Label>
+            <div className="h-9 w-full rounded-md border bg-transparent" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={FRENTE_SELECT_ID}>Frente</Label>
+            <div className="h-9 w-full rounded-md border bg-transparent" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="flashcard-file">Arquivo CSV ou XLSX</Label>
+            <div className="h-9 w-full rounded-md border bg-transparent" />
+          </div>
+          <Button disabled className="w-full">
+            Importar
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -550,7 +596,7 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="flashcard-curso">Curso</Label>
+          <Label htmlFor={CURSO_SELECT_ID}>Curso</Label>
           <Select
             value={cursoSelecionado}
             onValueChange={(value) => {
@@ -559,7 +605,7 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
               setFrenteSelecionada('')
             }}
           >
-            <SelectTrigger id="flashcard-curso">
+            <SelectTrigger id={CURSO_SELECT_ID}>
               <SelectValue placeholder="Selecione um curso" />
             </SelectTrigger>
             <SelectContent>
@@ -574,7 +620,7 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
 
         {cursoSelecionado && (
           <div className="space-y-2">
-            <Label htmlFor="flashcard-disciplina">Disciplina</Label>
+            <Label htmlFor={DISCIPLINA_SELECT_ID}>Disciplina</Label>
             <Select
               value={disciplinaSelecionada}
               onValueChange={(value) => {
@@ -583,7 +629,7 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
               }}
               disabled={disciplinas.length === 0}
             >
-              <SelectTrigger id="flashcard-disciplina">
+              <SelectTrigger id={DISCIPLINA_SELECT_ID}>
                 <SelectValue placeholder={disciplinas.length === 0 ? 'Carregando...' : 'Selecione uma disciplina'} />
               </SelectTrigger>
               <SelectContent>
@@ -599,13 +645,13 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
 
         {disciplinaSelecionada && (
           <div className="space-y-2">
-            <Label htmlFor="flashcard-frente">Frente</Label>
+            <Label htmlFor={FRENTE_SELECT_ID}>Frente</Label>
             <Select
               value={frenteSelecionada}
               onValueChange={setFrenteSelecionada}
               disabled={frentes.length === 0}
             >
-              <SelectTrigger id="flashcard-frente">
+              <SelectTrigger id={FRENTE_SELECT_ID}>
                 <SelectValue placeholder={frentes.length === 0 ? 'Carregando...' : 'Selecione uma frente'} />
               </SelectTrigger>
               <SelectContent>
@@ -687,3 +733,4 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
     </Card>
   )
 }
+
