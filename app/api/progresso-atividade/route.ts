@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { progressoAtividadeService, ProgressoNotFoundError, ProgressoValidationError } from '@/backend/services/progresso-atividade';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 

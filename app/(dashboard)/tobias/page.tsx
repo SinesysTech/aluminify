@@ -57,7 +57,7 @@ export default function TobIAsPage() {
 
     // Limpar mensagens primeiro para evitar mostrar mensagens da conversa anterior
     setMessages([])
-    
+
     setCurrentConversation(conversation)
     setSelectedConversationId(conversation.id)
     setIsNewConversation(isNew)
@@ -78,7 +78,7 @@ export default function TobIAsPage() {
   // Inicializar userId, accessToken e carregar histórico
   useEffect(() => {
     const supabase = createClient()
-    
+
     // Configurar listener para atualizar o token quando a sessão mudar
     // Criar a subscription de forma síncrona para garantir que o cleanup funcione
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -147,7 +147,7 @@ export default function TobIAsPage() {
     // Limpar mensagens imediatamente ao trocar de conversa
     setMessages([])
     setIsNewConversation(false)
-    
+
     if (!conversation || !accessToken) {
       setCurrentConversation(null)
       setSelectedConversationId(null)
@@ -173,7 +173,7 @@ export default function TobIAsPage() {
           const now = Date.now()
           const isRecentlyCreated = (now - createdAt) < 10000 // Criada nos últimos 10 segundos
           const isNew = !hasHistory && isRecentlyCreated
-          
+
           await loadConversation(conversationData, isNew)
         } else {
           // Se não houver dados, garantir que mensagens estejam vazias
@@ -331,7 +331,7 @@ export default function TobIAsPage() {
                 key={index}
                 className="flex items-center gap-2 rounded-md bg-primary/20 px-3 py-2 text-sm"
               >
-                <Paperclip className="h-4 w-4 flex-shrink-0" />
+                <Paperclip className="h-4 w-4 shrink-0" />
                 <span className="truncate">{part.content}</span>
               </div>
             )
@@ -358,7 +358,7 @@ export default function TobIAsPage() {
         if (response.ok) {
           const data = await response.json()
           const activeConversation = data.conversations?.[0]
-          
+
           if (activeConversation) {
             await loadConversation(activeConversation)
           } else {
@@ -367,7 +367,7 @@ export default function TobIAsPage() {
               console.error('[TobIAs] Cannot create conversation: accessToken is null')
               return
             }
-            
+
             const createResponse = await fetch('/api/conversations', {
               method: 'POST',
               headers: {

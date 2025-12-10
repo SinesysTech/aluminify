@@ -74,8 +74,8 @@ export function SubjectPerformanceList({
                     <Info className="h-4 w-4" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent 
-                  side="right" 
+                <TooltipContent
+                  side="right"
                   className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3"
                   sideOffset={8}
                 >
@@ -83,19 +83,19 @@ export function SubjectPerformanceList({
                     <p className="font-semibold text-sm">Classificações:</p>
                     <ul className="space-y-1.5 text-xs">
                       <li className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
+                        <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
                         <span>≥ 80%: Excelente</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500 shrink-0" />
                         <span>≥ 50%: Regular</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0" />
+                        <div className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
                         <span>&lt; 50%: Precisa melhorar</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 flex-shrink-0" />
+                        <div className="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
                         <span>Não iniciada: Sem atividades concluídas</span>
                       </li>
                     </ul>

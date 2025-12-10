@@ -6,6 +6,33 @@ import ical from 'ical-generator'
 
 export const runtime = 'nodejs'
 
+interface CronogramaExport {
+  nome: string;
+  data_inicio: string;
+  data_fim: string;
+  [key: string]: unknown;
+}
+
+interface ItemExport {
+  id: string;
+  data_prevista?: string | null;
+  concluido: boolean;
+  data_conclusao?: string | null;
+  aulas?: {
+    nome?: string;
+    tempo_estimado_minutos?: number;
+    modulos?: {
+      nome?: string;
+      frentes?: {
+        nome?: string;
+        disciplinas?: {
+          nome?: string;
+        };
+      };
+    };
+  };
+}
+
 function formatTempo(minutos?: number | null): string {
   if (!minutos || minutos <= 0) return '--'
   const h = Math.floor(minutos / 60)
@@ -15,7 +42,7 @@ function formatTempo(minutos?: number | null): string {
   return `${m} min`
 }
 
-function buildIcs(cronograma: any, itens: any[]): string {
+function buildIcs(cronograma: CronogramaExport, itens: ItemExport[]): string {
   const calendar = ical({
     prodId: {
       company: 'Área do Aluno',
@@ -103,8 +130,7 @@ async function getHandler(
 
   let cronogramaId: string | null = null
   if (context && 'params' in context) {
-    const anyCtx: any = context
-    const params = anyCtx.params
+    const params = (context as { params?: { id?: string } }).params
     if (params && typeof params === 'object' && 'id' in params) {
       cronogramaId = String(params.id)
     }

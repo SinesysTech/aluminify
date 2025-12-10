@@ -4,8 +4,6 @@
  * Sistema básico de monitoramento de cache (hit/miss rate)
  */
 
-import { cacheService } from './cache.service';
-
 interface CacheStats {
   hits: number;
   misses: number;

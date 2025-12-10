@@ -13,7 +13,7 @@ O serviço de calendário permite visualizar e gerenciar as aulas do cronograma 
 ### Fluxo Inicial:
 1. **Verificação de Autenticação**
    - Verifica se o usuário está autenticado
-   - Redireciona para `/auth/login` se não estiver
+   - Redireciona para `/auth` se não estiver
 
 2. **Busca do Cronograma**
    - Busca o cronograma mais recente do aluno na tabela `cronogramas`

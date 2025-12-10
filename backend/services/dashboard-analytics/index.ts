@@ -15,7 +15,7 @@ export const dashboardAnalyticsService = new Proxy(
   {
     get(_target, prop) {
       const service = getDashboardAnalyticsService()
-      return (service as any)[prop]
+      return service[prop as keyof DashboardAnalyticsService]
     },
   }
 )

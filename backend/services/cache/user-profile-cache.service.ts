@@ -65,7 +65,7 @@ class UserProfileCacheService {
       if (professor?.nome_completo) {
         profile.nomeCompleto = professor.nome_completo;
       }
-    } catch (error) {
+    } catch {
       // Ignorar erro - não é crítico
     }
 

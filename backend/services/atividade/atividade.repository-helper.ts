@@ -54,7 +54,7 @@ export async function listByAlunoMatriculasHelper(
     return [];
   }
 
-  const cursoIds = alunosCursos.map((ac: any) => ac.curso_id);
+  const cursoIds = alunosCursos.map((ac: { curso_id: string }) => ac.curso_id);
 
   // 2. Buscar cursos_disciplinas para esses cursos
   const { data: cursosDisciplinas, error: cdError } = await client

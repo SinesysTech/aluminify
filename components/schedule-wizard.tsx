@@ -83,36 +83,36 @@ const STEPS = [
 ]
 
 const MODALIDADES = [
-  { 
-    nivel: 1, 
+  {
+    nivel: 1,
     label: 'Super Extensivo',
     descricao: 'Aprofundamento Total',
     texto: 'Domine a física de ponta a ponta. Do zero ao nível mais avançado, com todos os aprofundamentos possíveis. Perfeito para cursos de alta concorrência e provas específicas que exigem o máximo de detalhe.',
     tempo: '⏱️ Recomendado para: +12 meses de estudo.'
   },
-  { 
-    nivel: 2, 
+  {
+    nivel: 2,
     label: 'Extensivo',
     descricao: 'O Mais Popular',
     texto: 'A preparação completa para 99% dos vestibulares. Cobre todo o edital do ENEM, FUVEST, UNICAMP e UERJ, filtrando apenas excessos desnecessários. É a rota segura para a aprovação.',
     tempo: '⏱️ Recomendado para: 9 a 12 meses de estudo.'
   },
-  { 
-    nivel: 3, 
+  {
+    nivel: 3,
     label: 'Semi Extensivo',
     descricao: 'Otimizado',
     texto: 'Todo o conteúdo, sem enrolação. Mantemos a jornada do básico ao avançado, mas focamos nos aprofundamentos e exercícios que realmente fazem a diferença na nota. Eficiência máxima.',
     tempo: '⏱️ Recomendado para: 6 a 9 meses de estudo.'
   },
-  { 
-    nivel: 4, 
+  {
+    nivel: 4,
     label: 'Intensivo',
     descricao: 'Foco no que Cai',
     texto: 'Não perca tempo. Priorizamos os assuntos com maior recorrência histórica nas provas. Você verá do básico ao avançado apenas no que tem alta probabilidade de cair.',
     tempo: '⏱️ Recomendado para: 3 a 6 meses de estudo.'
   },
-  { 
-    nivel: 5, 
+  {
+    nivel: 5,
     label: 'Superintensivo',
     descricao: 'Reta Final',
     texto: 'A base sólida para salvar seu ano. O mínimo conteúdo viável (MCV) e essencial condensado para dar segurança nas questões fáceis e médias. É o "kit de sobrevivência" para quem tem pouco tempo.',
@@ -281,9 +281,9 @@ export function ScheduleWizard() {
     async function loadData() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
-        router.push('/auth/login')
+        router.push('/auth/professor/login')
         return
       }
       setUserId(user.id)
@@ -333,7 +333,7 @@ export function ScheduleWizard() {
           ...(cursosDoProfessor.data || []),
           ...(cursosSemCriador.data || []),
         ]
-        
+
         // Remover duplicatas por ID
         const cursosUnicos = Array.from(
           new Map(todosCursos.map((curso: any) => [curso.id, curso])).values()
@@ -422,7 +422,7 @@ export function ScheduleWizard() {
         }
 
         setDisciplinasDoCurso(disciplinasData || [])
-        
+
         // Se houver apenas uma disciplina, selecionar automaticamente
         if (disciplinasData && disciplinasData.length === 1) {
           form.setValue('disciplinas_ids', [disciplinasData[0].id])
@@ -557,7 +557,7 @@ export function ScheduleWizard() {
         }
 
         const moduloIds = modulosData.map((m: any) => m.id)
-        
+
         if (moduloIds.length === 0) {
           console.log('Nenhum ID de módulo válido encontrado')
           if (cancelled) {
@@ -700,7 +700,7 @@ export function ScheduleWizard() {
         arvoreComModulos.forEach((frente: any) => {
           const disciplinaId = frentesData.find((f: any) => f.id === frente.id)?.disciplina_id
           const disciplinaNome = (frentesData.find((f: any) => f.id === frente.id)?.disciplinas as any)?.nome || 'Sem disciplina'
-          
+
           if (!agrupadosPorDisciplina[disciplinaId || 'sem-id']) {
             agrupadosPorDisciplina[disciplinaId || 'sem-id'] = {
               disciplinaNome,
@@ -713,9 +713,9 @@ export function ScheduleWizard() {
         setModulosCurso(arvoreComModulos)
         setModulosCursoAgrupadosPorDisciplina(agrupadosPorDisciplina)
         const todosModulos = arvoreComModulos.flatMap((frente) => frente.modulos.map((modulo: any) => modulo.id))
-        
+
         console.log('[ScheduleWizard] Total de módulos selecionados:', todosModulos.length)
-        console.log('[ScheduleWizard] Módulos selecionados por frente:', 
+        console.log('[ScheduleWizard] Módulos selecionados por frente:',
           arvoreComModulos.map(f => ({
             frente_id: f.id,
             frente_nome: f.nome,
@@ -723,7 +723,7 @@ export function ScheduleWizard() {
             modulo_ids: f.modulos.map((m: any) => m.id)
           }))
         )
-        
+
         setModulosSelecionados(todosModulos)
         setCompletedLessonsCount(concluidasSet.size)
         setError(null)
@@ -881,7 +881,7 @@ export function ScheduleWizard() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
         throw new Error('Usuário não autenticado')
       }
@@ -912,7 +912,7 @@ export function ScheduleWizard() {
       console.log('[ScheduleWizard] Disciplinas selecionadas:', data.disciplinas_ids)
       console.log('[ScheduleWizard] Total de módulos selecionados:', data.modulos_ids?.length || 0)
       console.log('[ScheduleWizard] Módulos selecionados (primeiros 20):', data.modulos_ids?.slice(0, 20))
-      
+
       // Verificar módulos por frente
       if (modulosCurso.length > 0 && data.modulos_ids) {
         const modulosPorFrenteEnvio = modulosCurso.map(frente => ({
@@ -923,7 +923,7 @@ export function ScheduleWizard() {
           todos_selecionados: frente.modulos.every((m: any) => data.modulos_ids?.includes(m.id))
         }))
         console.log('[ScheduleWizard] Status de módulos por frente:', modulosPorFrenteEnvio)
-        
+
         const frentesIncompletas = modulosPorFrenteEnvio.filter(f => !f.todos_selecionados || f.modulos_selecionados === 0)
         if (frentesIncompletas.length > 0) {
           console.warn('[ScheduleWizard] ⚠️⚠️⚠️ Frentes com módulos NÃO selecionados:', frentesIncompletas)
@@ -939,7 +939,7 @@ export function ScheduleWizard() {
 
       // Chamar API local
       console.log('Invocando API local com body:', requestBody)
-      
+
       let response: Response
       try {
         response = await fetch('/api/cronograma', {
@@ -962,11 +962,11 @@ export function ScheduleWizard() {
 
       let result: any = {}
       const contentType = response.headers.get('content-type')
-      
+
       try {
         const responseText = await response.text()
         console.log('Texto bruto da resposta:', responseText)
-        
+
         if (contentType?.includes('application/json') && responseText) {
           try {
             result = JSON.parse(responseText)
@@ -995,11 +995,11 @@ export function ScheduleWizard() {
           console.error('Erro na API - Result:', result)
           console.error('Erro na API - Keys:', result ? Object.keys(result) : 'result é null/undefined')
         }
-        
+
         // Verificar se é erro de tempo insuficiente (comparação mais flexível)
         const errorText = result?.error ? String(result.error).toLowerCase() : ''
         const isTempoInsuficiente = errorText.includes('tempo insuficiente') && result?.detalhes
-        
+
         // Se o erro contém detalhes, mostrar mensagem mais específica
         if (isTempoInsuficiente) {
           const detalhes = result?.detalhes || {}
@@ -1034,13 +1034,13 @@ export function ScheduleWizard() {
           }
         } else {
           // Extrair mensagem de erro de forma mais robusta
-          const errorMessage = 
-            result?.error || 
-            result?.message || 
-            result?.details || 
+          const errorMessage =
+            result?.error ||
+            result?.message ||
+            result?.details ||
             (typeof result === 'string' ? result : null) ||
             `Erro ${response.status}: ${response.statusText || 'Erro ao gerar cronograma'}`
-          
+
           // Log apenas em desenvolvimento
           if (process.env.NODE_ENV === 'development') {
             console.error('Mensagem de erro final:', errorMessage)
@@ -1072,7 +1072,7 @@ export function ScheduleWizard() {
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep)
     const isValid = await form.trigger(fieldsToValidate as any)
-    
+
     if (isValid) {
       if (currentStep === 2) {
         if (cursos.length > 0 && !form.getValues('curso_alvo_id')) {
@@ -1192,14 +1192,14 @@ export function ScheduleWizard() {
   const prioridadeAtual = form.watch('prioridade_minima')
   const sugestaoDiasSemana = tempoInsuficienteDetalhes
     ? Math.min(
-        7,
-        Math.max(
-          diasSemanaAtual + 1,
-          Math.ceil(
-            (tempoInsuficienteDetalhes.horasDiaNecessarias / Math.max(1, horasDiaAtual)) * Math.max(1, diasSemanaAtual),
-          ),
+      7,
+      Math.max(
+        diasSemanaAtual + 1,
+        Math.ceil(
+          (tempoInsuficienteDetalhes.horasDiaNecessarias / Math.max(1, horasDiaAtual)) * Math.max(1, diasSemanaAtual),
         ),
-      )
+      ),
+    )
     : diasSemanaAtual
   const sugestaoHorasDia = tempoInsuficienteDetalhes
     ? Math.ceil(Math.max(horasDiaAtual, tempoInsuficienteDetalhes.horasDiaNecessarias))
@@ -1254,14 +1254,14 @@ export function ScheduleWizard() {
           </div>
         </CardHeader>
         <CardContent>
-          <form 
+          <form
             onSubmit={(e) => {
               e.preventDefault()
               // Só submete se estiver no último step e o nome estiver preenchido
               if (currentStep === STEPS.length && form.watch('nome')?.trim()) {
                 form.handleSubmit(onSubmit)(e)
               }
-            }} 
+            }}
             className="space-y-6"
           >
             {error && (
@@ -1589,20 +1589,20 @@ export function ScheduleWizard() {
                                                           modulo.importancia === 'Alta'
                                                             ? 'destructive'
                                                             : modulo.importancia === 'Media'
-                                                            ? 'default'
-                                                            : modulo.importancia === 'Baixa'
-                                                            ? 'secondary'
-                                                            : 'outline'
+                                                              ? 'default'
+                                                              : modulo.importancia === 'Baixa'
+                                                                ? 'secondary'
+                                                                : 'outline'
                                                         }
                                                         className="text-xs"
                                                       >
                                                         {modulo.importancia === 'Alta'
                                                           ? 'Alta'
                                                           : modulo.importancia === 'Media'
-                                                          ? 'Média'
-                                                          : modulo.importancia === 'Baixa'
-                                                          ? 'Baixa'
-                                                          : 'Base'}
+                                                            ? 'Média'
+                                                            : modulo.importancia === 'Baixa'
+                                                              ? 'Baixa'
+                                                              : 'Base'}
                                                       </Badge>
                                                       <TooltipProvider>
                                                         <Tooltip>
@@ -1744,7 +1744,7 @@ export function ScheduleWizard() {
                         onClick={() => form.setValue('prioridade_minima', nivel)}
                       >
                         <CardContent className="p-5 flex flex-col flex-1">
-                          <div className="text-center space-y-1.5 border-b border-border pb-3 flex-shrink-0">
+                          <div className="text-center space-y-1.5 border-b border-border pb-3 shrink-0">
                             <div className="font-bold text-lg text-foreground">{label}</div>
                             <div className="text-sm font-semibold text-primary">({descricao})</div>
                           </div>
@@ -1853,13 +1853,13 @@ export function ScheduleWizard() {
                           {MODALIDADES.map(({ nivel, label }) => {
                             const stats = modalidadeStats[nivel]
                             if (!stats) return null
-                            
+
                             const velocidade = form.watch('velocidade_reproducao') || 1.0
                             // Tempo de aula ajustado pela velocidade
                             const tempoAulaAjustado = stats.tempoAulaMinutos / velocidade
                             // Tempo de estudo = tempo de aula ajustado * (FATOR_MULTIPLICADOR - 1)
                             const tempoEstudoAjustado = tempoAulaAjustado * (FATOR_MULTIPLICADOR - 1)
-                            
+
                             return (
                               <Card key={nivel} className="p-3">
                                 <div className="text-center space-y-2">
@@ -2064,8 +2064,8 @@ export function ScheduleWizard() {
                   Próximo
                 </Button>
               ) : (
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={loading || !form.watch('nome') || form.watch('nome')?.trim().length === 0}
                 >
                   {loading ? (
@@ -2094,7 +2094,7 @@ export function ScheduleWizard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Vamos ajustar seu cronograma</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2 [&>*]:block">
+            <AlertDialogDescription className="space-y-2 *:block">
               <span>
                 Detectamos tempo insuficiente para cobrir todo o conteúdo ({tempoInsuficienteDetalhes?.horasDisponiveis ?? 0}h
                 disponíveis contra {tempoInsuficienteDetalhes?.horasNecessarias ?? 0}h necessárias).

@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createAgendamento } from "@/app/actions/agendamentos";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface FormPanelProps {
   professorId: string;
@@ -17,7 +18,7 @@ export function FormPanel({ professorId, timeZone }: FormPanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const slotParam = searchParams.get("slot");
-  
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     observacoes: "",
@@ -46,12 +47,13 @@ export function FormPanel({ professorId, timeZone }: FormPanelProps) {
         link_reuniao: null // Or generate one
       });
       // Redirect or show success
-      alert("Agendamento solicitado com sucesso!");
-      router.push("/agendamentos"); // Reset or go to list
+      toast.success("Agendamento solicitado com sucesso!");
+      router.push("/meus-agendamentos"); // Reset or go to list
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Erro ao agendar.");
+      const errorMessage = error instanceof Error ? error.message : "Erro ao agendar";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,14 +67,14 @@ export function FormPanel({ professorId, timeZone }: FormPanelProps) {
           {startDate.toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short', timeZone })}
         </div>
       </div>
-      
+
       <div className="flex flex-col space-y-1.5">
         <Label htmlFor="observacoes">Observações</Label>
         <Textarea
           id="observacoes"
           placeholder="Compartilhe detalhes para a reunião"
           value={formData.observacoes}
-          onChange={(e) => setFormData({...formData, observacoes: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
         />
       </div>
 

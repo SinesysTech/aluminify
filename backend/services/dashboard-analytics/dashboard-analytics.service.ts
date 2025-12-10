@@ -465,7 +465,7 @@ export class DashboardAnalyticsService {
     }
 
     // Contar flashcards únicos (um flashcard pode ter múltiplas revisões)
-    const flashcardsUnicos = new Set(progressosFlashcards.map((p: any) => p.flashcard_id))
+    const flashcardsUnicos = new Set(progressosFlashcards.map((p: { flashcard_id: string }) => p.flashcard_id))
     return flashcardsUnicos.size
   }
 
@@ -544,14 +544,14 @@ export class DashboardAnalyticsService {
       const { data: todosCursos } = await client
         .from('cursos')
         .select('id');
-      cursoIds = (todosCursos ?? []).map((c: any) => c.id);
+      cursoIds = (todosCursos ?? []).map((c: { id: string }) => c.id);
     } else {
       // Alunos: buscar cursos matriculados
       const { data: alunosCursos } = await client
         .from('alunos_cursos')
         .select('curso_id')
         .eq('aluno_id', alunoId);
-      cursoIds = (alunosCursos ?? []).map((ac: any) => ac.curso_id);
+      cursoIds = (alunosCursos ?? []).map((ac: { curso_id: string }) => ac.curso_id);
     }
     
     if (cursoIds.length === 0) return [];
@@ -564,7 +564,7 @@ export class DashboardAnalyticsService {
 
     if (!cursosDisciplinas || cursosDisciplinas.length === 0) return [];
 
-    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: any) => cd.disciplina_id))];
+    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: { disciplina_id: string }) => cd.disciplina_id))];
 
     // 3. Buscar TODAS as frentes dessas disciplinas (mesmo sem progresso)
     const { data: todasFrentes } = await client

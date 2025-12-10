@@ -93,7 +93,7 @@ export function MaterialsFilters({
             <Label htmlFor={FRENTE_SELECT_ID}>Frente</Label>
             <div className="h-9 w-full rounded-md border bg-transparent" />
           </div>
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Button disabled className="w-full md:w-auto">
               Gerar Estrutura
             </Button>
@@ -172,7 +172,7 @@ export function MaterialsFilters({
           </Select>
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <Button
             onClick={onGenerateStructure}
             disabled={!canGenerate}

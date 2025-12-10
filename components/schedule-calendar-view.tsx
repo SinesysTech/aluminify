@@ -124,21 +124,21 @@ const normalizarDataParaKey = (date: Date): string => {
 // Helper para obter o número da semana de uma data baseado na data_inicio do cronograma
 const getSemanaNumero = (date: Date, dataInicio?: string | null): number | null => {
   if (!dataInicio) return null
-  
+
   const inicio = new Date(dataInicio)
   const data = new Date(date)
-  
+
   // Normalizar para meia-noite para comparação
   inicio.setHours(0, 0, 0, 0)
   data.setHours(0, 0, 0, 0)
-  
+
   // Calcular diferença em dias
   const diffTime = data.getTime() - inicio.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  
+
   // Calcular número da semana (semana 1 começa na data_inicio)
   const semanaNumero = Math.floor(diffDays / 7) + 1
-  
+
   return semanaNumero
 }
 
@@ -161,7 +161,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
   const [cronograma, setCronograma] = useState<Cronograma | null>(null)
   const [itensPorData, setItensPorData] = useState<Map<string, ItemComData[]>>(new Map())
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-  
+
   // Handler customizado para permitir seleção livre do range
   const handleDateRangeSelect = (range: DateRange | undefined) => {
     // Se já temos um range completo (from e to) e o usuário clicou em uma nova data,
@@ -170,18 +170,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       const clickedDate = range.from
       const currentFrom = dateRange.from
       const currentTo = dateRange.to
-      
+
       // Normalizar datas para comparar apenas dia/mês/ano (sem hora)
       const normalizeDate = (d: Date) => {
         const normalized = new Date(d)
         normalized.setHours(0, 0, 0, 0)
         return normalized
       }
-      
+
       const clickedNormalized = normalizeDate(clickedDate)
       const fromNormalized = normalizeDate(currentFrom)
       const toNormalized = normalizeDate(currentTo)
-      
+
       // Se a data clicada é diferente de ambas as datas do range atual, resetar
       if (
         clickedNormalized.getTime() !== fromNormalized.getTime() &&
@@ -197,7 +197,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         return
       }
     }
-    
+
     // Comportamento normal
     setDateRange(range)
     console.log('[DateRange] Range atualizado:', {
@@ -243,7 +243,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
       try {
         const supabase = createClient()
-        
+
         const { data: userResponse } = await supabase.auth.getUser()
         setUserId(userResponse?.user?.id ?? null)
 
@@ -276,7 +276,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         let itensCompletos: any[] = []
         if (itensData && itensData.length > 0) {
           const aulaIds = [...new Set(itensData.map(item => item.aula_id).filter(Boolean))]
-          
+
           if (aulaIds.length > 0) {
             // Buscar aulas em lotes
             const LOTE_SIZE = 100
@@ -284,14 +284,14 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             for (let i = 0; i < aulaIds.length; i += LOTE_SIZE) {
               lotes.push(aulaIds.slice(i, i + LOTE_SIZE))
             }
-            
+
             const todasAulas: any[] = []
             for (const lote of lotes) {
               const { data: loteData, error: loteError } = await supabase
                 .from('aulas')
                 .select('id, nome, numero_aula, tempo_estimado_minutos, curso_id, modulo_id')
                 .in('id', lote)
-              
+
               if (!loteError && loteData) {
                 todasAulas.push(...loteData)
               }
@@ -300,7 +300,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             // Buscar módulos
             const moduloIds = [...new Set(todasAulas.map(a => a.modulo_id).filter(Boolean))]
             let modulosMap = new Map()
-            
+
             if (moduloIds.length > 0) {
               const { data: modulosData } = await supabase
                 .from('modulos')
@@ -315,7 +315,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             // Buscar frentes
             const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: any) => m.frente_id).filter(Boolean))]
             let frentesMap = new Map()
-            
+
             if (frenteIds.length > 0) {
               const { data: frentesData } = await supabase
                 .from('frentes')
@@ -330,7 +330,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             // Buscar disciplinas
             const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: any) => f.disciplina_id).filter(Boolean))]
             let disciplinasMap = new Map()
-            
+
             if (disciplinaIds.length > 0) {
               const { data: disciplinasData } = await supabase
                 .from('disciplinas')
@@ -391,19 +391,19 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         console.log('[Load] Total de itens carregados:', itensCompletos.length)
         console.log('[Load] Itens com data_prevista:', itensCompletos.filter(i => i.data_prevista).length)
         console.log('[Load] Itens sem data_prevista:', itensCompletos.filter(i => !i.data_prevista).length)
-        
+
         const itensComData = calcularDatasItens(data as Cronograma, itensCompletos)
         const mapaPorData = new Map<string, ItemComData[]>()
-        
+
         // Contador por dia da semana para debug
         const contadorInicialPorDia: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
-        
+
         itensComData.forEach(item => {
           // Usar função helper para normalizar data
           const dataKey = normalizarDataParaKey(item.data)
           const diaSemana = item.data.getDay()
           contadorInicialPorDia[diaSemana] += 1
-          
+
           if (!mapaPorData.has(dataKey)) {
             mapaPorData.set(dataKey, [])
           }
@@ -484,7 +484,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }))
           const errorMessage = errorData.error || 'Erro desconhecido'
-          
+
           // Se o cronograma não foi encontrado, pode ser que ainda esteja sendo criado
           // Nesse caso, apenas logar como warning em vez de error
           if (errorMessage.includes('não encontrado') || errorMessage.includes('não existe')) {
@@ -533,14 +533,14 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         }
 
         const data: { success: true; tempo_estudos: any[] } = await response.json()
-        
+
         // Criar mapa: "data|disciplina_id|frente_id" -> boolean
         const mapa = new Map<string, boolean>()
         data.tempo_estudos.forEach((item: any) => {
           const key = `${item.data}|${item.disciplina_id}|${item.frente_id}`
           mapa.set(key, item.tempo_estudos_concluido)
         })
-        
+
         setTempoEstudosConcluidos(mapa)
         console.log('[Tempo Estudos] Tempo de estudos carregado:', mapa.size, 'registros')
       } catch (error) {
@@ -579,7 +579,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
   const calcularDatasItens = (cronograma: Cronograma, itensCompletos: any[]): ItemComData[] => {
     const itensComData: ItemComData[] = []
-    
+
     // Contador por dia da semana para debug
     const contadorPorDia: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
     const contadorComDataPrevista: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
@@ -599,11 +599,11 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         } else {
           dataItem = new Date(dataPrevistaStr)
         }
-        
+
         const diaSemana = dataItem.getDay()
         contadorPorDia[diaSemana] += 1
         contadorComDataPrevista[diaSemana] += 1
-        
+
         // Debug para quinta, sexta, sábado e domingo
         if (diaSemana >= 4 || diaSemana === 0) {
           const nomeDia = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][diaSemana]
@@ -618,11 +618,11 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         const inicioSemanaUtil = startOfWeek(inicioSemana, { weekStartsOn: 1 }) // Segunda-feira
         const diaNaSemana = (item.ordem_na_semana - 1) % diasEstudoSemana
         dataItem = addDays(inicioSemanaUtil, diaNaSemana)
-        
+
         const diaSemana = dataItem.getDay()
         contadorPorDia[diaSemana] += 1
         contadorSemDataPrevista[diaSemana] += 1
-        
+
         // Debug para quinta, sexta, sábado e domingo
         if (diaSemana >= 4 || diaSemana === 0) {
           const nomeDia = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][diaSemana]
@@ -636,7 +636,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         data_prevista: item.data_prevista || null,
       })
     })
-    
+
     console.log('[CalcularDatas] Contador total por dia da semana:', contadorPorDia)
     console.log('[CalcularDatas] Contador com data_prevista por dia:', contadorComDataPrevista)
     console.log('[CalcularDatas] Contador sem data_prevista (fallback) por dia:', contadorSemDataPrevista)
@@ -646,7 +646,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
   const toggleConcluido = async (itemId: string, concluido: boolean) => {
     const supabase = createClient()
-    
+
     const updateData: any = { concluido }
     if (concluido) {
       updateData.data_conclusao = new Date().toISOString()
@@ -702,7 +702,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       // Atualizar mapa de itens por data
       const itensComData = calcularDatasItens(cronograma, updatedItems)
       const mapaPorData = new Map<string, ItemComData[]>()
-      
+
       itensComData.forEach(item => {
         // Usar função helper para normalizar data
         const dataKey = normalizarDataParaKey(item.data)
@@ -783,59 +783,59 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
   const toggleTodasAulasDoDia = async (itensDoDia: ItemComData[]) => {
     console.log('[toggleTodasAulasDoDia] Iniciando, itens recebidos:', itensDoDia.length)
-    
+
     if (!cronograma) {
       console.error('[toggleTodasAulasDoDia] Cronograma não encontrado')
       return
     }
-    
+
     if (itensDoDia.length === 0) {
       console.warn('[toggleTodasAulasDoDia] Nenhum item recebido')
       return
     }
-    
+
     const supabase = createClient()
-    
+
     // Verificar se todas já estão concluídas
     const todasConcluidas = itensDoDia.every(item => item.concluido)
-    
+
     // Se todas estão concluídas, desmarcar todas; senão, marcar todas como concluídas
     const novoEstado = !todasConcluidas
     const dataConclusao = novoEstado ? new Date().toISOString() : null
-    
+
     console.log('[toggleTodasAulasDoDia] Estado atual:', { todasConcluidas, novoEstado, totalItens: itensDoDia.length })
-    
+
     // Obter IDs dos itens
     const itemIds = itensDoDia.map(item => item.id)
     console.log('[toggleTodasAulasDoDia] IDs dos itens:', itemIds)
-    
+
     // Atualizar todos os itens no banco de uma vez
     const { error: updateError, data: updateData } = await supabase
       .from('cronograma_itens')
-      .update({ 
+      .update({
         concluido: novoEstado,
         data_conclusao: dataConclusao
       })
       .in('id', itemIds)
       .select()
-    
+
     if (updateError) {
       console.error('[toggleTodasAulasDoDia] Erro ao atualizar itens:', updateError)
       alert('Erro ao marcar aulas. Tente novamente.')
       return
     }
-    
+
     console.log('[toggleTodasAulasDoDia] Itens atualizados no banco:', updateData?.length || 0)
-    
+
     // Obter aluno atual
     const alunoAtual = userId || (await supabase.auth.getUser()).data?.user?.id || null
-    
+
     // Atualizar tabela aulas_concluidas para cada item
     if (alunoAtual) {
       const operacoes = itensDoDia.map(async (item) => {
         const itemAlvo = cronograma.cronograma_itens.find((i) => i.id === item.id)
         const cursoDaAula = itemAlvo?.aulas?.curso_id || cronograma.curso_alvo_id || null
-        
+
         if (itemAlvo?.aula_id && cursoDaAula) {
           if (novoEstado) {
             await supabase
@@ -857,20 +857,20 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           }
         }
       })
-      
+
       await Promise.all(operacoes)
     }
-    
+
     // Se estiver marcando todas as aulas, também marcar os tempos de estudos
     if (novoEstado && cronogramaId) {
       // Agrupar itens por data/disciplina/frente para marcar tempos de estudos
       const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDoDia>()
-      
+
       itensDoDia.forEach((item) => {
         const dataKey = normalizarDataParaKey(item.data)
         const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
         const frenteId = item.aulas?.modulos?.frentes?.id || ''
-        
+
         if (disciplinaId && frenteId) {
           const chave = `${dataKey}|${disciplinaId}|${frenteId}`
           if (!gruposPorDataDisciplinaFrente.has(chave)) {
@@ -879,11 +879,11 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           gruposPorDataDisciplinaFrente.get(chave)!.push(item)
         }
       })
-      
+
       // Marcar tempos de estudos para cada grupo que tem tempo estimado > 0
       const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave, itensGrupo]) => {
         const [dataKey, disciplinaId, frenteId] = chave.split('|')
-        
+
         // Verificar se o grupo tem tempo de estudos (tempo estimado > 0)
         const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
         const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
@@ -891,23 +891,23 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         }, 0)
         const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
         const tempoEstudosExercicios = tempoAulasAjustado * 0.5
-        
+
         // Só marcar se houver tempo de estudos
         if (tempoEstudosExercicios > 0) {
           await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, true)
         }
       })
-      
+
       await Promise.all(tempoEstudosOperacoes)
     } else if (!novoEstado && cronogramaId) {
       // Se estiver desmarcando todas as aulas, também desmarcar os tempos de estudos
       const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDoDia>()
-      
+
       itensDoDia.forEach((item) => {
         const dataKey = normalizarDataParaKey(item.data)
         const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
         const frenteId = item.aulas?.modulos?.frentes?.id || ''
-        
+
         if (disciplinaId && frenteId) {
           const chave = `${dataKey}|${disciplinaId}|${frenteId}`
           if (!gruposPorDataDisciplinaFrente.has(chave)) {
@@ -916,16 +916,16 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           gruposPorDataDisciplinaFrente.get(chave)!.push(item)
         }
       })
-      
+
       // Desmarcar tempos de estudos para cada grupo
       const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave]) => {
         const [dataKey, disciplinaId, frenteId] = chave.split('|')
         await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, false)
       })
-      
+
       await Promise.all(tempoEstudosOperacoes)
     }
-    
+
     // Atualizar estado local de uma vez
     const updatedItems = itensCompletosCache.map((item) => {
       if (itemIds.includes(item.id)) {
@@ -933,17 +933,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
       return item
     })
-    
+
     // Criar cronograma atualizado ANTES de usar no calcularDatasItens
     const cronogramaAtualizado = { ...cronograma, cronograma_itens: updatedItems }
-    
+
     setItensCompletosCache(updatedItems)
     setCronograma(cronogramaAtualizado)
-    
+
     // Atualizar mapa de itens por data usando o cronograma atualizado
     const itensComData = calcularDatasItens(cronogramaAtualizado, updatedItems)
     const mapaPorData = new Map<string, ItemComData[]>()
-    
+
     itensComData.forEach(item => {
       const dataKey = normalizarDataParaKey(item.data)
       if (!mapaPorData.has(dataKey)) {
@@ -951,7 +951,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
       mapaPorData.get(dataKey)!.push(item)
     })
-    
+
     // Verificar se os itens foram atualizados corretamente
     const itensAtualizadosNoMapa = Array.from(mapaPorData.values()).flat()
     const concluidasNoMapa = itensAtualizadosNoMapa.filter(item => itemIds.includes(item.id) && item.concluido === novoEstado).length
@@ -960,50 +960,50 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       esperado: itemIds.length,
       novoEstado
     })
-    
+
     setItensPorData(mapaPorData)
-    
+
     console.log('[toggleTodasAulasDoDia] Concluído com sucesso')
   }
 
   const toggleTodasAulasDaFrente = async (itensDaFrente: ItemComData[]) => {
     if (!cronograma || itensDaFrente.length === 0) return
-    
+
     const supabase = createClient()
-    
+
     // Verificar se todas já estão concluídas
     const todasConcluidas = itensDaFrente.every(item => item.concluido)
-    
+
     // Se todas estão concluídas, desmarcar todas; senão, marcar todas como concluídas
     const novoEstado = !todasConcluidas
     const dataConclusao = novoEstado ? new Date().toISOString() : null
-    
+
     // Obter IDs dos itens
     const itemIds = itensDaFrente.map(item => item.id)
-    
+
     // Atualizar todos os itens no banco de uma vez
     const { error: updateError } = await supabase
       .from('cronograma_itens')
-      .update({ 
+      .update({
         concluido: novoEstado,
         data_conclusao: dataConclusao
       })
       .in('id', itemIds)
-    
+
     if (updateError) {
       console.error('Erro ao atualizar itens:', updateError)
       return
     }
-    
+
     // Obter aluno atual
     const alunoAtual = userId || (await supabase.auth.getUser()).data?.user?.id || null
-    
+
     // Atualizar tabela aulas_concluidas para cada item
     if (alunoAtual) {
       const operacoes = itensDaFrente.map(async (item) => {
         const itemAlvo = cronograma.cronograma_itens.find((i) => i.id === item.id)
         const cursoDaAula = itemAlvo?.aulas?.curso_id || cronograma.curso_alvo_id || null
-        
+
         if (itemAlvo?.aula_id && cursoDaAula) {
           if (novoEstado) {
             await supabase
@@ -1025,20 +1025,20 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           }
         }
       })
-      
+
       await Promise.all(operacoes)
     }
-    
+
     // Se estiver marcando todas as aulas da frente, também marcar os tempos de estudos
     if (novoEstado && cronogramaId) {
       // Agrupar itens por data/disciplina/frente para marcar tempos de estudos
       const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDaFrente>()
-      
+
       itensDaFrente.forEach((item) => {
         const dataKey = normalizarDataParaKey(item.data)
         const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
         const frenteId = item.aulas?.modulos?.frentes?.id || ''
-        
+
         if (disciplinaId && frenteId) {
           const chave = `${dataKey}|${disciplinaId}|${frenteId}`
           if (!gruposPorDataDisciplinaFrente.has(chave)) {
@@ -1047,11 +1047,11 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           gruposPorDataDisciplinaFrente.get(chave)!.push(item)
         }
       })
-      
+
       // Marcar tempos de estudos para cada grupo que tem tempo estimado > 0
       const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave, itensGrupo]) => {
         const [dataKey, disciplinaId, frenteId] = chave.split('|')
-        
+
         // Verificar se o grupo tem tempo de estudos (tempo estimado > 0)
         const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
         const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
@@ -1059,23 +1059,23 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         }, 0)
         const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
         const tempoEstudosExercicios = tempoAulasAjustado * 0.5
-        
+
         // Só marcar se houver tempo de estudos
         if (tempoEstudosExercicios > 0) {
           await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, true)
         }
       })
-      
+
       await Promise.all(tempoEstudosOperacoes)
     } else if (!novoEstado && cronogramaId) {
       // Se estiver desmarcando todas as aulas da frente, também desmarcar os tempos de estudos
       const gruposPorDataDisciplinaFrente = new Map<string, typeof itensDaFrente>()
-      
+
       itensDaFrente.forEach((item) => {
         const dataKey = normalizarDataParaKey(item.data)
         const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
         const frenteId = item.aulas?.modulos?.frentes?.id || ''
-        
+
         if (disciplinaId && frenteId) {
           const chave = `${dataKey}|${disciplinaId}|${frenteId}`
           if (!gruposPorDataDisciplinaFrente.has(chave)) {
@@ -1084,16 +1084,16 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           gruposPorDataDisciplinaFrente.get(chave)!.push(item)
         }
       })
-      
+
       // Desmarcar tempos de estudos para cada grupo
       const tempoEstudosOperacoes = Array.from(gruposPorDataDisciplinaFrente.entries()).map(async ([chave]) => {
         const [dataKey, disciplinaId, frenteId] = chave.split('|')
         await toggleTempoEstudosConcluido(dataKey, disciplinaId, frenteId, false)
       })
-      
+
       await Promise.all(tempoEstudosOperacoes)
     }
-    
+
     // Atualizar estado local de uma vez
     const updatedItems = itensCompletosCache.map((item) => {
       if (itemIds.includes(item.id)) {
@@ -1101,17 +1101,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
       return item
     })
-    
+
     // Criar cronograma atualizado ANTES de usar no calcularDatasItens
     const cronogramaAtualizado = { ...cronograma, cronograma_itens: updatedItems }
-    
+
     setItensCompletosCache(updatedItems)
     setCronograma(cronogramaAtualizado)
-    
+
     // Atualizar mapa de itens por data usando o cronograma atualizado
     const itensComData = calcularDatasItens(cronogramaAtualizado, updatedItems)
     const mapaPorData = new Map<string, ItemComData[]>()
-    
+
     itensComData.forEach(item => {
       const dataKey = normalizarDataParaKey(item.data)
       if (!mapaPorData.has(dataKey)) {
@@ -1119,7 +1119,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
       mapaPorData.get(dataKey)!.push(item)
     })
-    
+
     setItensPorData(mapaPorData)
   }
 
@@ -1128,7 +1128,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     if (manterDiasAtuais) {
       setManterDiasAtuais(false)
     }
-    
+
     setDiasSelecionados((prev) => {
       if (prev.includes(dia)) {
         // Remover dia (permitir remover todos se necessário)
@@ -1163,7 +1163,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
     try {
       const supabase = createClient()
-      
+
       const { data: userResponse } = await supabase.auth.getUser()
       setUserId(userResponse?.user?.id ?? null)
 
@@ -1181,7 +1181,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
       // Aguardar um pouco antes de buscar para garantir que o backend terminou
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       // Carregar itens (incluindo data_prevista atualizada)
       // Forçar busca sem cache usando uma query única
       const timestamp = Date.now()
@@ -1194,9 +1194,9 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         // Forçar busca sem cache usando um filtro que sempre retorna true mas força nova query
         .gte('semana_numero', 0) // Sempre verdadeiro, mas força nova query
         .limit(999999) // Limite alto para garantir que busca todos
-      
+
       console.log('[RecarregarCronograma] Itens carregados do banco:', itensData?.length || 0)
-      
+
       // Verificar distribuição de data_prevista por dia da semana ANTES de processar
       if (itensData && itensData.length > 0) {
         const distribuicaoDataPrevistaAntes: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
@@ -1227,7 +1227,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       let itensCompletos: any[] = []
       if (itensData && itensData.length > 0) {
         const aulaIds = [...new Set(itensData.map(item => item.aula_id).filter(Boolean))]
-        
+
         if (aulaIds.length > 0) {
           // Buscar aulas em lotes
           const LOTE_SIZE = 100
@@ -1235,14 +1235,14 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           for (let i = 0; i < aulaIds.length; i += LOTE_SIZE) {
             lotes.push(aulaIds.slice(i, i + LOTE_SIZE))
           }
-          
+
           const todasAulas: any[] = []
           for (const lote of lotes) {
             const { data: loteData, error: loteError } = await supabase
               .from('aulas')
               .select('id, nome, numero_aula, tempo_estimado_minutos, curso_id, modulo_id')
               .in('id', lote)
-            
+
             if (!loteError && loteData) {
               todasAulas.push(...loteData)
             }
@@ -1251,7 +1251,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           // Buscar módulos
           const moduloIds = [...new Set(todasAulas.map(a => a.modulo_id).filter(Boolean))]
           let modulosMap = new Map()
-          
+
           if (moduloIds.length > 0) {
             const { data: modulosData } = await supabase
               .from('modulos')
@@ -1266,7 +1266,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           // Buscar frentes
           const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: any) => m.frente_id).filter(Boolean))]
           let frentesMap = new Map()
-          
+
           if (frenteIds.length > 0) {
             const { data: frentesData } = await supabase
               .from('frentes')
@@ -1281,7 +1281,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           // Buscar disciplinas
           const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: any) => f.disciplina_id).filter(Boolean))]
           let disciplinasMap = new Map()
-          
+
           if (disciplinaIds.length > 0) {
             const { data: disciplinasData } = await supabase
               .from('disciplinas')
@@ -1343,7 +1343,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       console.log('[RecarregarCronograma] Total de itens:', itensCompletos.length)
       console.log('[RecarregarCronograma] Itens com data_prevista:', itensCompletos.filter(i => i.data_prevista).length)
       console.log('[RecarregarCronograma] Itens sem data_prevista:', itensCompletos.filter(i => !i.data_prevista).length)
-      
+
       // Verificar distribuição de data_prevista por dia da semana ANTES de calcular
       const distribuicaoDataPrevista: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
       const exemplosPorDia: Record<number, string[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
@@ -1363,7 +1363,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         exemplos: exemplosPorDia,
         diasSelecionados: diasSelecionados,
       })
-      
+
       // Verificar se há itens com data_prevista nos dias selecionados
       const itensNosDiasSelecionados = itensCompletos.filter(item => {
         if (!item.data_prevista) return false
@@ -1377,10 +1377,10 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         esperado: itensCompletos.length,
         percentual: itensCompletos.length > 0 ? ((itensNosDiasSelecionados.length / itensCompletos.length) * 100).toFixed(1) + '%' : '0%',
       })
-      
+
       const itensComData = calcularDatasItens(data as Cronograma, itensCompletos)
       const mapaPorData = new Map<string, ItemComData[]>()
-      
+
       itensComData.forEach(item => {
         // Usar função helper para normalizar data
         const dataKey = normalizarDataParaKey(item.data)
@@ -1389,7 +1389,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         }
         mapaPorData.get(dataKey)!.push(item)
       })
-      
+
       // Log detalhado do mapa por data
       console.log('[RecarregarCronograma] Mapa por data criado com', mapaPorData.size, 'datas únicas')
       const contadorPorDia: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
@@ -1413,7 +1413,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       })
 
       setItensPorData(mapaPorData)
-      
+
       // Recarregar distribuição de dias da semana para garantir sincronização
       const { data: distribuicaoData, error: distError } = await supabase
         .from('cronograma_semanas_dias')
@@ -1442,7 +1442,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     try {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.access_token) {
         throw new Error('Sessão não encontrada')
       }
@@ -1464,7 +1464,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
 
       const responseData = await response.json()
-      
+
       // Atualizar dias selecionados e dias salvos com o que foi salvo no banco
       if (responseData.distribuicao?.dias_semana) {
         setDiasSelecionados(responseData.distribuicao.dias_semana)
@@ -1475,26 +1475,26 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
       // Verificar atualização usando polling
       console.log('[SalvarDistribuicao] Iniciando verificação de atualização...')
-      
+
       const verificarAtualizacaoCompleta = async (): Promise<boolean> => {
         const supabaseCheck = createClient()
-        
+
         // Buscar amostra representativa de itens (aumentar para 200 para melhor verificação)
         const { data: amostraItens, error: amostraError } = await supabaseCheck
           .from('cronograma_itens')
           .select('data_prevista')
           .eq('cronograma_id', cronogramaId)
           .limit(200)
-        
+
         if (amostraError) {
           console.error('[SalvarDistribuicao] Erro ao verificar atualização:', amostraError)
           return false
         }
-        
+
         if (!amostraItens || amostraItens.length === 0) {
           return false
         }
-        
+
         // Verificar distribuição de dias na amostra
         const amostraDias = amostraItens
           .filter(i => i.data_prevista)
@@ -1503,32 +1503,32 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             return new Date(year, month - 1, day).getDay()
           })
         const amostraDiasUnicos = [...new Set(amostraDias)]
-        
+
         // Verificar se todos os dias selecionados aparecem na amostra
         const todosDiasPresentes = diasSelecionados.every(d => amostraDiasUnicos.includes(d))
         const percentualComDataPrevista = (amostraItens.filter(i => i.data_prevista).length / amostraItens.length) * 100
-        
+
         // Considerar atualizado se:
         // 1. Todos os dias selecionados aparecem na amostra
         // 2. Pelo menos 90% dos itens têm data_prevista
         // 3. A amostra tem pelo menos os dias selecionados
-        const atualizado = todosDiasPresentes && 
-                          percentualComDataPrevista >= 90 && 
-                          amostraDiasUnicos.length >= diasSelecionados.length
-        
+        const atualizado = todosDiasPresentes &&
+          percentualComDataPrevista >= 90 &&
+          amostraDiasUnicos.length >= diasSelecionados.length
+
         return atualizado
       }
-      
+
       // Polling: verificar a cada 500ms, máximo 20 tentativas (10 segundos)
       const POLLING_INTERVAL = 500
       const MAX_TENTATIVAS = 20
       let tentativas = 0
       let datasAtualizadas = false
-      
+
       while (tentativas < MAX_TENTATIVAS && !datasAtualizadas) {
         tentativas++
         datasAtualizadas = await verificarAtualizacaoCompleta()
-        
+
         if (!datasAtualizadas) {
           console.log(`[SalvarDistribuicao] Tentativa ${tentativas}/${MAX_TENTATIVAS} - Aguardando atualização...`)
           await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL))
@@ -1536,17 +1536,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           console.log('[SalvarDistribuicao] ✅ Datas atualizadas confirmadas!')
         }
       }
-      
+
       if (!datasAtualizadas) {
         console.warn('[SalvarDistribuicao] ⚠️ Não foi possível confirmar atualização das datas após', MAX_TENTATIVAS, 'tentativas. Continuando mesmo assim...')
       }
-      
+
       // Recarregar cronograma com cache desabilitado
       await recarregarCronograma()
-      
+
       // Pequeno delay adicional para garantir que o estado foi atualizado
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       // Forçar atualização do calendário após recarregar
       setCalendarForceUpdate(v => v + 1)
       setCurrentMonth(prev => {
@@ -1554,17 +1554,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         newMonth.setMilliseconds(newMonth.getMilliseconds() + 1)
         return newMonth
       })
-      
+
       console.log('[SalvarDistribuicao] Atualização completa')
     } catch (error) {
       console.error('Erro ao salvar distribuição:', error)
-      
+
       // Tratamento de erro mais robusto
       let errorMessage = 'Erro ao salvar distribuição de dias. Tente novamente.'
-      
+
       if (error instanceof Error) {
         errorMessage = error.message
-        
+
         // Mensagens de erro mais amigáveis
         if (error.message.includes('Sessão não encontrada')) {
           errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.'
@@ -1576,7 +1576,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       } else if (typeof error === 'string') {
         errorMessage = error
       }
-      
+
       // Usar alert por enquanto, mas pode ser substituído por toast/notificação
       alert(errorMessage)
     } finally {
@@ -1592,15 +1592,15 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       console.log('[Filtro] Nenhum item disponível para filtrar')
       return new Map<string, ItemComData[]>()
     }
-    
+
     const filtrados = new Map<string, ItemComData[]>()
     console.log('[Filtro] Dias selecionados:', diasSelecionados)
     console.log('[Filtro] Total de itens antes do filtro:', itensPorData.size)
-    
+
     // Contador por dia da semana para debug
     const contadorPorDia: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
     const contadorFiltradoPorDia: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
-    
+
     // Primeiro, listar todas as datas que existem no mapa original para debug
     const datasPorDia: Record<number, string[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
     itensPorData.forEach((itens, dataKey) => {
@@ -1625,34 +1625,34 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       exemplosSexta: datasPorDia[5].slice(0, 3),
       exemplosSabado: datasPorDia[6].slice(0, 3),
     })
-    
+
     itensPorData.forEach((itens, dataKey) => {
       // Criar data no horário local para evitar problemas de fuso horário
       // dataKey está no formato 'yyyy-MM-dd'
       const [year, month, day] = dataKey.split('-').map(Number)
       const data = new Date(year, month - 1, day) // month é 0-indexed no Date
       const diaSemana = data.getDay() // 0=domingo, 1=segunda, ..., 6=sábado
-      
+
       // Contar itens por dia
       contadorPorDia[diaSemana] += itens.length
-      
+
       // Debug para todos os dias (limitado para não poluir muito o console)
       const nomeDia = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][diaSemana]
       if (contadorPorDia[diaSemana] <= 5 || diaSemana === 1 || diaSemana === 2 || diaSemana === 3) {
         // Logar primeiras 5 ocorrências de cada dia, ou sempre para segunda, terça e quarta
         console.log(`[Filtro] Data: ${dataKey}, Dia da semana: ${diaSemana} (${nomeDia}), Itens: ${itens.length}, Incluído: ${diasSelecionados.includes(diaSemana)}`)
       }
-      
+
       if (diasSelecionados.includes(diaSemana)) {
         filtrados.set(dataKey, itens)
         contadorFiltradoPorDia[diaSemana] += itens.length
       }
     })
-    
+
     console.log('[Filtro] Contador por dia (antes do filtro):', contadorPorDia)
     console.log('[Filtro] Contador por dia (após filtro):', contadorFiltradoPorDia)
     console.log('[Filtro] Total de datas após filtro:', filtrados.size)
-    
+
     // Verificar se todos os dias selecionados têm itens
     const diasSemItens: number[] = []
     diasSelecionados.forEach(dia => {
@@ -1660,19 +1660,19 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         diasSemItens.push(dia)
       }
     })
-    
+
     if (diasSemItens.length > 0) {
       const nomesDiasSemItens = diasSemItens.map(d => ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d])
       console.warn('[Filtro] ⚠️ Dias selecionados sem itens após filtro:', nomesDiasSemItens.join(', '))
     } else {
       console.log('[Filtro] ✅ Todos os dias selecionados têm itens após filtro')
     }
-    
+
     // Resumo final
     const totalItensAntes = Object.values(contadorPorDia).reduce((sum, count) => sum + count, 0)
     const totalItensDepois = Object.values(contadorFiltradoPorDia).reduce((sum, count) => sum + count, 0)
     console.log(`[Filtro] Resumo: ${totalItensAntes} itens antes → ${totalItensDepois} itens depois (${filtrados.size} datas únicas)`)
-    
+
     return filtrados
   }, [itensPorData, diasSelecionados])
 
@@ -1685,7 +1685,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     const itensPorDataMap = new Map(itensPorData)
     const diasSelecionadosSorted = [...diasSelecionados].sort((a, b) => a - b)
     const tempoEstudosMap = new Map(tempoEstudosConcluidos)
-    
+
     // Criar mapa de estatísticas por semana para acesso rápido
     const statsPorSemana = new Map<number, SemanaEstatisticas>()
     if (estatisticasSemanas) {
@@ -1693,28 +1693,28 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         statsPorSemana.set(semana.semana_numero, semana)
       })
     }
-    
+
     console.log('[Modifiers] Recriando modifiers com dias selecionados:', diasSelecionadosSorted.join(','))
     console.log('[Modifiers] Total de datas no mapa original:', itensPorDataMap.size)
     console.log('[Modifiers] Manter dias atuais:', manterDiasAtuais)
     console.log('[Modifiers] Estatísticas disponíveis:', statsPorSemana.size, 'semanas')
     console.log('[Modifiers] Tempo de estudos concluídos:', tempoEstudosMap.size, 'registros')
-    
+
     return {
       hasConcluidas: (date: Date) => {
         // Normalizar data para dataKey usando a função helper
         const dataKey = normalizarDataParaKey(date)
-        
+
         // Usar mapa ORIGINAL (não filtrado) para garantir que sempre apareça
         const itens = itensPorDataMap.get(dataKey) || []
-        
+
         // Verificar se TODAS as aulas do dia estão concluídas
         const todasAulasConcluidas = itens.length > 0 && itens.every(item => item.concluido)
-        
+
         if (!todasAulasConcluidas) {
           return false
         }
-        
+
         // Se todas as aulas estão concluídas, verificar se o tempo de estudos também está concluído
         // Agrupar itens por disciplina/frente para verificar tempo de estudos
         const gruposPorDisciplinaFrente = new Map<string, typeof itens>()
@@ -1722,7 +1722,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id || ''
           const frenteId = item.aulas?.modulos?.frentes?.id || ''
           const chave = `${disciplinaId}|${frenteId}`
-          
+
           if (disciplinaId && frenteId) {
             if (!gruposPorDisciplinaFrente.has(chave)) {
               gruposPorDisciplinaFrente.set(chave, [])
@@ -1730,14 +1730,14 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             gruposPorDisciplinaFrente.get(chave)!.push(item)
           }
         })
-        
+
         // Verificar se todos os grupos têm tempo de estudos concluído
         let todosTemposEstudosConcluidos = true
         gruposPorDisciplinaFrente.forEach((itensGrupo, chave) => {
           const [disciplinaId, frenteId] = chave.split('|')
           const key = `${dataKey}|${disciplinaId}|${frenteId}`
           const tempoEstudosConcluido = tempoEstudosMap.get(key) || false
-          
+
           // Só considerar se o grupo tem aulas com tempo estimado (tempo de estudos > 0)
           const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
           const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
@@ -1745,45 +1745,45 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           }, 0)
           const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
           const tempoEstudosExercicios = tempoAulasAjustado * 0.5
-          
+
           if (tempoEstudosExercicios > 0 && !tempoEstudosConcluido) {
             todosTemposEstudosConcluidos = false
           }
         })
-        
+
         return todasAulasConcluidas && todosTemposEstudosConcluidos
       },
       hasPendentes: (date: Date) => {
         // Normalizar data para dataKey usando a função helper
         const dataKey = normalizarDataParaKey(date)
-        
+
         // Usar mapa ORIGINAL (não filtrado) para garantir que sempre apareça
         const itens = itensPorDataMap.get(dataKey) || []
-        
+
         if (itens.length === 0) return false // Sem aulas, não é pendente
-        
+
         const concluidas = itens.filter(item => item.concluido).length
         const temConcluidas = concluidas > 0
         const todasConcluidas = concluidas === itens.length
-        
+
         // Pendente = tem aulas, tem pelo menos uma concluída, mas nem todas
         return temConcluidas && !todasConcluidas
       },
       hasAulas: (date: Date) => {
         // Normalizar data para dataKey usando a função helper
         const dataKey = normalizarDataParaKey(date)
-        
+
         // Verificar diretamente se há itens nessa data específica no mapa ORIGINAL (não filtrado)
         const itens = itensPorDataMap.get(dataKey) || []
         const temAulas = itens.length > 0
-        
+
         if (!temAulas) return false
-        
+
         // hasAulas só deve ser true quando NÃO há aulas concluídas E NÃO há aulas pendentes
         // Ou seja, quando há aulas mas nenhuma está marcada como concluída
         const concluidas = itens.filter(item => item.concluido).length
         const nenhumaAulaMarcada = concluidas === 0
-        
+
         return nenhumaAulaMarcada
       },
       hasSemanaSobrecarregada: (date: Date) => {
@@ -1812,14 +1812,14 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         if (manterDiasAtuais) {
           return false
         }
-        
+
         // Verificar se a data corresponde a um dos dias da semana selecionados
         // Aparece apenas se houver pelo menos um dia selecionado no card
         // E se for um dia selecionado (independente de ter aulas ou não)
         if (diasSelecionadosSorted.length === 0) {
           return false // Se nenhum dia estiver selecionado, não mostrar marcação amarela
         }
-        
+
         const diaSemana = date.getDay()
         return diasSelecionadosSorted.includes(diaSemana)
       },
@@ -1828,20 +1828,20 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         if (!cronograma?.periodos_ferias || cronograma.periodos_ferias.length === 0) {
           return false
         }
-        
+
         const dataKey = normalizarDataParaKey(date)
-        
+
         return cronograma.periodos_ferias.some(periodo => {
           if (!periodo.inicio || !periodo.fim) return false
-          
+
           const inicioDate = new Date(periodo.inicio)
           const fimDate = new Date(periodo.fim)
-          
+
           // Validar se as datas são válidas
           if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) {
             return false
           }
-          
+
           const inicio = normalizarDataParaKey(inicioDate)
           const fim = normalizarDataParaKey(fimDate)
           return dataKey >= inicio && dataKey <= fim
@@ -1855,13 +1855,13 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
   // Usar apenas itensPorDataFiltrados.size para evitar problemas com Map nas dependências
   const itensPorDataSize = itensPorData.size
   const itensPorDataFiltradosSize = itensPorDataFiltrados.size
-  
+
   useEffect(() => {
     console.log('[Effect] Dias selecionados mudaram:', diasSelecionados)
     console.log('[Effect] Itens filtrados disponíveis:', itensPorDataFiltradosSize)
     console.log('[Effect] Total de itens no mapa original:', itensPorDataSize)
     console.log('[Effect] Forçando atualização do calendário...')
-    
+
     // Forçar atualização imediata do calendário quando os dias selecionados mudarem
     // Isso garante que o react-day-picker detecte as mudanças nos modifiers
     // Usar requestAnimationFrame para garantir que o estado foi atualizado antes do re-render
@@ -1879,7 +1879,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       // Também incrementar o contador de força de atualização
       setCalendarForceUpdate(v => v + 1)
     })
-    
+
     return () => cancelAnimationFrame(frameId)
   }, [diasSelecionados, itensPorDataFiltradosSize, itensPorDataSize])
 
@@ -2002,7 +2002,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           {/* Calendário com marcações e painel de filtros */}
           <div className="flex flex-col lg:flex-row gap-3 lg:items-stretch w-full">
             {/* Calendário */}
-            <div 
+            <div
               className="flex flex-col w-full lg:flex-1"
               {...swipeHandlers}
             >
@@ -2068,74 +2068,74 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                 defaultMonth={currentMonth}
               />
               <p className="text-xs text-muted-foreground mt-1.5 text-left">
-                {isMobile 
+                {isMobile
                   ? '💡 Dica: Deslize horizontalmente para navegar entre meses ou toque em uma data para selecionar'
                   : '💡 Dica: Dê um duplo clique em qualquer data para alterar a data inicial a qualquer momento'
                 }
               </p>
-              
+
               {/* Legenda e Instruções */}
               <Card className="mt-3 w-full py-1">
                 <div className="flex flex-col md:flex-row gap-3 items-start">
                   {/* Primeira parte: Legendas */}
-                  <div className="md:w-64 flex-shrink-0">
+                  <div className="md:w-64 shrink-0">
                     <CardHeader className="pb-1 pt-1.5 px-3">
                       <CardTitle className="text-base font-bold">Legendas</CardTitle>
                     </CardHeader>
                     <CardContent className="px-3 pb-1.5 pt-0">
                       <div className="flex flex-col gap-1.5 text-sm">
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 flex-shrink-0" />
+                          <div className="w-4 h-4 rounded bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 shrink-0" />
                           <span className="text-xs">Dias selecionados para estudo</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex-shrink-0" />
+                          <div className="w-4 h-4 rounded bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 shrink-0" />
                           <span className="text-xs">Dia com aulas</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 flex-shrink-0" />
+                          <div className="w-4 h-4 rounded bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 shrink-0" />
                           <span className="text-xs">Dia com aulas concluídas</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 flex-shrink-0" />
+                          <div className="w-4 h-4 rounded bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 shrink-0" />
                           <span className="text-xs">Dia com aulas pendentes</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-pink-50 dark:bg-pink-950 border border-pink-200 dark:border-pink-800 flex-shrink-0" />
+                          <div className="w-4 h-4 rounded bg-pink-50 dark:bg-pink-950 border border-pink-200 dark:border-pink-800 shrink-0" />
                           <span className="text-xs">Períodos de férias e recesso</span>
                         </div>
                       </div>
                     </CardContent>
                   </div>
-                  
+
                   {/* Divisor vertical */}
                   <Separator orientation="vertical" className="hidden md:block" />
-                  
+
                   {/* Segunda parte: Instruções */}
-                  <div className="md:w-[500px] flex-shrink-0">
+                  <div className="md:w-[500px] shrink-0">
                     <CardHeader className="pb-1 pt-1.5 px-3">
                       <CardTitle className="text-base font-bold">Como usar</CardTitle>
                     </CardHeader>
                     <CardContent className="px-3 pb-1.5 pt-0">
                       <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium flex-shrink-0">•</span>
+                          <span className="font-medium shrink-0">•</span>
                           <span>Selecione os dias da semana em que deseja estudar no painel lateral</span>
                         </div>
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium flex-shrink-0">•</span>
+                          <span className="font-medium shrink-0">•</span>
                           <span>Clique em "Salvar e Atualizar Calendário" para recalcular as datas das aulas</span>
                         </div>
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium flex-shrink-0">•</span>
+                          <span className="font-medium shrink-0">•</span>
                           <span>Use o botão de data para selecionar um período e ver as aulas agendadas</span>
                         </div>
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium flex-shrink-0">•</span>
+                          <span className="font-medium shrink-0">•</span>
                           <span>Marque as aulas como concluídas usando os checkboxes na lista</span>
                         </div>
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium flex-shrink-0">•</span>
+                          <span className="font-medium shrink-0">•</span>
                           <span>Dê um duplo clique em qualquer data do calendário para alterar o período selecionado</span>
                         </div>
                       </div>
@@ -2147,7 +2147,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
             {/* Painel de Resumo Semanal - Colapsável */}
             {estatisticasSemanas && (
-              <Card className="w-full lg:w-80 flex-shrink-0">
+              <Card className="w-full lg:w-80 shrink-0">
                 <Collapsible defaultOpen={false}>
                   <CollapsibleTrigger asChild>
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -2185,8 +2185,8 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                             </CardHeader>
                             <CardContent className="pt-0">
                               <div className="space-y-2">
-                                <Progress 
-                                  value={Math.min(100, semana.percentual_usado)} 
+                                <Progress
+                                  value={Math.min(100, semana.percentual_usado)}
                                   className={cn(
                                     semana.percentual_usado > 100 && "bg-red-500",
                                     semana.percentual_usado >= 95 && semana.percentual_usado <= 100 && "bg-orange-500",
@@ -2233,7 +2233,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             )}
 
             {/* Painel de Filtros - Lado Direito - Alinhado com o calendário */}
-            <Card className="w-full lg:w-80 flex-shrink-0 flex flex-col border rounded-md shadow-sm py-2 mt-0 md:mt-0">
+            <Card className="w-full lg:w-80 shrink-0 flex flex-col border rounded-md shadow-sm py-2 mt-0 md:mt-0">
               <CardHeader className="pb-1 pt-2 px-3">
                 <CardTitle className="text-base font-bold leading-tight">Selecionar dias para ver a aula</CardTitle>
                 <CardDescription className="text-xs mt-0.5 leading-tight mb-0">
@@ -2251,7 +2251,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     }
                   })
                   const diasSemItens = diasSelecionados.filter(dia => !diasComItens.has(dia))
-                  
+
                   if (diasSemItens.length > 0 && diasSelecionados.length < 7) {
                     const nomesDiasSemItens = diasSemItens.map(d => ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d])
                     return (
@@ -2267,7 +2267,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
               <CardContent className="flex flex-col px-3 pb-1 pt-1">
                 {/* Divisão visual antes do checkbox */}
                 <Separator className="mb-2" />
-                
+
                 {/* Checkbox "Manter dias atuais" e dias da semana em grid compacto */}
                 <div className="mb-2 pb-2 border-b">
                   <div className="flex items-center space-x-2 py-0.5 mb-1">
@@ -2285,14 +2285,14 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     </Label>
                   </div>
                   <p className="text-xs text-muted-foreground ml-6 mb-1.5 leading-tight">
-                    {manterDiasAtuais 
+                    {manterDiasAtuais
                       ? 'Usando os dias salvos no calendário. Desmarque para editar.'
                       : 'Edite os dias selecionados ou desmarque todos para ver apenas as aulas.'}
                   </p>
-                  
+
                   {/* Divisão visual */}
                   <Separator className="my-2" />
-                  
+
                   {/* Lista de dias da semana - vertical */}
                   <div className="flex flex-col gap-1">
                     {DIAS_SEMANA.map((dia) => (
@@ -2368,7 +2368,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   const todasDatasOriginais = Array.from(itensPorData.keys()).sort()
                   const primeiraData = todasDatasOriginais[0]
                   const ultimaData = todasDatasOriginais[todasDatasOriginais.length - 1]
-                  
+
                   console.log('[FiltroPeríodo] Iniciando filtro de período:', {
                     dateRangeFrom: dateRange.from ? normalizarDataParaKey(dateRange.from) : null,
                     dateRangeTo: dateRange.to ? normalizarDataParaKey(dateRange.to) : null,
@@ -2382,7 +2382,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     exemplosDatasOriginais: todasDatasOriginais.slice(0, 10),
                     exemplosDatasFiltradas: Array.from(itensPorDataFiltrados.keys()).slice(0, 10),
                   })
-                  
+
                   // Verificar se as datas do range estão dentro do intervalo do mapa
                   if (dateRange.from) {
                     const fromKey = normalizarDataParaKey(dateRange.from)
@@ -2396,7 +2396,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                       fromKeyDepoisUltima: fromKey > ultimaData,
                     })
                   }
-                  
+
                   if (dateRange.to) {
                     const toKey = normalizarDataParaKey(dateRange.to)
                     const toInMap = itensPorData.has(toKey)
@@ -2409,35 +2409,35 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                       toKeyDepoisUltima: toKey > ultimaData,
                     })
                   }
-                  
+
                   // Filtrar itens baseado no range selecionado
                   // Usar itensPorData para mostrar todas as aulas do período, não apenas as dos dias filtrados
-                  
+
                   // Normalizar datas do range para comparação
                   const normalizeDate = (d: Date) => {
                     const normalized = new Date(d)
                     normalized.setHours(0, 0, 0, 0)
                     return normalized
                   }
-                  
+
                   const fromNormalizada = dateRange.from ? normalizeDate(dateRange.from) : null
                   const toNormalizada = dateRange.to ? normalizeDate(dateRange.to) : null
-                  
+
                   // Converter para dataKey para comparação direta
                   const fromKey = fromNormalizada ? normalizarDataParaKey(fromNormalizada) : null
                   const toKey = toNormalizada ? normalizarDataParaKey(toNormalizada) : null
-                  
+
                   console.log('[FiltroPeríodo] Range normalizado:', {
                     fromKey,
                     toKey,
                     fromTime: fromNormalizada?.getTime(),
                     toTime: toNormalizada?.getTime(),
                   })
-                  
+
                   const itensFiltrados = Array.from(itensPorData.entries())
                     .filter(([dataKey, itens]) => {
                       if (!fromKey) return false
-                      
+
                       // Se apenas from está selecionado, mostrar apenas esse dia
                       if (!toKey) {
                         const matches = dataKey === fromKey
@@ -2450,11 +2450,11 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                         }
                         return matches
                       }
-                      
+
                       // Se ambos estão selecionados, mostrar intervalo
                       // Comparar strings diretamente (já estão no formato yyyy-MM-dd)
                       const withinInterval = dataKey >= fromKey && dataKey <= toKey
-                      
+
                       if (withinInterval) {
                         console.log('[FiltroPeríodo] Item encontrado (range):', {
                           dataKey,
@@ -2479,24 +2479,24 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                           })
                         }
                       }
-                      
+
                       return withinInterval
                     })
                     .sort(([a], [b]) => a.localeCompare(b))
-                  
+
                   console.log('[FiltroPeríodo] Resultado final:', {
                     totalFiltrados: itensFiltrados.length,
                     datasEncontradas: itensFiltrados.map(([key]) => key),
                     totalItensNoMapa: itensPorDataFiltrados.size,
                     todasDatasNoMapa: Array.from(itensPorDataFiltrados.keys()),
                   })
-                  
+
                   if (itensFiltrados.length === 0) {
                     // Verificar se há itens no mapa original que não estão sendo filtrados
                     const todasDatas = Array.from(itensPorData.keys()).sort()
                     const primeiraData = todasDatas[0]
                     const ultimaData = todasDatas[todasDatas.length - 1]
-                    
+
                     console.warn('[FiltroPeríodo] Nenhum item encontrado. Verificando...', {
                       periodoSelecionado: {
                         from: fromKey,
@@ -2513,7 +2513,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                       ultimasDatas: todasDatas.slice(-10),
                       rangeDentroDoMapa: fromKey && toKey ? (fromKey >= primeiraData && toKey <= ultimaData) : null,
                     })
-                    
+
                     return (
                       <div className="text-sm text-muted-foreground text-center py-4 space-y-2">
                         <p>Nenhuma aula encontrada para o período selecionado.</p>
@@ -2529,38 +2529,38 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                       </div>
                     )
                   }
-                  
+
                   return itensFiltrados.map(([dataKey, itens]) => {
                     // Criar data no horário local para formatação
                     const [year, month, day] = dataKey.split('-').map(Number)
                     const data = new Date(year, month - 1, day)
-                    
+
                     // Agrupar itens por disciplina e frente
                     const itensAgrupados = new Map<string, typeof itens>()
-                    
+
                     itens.forEach((item) => {
                       const disciplinaNome = item.aulas?.modulos?.frentes?.disciplinas?.nome || 'Sem disciplina'
                       const frenteNome = item.aulas?.modulos?.frentes?.nome || 'Sem frente'
                       const chave = `${disciplinaNome}|||${frenteNome}`
-                      
+
                       if (!itensAgrupados.has(chave)) {
                         itensAgrupados.set(chave, [])
                       }
                       itensAgrupados.get(chave)!.push(item)
                     })
-                    
+
                     // Ordenar grupos por disciplina e depois por frente
                     const gruposOrdenados = Array.from(itensAgrupados.entries()).sort(([chaveA], [chaveB]) => {
                       return chaveA.localeCompare(chaveB)
                     })
-                    
+
                     // Verificar se todas as aulas do dia estão concluídas
                     const todasAulasDoDiaConcluidas = itens.every(item => item.concluido)
                     const peloMenosUmaAulaDoDia = itens.length > 0
                     // Criar chave única que inclui o estado de conclusão para forçar re-render
                     const concluidasCount = itens.filter(item => item.concluido).length
                     const cardKey = `${dataKey}-${concluidasCount}-${itens.length}`
-                    
+
                     return (
                       <Card key={cardKey}>
                         <CardHeader>
@@ -2592,22 +2592,22 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                               const [disciplinaNome, frenteNome] = chave.split('|||')
                               const disciplinaId = itensGrupo[0]?.aulas?.modulos?.frentes?.disciplinas?.id || ''
                               const frenteId = itensGrupo[0]?.aulas?.modulos?.frentes?.id || ''
-                              
+
                               // Gerar cor única baseada no ID da disciplina e frente para diferenciação visual
                               const hash = (disciplinaId + frenteId).split('').reduce((acc, char) => {
                                 return char.charCodeAt(0) + ((acc << 5) - acc)
                               }, 0)
                               const hue = Math.abs(hash) % 360
                               const borderColor = `hsl(${hue}, 70%, 50%)`
-                              
+
                               // Estilo dinâmico para borda colorida (cores geradas dinamicamente)
                               const borderStyle: React.CSSProperties & { '--border-color'?: string } = {
                                 '--border-color': borderColor,
                                 borderLeftColor: 'var(--border-color)',
                               }
-                              
+
                               const estaExpandido = cardsExpandidos.has(chave)
-                              
+
                               return (
                                 <Collapsible
                                   key={chave}
@@ -2636,7 +2636,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                           <div className="flex-1">
                                             <h4 className="font-semibold text-sm">{disciplinaNome}</h4>
                                             <p className="text-xs text-muted-foreground mt-0.5">{frenteNome}</p>
-                                            
+
                                             {/* Informações agregadas do grupo */}
                                             <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
                                               <span>
@@ -2644,18 +2644,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                               </span>
                                               {(() => {
                                                 const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
-                                                
+
                                                 // Calcular tempo de aulas ajustado pela velocidade
                                                 const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
                                                   return acc + (item.aulas?.tempo_estimado_minutos || 0)
                                                 }, 0)
-                                                
+
                                                 // Tempo de aula ajustado pela velocidade (se assistir em 1.5x, o tempo real é reduzido)
                                                 const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
-                                                
+
                                                 // Tempo de estudos = 50% do tempo de aula ajustado (mesma lógica do backend)
                                                 const tempoAnotacoesExercicios = tempoAulasAjustado * 0.5
-                                                
+
                                                 return (
                                                   <>
                                                     {tempoAulasAjustado > 0 && (
@@ -2676,8 +2676,8 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                           <div className="flex items-center gap-2">
                                             {/* Estilo dinâmico para badge colorido (cores geradas dinamicamente) */}
                                             {/* eslint-disable-next-line react/forbid-dom-props */}
-                                            <Badge 
-                                              variant="outline" 
+                                            <Badge
+                                              variant="outline"
                                               className="text-xs"
                                               style={{
                                                 '--badge-border-color': borderColor,
@@ -2717,94 +2717,94 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                         })()}
                                       </div>
                                     </div>
-                                    
+
                                     {/* Lista de aulas do grupo */}
                                     <CollapsibleContent>
                                       <div className="space-y-2">
-                                    {itensGrupo.map((item) => (
-                                      <div
-                                        key={item.id}
-                                        className="flex items-start gap-3 p-2 rounded-md border hover:bg-accent/50 transition-colors"
-                                      >
-                                        <Checkbox
-                                          checked={item.concluido}
-                                          onCheckedChange={(checked) =>
-                                            toggleConcluido(item.id, checked === true)
-                                          }
-                                          className="mt-1"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div className="flex-1">
-                                              {/* Badges: Aula, Módulo, Frente */}
-                                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                                {item.aulas?.numero_aula && (
-                                                  <Badge variant="outline" className="text-xs">
-                                                    Aula {item.aulas.numero_aula}
-                                                  </Badge>
-                                                )}
-                                                {item.aulas?.modulos?.numero_modulo && (
-                                                  <Badge variant="secondary" className="text-xs">
-                                                    Módulo {item.aulas.modulos.numero_modulo}
-                                                  </Badge>
-                                                )}
-                                                {item.aulas?.modulos?.frentes?.nome && (
-                                                  <Badge variant="outline" className="text-xs">
-                                                    {item.aulas.modulos.frentes.nome}
+                                        {itensGrupo.map((item) => (
+                                          <div
+                                            key={item.id}
+                                            className="flex items-start gap-3 p-2 rounded-md border hover:bg-accent/50 transition-colors"
+                                          >
+                                            <Checkbox
+                                              checked={item.concluido}
+                                              onCheckedChange={(checked) =>
+                                                toggleConcluido(item.id, checked === true)
+                                              }
+                                              className="mt-1"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                              <div className="flex items-start justify-between gap-2">
+                                                <div className="flex-1">
+                                                  {/* Badges: Aula, Módulo, Frente */}
+                                                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                                    {item.aulas?.numero_aula && (
+                                                      <Badge variant="outline" className="text-xs">
+                                                        Aula {item.aulas.numero_aula}
+                                                      </Badge>
+                                                    )}
+                                                    {item.aulas?.modulos?.numero_modulo && (
+                                                      <Badge variant="secondary" className="text-xs">
+                                                        Módulo {item.aulas.modulos.numero_modulo}
+                                                      </Badge>
+                                                    )}
+                                                    {item.aulas?.modulos?.frentes?.nome && (
+                                                      <Badge variant="outline" className="text-xs">
+                                                        {item.aulas.modulos.frentes.nome}
+                                                      </Badge>
+                                                    )}
+                                                  </div>
+
+                                                  {/* Nome da aula */}
+                                                  <p className="font-medium text-sm mb-1">
+                                                    {item.aulas?.nome || 'Aula sem nome'}
+                                                  </p>
+
+                                                  {/* Tempo estimado */}
+                                                  {item.aulas?.tempo_estimado_minutos && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                      {formatTempo(item.aulas.tempo_estimado_minutos)}
+                                                    </p>
+                                                  )}
+                                                </div>
+
+                                                {/* Badge de concluída */}
+                                                {item.concluido && (
+                                                  <Badge variant="default" className="text-xs shrink-0">
+                                                    Concluída
                                                   </Badge>
                                                 )}
                                               </div>
-                                              
-                                              {/* Nome da aula */}
-                                              <p className="font-medium text-sm mb-1">
-                                                {item.aulas?.nome || 'Aula sem nome'}
-                                              </p>
-                                              
-                                              {/* Tempo estimado */}
-                                              {item.aulas?.tempo_estimado_minutos && (
-                                                <p className="text-xs text-muted-foreground">
-                                                  {formatTempo(item.aulas.tempo_estimado_minutos)}
-                                                </p>
-                                              )}
                                             </div>
-                                            
-                                            {/* Badge de concluída */}
-                                            {item.concluido && (
-                                              <Badge variant="default" className="text-xs shrink-0">
-                                                Concluída
-                                              </Badge>
-                                            )}
                                           </div>
-                                        </div>
+                                        ))}
                                       </div>
-                                    ))}
-                                      </div>
-                                      
+
                                       {/* Checkbox para marcar tempo de estudos e exercícios */}
                                       {(() => {
                                         const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
-                                        
+
                                         // Calcular tempo de aulas ajustado pela velocidade
                                         const tempoAulasOriginal = itensGrupo.reduce((acc, item) => {
                                           return acc + (item.aulas?.tempo_estimado_minutos || 0)
                                         }, 0)
-                                        
+
                                         // Tempo de aula ajustado pela velocidade
                                         const tempoAulasAjustado = tempoAulasOriginal / velocidadeReproducao
-                                        
+
                                         // Tempo de estudos = 50% do tempo de aula ajustado (mesma lógica do backend)
                                         const tempoEstudosExercicios = tempoAulasAjustado * 0.5
-                                        
+
                                         if (tempoEstudosExercicios <= 0) return null
-                                        
+
                                         const key = `${dataKey}|${disciplinaId}|${frenteId}`
                                         const tempoEstudosConcluido = tempoEstudosConcluidos.get(key) || false
-                                        
+
                                         const checkboxId = `tempo-estudos-${key}`
-                                        
+
                                         return (
                                           <div className="mt-3 pt-3 border-t">
-                                            <div 
+                                            <div
                                               className="flex items-center gap-3 p-3 rounded-md bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors"
                                               onClick={() => toggleTempoEstudosConcluido(
                                                 dataKey,

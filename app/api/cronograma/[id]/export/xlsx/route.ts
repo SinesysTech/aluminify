@@ -6,6 +6,40 @@ import { fetchCronogramaCompleto } from '@/lib/cronograma-export-utils'
 
 export const runtime = 'nodejs'
 
+interface CronogramaExport {
+  nome: string;
+  data_inicio: string;
+  data_fim: string;
+  dias_estudo_semana: number;
+  horas_estudo_dia: number;
+  modalidade_estudo: string;
+  velocidade_reproducao?: number;
+  [key: string]: unknown;
+}
+
+interface ItemExport {
+  id: string;
+  data_prevista?: string | null;
+  semana_numero: number;
+  ordem_na_semana: number;
+  concluido: boolean;
+  data_conclusao?: string | null;
+  aulas?: {
+    nome?: string;
+    tempo_estimado_minutos?: number;
+    modulos?: {
+      nome?: string;
+      frentes?: {
+        nome?: string;
+        disciplinas?: {
+          id: string;
+          nome?: string;
+        };
+      };
+    };
+  };
+}
+
 function formatTempo(minutos?: number | null) {
   if (!minutos || minutos <= 0) return '--'
   const h = Math.floor(minutos / 60)
@@ -26,7 +60,7 @@ function corDisciplina(disciplinaId?: string) {
   return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
-async function buildWorkbook(cronograma: any, itens: any[]) {
+async function buildWorkbook(cronograma: CronogramaExport, itens: ItemExport[]) {
   const wb = new ExcelJS.Workbook()
   wb.creator = 'Área do Aluno'
   wb.created = new Date()
@@ -134,8 +168,7 @@ async function getHandler(
 
   let cronogramaId: string | null = null
   if (context && 'params' in context) {
-    const anyCtx: any = context
-    const params = anyCtx.params
+    const params = (context as { params?: { id?: string } }).params
     if (params && typeof params === 'object' && 'id' in params) {
       cronogramaId = String(params.id)
     }

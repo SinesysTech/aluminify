@@ -196,7 +196,7 @@ export default function ConteudosClientPage() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
-          router.push('/auth/login')
+          router.push('/auth/aluno/login')
           return
         }
         setUserId(user.id)
