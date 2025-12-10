@@ -651,7 +651,7 @@ export default function TobIAsPage() {
                   </Button>
                   <PromptInputSubmit
                     disabled={isLoading || !userId}
-                    className="h-10 w-10 md:h-9 md:w-9"
+                    className="h-8 w-8"
                   />
                 </PromptInputToolbar>
               </PromptInput>

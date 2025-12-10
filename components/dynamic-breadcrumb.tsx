@@ -25,8 +25,11 @@ export function DynamicBreadcrumb() {
   // Remove leading slash and split path
   const segments = pathname.split("/").filter(Boolean)
   
+  // Check if we're on a dashboard page (ends with /dashboard)
+  const isDashboardPage = pathname === "/dashboard" || pathname.endsWith("/dashboard")
+  
   // If we're at root or dashboard, show just Dashboard
-  if (segments.length === 0 || (segments.length === 1 && segments[0] === "dashboard")) {
+  if (segments.length === 0 || isDashboardPage) {
     return (
       <Breadcrumb>
         <BreadcrumbList>
@@ -47,19 +50,26 @@ export function DynamicBreadcrumb() {
     return { path, label, isLast }
   })
 
+  // Filter out dashboard from breadcrumb items if it appears
+  const filteredItems = breadcrumbItems.filter(item => item.label !== "Dashboard")
+
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-        </BreadcrumbItem>
-        {breadcrumbItems.length > 0 && (
+        {filteredItems.length > 0 ? (
           <>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>{breadcrumbItems[breadcrumbItems.length - 1].label}</BreadcrumbPage>
+              <BreadcrumbPage>{filteredItems[filteredItems.length - 1].label}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
+        ) : (
+          <BreadcrumbItem>
+            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+          </BreadcrumbItem>
         )}
       </BreadcrumbList>
     </Breadcrumb>

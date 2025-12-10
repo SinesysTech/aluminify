@@ -191,20 +191,6 @@ export default function StudentDashboardPage() {
     )
   }
 
-  // Formatar última atualização
-  const formatLastRefresh = () => {
-    if (!lastRefresh) return null
-    const now = new Date()
-    const diff = now.getTime() - lastRefresh.getTime()
-    const minutes = Math.floor(diff / 60000)
-
-    if (minutes < 1) return 'Agora mesmo'
-    if (minutes === 1) return 'Há 1 minuto'
-    if (minutes < 60) return `Há ${minutes} minutos`
-    const hours = Math.floor(minutes / 60)
-    if (hours === 1) return 'Há 1 hora'
-    return `Há ${hours} horas`
-  }
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -212,25 +198,6 @@ export default function StudentDashboardPage() {
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1">
           <DashboardHeader user={data.user} />
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <Button
-            onClick={handleManualRefresh}
-            variant="ghost"
-            size="sm"
-            disabled={isRefreshing}
-            className="h-8"
-          >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
-            />
-            Atualizar
-          </Button>
-          {lastRefresh && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {formatLastRefresh()}
-            </p>
-          )}
         </div>
       </div>
 

@@ -69,25 +69,25 @@ export function MetricCard({
 }: MetricCardProps) {
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+      <CardContent className="px-3 md:px-4 lg:px-6 py-3 md:py-4">
+        <div className="flex flex-col gap-2 md:gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 md:gap-2 text-slate-600 dark:text-slate-400 min-w-0 flex-1">
               {showProgressCircle ? (
                 <ProgressCircle value={progressValue} />
               ) : Icon ? (
-                <Icon className="text-lg" size={18} />
+                <Icon className="h-4 w-4 md:h-[18px] md:w-[18px] shrink-0" />
               ) : null}
-              <p className="text-base font-medium">{label}</p>
+              <p className="text-xs md:text-sm lg:text-base font-medium truncate">{label}</p>
             </div>
           </div>
-          <p className="text-slate-900 dark:text-slate-50 tracking-tight text-3xl font-bold">
+          <p className="text-slate-900 dark:text-slate-50 tracking-tight text-xl sm:text-2xl md:text-3xl font-bold break-words">
             {value}
           </p>
           {trend ? (
             <p
               className={cn(
-                'text-sm font-medium',
+                'text-xs md:text-sm font-medium truncate',
                 trend.isPositive
                   ? 'text-green-600 dark:text-green-500'
                   : 'text-red-600 dark:text-red-500'
@@ -97,11 +97,11 @@ export function MetricCard({
               {trend.value}
             </p>
           ) : subtext ? (
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-medium truncate">
               {subtext}
             </p>
           ) : (
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium invisible">
+            <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-medium invisible">
               Placeholder
             </p>
           )}

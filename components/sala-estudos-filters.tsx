@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
 
 type Curso = {
   id: string

@@ -12,12 +12,12 @@ interface StrategicDomainProps {
 export function StrategicDomain({ data }: StrategicDomainProps) {
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-col justify-center gap-6">
-          <h2 className="text-slate-900 dark:text-slate-50 text-lg font-semibold">
+      <CardContent className="px-4 md:px-6 py-3 md:py-4">
+        <div className="flex flex-col justify-center gap-4 md:gap-6">
+          <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
             Domínio Estratégico
           </h2>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 md:gap-6">
             {/* Módulos de Base */}
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm">

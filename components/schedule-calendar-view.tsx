@@ -242,9 +242,9 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
   const [salvandoDistribuicao, setSalvandoDistribuicao] = useState(false)
   const [itensCompletosCache, setItensCompletosCache] = useState<CronogramaItem[]>([])
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
-  const [calendarForceUpdate, setCalendarForceUpdate] = useState(0)
+  const [, setCalendarForceUpdate] = useState(0)
   const [estatisticasSemanas, setEstatisticasSemanas] = useState<EstatisticasSemanasResult | null>(null)
-  const [loadingEstatisticas, setLoadingEstatisticas] = useState(false)
+  const [, setLoadingEstatisticas] = useState(false)
   const [tempoEstudosConcluidos, setTempoEstudosConcluidos] = useState<Map<string, boolean>>(new Map()) // Key: "data|disciplina_id|frente_id"
 
   // Gestos swipe para navegar entre meses
@@ -2153,7 +2153,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                         </div>
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
                           <span className="font-medium shrink-0">•</span>
-                          <span>Clique em "Salvar e Atualizar Calendário" para recalcular as datas das aulas</span>
+                          <span>Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas das aulas</span>
                         </div>
                         <div className="flex items-center gap-2 whitespace-nowrap h-5">
                           <span className="font-medium shrink-0">•</span>
@@ -2286,7 +2286,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     return (
                       <div className="mt-1.5 p-1.5 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-200 leading-tight">
                         <p className="font-medium">Atenção:</p>
-                        <p>Os dias {nomesDiasSemItens.join(', ')} estão selecionados mas não têm aulas ainda. Clique em "Salvar e Atualizar Calendário" para recalcular as datas.</p>
+                        <p>Os dias {nomesDiasSemItens.join(', ')} estão selecionados mas não têm aulas ainda. Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas.</p>
                       </div>
                     )
                   }
