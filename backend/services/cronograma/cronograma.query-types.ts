@@ -5,32 +5,36 @@
 
 /**
  * Estrutura de disciplina retornada em queries aninhadas
+ * id é opcional pois algumas queries selecionam apenas nome
  */
 export interface DisciplinaQueryResult {
-  id: string;
+  id?: string;
   nome: string;
 }
 
 /**
  * Estrutura de frente retornada em queries aninhadas
+ * disciplinas pode ser objeto ou array dependendo da query
  */
 export interface FrenteQueryResult {
-  id: string;
+  id?: string;
   nome: string;
-  curso_id: string | null;
-  disciplina_id: string;
-  disciplinas?: DisciplinaQueryResult;
+  curso_id?: string | null;
+  disciplina_id?: string;
+  disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
 }
 
 /**
  * Estrutura de módulo retornada em queries aninhadas
+ * nome e numero_modulo são opcionais pois algumas queries não os selecionam
  */
 export interface ModuloQueryResult {
   id: string;
-  nome: string;
-  numero_modulo: number | null;
+  nome?: string;
+  numero_modulo?: number | null;
   frente_id: string;
-  frentes?: FrenteQueryResult;
+  curso_id?: string | null;
+  frentes?: FrenteQueryResult | FrenteQueryResult[];
 }
 
 /**

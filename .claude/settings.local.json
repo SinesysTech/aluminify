@@ -6,7 +6,8 @@
       "Git(*:*)",
       "Read(*:*)",
       "Write(*:*)",
-      "Delete(*:*)"
+      "Delete(*:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
