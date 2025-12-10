@@ -40,10 +40,10 @@ export function FormPanel({ professorId, timeZone }: FormPanelProps) {
       await createAgendamento({
         professor_id: professorId,
         aluno_id: "", // Filled by server
-        data_inicio: startDate,
-        data_fim: endDate,
+        data_inicio: startDate.toISOString(), // Converter para ISO string para Server Action
+        data_fim: endDate.toISOString(), // Converter para ISO string para Server Action
         // status: 'pendente' filled by server
-        observacoes: formData.observacoes,
+        observacoes: formData.observacoes || null,
         link_reuniao: null // Or generate one
       });
       // Redirect or show success

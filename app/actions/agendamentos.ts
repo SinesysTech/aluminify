@@ -192,11 +192,17 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
   const initialStatus = config?.auto_confirmar ? 'confirmado' : 'pendente'
   const confirmadoEm = config?.auto_confirmar ? new Date().toISOString() : null
 
+  // Garantir que as datas sejam strings ISO para o banco
   const payload = {
     ...data,
+    professor_id: data.professor_id,
     aluno_id: user.id,
+    data_inicio: typeof data.data_inicio === 'string' ? data.data_inicio : dataInicio.toISOString(),
+    data_fim: typeof data.data_fim === 'string' ? data.data_fim : dataFim.toISOString(),
     status: initialStatus,
-    confirmado_em: confirmadoEm
+    confirmado_em: confirmadoEm,
+    observacoes: data.observacoes || null,
+    link_reuniao: data.link_reuniao || null
   }
 
   const { data: result, error } = await supabase
@@ -207,7 +213,7 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
 
   if (error) {
     console.error('Error creating appointment:', error)
-    throw new Error('Failed to create appointment')
+    throw new Error(error.message || 'Falha ao criar agendamento')
   }
 
   revalidatePath('/agendamentos')
