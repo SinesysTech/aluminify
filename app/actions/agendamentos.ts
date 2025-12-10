@@ -309,7 +309,11 @@ export async function getAgendamentosProfessor(
     .from('agendamentos')
     .select(`
       *,
-      aluno:alunos!agendamentos_aluno_id_fkey(id, nome, email, avatar_url)
+      aluno:alunos!agendamentos_aluno_id_fkey(
+        id, 
+        nome_completo,
+        email
+      )
     `)
     .eq('professor_id', professorId)
     .order('data_inicio', { ascending: true })
@@ -337,7 +341,16 @@ export async function getAgendamentosProfessor(
     return []
   }
 
-  return data || []
+  // Mapear os campos da tabela alunos para o formato esperado
+  return (data || []).map(agendamento => ({
+    ...agendamento,
+    aluno: agendamento.aluno ? {
+      id: agendamento.aluno.id,
+      nome: agendamento.aluno.nome_completo || '',
+      email: agendamento.aluno.email,
+      avatar_url: null // alunos não têm avatar_url na tabela
+    } : undefined
+  }))
 }
 
 export async function getAgendamentosAluno(alunoId: string): Promise<AgendamentoComDetalhes[]> {
@@ -347,7 +360,12 @@ export async function getAgendamentosAluno(alunoId: string): Promise<Agendamento
     .from('agendamentos')
     .select(`
       *,
-      professor:professores!agendamentos_professor_id_fkey(id, nome, email, avatar_url)
+      professor:professores!agendamentos_professor_id_fkey(
+        id, 
+        nome_completo,
+        email, 
+        foto_url
+      )
     `)
     .eq('aluno_id', alunoId)
     .order('data_inicio', { ascending: false })
@@ -357,7 +375,16 @@ export async function getAgendamentosAluno(alunoId: string): Promise<Agendamento
     return []
   }
 
-  return data || []
+  // Mapear os campos da tabela professores para o formato esperado
+  return (data || []).map(agendamento => ({
+    ...agendamento,
+    professor: agendamento.professor ? {
+      id: agendamento.professor.id,
+      nome: agendamento.professor.nome_completo,
+      email: agendamento.professor.email,
+      avatar_url: agendamento.professor.foto_url
+    } : undefined
+  }))
 }
 
 export async function getAgendamentoById(id: string): Promise<AgendamentoComDetalhes | null> {
@@ -367,8 +394,17 @@ export async function getAgendamentoById(id: string): Promise<AgendamentoComDeta
     .from('agendamentos')
     .select(`
       *,
-      aluno:alunos!agendamentos_aluno_id_fkey(id, nome, email, avatar_url),
-      professor:professores!agendamentos_professor_id_fkey(id, nome, email, avatar_url)
+      aluno:alunos!agendamentos_aluno_id_fkey(
+        id, 
+        nome_completo,
+        email
+      ),
+      professor:professores!agendamentos_professor_id_fkey(
+        id, 
+        nome_completo,
+        email, 
+        foto_url
+      )
     `)
     .eq('id', id)
     .single()
@@ -378,7 +414,26 @@ export async function getAgendamentoById(id: string): Promise<AgendamentoComDeta
     return null
   }
 
-  return data
+  if (!data) {
+    return null
+  }
+
+  // Mapear os campos para o formato esperado
+  return {
+    ...data,
+    aluno: data.aluno ? {
+      id: data.aluno.id,
+      nome: data.aluno.nome_completo || '',
+      email: data.aluno.email,
+      avatar_url: null // alunos não têm avatar_url na tabela
+    } : undefined,
+    professor: data.professor ? {
+      id: data.professor.id,
+      nome: data.professor.nome_completo,
+      email: data.professor.email,
+      avatar_url: data.professor.foto_url
+    } : undefined
+  }
 }
 
 // =============================================

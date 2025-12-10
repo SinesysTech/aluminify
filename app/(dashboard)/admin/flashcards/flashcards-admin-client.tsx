@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -48,17 +47,15 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Pencil, Trash2, Plus, Loader2, Search, X, AlertCircle } from 'lucide-react'
+import { Pencil, Trash2, Plus, Loader2, Search, X } from 'lucide-react'
 import { FlashcardUploadCard } from '@/components/flashcard-upload-card'
 import {
   Empty,
-  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
-import { Alert } from '@/components/ui/alert'
 
 type Flashcard = {
   id: string
@@ -138,7 +135,7 @@ export default function FlashcardsAdminClient() {
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
   const [frentes, setFrentes] = React.useState<Frente[]>([])
   const [modulos, setModulos] = React.useState<Modulo[]>([])
-  const [loadingCursos, setLoadingCursos] = React.useState(false)
+  const [, setLoadingCursos] = React.useState(false)
   const [loadingDisciplinas, setLoadingDisciplinas] = React.useState(false)
   const [loadingFrentes, setLoadingFrentes] = React.useState(false)
   const [loadingModulos, setLoadingModulos] = React.useState(false)
@@ -322,7 +319,7 @@ export default function FlashcardsAdminClient() {
       console.log('[flashcards client] Content-Type:', contentType)
       console.log('[flashcards client] Status:', res.status, res.statusText)
       
-      let body: any = {}
+      let body: Record<string, unknown> = {}
       let responseText = ''
       
       try {
