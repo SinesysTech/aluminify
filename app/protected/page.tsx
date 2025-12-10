@@ -9,7 +9,7 @@ export default async function ProtectedPage() {
   const user = await getAuthenticatedUser()
 
   if (!user) {
-    redirect('/auth/login')
+    redirect('/auth')
   }
 
   if (user.mustChangePassword) {

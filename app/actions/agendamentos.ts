@@ -425,10 +425,12 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
         const meetingLink = await generateMeetingLink(
           integration.provider as 'google' | 'zoom' | 'default',
           {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             title: `Mentoria com ${(agendamento.aluno as any)?.[0]?.nome || 'Aluno'}`,
             startTime: new Date(agendamento.data_inicio),
             endTime: new Date(agendamento.data_fim),
             description: 'Sessão de mentoria agendada via Área do Aluno',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             attendees: (agendamento.aluno as any)?.[0]?.email ? [(agendamento.aluno as any)[0].email] : []
           },
           {

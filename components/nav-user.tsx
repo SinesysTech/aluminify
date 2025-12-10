@@ -115,7 +115,7 @@ export function NavUser() {
     try {
       const supabase = createClient()
       await supabase.auth.signOut()
-      router.push('/auth/login')
+      router.push('/auth')
       router.refresh()
     } catch (error) {
       console.error('Error logging out:', error)

@@ -104,7 +104,7 @@ export async function requireUser(options?: RequireUserOptions): Promise<AppUser
   const user = await getAuthenticatedUser()
 
   if (!user) {
-    redirect('/auth/login')
+    redirect('/auth')
   }
 
   if (options?.allowedRoles && !hasRequiredRole(user.role, options.allowedRoles)) {

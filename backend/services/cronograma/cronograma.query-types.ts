@@ -106,3 +106,58 @@ export interface FrenteComEstatisticas {
   prioridade_maior_igual_1: number;
   sera_incluida: boolean;
 }
+
+export interface ModuloQueryResult {
+  id: string;
+  nome: string;
+  frente_id: string;
+  curso_id: string | null;
+  frentes?: {
+    id?: string;
+    nome?: string;
+    disciplina_id?: string;
+    curso_id?: string | null;
+    disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
+  };
+}
+
+export interface DiagnosticoFrente {
+  frente: {
+    id?: string;
+    nome?: string;
+    disciplina?: string;
+    curso_id?: string | null;
+  };
+  modulos: Array<{
+    id: string;
+    nome: string;
+    curso_id: string | null;
+  }>;
+}
+
+export interface FrenteInfo {
+  id: string;
+  nome: string;
+  disciplina?: string;
+  curso_id?: string | null;
+}
+
+export interface ModuloInfo {
+  id: string;
+  nome: string;
+  curso_id: string | null;
+}
+
+export interface ModuloSelecionadoQueryResult {
+  id: string;
+  frente_id: string;
+  curso_id: string | null;
+  frentes?: {
+    id?: string;
+    nome?: string;
+    curso_id?: string | null;
+    disciplinas?: {
+      nome?: string;
+    };
+  };
+}

@@ -21,7 +21,7 @@ export default function CronogramaPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        router.push('/auth/login')
+        router.push('/auth/aluno/login')
         return
       }
 

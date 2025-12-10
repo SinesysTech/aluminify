@@ -108,7 +108,7 @@ export default async function StatsPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/professor/login")
   }
 
   const stats = await getDetailedStats(user.id)

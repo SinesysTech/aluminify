@@ -21,6 +21,11 @@ import {
   AulaQueryResult,
   ItensPorSemanaAccumulator,
   FrenteComEstatisticas,
+  ModuloQueryResult,
+  DiagnosticoFrente,
+  FrenteInfo,
+  ModuloInfo,
+  ModuloSelecionadoQueryResult,
 } from './cronograma.query-types';
 import {
   CronogramaValidationError,
@@ -413,10 +418,10 @@ export class CronogramaService {
       console.log('[CronogramaService] TOTAL de frentes encontradas (SEM filtro de curso):', todasFrentesSemFiltro?.length || 0);
       
       // Agrupar por disciplina e curso
-      const frentesPorDisciplinaECurso = new Map<string, { disciplina: string; frentes: any[] }>();
-      todasFrentesSemFiltro?.forEach((frente: any) => {
+      const frentesPorDisciplinaECurso = new Map<string, { disciplina: string; frentes: FrenteInfo[] }>();
+      todasFrentesSemFiltro?.forEach((frente: FrenteValidacaoResult) => {
         const discId = frente.disciplina_id;
-        const discNome = (frente.disciplinas as any)?.nome || 'Desconhecida';
+        const discNome = frente.disciplinas?.nome || 'Desconhecida';
         const key = `${discId}_${frente.curso_id || 'sem-curso'}`;
         
         if (!frentesPorDisciplinaECurso.has(key)) {
@@ -437,30 +442,30 @@ export class CronogramaService {
           disciplina: info.disciplina,
           curso_id: key.split('_')[1] === 'sem-curso' ? null : key.split('_')[1],
           total_frentes: info.frentes.length,
-          frentes: info.frentes.map((f: any) => f.nome)
+          frentes: info.frentes.map((f: FrenteInfo) => f.nome)
         }))
       );
 
       // Verificar frentes do curso selecionado
       if (cursoId) {
-        const frentesDoCurso = todasFrentesSemFiltro?.filter((f: any) => f.curso_id === cursoId) || [];
+        const frentesDoCurso = todasFrentesSemFiltro?.filter((f: FrenteValidacaoResult) => f.curso_id === cursoId) || [];
         console.log('[CronogramaService] Frentes do curso selecionado:', {
           curso_id: cursoId,
           total: frentesDoCurso.length,
-          frentes: frentesDoCurso.map((f: any) => ({
+          frentes: frentesDoCurso.map((f: FrenteValidacaoResult) => ({
             id: f.id,
             nome: f.nome,
-            disciplina: (f.disciplinas as any)?.nome
+            disciplina: f.disciplinas?.nome
           }))
         });
 
         // Verificar se há frentes sem curso_id
-        const frentesSemCurso = todasFrentesSemFiltro?.filter((f: any) => !f.curso_id) || [];
+        const frentesSemCurso = todasFrentesSemFiltro?.filter((f: FrenteValidacaoResult) => !f.curso_id) || [];
         if (frentesSemCurso.length > 0) {
-          console.warn('[CronogramaService] ⚠️ Frentes SEM curso_id encontradas:', frentesSemCurso.map((f: any) => ({
+          console.warn('[CronogramaService] ⚠️ Frentes SEM curso_id encontradas:', frentesSemCurso.map((f: FrenteValidacaoResult) => ({
             id: f.id,
             nome: f.nome,
-            disciplina: (f.disciplinas as any)?.nome
+            disciplina: f.disciplinas?.nome
           })));
         }
       }
@@ -485,14 +490,14 @@ export class CronogramaService {
 
     console.log('🔍 [CronogramaService] RESULTADO DA BUSCA DE FRENTES:', {
       total_encontradas: frentesData?.length || 0,
-      frentes: frentesData?.map((f: any) => ({
+      frentes: frentesData?.map((f: FrenteValidacaoResult) => ({
         id: f.id,
         nome: f.nome,
         disciplina_id: f.disciplina_id,
         curso_id: f.curso_id,
         disciplina_nome: Array.isArray(f.disciplinas) 
           ? f.disciplinas[0]?.nome 
-          : (f.disciplinas as any)?.nome
+          : f.disciplinas?.nome
       }))
     });
 
@@ -500,7 +505,7 @@ export class CronogramaService {
     const frentesPorDisciplina = new Map<string, string[]>();
     
     // Agrupar frentes por disciplina para validação
-    frentesData?.forEach((frente: any) => {
+    frentesData?.forEach((frente: FrenteValidacaoResult) => {
       const discId = frente.disciplina_id;
       if (!frentesPorDisciplina.has(discId)) {
         frentesPorDisciplina.set(discId, []);
@@ -510,11 +515,11 @@ export class CronogramaService {
 
     console.log('[CronogramaService] Frentes encontradas por disciplina (COM filtro):', 
       Array.from(frentesPorDisciplina.entries()).map(([discId, nomes]) => {
-        const primeiraFrente = frentesData?.find((f: any) => f.disciplina_id === discId);
+        const primeiraFrente = frentesData?.find((f: FrenteValidacaoResult) => f.disciplina_id === discId);
         const disciplinaNome = primeiraFrente?.disciplinas 
           ? (Array.isArray(primeiraFrente.disciplinas) 
               ? primeiraFrente.disciplinas[0]?.nome 
-              : (primeiraFrente.disciplinas as any)?.nome)
+              : primeiraFrente.disciplinas?.nome)
           : 'Desconhecida';
         return {
           disciplina_id: discId,
@@ -562,8 +567,8 @@ export class CronogramaService {
       console.log('[CronogramaService] TOTAL de módulos encontrados (SEM filtro de curso):', todosModulosSemFiltro?.length || 0);
       
       // Agrupar módulos por frente
-      const modulosPorFrenteSemFiltro = new Map<string, { frente: any; modulos: any[] }>();
-      todosModulosSemFiltro?.forEach((modulo: any) => {
+      const modulosPorFrenteSemFiltro = new Map<string, DiagnosticoFrente>();
+      todosModulosSemFiltro?.forEach((modulo: ModuloQueryResult) => {
         const frenteId = modulo.frente_id;
         if (!modulosPorFrenteSemFiltro.has(frenteId)) {
           const frente = modulo.frentes;
@@ -571,7 +576,7 @@ export class CronogramaService {
             frente: {
               id: frente?.id,
               nome: frente?.nome,
-              disciplina: (frente?.disciplinas as any)?.nome,
+              disciplina: Array.isArray(frente?.disciplinas) ? frente.disciplinas[0]?.nome : frente?.disciplinas?.nome,
               curso_id: frente?.curso_id
             },
             modulos: []
@@ -591,13 +596,13 @@ export class CronogramaService {
           disciplina: info.frente.disciplina,
           frente_curso_id: info.frente.curso_id,
           total_modulos: info.modulos.length,
-          modulos: info.modulos.map((m: any) => ({ id: m.id, nome: m.nome, curso_id: m.curso_id }))
+          modulos: info.modulos.map((m: ModuloInfo) => ({ id: m.id, nome: m.nome, curso_id: m.curso_id }))
         }))
       );
 
       // Verificar módulos do curso selecionado
       if (cursoId) {
-        const modulosDoCurso = todosModulosSemFiltro?.filter((m: any) => m.curso_id === cursoId) || [];
+        const modulosDoCurso = todosModulosSemFiltro?.filter((m: ModuloQueryResult) => m.curso_id === cursoId) || [];
         console.log('[CronogramaService] Módulos do curso selecionado:', {
           curso_id: cursoId,
           total: modulosDoCurso.length
@@ -605,8 +610,8 @@ export class CronogramaService {
 
         // Verificar frentes sem módulos no curso
         frenteIds.forEach(frenteId => {
-          const frente = frentesData?.find((f: any) => f.id === frenteId);
-          const modulosDaFrente = todosModulosSemFiltro?.filter((m: any) => 
+          const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
+          const modulosDaFrente = todosModulosSemFiltro?.filter((m: ModuloQueryResult) => 
             m.frente_id === frenteId && m.curso_id === cursoId
           ) || [];
           
@@ -641,9 +646,9 @@ export class CronogramaService {
 
     console.log('🔍 [CronogramaService] RESULTADO DA BUSCA DE MÓDULOS:', {
       total_encontrados: modulosData?.length || 0,
-      frentes_com_modulos: new Set(modulosData?.map((m: any) => m.frente_id) || []).size,
+      frentes_com_modulos: new Set(modulosData?.map((m: ModuloQueryResult) => m.frente_id) || []).size,
       total_frentes_esperadas: frenteIds.length,
-      modulos_por_frente: modulosData?.reduce((acc: any, m: any) => {
+      modulos_por_frente: modulosData?.reduce((acc: Record<string, number>, m: ModuloQueryResult) => {
         const frenteId = m.frente_id;
         if (!acc[frenteId]) {
           acc[frenteId] = 0;
@@ -654,12 +659,12 @@ export class CronogramaService {
     });
 
     // Verificar quais frentes NÃO têm módulos
-    const frentesComModulos = new Set(modulosData?.map((m: any) => m.frente_id) || []);
+    const frentesComModulos = new Set(modulosData?.map((m: ModuloQueryResult) => m.frente_id) || []);
     const frentesSemModulos = frenteIds.filter(id => !frentesComModulos.has(id));
     if (frentesSemModulos.length > 0) {
       console.error('🔍 [CronogramaService] ❌❌❌ FRENTES SEM MÓDULOS ENCONTRADAS:', 
         frentesSemModulos.map(id => {
-          const frente = frentesData?.find((f: any) => f.id === id);
+          const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === id);
           return {
             frente_id: id,
             frente_nome: frente?.nome || 'Desconhecida',
@@ -673,7 +678,7 @@ export class CronogramaService {
     const modulosPorFrente = new Map<string, string[]>();
     
     // Agrupar módulos por frente para validação
-    modulosData?.forEach((modulo: any) => {
+    modulosData?.forEach((modulo: ModuloQueryResult) => {
       const frenteId = modulo.frente_id;
       if (!modulosPorFrente.has(frenteId)) {
         modulosPorFrente.set(frenteId, []);
@@ -683,9 +688,9 @@ export class CronogramaService {
 
     console.log('[CronogramaService] Módulos encontrados por frente (COM filtro):', 
       Array.from(modulosPorFrente.entries()).map(([frenteId, moduloIds]) => {
-        const frente = frentesData?.find((f: any) => f.id === frenteId);
-        const moduloComFrente = modulosData?.find((m: any) => m.frente_id === frenteId);
-        const frenteInfo: any = moduloComFrente?.frentes;
+        const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
+        const moduloComFrente = modulosData?.find((m: ModuloQueryResult) => m.frente_id === frenteId);
+        const frenteInfo = moduloComFrente?.frentes;
         let disciplinaNome = 'Desconhecida';
         if (frenteInfo?.disciplinas) {
           if (Array.isArray(frenteInfo.disciplinas)) {
@@ -707,7 +712,7 @@ export class CronogramaService {
     // Validação crítica: verificar se todas as frentes têm módulos
     frenteIds.forEach(frenteId => {
       const modulosDaFrente = modulosPorFrente.get(frenteId) || [];
-      const frente = frentesData?.find((f: any) => f.id === frenteId);
+      const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
       if (modulosDaFrente.length === 0) {
         console.error(`[CronogramaService] ❌❌❌ FRENTE "${frente?.nome}" (${frenteId}) NÃO TEM MÓDULOS!`);
       } else {
@@ -723,7 +728,7 @@ export class CronogramaService {
       
       // Log detalhado dos módulos antes do filtro
       const modulosPorFrenteAntes = new Map<string, { total: number; ids: string[] }>();
-      modulosData?.forEach((modulo: any) => {
+      modulosData?.forEach((modulo: ModuloQueryResult) => {
         const frenteId = modulo.frente_id;
         if (!modulosPorFrenteAntes.has(frenteId)) {
           modulosPorFrenteAntes.set(frenteId, { total: 0, ids: [] });
@@ -735,7 +740,7 @@ export class CronogramaService {
       
       console.log('[CronogramaService] Módulos ANTES do filtro por frente:', 
         Array.from(modulosPorFrenteAntes.entries()).map(([frenteId, info]) => {
-          const frente = frentesData?.find((f: any) => f.id === frenteId);
+          const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
           return {
             frente_id: frenteId,
             frente_nome: frente?.nome || 'Desconhecida',
@@ -758,7 +763,7 @@ export class CronogramaService {
       const frentesComModulosSelecionados = new Set<string>();
       const modulosPorFrenteDepois = new Map<string, { total: number; ids: string[] }>();
       
-      modulosData?.forEach((modulo: any) => {
+      modulosData?.forEach((modulo: ModuloQueryResult) => {
         if (moduloIds.includes(modulo.id)) {
           frentesComModulosSelecionados.add(modulo.frente_id);
           const frenteId = modulo.frente_id;
@@ -773,7 +778,7 @@ export class CronogramaService {
       
       console.log('[CronogramaService] Módulos DEPOIS do filtro por frente:', 
         Array.from(modulosPorFrenteDepois.entries()).map(([frenteId, info]) => {
-          const frente = frentesData?.find((f: any) => f.id === frenteId);
+          const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
           return {
             frente_id: frenteId,
             frente_nome: frente?.nome || 'Desconhecida',
@@ -796,7 +801,7 @@ export class CronogramaService {
       const frentesSemModulos = frenteIds.filter(id => !frentesComModulosSelecionados.has(id));
       if (frentesSemModulos.length > 0) {
         const frentesSemModulosNomes = frentesSemModulos.map(id => {
-          const frente = frentesData?.find((f: any) => f.id === id);
+          const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === id);
           return {
             frente_id: id,
             frente_nome: frente?.nome || 'Desconhecida',
@@ -809,7 +814,7 @@ export class CronogramaService {
         frentesSemModulos.forEach(frenteId => {
           const modulosDaFrente = modulosPorFrenteAntes.get(frenteId);
           if (modulosDaFrente && modulosDaFrente.ids.length > 0) {
-            console.warn(`[CronogramaService] ⚠️ Frente ${frentesData?.find((f: any) => f.id === frenteId)?.nome} tem ${modulosDaFrente.ids.length} módulo(s) disponível(is) mas nenhum foi selecionado:`, modulosDaFrente.ids.slice(0, 5));
+            console.warn(`[CronogramaService] ⚠️ Frente ${frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId)?.nome} tem ${modulosDaFrente.ids.length} módulo(s) disponível(is) mas nenhum foi selecionado:`, modulosDaFrente.ids.slice(0, 5));
           }
         });
       }
@@ -831,20 +836,20 @@ export class CronogramaService {
       } else {
         const frentesValidasSet = new Set(frenteIds);
         const modulosForaDasFrentes = (modulosSelecionadosData || []).filter(
-          (m: any) => !frentesValidasSet.has(m.frente_id),
+          (m: ModuloSelecionadoQueryResult) => !frentesValidasSet.has(m.frente_id),
         );
 
         console.warn('[CronogramaService] ⚠️ Módulos selecionados não pertencem às frentes/curso informados:', {
           cursoId,
           total_modulos_selecionados: modulosSelecionados.length,
           total_modulos_encontrados: modulosSelecionadosData?.length || 0,
-          modulos_fora_das_frentes: modulosForaDasFrentes.map((m: any) => ({
+          modulos_fora_das_frentes: modulosForaDasFrentes.map((m: ModuloSelecionadoQueryResult) => ({
             id: m.id,
             frente_id: m.frente_id,
             curso_id: m.curso_id,
-            frente_nome: (m.frentes as any)?.nome,
-            frente_curso_id: (m.frentes as any)?.curso_id,
-            disciplina_nome: (m.frentes as any)?.disciplinas?.nome,
+            frente_nome: m.frentes?.nome,
+            frente_curso_id: m.frentes?.curso_id,
+            disciplina_nome: m.frentes?.disciplinas?.nome,
           })),
         });
       }
@@ -1108,7 +1113,7 @@ export class CronogramaService {
         
         console.error('🔍 [CronogramaService] ❌❌❌ Nenhuma aula encontrada após filtro de curso:', {
           curso_id_esperado: cursoId,
-          frentes_encontradas: Object.values(frentesComCursoDiferente).map((f: any) => ({
+          frentes_encontradas: Object.values(frentesComCursoDiferente).map((f: { frente_nome: string; curso_id: string | null; total: number }) => ({
             frente_nome: f.frente_nome,
             curso_id: f.curso_id,
             total_aulas: f.total,
@@ -1887,7 +1892,7 @@ export class CronogramaService {
     const diasOrdenados = [...diasSemana].sort((a, b) => a - b);
 
     // Função helper para extrair informações de disciplina e frente de um item
-    const extrairInfoItem = (item: any) => {
+    const extrairInfoItem = (item: ItemDistribuicao) => {
       // Supabase pode retornar dados aninhados de diferentes formas
       const aula = item.aulas;
       const modulo = aula?.modulos || (aula && Array.isArray(aula.modulos) ? aula.modulos[0] : null);
@@ -2279,7 +2284,7 @@ export class CronogramaService {
 
     // Agrupar itens por semana
     const itensPorSemana = new Map<number, typeof itens>();
-    (itens || []).forEach((item: any) => {
+    (itens || []).forEach((item: ItemDistribuicao) => {
       const semanaNum = item.semana_numero;
       if (!itensPorSemana.has(semanaNum)) {
         itensPorSemana.set(semanaNum, []);
@@ -2296,7 +2301,7 @@ export class CronogramaService {
       let totalAulas = 0;
       let aulasConcluidas = 0;
 
-      itensDaSemana.forEach((item: any) => {
+      itensDaSemana.forEach((item: ItemDistribuicao) => {
         const aula = item.aulas;
         if (!aula) return;
 

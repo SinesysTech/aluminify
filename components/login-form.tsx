@@ -187,7 +187,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             </div>
             <div className="mt-4 text-center text-sm">
               Ainda não possui uma conta?{' '}
-              <Link href="/auth/sign-up" className="underline underline-offset-4">
+              <Link href="/auth/professor/cadastro" className="underline underline-offset-4">
                 Cadastre-se
               </Link>
             </div>
