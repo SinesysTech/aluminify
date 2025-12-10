@@ -29,7 +29,6 @@ async function postHandler(request: AuthenticatedRequest) {
     const body = await request.json();
     const cursoId = body?.curso_id;
     const frenteId = body?.frente_id;
-    const force = Boolean(body?.force);
 
     if (!cursoId) {
       return NextResponse.json({ error: 'curso_id is required' }, { status: 400 });
@@ -39,10 +38,10 @@ async function postHandler(request: AuthenticatedRequest) {
       return NextResponse.json({ error: 'frente_id is required' }, { status: 400 });
     }
 
-    await atividadeService.gerarAtividadesPersonalizadas(cursoId, frenteId, force);
+    await atividadeService.gerarAtividadesPersonalizadas(cursoId, frenteId);
 
     return NextResponse.json(
-      { message: force ? 'Estrutura de atividades recriada com sucesso' : 'Atividades personalizadas geradas com sucesso' },
+      { message: 'Atividades personalizadas geradas com sucesso' },
       { status: 200 },
     );
   } catch (error) {

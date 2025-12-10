@@ -85,7 +85,7 @@ export interface FrenteValidacaoResult {
   nome: string;
   disciplina_id: string;
   curso_id: string | null;
-  disciplinas?: DisciplinaQueryResult;
+  disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
 }
 
 /**
@@ -105,20 +105,6 @@ export interface FrenteComEstatisticas {
   total_aulas: number;
   prioridade_maior_igual_1: number;
   sera_incluida: boolean;
-}
-
-export interface ModuloQueryResult {
-  id: string;
-  nome: string;
-  frente_id: string;
-  curso_id: string | null;
-  frentes?: {
-    id?: string;
-    nome?: string;
-    disciplina_id?: string;
-    curso_id?: string | null;
-    disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
-  };
 }
 
 export interface DiagnosticoFrente {

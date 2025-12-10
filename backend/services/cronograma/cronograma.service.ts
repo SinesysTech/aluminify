@@ -134,29 +134,31 @@ export class CronogramaService {
       .from('frentes')
       .select('id, nome, disciplina_id, curso_id, disciplinas(nome)')
       .in('disciplina_id', input.disciplinas_ids);
-    
+
     if (input.curso_alvo_id) {
       validacaoFrentesQuery = validacaoFrentesQuery.eq('curso_id', input.curso_alvo_id);
     }
-    
+
     const { data: todasFrentes, error: frentesError } = await validacaoFrentesQuery;
-    
+
     if (!frentesError && todasFrentes && todasFrentes.length > 0) {
       const frentesComAulas = new Set(aulas.map(a => a.frente_id));
-      const frentesSemAulas = todasFrentes.filter((f) => !frentesComAulas.has((f as FrenteValidacaoResult).id));
-      
+      // @ts-ignore - Supabase retorna tipo com estrutura incompatível
+      const frentesSemAulas = todasFrentes.filter(f => !frentesComAulas.has(f.id));
+
       if (frentesSemAulas.length > 0) {
         console.warn('[CronogramaService] ⚠️ Frentes sem aulas no cronograma gerado:', {
           total_frentes_sem_aulas: frentesSemAulas.length,
           total_frentes_esperadas: todasFrentes.length,
           total_frentes_com_aulas: frentesComAulas.size,
-          frentes: frentesSemAulas.map((f: FrenteValidacaoResult) => ({
+          // @ts-ignore - Supabase retorna tipo com estrutura incompatível
+          frentes: frentesSemAulas.map(f => ({
             id: f.id,
             nome: f.nome,
-            disciplina: f.disciplinas?.nome || 'Desconhecida',
+            disciplina: Array.isArray(f.disciplinas) ? f.disciplinas[0]?.nome : f.disciplinas?.nome || 'Desconhecida',
             curso_id: f.curso_id
           })),
-          motivo_possivel: excluirConcluidas 
+          motivo_possivel: excluirConcluidas
             ? 'Aulas podem ter sido excluídas por estarem concluídas ou não terem prioridade suficiente'
             : 'Aulas podem não ter prioridade suficiente ou módulos não foram selecionados',
           prioridade_minima: input.prioridade_minima,
@@ -173,7 +175,7 @@ export class CronogramaService {
 
     // Velocidade de reprodução padrão: 1.00x
     const velocidadeReproducao = input.velocidade_reproducao ?? 1.0;
-    
+
     // Tempo de aula ajustado pela velocidade: se assistir em 1.5x, o tempo real é reduzido
     // Tempo de estudo (anotações/exercícios) é calculado sobre o tempo de aula ajustado
     const aulasComCusto = aulas.map((aula) => {
@@ -262,7 +264,7 @@ export class CronogramaService {
     userId: string,
   ): Promise<void> {
     console.log('[CronogramaService] Verificando e deletando cronograma anterior...');
-    
+
     // Buscar cronograma existente do aluno
     const { data: cronogramaExistente, error: selectError } = await client
       .from('cronogramas')
@@ -278,7 +280,7 @@ export class CronogramaService {
 
     if (cronogramaExistente) {
       console.log('[CronogramaService] Deletando cronograma anterior:', cronogramaExistente.id);
-      
+
       // Deletar cronograma (cascade vai deletar os itens automaticamente devido ao ON DELETE CASCADE)
       const { error: deleteError } = await client
         .from('cronogramas')
@@ -316,7 +318,7 @@ export class CronogramaService {
     // Se o aluno não existe, criar um registro básico
     if (!alunoExistente) {
       console.log('[CronogramaService] Aluno não encontrado, criando registro...');
-      
+
       if (!userEmail) {
         throw new CronogramaValidationError('Email do usuário é necessário para criar o registro de aluno');
       }
@@ -397,7 +399,7 @@ export class CronogramaService {
     console.log('🔍 [CronogramaService] Módulos selecionados:', modulosSelecionados?.length || 0);
     console.log('🔍 [CronogramaService] Prioridade mínima:', prioridadeMinimaEfetiva);
     console.log('🔍 [CronogramaService] ===========================================');
-    
+
     // Buscar frentes das disciplinas selecionadas (com informações completas para validação)
     console.log('🔍 [CronogramaService] ========== DIAGNÓSTICO DE FRENTES ==========');
     console.log('[CronogramaService] Buscando frentes para:', {
@@ -416,14 +418,14 @@ export class CronogramaService {
       console.error('[CronogramaService] Erro ao buscar todas as frentes (diagnóstico):', todasFrentesError);
     } else {
       console.log('[CronogramaService] TOTAL de frentes encontradas (SEM filtro de curso):', todasFrentesSemFiltro?.length || 0);
-      
+
       // Agrupar por disciplina e curso
       const frentesPorDisciplinaECurso = new Map<string, { disciplina: string; frentes: FrenteInfo[] }>();
-      todasFrentesSemFiltro?.forEach((frente: FrenteValidacaoResult) => {
+      todasFrentesSemFiltro?.forEach((frente: any) => {
         const discId = frente.disciplina_id;
-        const discNome = frente.disciplinas?.nome || 'Desconhecida';
+        const discNome = frente.disciplinas?.[0]?.nome || 'Desconhecida';
         const key = `${discId}_${frente.curso_id || 'sem-curso'}`;
-        
+
         if (!frentesPorDisciplinaECurso.has(key)) {
           frentesPorDisciplinaECurso.set(key, {
             disciplina: discNome,
@@ -437,7 +439,7 @@ export class CronogramaService {
         });
       });
 
-      console.log('[CronogramaService] Frentes agrupadas por disciplina e curso:', 
+      console.log('[CronogramaService] Frentes agrupadas por disciplina e curso:',
         Array.from(frentesPorDisciplinaECurso.entries()).map(([key, info]) => ({
           disciplina: info.disciplina,
           curso_id: key.split('_')[1] === 'sem-curso' ? null : key.split('_')[1],
@@ -495,15 +497,15 @@ export class CronogramaService {
         nome: f.nome,
         disciplina_id: f.disciplina_id,
         curso_id: f.curso_id,
-        disciplina_nome: Array.isArray(f.disciplinas) 
-          ? f.disciplinas[0]?.nome 
+        disciplina_nome: Array.isArray(f.disciplinas)
+          ? f.disciplinas[0]?.nome
           : f.disciplinas?.nome
       }))
     });
 
     const frenteIds = frentesData?.map((f) => f.id) || [];
     const frentesPorDisciplina = new Map<string, string[]>();
-    
+
     // Agrupar frentes por disciplina para validação
     frentesData?.forEach((frente: FrenteValidacaoResult) => {
       const discId = frente.disciplina_id;
@@ -513,13 +515,13 @@ export class CronogramaService {
       frentesPorDisciplina.get(discId)!.push(frente.nome);
     });
 
-    console.log('[CronogramaService] Frentes encontradas por disciplina (COM filtro):', 
+    console.log('[CronogramaService] Frentes encontradas por disciplina (COM filtro):',
       Array.from(frentesPorDisciplina.entries()).map(([discId, nomes]) => {
         const primeiraFrente = frentesData?.find((f: FrenteValidacaoResult) => f.disciplina_id === discId);
-        const disciplinaNome = primeiraFrente?.disciplinas 
-          ? (Array.isArray(primeiraFrente.disciplinas) 
-              ? primeiraFrente.disciplinas[0]?.nome 
-              : primeiraFrente.disciplinas?.nome)
+        const disciplinaNome = primeiraFrente?.disciplinas
+          ? (Array.isArray(primeiraFrente.disciplinas)
+            ? primeiraFrente.disciplinas[0]?.nome
+            : primeiraFrente.disciplinas?.nome)
           : 'Desconhecida';
         return {
           disciplina_id: discId,
@@ -565,7 +567,7 @@ export class CronogramaService {
       console.error('[CronogramaService] Erro ao buscar todos os módulos (diagnóstico):', todosModulosError);
     } else {
       console.log('[CronogramaService] TOTAL de módulos encontrados (SEM filtro de curso):', todosModulosSemFiltro?.length || 0);
-      
+
       // Agrupar módulos por frente
       const modulosPorFrenteSemFiltro = new Map<string, DiagnosticoFrente>();
       todosModulosSemFiltro?.forEach((modulo: ModuloQueryResult) => {
@@ -589,7 +591,7 @@ export class CronogramaService {
         });
       });
 
-      console.log('[CronogramaService] Módulos agrupados por frente (SEM filtro):', 
+      console.log('[CronogramaService] Módulos agrupados por frente (SEM filtro):',
         Array.from(modulosPorFrenteSemFiltro.entries()).map(([frenteId, info]) => ({
           frente_id: frenteId,
           frente_nome: info.frente.nome,
@@ -611,10 +613,10 @@ export class CronogramaService {
         // Verificar frentes sem módulos no curso
         frenteIds.forEach(frenteId => {
           const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
-          const modulosDaFrente = todosModulosSemFiltro?.filter((m: ModuloQueryResult) => 
+          const modulosDaFrente = todosModulosSemFiltro?.filter((m: ModuloQueryResult) =>
             m.frente_id === frenteId && m.curso_id === cursoId
           ) || [];
-          
+
           if (modulosDaFrente.length === 0) {
             console.error(`[CronogramaService] ❌❌❌ FRENTE "${frente?.nome}" (${frenteId}) NÃO TEM MÓDULOS NO CURSO ${cursoId}!`);
           } else {
@@ -662,7 +664,7 @@ export class CronogramaService {
     const frentesComModulos = new Set(modulosData?.map((m: ModuloQueryResult) => m.frente_id) || []);
     const frentesSemModulos = frenteIds.filter(id => !frentesComModulos.has(id));
     if (frentesSemModulos.length > 0) {
-      console.error('🔍 [CronogramaService] ❌❌❌ FRENTES SEM MÓDULOS ENCONTRADAS:', 
+      console.error('🔍 [CronogramaService] ❌❌❌ FRENTES SEM MÓDULOS ENCONTRADAS:',
         frentesSemModulos.map(id => {
           const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === id);
           return {
@@ -676,7 +678,7 @@ export class CronogramaService {
 
     let moduloIds = modulosData?.map((m) => m.id) || [];
     const modulosPorFrente = new Map<string, string[]>();
-    
+
     // Agrupar módulos por frente para validação
     modulosData?.forEach((modulo: ModuloQueryResult) => {
       const frenteId = modulo.frente_id;
@@ -686,7 +688,7 @@ export class CronogramaService {
       modulosPorFrente.get(frenteId)!.push(modulo.id);
     });
 
-    console.log('[CronogramaService] Módulos encontrados por frente (COM filtro):', 
+    console.log('[CronogramaService] Módulos encontrados por frente (COM filtro):',
       Array.from(modulosPorFrente.entries()).map(([frenteId, moduloIds]) => {
         const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
         const moduloComFrente = modulosData?.find((m: ModuloQueryResult) => m.frente_id === frenteId);
@@ -725,7 +727,7 @@ export class CronogramaService {
 
     if (modulosSelecionados && modulosSelecionados.length > 0) {
       const modulosAntesFiltro = moduloIds.length;
-      
+
       // Log detalhado dos módulos antes do filtro
       const modulosPorFrenteAntes = new Map<string, { total: number; ids: string[] }>();
       modulosData?.forEach((modulo: ModuloQueryResult) => {
@@ -737,8 +739,8 @@ export class CronogramaService {
         frente.total++;
         frente.ids.push(modulo.id);
       });
-      
-      console.log('[CronogramaService] Módulos ANTES do filtro por frente:', 
+
+      console.log('[CronogramaService] Módulos ANTES do filtro por frente:',
         Array.from(modulosPorFrenteAntes.entries()).map(([frenteId, info]) => {
           const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
           return {
@@ -749,20 +751,20 @@ export class CronogramaService {
           };
         })
       );
-      
+
       moduloIds = moduloIds.filter((id) => modulosSelecionados.includes(id));
-      
+
       console.log('[CronogramaService] Filtro de módulos aplicado:', {
         modulos_antes: modulosAntesFiltro,
         modulos_depois: moduloIds.length,
         modulos_selecionados_total: modulosSelecionados.length,
         modulos_selecionados_primeiros_10: modulosSelecionados.slice(0, 10)
       });
-      
+
       // Validar que todas as frentes têm pelo menos um módulo selecionado
       const frentesComModulosSelecionados = new Set<string>();
       const modulosPorFrenteDepois = new Map<string, { total: number; ids: string[] }>();
-      
+
       modulosData?.forEach((modulo: ModuloQueryResult) => {
         if (moduloIds.includes(modulo.id)) {
           frentesComModulosSelecionados.add(modulo.frente_id);
@@ -775,8 +777,8 @@ export class CronogramaService {
           frente.ids.push(modulo.id);
         }
       });
-      
-      console.log('[CronogramaService] Módulos DEPOIS do filtro por frente:', 
+
+      console.log('[CronogramaService] Módulos DEPOIS do filtro por frente:',
         Array.from(modulosPorFrenteDepois.entries()).map(([frenteId, info]) => {
           const frente = frentesData?.find((f: FrenteValidacaoResult) => f.id === frenteId);
           return {
@@ -787,7 +789,7 @@ export class CronogramaService {
           };
         })
       );
-      
+
       // Verificar se há módulos selecionados que não pertencem a nenhuma frente encontrada
       const modulosSelecionadosValidos = new Set(moduloIds);
       const modulosSelecionadosInvalidos = modulosSelecionados.filter(id => !modulosSelecionadosValidos.has(id));
@@ -797,7 +799,7 @@ export class CronogramaService {
           modulo_ids: modulosSelecionadosInvalidos.slice(0, 10)
         });
       }
-      
+
       const frentesSemModulos = frenteIds.filter(id => !frentesComModulosSelecionados.has(id));
       if (frentesSemModulos.length > 0) {
         const frentesSemModulosNomes = frentesSemModulos.map(id => {
@@ -809,7 +811,7 @@ export class CronogramaService {
           };
         });
         console.warn('[CronogramaService] ⚠️⚠️⚠️ Frentes sem módulos selecionados (CRÍTICO):', JSON.stringify(frentesSemModulosNomes, null, 2));
-        
+
         // Tentar identificar se há módulos dessas frentes que não foram selecionados
         frentesSemModulos.forEach(frenteId => {
           const modulosDaFrente = modulosPorFrenteAntes.get(frenteId);
@@ -818,7 +820,7 @@ export class CronogramaService {
           }
         });
       }
-      
+
       if (moduloIds.length === 0) {
         console.warn('[CronogramaService] Nenhum módulo selecionado permaneceu após o filtro por frentes/curso.');
       }
@@ -889,11 +891,11 @@ export class CronogramaService {
     if (!todasAulasError && todasAulasSemFiltro) {
       // Agrupar por frente
       const aulasPorFrente = new Map<string, { total: number; prioridade_0: number; prioridade_null: number; prioridade_menor_1: number; prioridade_maior_igual_1: number }>();
-      
+
       todasAulasSemFiltro.forEach((aula: AulaQueryResult) => {
         const frenteId = aula.modulos?.frentes?.id;
         if (!frenteId) return;
-        
+
         if (!aulasPorFrente.has(frenteId)) {
           aulasPorFrente.set(frenteId, {
             total: 0,
@@ -903,10 +905,10 @@ export class CronogramaService {
             prioridade_maior_igual_1: 0
           });
         }
-        
+
         const stats = aulasPorFrente.get(frenteId)!;
         stats.total++;
-        
+
         if (aula.prioridade === null || aula.prioridade === undefined) {
           stats.prioridade_null++;
         } else if (aula.prioridade === 0) {
@@ -917,8 +919,8 @@ export class CronogramaService {
           stats.prioridade_maior_igual_1++;
         }
       });
-      
-      console.log('🔍 [CronogramaService] Diagnóstico de aulas por frente (ANTES do filtro de prioridade):', 
+
+      console.log('🔍 [CronogramaService] Diagnóstico de aulas por frente (ANTES do filtro de prioridade):',
         Array.from(aulasPorFrente.entries()).map(([frenteId, stats]) => {
           const frente = frentesData?.find((f: FrenteQueryResult) => f.id === frenteId);
           return {
@@ -976,7 +978,7 @@ export class CronogramaService {
         hint: aulasError.hint,
         code: aulasError.code,
       });
-      
+
       // Se o erro for sobre curso_id não existir, tentar buscar sem selecionar curso_id
       if (aulasError.message?.includes('curso_id')) {
         console.warn('[CronogramaService] Tentando buscar aulas sem filtro de curso_id...');
@@ -1008,22 +1010,22 @@ export class CronogramaService {
           .in('modulo_id', moduloIds)
           .gte('prioridade', prioridadeMinimaEfetiva)
           .neq('prioridade', 0);
-        
+
         if (errorSemFiltro) {
           throw new CronogramaValidationError(`Erro ao buscar aulas: ${errorSemFiltro.message}`);
         }
-        
+
         // Filtrar por curso_id em memória baseado na frente
         if (aulasDataSemFiltro) {
           const aulasFiltradas = aulasDataSemFiltro.filter((aula: AulaQueryResult) => {
             const frenteCursoId = aula.modulos?.frentes?.curso_id;
             return frenteCursoId === cursoId;
           });
-          
+
           if (aulasFiltradas.length === 0) {
             throw new CronogramaValidationError('Nenhuma aula encontrada com os critérios fornecidos');
           }
-          
+
           // Continuar com aulasFiltradas
           const aulas: AulaCompleta[] = aulasFiltradas.map((aula: AulaQueryResult) => ({
             id: aula.id,
@@ -1039,11 +1041,11 @@ export class CronogramaService {
             disciplina_id: aula.modulos.frentes.disciplinas.id,
             disciplina_nome: aula.modulos.frentes.disciplinas.nome,
           }));
-          
+
           return aulas;
         }
       }
-      
+
       console.error('[CronogramaService] Erro ao buscar aulas:', {
         message: aulasError.message,
         details: aulasError.details,
@@ -1081,7 +1083,7 @@ export class CronogramaService {
         const frenteCursoId = aula.modulos?.frentes?.curso_id;
         return frenteCursoId === cursoId;
       });
-      
+
       console.log('🔍 [CronogramaService] Filtro de curso aplicado:', {
         curso_id: cursoId,
         aulas_antes: aulasAntesFiltro,
@@ -1097,7 +1099,7 @@ export class CronogramaService {
           return acc;
         }, {} as FrenteCountAccumulator)
       });
-      
+
       if (aulasData.length === 0) {
         // Log detalhado antes de lançar erro
         const frentesComCursoDiferente = aulasDataRaw.reduce((acc: FrenteComCursoDiferenteAccumulator, aula: AulaQueryResult) => {
@@ -1110,7 +1112,7 @@ export class CronogramaService {
           acc[frenteId].total++;
           return acc;
         }, {} as FrenteComCursoDiferenteAccumulator);
-        
+
         console.error('🔍 [CronogramaService] ❌❌❌ Nenhuma aula encontrada após filtro de curso:', {
           curso_id_esperado: cursoId,
           frentes_encontradas: Object.values(frentesComCursoDiferente).map((f: { frente_nome: string; curso_id: string | null; total: number }) => ({
@@ -1120,7 +1122,7 @@ export class CronogramaService {
             curso_id_correto: f.curso_id === cursoId
           }))
         });
-        
+
         throw new CronogramaValidationError('Nenhuma aula encontrada para o curso selecionado');
       }
     }
@@ -1146,7 +1148,7 @@ export class CronogramaService {
     aulas.forEach(aula => {
       frentesComAulas.add(aula.frente_id);
     });
-    
+
     const frentesSemAulasInicial = frenteIds.filter(id => !frentesComAulas.has(id));
     if (frentesSemAulasInicial.length > 0) {
       const frentesSemAulasNomes = frentesSemAulasInicial.map(id => {
@@ -1157,7 +1159,7 @@ export class CronogramaService {
         frentes: frentesSemAulasNomes,
         motivo_possivel: 'Nenhuma aula encontrada com prioridade >= ' + prioridadeMinimaEfetiva + ' ou módulos não selecionados'
       });
-      
+
       // Verificar se há módulos selecionados para essas frentes
       if (modulosSelecionados && modulosSelecionados.length > 0) {
         frentesSemAulasInicial.forEach(frenteId => {
@@ -1183,7 +1185,7 @@ export class CronogramaService {
       aulasPorFrente.get(aula.frente_id)!.total++;
     });
 
-    console.log('[CronogramaService] Aulas encontradas por frente:', 
+    console.log('[CronogramaService] Aulas encontradas por frente:',
       Array.from(aulasPorFrente.entries()).map(([frenteId, info]) => ({
         frente_id: frenteId,
         frente_nome: info.frente_nome,
@@ -1218,7 +1220,7 @@ export class CronogramaService {
     console.log('[CronogramaService] Total de aulas encontradas:', aulas.length);
     console.log('[CronogramaService] Total de frentes com aulas:', frentesComAulas.size);
     console.log('[CronogramaService] Total de frentes esperadas:', frenteIds.length);
-    
+
     // Listar todas as frentes e se têm aulas
     const frentesComStatus = frenteIds.map(frenteId => {
       const frente = frentesData?.find((f: FrenteQueryResult) => f.id === frenteId);
@@ -1232,9 +1234,9 @@ export class CronogramaService {
         total_aulas: totalAulas
       };
     });
-    
+
     console.log('[CronogramaService] Status de todas as frentes:', JSON.stringify(frentesComStatus, null, 2));
-    
+
     const frentesSemAulas = frentesComStatus.filter(f => !f.tem_aulas);
     if (frentesSemAulas.length > 0) {
       console.error('[CronogramaService] ❌❌❌ FRENTES SEM AULAS NO CRONOGRAMA:', JSON.stringify(frentesSemAulas, null, 2));
@@ -1297,7 +1299,7 @@ export class CronogramaService {
     // Distribuir aulas por semana
     const itens: ItemDistribuicao[] = [];
     const semanasUteis = semanas.filter((s) => !s.is_ferias);
-    
+
     console.log('[CronogramaService] Distribuindo aulas:', {
       totalAulas: aulasComCusto.length,
       totalSemanas: semanas.length,
@@ -1306,7 +1308,7 @@ export class CronogramaService {
       totalFrentes: frentes.length,
       modalidade,
     });
-    
+
     let frenteIndex = 0;
     const aulaIndexPorFrente = new Map<string, number>();
 
@@ -1506,19 +1508,19 @@ export class CronogramaService {
         hint: cronogramaError?.hint,
         code: cronogramaError?.code,
       });
-      
+
       // Se for erro 409 (Conflict), lançar erro específico
       if (cronogramaError?.code === '23505' || cronogramaError?.code === 'PGRST116') {
         throw new CronogramaConflictError(
           `Erro ao criar cronograma: ${cronogramaError.message || 'Conflito ao criar cronograma'}`,
         );
       }
-      
+
       // Se o erro mencionar schema cache, limpar cache e tentar novamente
       if (cronogramaError?.message?.includes('schema cache') || cronogramaError?.message?.includes('Could not find')) {
         console.warn('[CronogramaService] Problema com schema cache detectado, limpando cache...');
         clearDatabaseClientCache();
-        
+
         // Tentar inserir sem as colunas que podem estar causando problema
         console.warn('[CronogramaService] Tentando criar cronograma sem as colunas novas...');
         const { data: cronogramaFallback, error: fallbackError } = await client
@@ -1539,13 +1541,13 @@ export class CronogramaService {
           })
           .select()
           .single();
-          
+
         if (fallbackError || !cronogramaFallback) {
           throw new Error(`Erro ao criar cronograma: ${fallbackError?.message || cronogramaError?.message || 'Desconhecido'}`);
         }
-        
+
         cronograma = cronogramaFallback;
-        
+
         // Tentar atualizar com as colunas novas separadamente (se existirem)
         try {
           const updateData: Partial<Pick<CronogramaDetalhado, 'modulos_selecionados' | 'excluir_aulas_concluidas'>> = {};
@@ -1555,7 +1557,7 @@ export class CronogramaService {
           if (input.excluir_aulas_concluidas !== undefined) {
             updateData.excluir_aulas_concluidas = input.excluir_aulas_concluidas;
           }
-          
+
           if (Object.keys(updateData).length > 0) {
             const { data: cronogramaUpdated, error: updateError } = await client
               .from('cronogramas')
@@ -1563,7 +1565,7 @@ export class CronogramaService {
               .eq('id', cronograma.id)
               .select()
               .single();
-              
+
             if (!updateError && cronogramaUpdated) {
               cronograma = cronogramaUpdated;
             } else {
@@ -1837,7 +1839,7 @@ export class CronogramaService {
 
     // Se não houver distribuição, usar padrão (segunda a sexta)
     const diasSemana = distribuicao?.dias_semana || [1, 2, 3, 4, 5];
-    
+
     console.log(`[CronogramaService] Distribuição de dias encontrada:`, {
       cronogramaId,
       distribuicaoExiste: !!distribuicao,
@@ -1898,7 +1900,7 @@ export class CronogramaService {
       const modulo = aula?.modulos || (aula && Array.isArray(aula.modulos) ? aula.modulos[0] : null);
       const frente = modulo?.frentes || (modulo && Array.isArray(modulo.frentes) ? modulo.frentes[0] : null);
       const disciplina = frente?.disciplinas || (frente && Array.isArray(frente.disciplinas) ? frente.disciplinas[0] : null);
-      
+
       return {
         disciplinaId: disciplina?.id || '',
         disciplinaNome: disciplina?.nome || '',
@@ -1957,20 +1959,20 @@ export class CronogramaService {
       // Reorganizar: distribuir round-robin entre disciplinas dentro de cada frente
       // Processar todas as Frentes A primeiro, depois todas as Frentes B, etc.
       const itensReorganizados: typeof itensComInfo = [];
-      
+
       for (const frenteNome of frentesNomes) {
         const gruposFrente = frentesPorNome.get(frenteNome)!;
-        
+
         // Ordenar grupos por disciplina para garantir ordem consistente
         gruposFrente.sort((grupoA, grupoB) => {
           const disciplinaA = grupoA[0].info.disciplinaNome;
           const disciplinaB = grupoB[0].info.disciplinaNome;
           return disciplinaA.localeCompare(disciplinaB);
         });
-        
+
         // Encontrar o máximo de itens em qualquer grupo desta frente
         const maxItens = Math.max(...gruposFrente.map(grupo => grupo.length));
-        
+
         // Distribuir round-robin: pegar um item de cada disciplina por vez
         // Exemplo: Disc1 Aula1, Disc2 Aula1, Disc3 Aula1, Disc1 Aula2, Disc2 Aula2, etc.
         for (let i = 0; i < maxItens; i++) {
@@ -2009,13 +2011,13 @@ export class CronogramaService {
         // Calcular data base da semana: data_inicio + (semana_numero - 1) * 7 dias
         const dataBaseSemana = new Date(dataInicio);
         dataBaseSemana.setDate(dataBaseSemana.getDate() + (semanaNumero - 1) * 7);
-        
+
         // Calcular o período da semana do cronograma (7 dias a partir da data base)
         const dataFimSemana = new Date(dataBaseSemana);
         dataFimSemana.setDate(dataFimSemana.getDate() + 6);
-        
+
         const diaSemanaBase = dataBaseSemana.getDay();
-        
+
         // Encontrar quais dias selecionados caem dentro desta semana do cronograma
         // A semana do cronograma vai de dataBaseSemana até dataFimSemana (7 dias)
         const diasNaSemana: number[] = [];
@@ -2025,12 +2027,12 @@ export class CronogramaService {
             diasNaSemana.push(diaSemana);
           }
         }
-        
+
         // Se não houver dias selecionados nesta semana, usar todos os dias selecionados
         // (mas isso não deveria acontecer)
         const diasParaUsar = diasNaSemana.length > 0 ? diasNaSemana : diasOrdenados;
         const numDiasParaUsar = diasParaUsar.length;
-        
+
         // Ordenar os dias para usar na ordem correta
         const diasParaUsarOrdenados = [...diasParaUsar].sort((a, b) => {
           const indexA = diasOrdenados.indexOf(a);
@@ -2059,28 +2061,28 @@ export class CronogramaService {
         contadorPorSemana[semanaNumero] = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
 
         let indiceItem = 0;
-        
+
         // Distribuir itens para cada dia selecionado que cai nesta semana
         for (let i = 0; i < numDiasParaUsar; i++) {
           const diaSemanaEscolhido = diasParaUsarOrdenados[i];
-          
+
           // Calcular quantos itens este dia receberá
           // Os primeiros dias recebem um item extra se houver resto
           const quantidadeItensParaEsteDia = itensPorDia + (i < itensRestantes ? 1 : 0);
-          
+
           // Calcular a data deste dia na semana
           // Encontrar a primeira ocorrência do dia escolhido dentro do período de 7 dias
           const dataDiaSemana = new Date(dataBaseSemana);
           let diasParaAdicionar = diaSemanaEscolhido - diaSemanaBase;
-          
+
           // Se o dia escolhido já passou na semana base, está na próxima semana do calendário
           // mas ainda dentro do período de 7 dias da semana do cronograma
           if (diasParaAdicionar < 0) {
             diasParaAdicionar += 7;
           }
-          
+
           dataDiaSemana.setDate(dataDiaSemana.getDate() + diasParaAdicionar);
-          
+
           // Verificar se a data está dentro do período de 7 dias da semana do cronograma
           if (dataDiaSemana < dataBaseSemana || dataDiaSemana > dataFimSemana) {
             logError(`[CronogramaService] ⚠️ Data calculada está fora do período da semana ${semanaNumero}:`, {
@@ -2098,13 +2100,13 @@ export class CronogramaService {
           // Atribuir itens a este dia
           for (let j = 0; j < quantidadeItensParaEsteDia && indiceItem < totalItensSemana; j++) {
             const item = itensDaSemana[indiceItem];
-            
+
             // Garantir formato YYYY-MM-DD consistente (sem conversão UTC)
             const year = dataDiaSemana.getFullYear();
             const month = String(dataDiaSemana.getMonth() + 1).padStart(2, '0');
             const day = String(dataDiaSemana.getDate()).padStart(2, '0');
             const dataPrevistaFormatada = `${year}-${month}-${day}`;
-            
+
             atualizacoes.push({
               id: item.id,
               data_prevista: dataPrevistaFormatada,
@@ -2137,7 +2139,7 @@ export class CronogramaService {
           });
         }
       });
-    
+
     // Log da distribuição final por dia da semana e por semana
     const totalItens = Object.values(contadorPorDia).reduce((a, b) => a + b, 0);
     const itensPorDiaSelecionado = diasOrdenados.map(dia => ({
@@ -2146,7 +2148,7 @@ export class CronogramaService {
       quantidade: contadorPorDia[dia],
       percentual: totalItens > 0 ? ((contadorPorDia[dia] / totalItens) * 100).toFixed(1) + '%' : '0%',
     }));
-    
+
     logDebug(`[CronogramaService] Distribuição final por dia da semana:`, {
       total: totalItens,
       dias_selecionados: diasOrdenados,
@@ -2154,7 +2156,7 @@ export class CronogramaService {
     });
 
     // Log da distribuição por semana
-    logDebug(`[CronogramaService] Distribuição por semana:`, 
+    logDebug(`[CronogramaService] Distribuição por semana:`,
       Array.from(Object.entries(contadorPorSemana)).map(([semana, contadores]) => ({
         semana: Number(semana),
         totalItens: Object.values(contadores).reduce((a, b) => a + b, 0),
@@ -2174,7 +2176,7 @@ export class CronogramaService {
     // Processar em chunks
     for (let i = 0; i < atualizacoes.length; i += CHUNK_SIZE) {
       const chunk = atualizacoes.slice(i, i + CHUNK_SIZE);
-      
+
       // Usar Promise.all para processar chunk em paralelo
       const resultados = await Promise.allSettled(
         chunk.map(async (atualizacao) => {
@@ -2209,7 +2211,7 @@ export class CronogramaService {
     if (itensAtualizados < atualizacoes.length) {
       console.warn(`[CronogramaService] ⚠️ Apenas ${itensAtualizados} de ${atualizacoes.length} itens foram atualizados`);
       console.warn(`[CronogramaService] Erros encontrados:`, erros.slice(0, 10)); // Logar apenas primeiros 10 erros
-      
+
       // Se menos de 90% dos itens foram atualizados, considerar como falha crítica
       const taxaSucesso = itensAtualizados / atualizacoes.length;
       if (taxaSucesso < 0.9) {
@@ -2380,7 +2382,7 @@ export class CronogramaService {
     // Se dias_estudo_semana = 3, usar segunda, quarta, sexta [1,3,5]
     // etc.
     let diasPadrao: number[] = [];
-    
+
     if (diasEstudoSemana >= 5) {
       diasPadrao = [1, 2, 3, 4, 5]; // Segunda a sexta
     } else if (diasEstudoSemana === 4) {
