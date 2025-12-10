@@ -3,6 +3,14 @@ import { DificuldadePercebida } from '@/backend/services/progresso-atividade/pro
 import { cacheService } from '@/backend/services/cache';
 import { calculateNextReview, isValidFeedback } from './srs-algorithm';
 import type { FeedbackValue } from './srs-algorithm.types';
+import type {
+  ProgressoFlashcard,
+  AlunoCursoRow,
+  CursoRow,
+  ModuloRow,
+  FlashcardRow,
+  ModuloComFrenteRow,
+} from './flashcards.query-types';
 
 /**
  * Formata erros do Supabase para facilitar debug
@@ -337,7 +345,7 @@ export class FlashcardsService {
   }
 
   private async fetchProgressMap(alunoId: string, flashcardIds: string[]) {
-    if (!flashcardIds.length) return new Map<string, any>();
+    if (!flashcardIds.length) return new Map<string, ProgressoFlashcard>();
     const { data, error } = await this.client
       .from('progresso_flashcards')
       .select('*')
@@ -345,9 +353,9 @@ export class FlashcardsService {
       .in('flashcard_id', flashcardIds);
     if (error) {
       console.warn('[flashcards] erro ao buscar progresso', error);
-      return new Map<string, any>();
+      return new Map<string, ProgressoFlashcard>();
     }
-    return new Map((data ?? []).map((p) => [p.flashcard_id as string, p]));
+    return new Map((data ?? []).map((p) => [p.flashcard_id as string, p as ProgressoFlashcard]));
   }
 
   async listForReview(
@@ -392,7 +400,7 @@ export class FlashcardsService {
       if (isProfessor) {
         // Professores: verificar se o curso foi criado por eles
         // Para superadmin, vamos permitir acesso a todos (verificação será feita via RLS)
-        const frente = moduloData.frentes as any;
+        const frente = moduloData.frentes as ModuloRow['frentes'];
         const cursoIdParaVerificar = frente?.curso_id || moduloData.curso_id;
 
         if (cursoIdParaVerificar) {
@@ -419,8 +427,8 @@ export class FlashcardsService {
           throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
         }
 
-        cursoIds = alunosCursos?.map((ac: any) => ac.curso_id) || [];
-        const frente = moduloData.frentes as any;
+        cursoIds = alunosCursos?.map((ac: AlunoCursoRow) => ac.curso_id) || [];
+        const frente = moduloData.frentes as ModuloRow['frentes'];
 
         // Verificar se o módulo pertence a um curso do aluno (via frente ou módulo)
         cursoValido = 
@@ -450,8 +458,8 @@ export class FlashcardsService {
         pergunta: c.pergunta as string,
         resposta: c.resposta as string,
         importancia: Array.isArray(c.modulos)
-          ? (c.modulos as any)[0]?.importancia
-          : (c as any).modulos?.importancia,
+          ? (c.modulos as ModuloRow[])[0]?.importancia
+          : (c.modulos as ModuloRow | undefined)?.importancia,
       }));
 
       const progressMap = await this.fetchProgressMap(
@@ -505,7 +513,7 @@ export class FlashcardsService {
         throw new Error(`Erro ao buscar cursos: ${cursosError.message}`);
       }
       
-      cursoIds = (todosCursos ?? []).map((c: any) => c.id);
+      cursoIds = (todosCursos ?? []).map((c: CursoRow) => c.id);
       console.log(`[flashcards] Professor tem acesso a ${cursoIds.length} cursos`);
     } else {
       // Alunos: buscar cursos matriculados
@@ -524,7 +532,7 @@ export class FlashcardsService {
         return []; // Aluno sem cursos matriculados
       }
       
-      cursoIds = alunosCursos.map((ac: any) => ac.curso_id);
+      cursoIds = alunosCursos.map((ac: AlunoCursoRow) => ac.curso_id);
       console.log(`[flashcards] Aluno matriculado em ${cursoIds.length} cursos`);
     }
     
@@ -547,7 +555,7 @@ export class FlashcardsService {
       return []; // Cursos sem disciplinas
     }
     
-    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: any) => cd.disciplina_id))];
+    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: { disciplina_id: string }) => cd.disciplina_id))];
     
     // 3. Buscar frentes das disciplinas (que pertencem aos cursos)
     const { data: frentesData, error: frentesError } = await this.client
@@ -568,7 +576,7 @@ export class FlashcardsService {
       return []; // Sem frentes
     }
     
-    const frenteIds = frentesData.map((f: any) => f.id);
+    const frenteIds = frentesData.map((f: { id: string }) => f.id);
     
     // 4. Buscar módulos das frentes (considerando curso)
     let moduloIds: string[] = [];
@@ -593,16 +601,16 @@ export class FlashcardsService {
       }
       
       // Filtrar módulos que pertencem aos cursos do aluno ou são globais (curso_id null)
-      const modulosFiltrados = (todosModulos ?? []).filter((m: any) => {
+      const modulosFiltrados = (todosModulos ?? []).filter((m: { id: string; curso_id: string | null; importancia: string }) => {
         if (!m.curso_id) return true; // Módulos globais
         return cursoIds.includes(m.curso_id);
       });
       
       console.log(`[flashcards] Modo "mais_cobrados": encontrados ${modulosFiltrados.length} módulos com importancia = 'Alta' (de ${todosModulos?.length ?? 0} total)`);
       if (modulosFiltrados.length > 0) {
-        console.log(`[flashcards] Primeiros módulos encontrados:`, modulosFiltrados.slice(0, 3).map((m: any) => ({ id: m.id, importancia: m.importancia, curso_id: m.curso_id })));
+        console.log(`[flashcards] Primeiros módulos encontrados:`, modulosFiltrados.slice(0, 3).map((m: { id: string; importancia: string; curso_id: string | null }) => ({ id: m.id, importancia: m.importancia, curso_id: m.curso_id })));
       }
-      moduloIds = modulosFiltrados.map((m: any) => m.id);
+      moduloIds = modulosFiltrados.map((m: { id: string }) => m.id);
       
       if (moduloIds.length === 0) {
         console.warn('[flashcards] Nenhum módulo com importancia = "Alta" encontrado para os cursos do aluno');
@@ -631,7 +639,7 @@ export class FlashcardsService {
         throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
       }
       
-      const todosModuloIds = (todosModulos ?? []).map((m: any) => m.id);
+      const todosModuloIds = (todosModulos ?? []).map((m: { id: string }) => m.id);
       console.log(`[flashcards] Modo "mais_errados": encontrados ${todosModuloIds.length} módulos totais`);
       
       if (todosModuloIds.length === 0) {
@@ -668,7 +676,7 @@ export class FlashcardsService {
           }
           
           const moduloIdsDosFlashcards = Array.from(
-            new Set((flashcards ?? []).map((f: any) => f.modulo_id as string))
+            new Set((flashcards ?? []).map((f: { modulo_id: string }) => f.modulo_id as string))
           );
           
           // Filtrar apenas módulos que estão nas frentes do aluno/professor
@@ -697,7 +705,7 @@ export class FlashcardsService {
       if (modulosError) {
         throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
       }
-      moduloIds = (modulosData ?? []).map((m: any) => m.id);
+      moduloIds = (modulosData ?? []).map((m: { id: string }) => m.id);
       
       // Modo revisao_geral: buscar módulos de flashcards já vistos OU módulos com atividades concluídas
       if (modo === 'revisao_geral') {
