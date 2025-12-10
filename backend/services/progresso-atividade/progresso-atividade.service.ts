@@ -1,6 +1,5 @@
 import {
   ProgressoAtividade,
-  CreateProgressoInput,
   UpdateProgressoInput,
   StatusAtividade,
 } from './progresso-atividade.types';

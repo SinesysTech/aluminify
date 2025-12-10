@@ -201,9 +201,9 @@ export default function FlashcardsClient() {
 
           if (alunosCursos) {
             cursosData = alunosCursos
-              .map((ac: any) => ac.cursos)
+              .map((ac: { cursos: { id: string; nome: string } | null }) => ac.cursos)
               .filter(Boolean)
-              .map((c: any) => ({ id: c.id, nome: c.nome }))
+              .map((c) => ({ id: c.id, nome: c.nome }))
           }
         }
 
@@ -237,9 +237,9 @@ export default function FlashcardsClient() {
 
             if (cursosDisciplinas) {
               const disciplinasData = cursosDisciplinas
-                .map((cd: any) => cd.disciplina)
+                .map((cd: { disciplina: { id: string; nome: string } | null }) => cd.disciplina)
                 .filter(Boolean)
-                .map((d: any) => ({ id: d.id, nome: d.nome }))
+                .map((d) => ({ id: d.id, nome: d.nome }))
               
               // Remover duplicatas
               const unique = Array.from(new Map(disciplinasData.map((d) => [d.id, d])).values())
@@ -648,7 +648,7 @@ export default function FlashcardsClient() {
                       <strong>Base:</strong> Conteúdo fundamental (padrão)
                       <br />
                       <br />
-                      O modo "Mais Cobrados" prioriza flashcards de módulos com importância <strong>Alta</strong>.
+                      O modo &quot;Mais Cobrados&quot; prioriza flashcards de módulos com importância <strong>Alta</strong>.
                     </p>
                   </TooltipContent>
                 </Tooltip>

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { createClient } from '@/lib/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, Loader2, School } from 'lucide-react'
+import { AlertCircle, School } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SalaEstudosFilters } from '@/components/sala-estudos-filters'
 import { ModuloActivitiesAccordion } from '@/components/modulo-activities-accordion'
@@ -166,8 +166,8 @@ export default function SalaEstudosClientPage({
           }
 
           // Extrair os cursos do resultado (mesmo método do cronograma)
-          const cursosData = alunosCursos.map((ac: any) => ac.cursos).filter(Boolean)
-          cursoIds = cursosData.map((c: any) => c.id)
+          const cursosData = alunosCursos.map((ac: { cursos: { id: string } | null }) => ac.cursos).filter(Boolean)
+          cursoIds = cursosData.map((c) => c.id)
         }
 
         if (cursoIds.length === 0) {
@@ -211,7 +211,7 @@ export default function SalaEstudosClientPage({
     }
 
     fetchCursos()
-  }, [alunoId, userRole, supabase])
+  }, [alunoId, userRole, isSuperAdmin, supabase])
 
   // Carregar disciplinas e frentes dos cursos
   React.useEffect(() => {
@@ -341,8 +341,8 @@ export default function SalaEstudosClientPage({
           }
 
           // Extrair os cursos do resultado (mesmo método do cronograma)
-          const cursosData = alunosCursos.map((ac: any) => ac.cursos).filter(Boolean)
-          cursoIds = cursosData.map((c: any) => c.id)
+          const cursosData = alunosCursos.map((ac: { cursos: { id: string } | null }) => ac.cursos).filter(Boolean)
+          cursoIds = cursosData.map((c) => c.id)
         }
 
         if (cursoIds.length === 0) {
@@ -441,7 +441,16 @@ export default function SalaEstudosClientPage({
         // Dividir em lotes para evitar URLs muito longas (limite de ~2000 caracteres)
         // Usar lotes de 100 IDs por vez (cada UUID tem ~36 caracteres + separadores)
         const BATCH_SIZE = 100
-        const progressosData: any[] = []
+        const progressosData: {
+          atividade_id: string
+          status: string
+          data_inicio: string | null
+          data_conclusao: string | null
+          questoes_totais: number | null
+          questoes_acertos: number | null
+          dificuldade_percebida: string | null
+          anotacoes_pessoais: string | null
+        }[] = []
         
         // Só buscar progressos se houver atividades
         if (atividadeIds.length > 0) {

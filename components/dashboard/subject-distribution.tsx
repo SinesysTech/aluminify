@@ -19,8 +19,8 @@ export function SubjectDistribution({
 
   return (
     <Card>
-      <CardContent className="pt-6">
-        <h2 className="text-slate-900 dark:text-slate-50 text-lg font-semibold mb-6">
+      <CardContent className="px-4 md:px-6 py-3 md:py-4">
+        <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold mb-4 md:mb-6">
           Distribuição por Disciplina
         </h2>
         <div className="flex flex-1 items-center justify-center py-4">

@@ -1,13 +1,11 @@
 import { AppSidebar } from '@/components/app-sidebar'
 import { UserProvider } from '@/components/providers/user-provider'
-import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb'
 import { BottomNavigation } from '@/components/bottom-navigation'
-import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { DashboardHeader } from '@/components/dashboard-header'
 import { requireUser } from '@/lib/auth'
 
 export default async function DashboardLayout({
@@ -22,16 +20,7 @@ export default async function DashboardLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-14 md:h-16 shrink-0 items-center gap-2">
-            <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mr-1 md:mr-2 data-[orientation=vertical]:h-4"
-              />
-              <DynamicBreadcrumb />
-            </div>
-          </header>
+          <DashboardHeader />
           <div className="flex flex-1 flex-col gap-2 md:gap-4 p-2 md:p-4 pt-0 pb-16 md:pb-0">{children}</div>
           <BottomNavigation />
         </SidebarInset>

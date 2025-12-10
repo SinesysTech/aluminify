@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen, CalendarIcon } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -57,8 +57,6 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { DatePicker } from '@/components/ui/date-picker'
 import {
   Select,
@@ -88,8 +86,6 @@ import {
 } from '@/components/ui/empty'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale/pt-BR'
-import { cn } from '@/lib/utils'
 
 export type Curso = {
   id: string

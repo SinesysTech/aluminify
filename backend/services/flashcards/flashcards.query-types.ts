@@ -56,3 +56,20 @@ export interface ModuloComFrenteRow {
   curso_id?: string | null;
   frentes?: FrenteRow | FrenteRow[];
 }
+
+/**
+ * Tipo para módulo com relacionamentos aninhados para admin de flashcards
+ */
+export interface ModuloWithNestedRelations {
+  id: string;
+  nome: string;
+  numero_modulo: number | null;
+  frentes: {
+    id: string;
+    nome: string;
+    disciplinas: {
+      id: string;
+      nome: string;
+    };
+  };
+}

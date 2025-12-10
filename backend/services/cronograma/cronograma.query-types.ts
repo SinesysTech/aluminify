@@ -5,44 +5,51 @@
 
 /**
  * Estrutura de disciplina retornada em queries aninhadas
+ * id é opcional pois algumas queries selecionam apenas nome
  */
 export interface DisciplinaQueryResult {
-  id: string;
+  id?: string;
   nome: string;
 }
 
 /**
  * Estrutura de frente retornada em queries aninhadas
+ * disciplinas pode ser objeto ou array dependendo da query
  */
 export interface FrenteQueryResult {
-  id: string;
+  id?: string;
   nome: string;
-  curso_id: string | null;
-  disciplina_id: string;
-  disciplinas?: DisciplinaQueryResult;
+  curso_id?: string | null;
+  disciplina_id?: string;
+  disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
 }
 
 /**
  * Estrutura de módulo retornada em queries aninhadas
+ * Campos são opcionais pois diferentes queries selecionam campos diferentes
  */
 export interface ModuloQueryResult {
   id: string;
-  nome: string;
-  numero_modulo: number | null;
-  frente_id: string;
-  frentes?: FrenteQueryResult;
+  nome?: string;
+  numero_modulo?: number | null;
+  frente_id?: string;
+  modulo_id?: string;
+  curso_id?: string | null;
+  frentes?: FrenteQueryResult | FrenteQueryResult[];
 }
 
 /**
  * Estrutura de aula retornada em queries com joins completos
+ * modulos pode ser objeto ou array dependendo da query do Supabase
  */
 export interface AulaQueryResult {
   id: string;
   nome: string;
-  numero_aula: number | null;
-  tempo_estimado_minutos: number | null;
-  prioridade: number | null;
-  modulos?: ModuloQueryResult;
+  numero_aula?: number | null;
+  tempo_estimado_minutos?: number | null;
+  prioridade?: number | null;
+  modulo_id?: string;
+  modulos?: ModuloQueryResult | ModuloQueryResult[];
 }
 
 /**
@@ -85,7 +92,7 @@ export interface FrenteValidacaoResult {
   nome: string;
   disciplina_id: string;
   curso_id: string | null;
-  disciplinas?: DisciplinaQueryResult;
+  disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
 }
 
 /**
@@ -105,20 +112,6 @@ export interface FrenteComEstatisticas {
   total_aulas: number;
   prioridade_maior_igual_1: number;
   sera_incluida: boolean;
-}
-
-export interface ModuloQueryResult {
-  id: string;
-  nome: string;
-  frente_id: string;
-  curso_id: string | null;
-  frentes?: {
-    id?: string;
-    nome?: string;
-    disciplina_id?: string;
-    curso_id?: string | null;
-    disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
-  };
 }
 
 export interface DiagnosticoFrente {
@@ -148,16 +141,60 @@ export interface ModuloInfo {
   curso_id: string | null;
 }
 
+/**
+ * Estrutura de frente aninhada em módulo selecionado
+ */
+export interface FrenteNestedInModulo {
+  id?: string;
+  nome?: string;
+  curso_id?: string | null;
+  disciplinas?: { id?: string; nome?: string } | { id?: string; nome?: string }[];
+}
+
 export interface ModuloSelecionadoQueryResult {
   id: string;
   frente_id: string;
   curso_id: string | null;
-  frentes?: {
-    id?: string;
-    nome?: string;
-    curso_id?: string | null;
-    disciplinas?: {
-      nome?: string;
-    };
-  };
+  frentes?: FrenteNestedInModulo | FrenteNestedInModulo[];
+}
+
+/**
+ * Helper functions para acessar propriedades aninhadas de forma segura
+ * Supabase pode retornar objeto único ou array dependendo da query
+ */
+
+/**
+ * Extrai o primeiro item de um valor que pode ser objeto ou array
+ */
+export function getFirst<T>(value: T | T[] | undefined): T | undefined {
+  if (!value) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/**
+ * Extrai o nome da disciplina de forma segura
+ */
+export function getDisciplinaNome(
+  disciplinas: DisciplinaQueryResult | DisciplinaQueryResult[] | undefined
+): string | undefined {
+  const disc = getFirst(disciplinas);
+  return disc?.nome;
+}
+
+/**
+ * Extrai as propriedades da frente de forma segura
+ */
+export function getFrenteInfo(
+  frentes: FrenteQueryResult | FrenteQueryResult[] | undefined
+): FrenteQueryResult | undefined {
+  return getFirst(frentes);
+}
+
+/**
+ * Extrai as propriedades do módulo de forma segura
+ */
+export function getModuloInfo(
+  modulos: ModuloQueryResult | ModuloQueryResult[] | undefined
+): ModuloQueryResult | undefined {
+  return getFirst(modulos);
 }

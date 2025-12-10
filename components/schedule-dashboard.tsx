@@ -5,10 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScheduleList } from '@/components/schedule-list'
@@ -52,9 +49,37 @@ const formatDateSafe = (dateString: string | null | undefined): string => {
       return 'Data inválida'
     }
     return format(date, 'dd/MM/yyyy', { locale: ptBR })
-  } catch (error) {
+  } catch {
     return 'Data inválida'
   }
+}
+
+// Types for Map values in data loading
+interface ModuloMapValue {
+  id: string
+  nome: string
+  numero_modulo: number | null
+  frente_id: string
+}
+
+interface FrenteMapValue {
+  id: string
+  nome: string
+  disciplina_id: string
+}
+
+interface DisciplinaMapValue {
+  id: string
+  nome: string
+}
+
+interface AulaData {
+  id: string
+  nome: string
+  numero_aula: number | null
+  tempo_estimado_minutos: number | null
+  curso_id: string | null
+  modulo_id: string | null
 }
 
 interface CronogramaItem {
@@ -186,7 +211,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         }
 
         // Load aulas separately and map them to items
-        let itensCompletos: any[] = []
+        let itensCompletos: CronogramaItem[] = []
         if (itensData && itensData.length > 0) {
           const aulaIds = [...new Set(itensData.map(item => item.aula_id).filter(Boolean))]
           
@@ -207,8 +232,8 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             console.log('[ScheduleDashboard] Dividindo em', lotes.length, 'lotes de até', LOTE_SIZE, 'IDs cada')
             
             // Buscar aulas em lotes
-            const todasAulas: any[] = []
-            let aulasBasicasError: any = null
+            const todasAulas: AulaData[] = []
+            let aulasBasicasError: { message: string; details?: string; hint?: string; code?: string } | null = null
             
             for (let i = 0; i < lotes.length; i++) {
               const lote = lotes[i]

@@ -263,7 +263,7 @@ export default function TobIAsPage() {
   const renderUserMessage = (content: string) => {
     // Primeiro, normalizar formato antigo para o novo formato
     // Formato antigo: [Anexo enviado: nome (url)] ou [Anexos enviados: nome1, nome2]
-    let normalizedContent = content.replace(
+    const normalizedContent = content.replace(
       /\[Anexo[s]? enviado[s]?: ([^\]]+)\]/g,
       (match, attachmentInfo) => {
         // Extrair apenas os nomes dos arquivos (remover URLs entre parênteses)
@@ -518,7 +518,7 @@ export default function TobIAsPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-2 md:gap-4 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden rounded-lg border">
         {/* Painel de conversas */}
         <ConversationsPanel
           selectedConversationId={selectedConversationId}
@@ -532,23 +532,22 @@ export default function TobIAsPage() {
         />
 
         {/* Área do chat - full width em mobile quando painel fechado */}
-        <div className={cn(
-          "relative flex flex-1 flex-col overflow-hidden rounded-lg border",
-          "transition-all duration-300"
-        )}>
+        <div className="relative flex flex-1 flex-col overflow-hidden">
           <Conversation>
             <ConversationContent>
               {messages.length === 0 && (
-                <div className="flex h-full items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-muted-foreground mb-2 text-lg">
-                      Olá! Eu sou @ TobIAs, responsável pela monitoria do curso CDF.
-                    </p>
-                    <p className="text-muted-foreground text-sm">
-                      Como posso ajudá-lo hoje?
-                    </p>
-                  </div>
-                </div>
+                <Message from="assistant">
+                  <MessageAvatar
+                    src="/tobiasavatar.png"
+                    name="TobIAs"
+                    className="mr-2"
+                  />
+                  <MessageContent>
+                    <Response>
+                      {`Olá! Eu sou @ TobIAs, responsável pela monitoria do curso CDF.\n\nComo posso ajudá-lo hoje?`}
+                    </Response>
+                  </MessageContent>
+                </Message>
               )}
 
               {messages.map((message) => (
@@ -600,7 +599,7 @@ export default function TobIAsPage() {
             <ConversationScrollButton />
           </Conversation>
 
-          <div className="border-t bg-background p-2 md:p-4 sticky bottom-0">
+          <div className="bg-background p-2 md:p-4 sticky bottom-0">
             <div className="space-y-2">
               {attachments.length > 0 && (
                 <div className="flex flex-wrap gap-2 rounded-md border border-dashed border-muted-foreground/40 p-2 text-xs">
@@ -652,7 +651,7 @@ export default function TobIAsPage() {
                   </Button>
                   <PromptInputSubmit
                     disabled={isLoading || !userId}
-                    className="h-10 w-10 md:h-9 md:w-9"
+                    className="h-8 w-8"
                   />
                 </PromptInputToolbar>
               </PromptInput>

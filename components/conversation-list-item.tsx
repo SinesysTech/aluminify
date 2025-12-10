@@ -48,7 +48,7 @@ export function ConversationListItem({
   return (
     <div
       className={cn(
-        'group relative flex items-center gap-2 rounded-md p-2 text-sm transition-colors hover:bg-accent',
+        'group relative flex items-center gap-2 rounded-md p-2 text-xs transition-colors hover:bg-accent',
         isSelected && 'bg-accent font-medium'
       )}
     >
@@ -57,11 +57,11 @@ export function ConversationListItem({
         className="flex items-center gap-2 flex-1 min-w-0 text-left"
       >
         {conversation.is_active && (
-          <Pin className="h-3 w-3 shrink-0 text-primary" fill="currentColor" />
+          <Pin className="h-2.5 w-2.5 shrink-0 text-primary" fill="currentColor" />
         )}
-        <MessageSquare className="h-4 w-4 shrink-0" />
+        <MessageSquare className="h-3 w-3 shrink-0" />
         <span className="truncate flex-1">{conversation.title}</span>
-        <span className="text-xs text-muted-foreground shrink-0">
+        <span className="text-[10px] text-muted-foreground shrink-0">
           {formatDate(conversation.updated_at)}
         </span>
       </button>

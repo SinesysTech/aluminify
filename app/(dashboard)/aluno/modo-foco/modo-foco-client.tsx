@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -75,8 +74,6 @@ export default function ModoFocoClient({ searchParams }: Props) {
   const [presence, setPresence] = useState<PresenceCounter>({ count: 1, channel: 'geral' });
   const [erro, setErro] = useState<string | null>(null);
   const [erroCarregamento, setErroCarregamento] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [cursos, setCursos] = useState<Option[]>([]);
   const [disciplinas, setDisciplinas] = useState<Option[]>([]);
   const [frentes, setFrentes] = useState<Option[]>([]);
@@ -89,7 +86,6 @@ export default function ModoFocoClient({ searchParams }: Props) {
   const [carregandoAtividades, setCarregandoAtividades] = useState(false);
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
   const [timelineReady, setTimelineReady] = useState(false);
-  const heartbeatTimerRef = useState<NodeJS.Timeout | null>(null)[0];
 
   const supabase = useMemo(() => createClient(), []);
   const nextSearchParams = useNextSearchParams();
@@ -147,7 +143,7 @@ export default function ModoFocoClient({ searchParams }: Props) {
           const lista = (data ?? [])
             .map((ac) => ac.cursos)
             .filter(Boolean)
-            .map((c: any) => ({ id: c.id, nome: c.nome }));
+            .map((c: { id: string; nome: string }) => ({ id: c.id, nome: c.nome }));
           setCursos(lista);
           if (!cursoId && lista.length > 0) setCursoId(lista[0].id);
         }
@@ -220,7 +216,7 @@ export default function ModoFocoClient({ searchParams }: Props) {
       }
     };
     load();
-  }, [disciplinaId, cursoId, supabase]);
+  }, [disciplinaId, cursoId, frenteId, supabase]);
 
   // Carregar módulos ao escolher frente
   useEffect(() => {
@@ -276,7 +272,7 @@ export default function ModoFocoClient({ searchParams }: Props) {
         const resp = await fetch(`/api/atividade?modulo_id=${moduloId}`);
         if (!resp.ok) throw new Error('Falha ao carregar atividades');
         const { data } = await resp.json();
-        const opts: Option[] = (data ?? []).map((a: any) => ({ id: a.id, nome: a.titulo }));
+        const opts: Option[] = (data ?? []).map((a: { id: string; titulo: string }) => ({ id: a.id, nome: a.titulo }));
         setAtividades(opts);
         if (atividadeId && !opts.some((a) => a.id === atividadeId)) {
           setAtividadeId('');
@@ -289,7 +285,7 @@ export default function ModoFocoClient({ searchParams }: Props) {
       }
     };
     load();
-  }, [moduloId]);
+  }, [moduloId, atividadeId]);
 
   useEffect(() => {
     let mounted = true;

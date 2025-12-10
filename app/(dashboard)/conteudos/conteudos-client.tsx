@@ -43,7 +43,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ChevronDown, Upload, FileText, AlertCircle, CheckCircle2, Trash2, Plus, Loader2 } from 'lucide-react'
+import { ChevronDown, Upload, FileText, AlertCircle, CheckCircle2, Trash2, Plus } from 'lucide-react'
 import Papa from 'papaparse'
 import ExcelJS from 'exceljs'
 import { useRouter } from 'next/navigation'
@@ -159,12 +159,12 @@ export default function ConteudosClientPage() {
     hasCronogramas: boolean
     count: number
   } | null>(null)
-  const [regras, setRegras] = React.useState<RegraAtividade[]>([])
+  const [, setRegras] = React.useState<RegraAtividade[]>([])
   const [isAddingActivity, setIsAddingActivity] = React.useState<string | null>(null)
   const [editingTitle, setEditingTitle] = React.useState<string | null>(null)
   const [editingImportancia, setEditingImportancia] = React.useState<string | null>(null)
   const [atividadesPorModulo, setAtividadesPorModulo] = React.useState<Record<string, AtividadeItem[]>>({})
-  const [isGeneratingEstrutura, setIsGeneratingEstrutura] = React.useState(false)
+  const [, setIsGeneratingEstrutura] = React.useState(false)
   const [isCreatingActivity, setIsCreatingActivity] = React.useState(false)
   const [isUpdatingEstrutura, setIsUpdatingEstrutura] = React.useState(false)
   const [showUpdateDialog, setShowUpdateDialog] = React.useState(false)
@@ -353,7 +353,7 @@ export default function ConteudosClientPage() {
 
         // Buscar disciplinas de cada curso através da tabela cursos_disciplinas
         const cursoIds = cursosData?.map(c => c.id) || []
-        let cursosDisciplinasMap: Map<string, string[]> = new Map()
+        const cursosDisciplinasMap: Map<string, string[]> = new Map()
         
         if (cursoIds.length > 0) {
           try {
@@ -605,7 +605,7 @@ export default function ConteudosClientPage() {
     return { totalAulas, tempoTotal }
   }
 
-  const cursoAtual = React.useMemo(
+  const _cursoAtual = React.useMemo(
     () => cursos.find((curso) => curso.id === cursoSelecionado) ?? null,
     [cursos, cursoSelecionado],
   )
@@ -1351,7 +1351,7 @@ export default function ConteudosClientPage() {
     }
   }
 
-  const handleGerarEstrutura = async () => {
+  const _handleGerarEstrutura = async () => {
     if (!cursoSelecionado || !frenteSelecionada) {
       setError('Selecione curso e frente para gerar atividades')
       return
@@ -1419,7 +1419,7 @@ export default function ConteudosClientPage() {
     }
   }
 
-  const handleCreateRegra = async (payload: {
+  const _handleCreateRegra = async (payload: {
     tipoAtividade: TipoAtividade
     nomePadrao: string
     frequenciaModulos: number
@@ -1458,7 +1458,7 @@ export default function ConteudosClientPage() {
     }
   }
 
-  const handleDeleteRegra = async (regraId: string) => {
+  const _handleDeleteRegra = async (regraId: string) => {
     try {
       const response = await fetchWithAuth(`/api/regras-atividades/${regraId}`, {
         method: 'DELETE',
@@ -1828,7 +1828,7 @@ export default function ConteudosClientPage() {
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground text-right ml-2">
-                            Usado no modo "Mais Cobrados" dos flashcards
+                            Usado no modo &quot;Mais Cobrados&quot; dos flashcards
                           </div>
                         </div>
 

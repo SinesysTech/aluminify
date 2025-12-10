@@ -29,8 +29,8 @@ export function ConsistencyHeatmap({ data }: ConsistencyHeatmapProps) {
 
   return (
     <Card className="mb-8">
-      <CardContent className="pt-6">
-        <h2 className="text-slate-900 dark:text-slate-50 text-lg font-semibold mb-6">
+      <CardContent className="px-4 md:px-6 py-3 md:py-4">
+        <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold mb-4 md:mb-6">
           Constância de Estudo
         </h2>
         <div className="flex flex-col gap-2">

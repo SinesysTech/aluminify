@@ -57,10 +57,10 @@ export function SubjectPerformanceList({
 
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <CardContent className="px-4 md:px-6 py-3 md:py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-slate-900 dark:text-slate-50 text-lg font-semibold">
+            <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
               Performance por Disciplina (Frente)
             </h2>
             <TooltipProvider delayDuration={200}>
@@ -115,7 +115,7 @@ export function SubjectPerformanceList({
             </SelectContent>
           </Select>
         </div>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:gap-y-6">
           {sortedSubjects.map((subject) => (
             <div key={subject.id} className="flex flex-col gap-2">
               <div className="flex justify-between text-sm">

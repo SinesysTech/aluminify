@@ -19,25 +19,32 @@ interface CronogramaExport {
 
 interface ItemExport {
   id: string;
-  data_prevista?: string | null;
+  aula_id: string;
   semana_numero: number;
   ordem_na_semana: number;
+  data_prevista?: string | null;
   concluido: boolean;
   data_conclusao?: string | null;
   aulas?: {
+    id?: string;
     nome?: string;
-    tempo_estimado_minutos?: number;
+    numero_aula?: number | null;
+    tempo_estimado_minutos?: number | null;
+    curso_id?: string | null;
     modulos?: {
+      id?: string;
       nome?: string;
+      numero_modulo?: number | null;
       frentes?: {
+        id?: string;
         nome?: string;
         disciplinas?: {
-          id: string;
+          id?: string;
           nome?: string;
-        };
-      };
-    };
-  };
+        } | null;
+      } | null;
+    } | null;
+  } | null;
 }
 
 function formatTempo(minutos?: number | null) {
@@ -90,7 +97,7 @@ async function buildWorkbook(cronograma: CronogramaExport, itens: ItemExport[]) 
   itens.forEach((it) => {
     const disc = it.aulas?.modulos?.frentes?.disciplinas
     const min = it.aulas?.tempo_estimado_minutos || 0
-    if (disc && min) {
+    if (disc && disc.id && disc.nome && min) {
       const agg = porDisciplina.get(disc.id) || { nome: disc.nome, minutos: 0 }
       agg.minutos += min
       porDisciplina.set(disc.id, agg)

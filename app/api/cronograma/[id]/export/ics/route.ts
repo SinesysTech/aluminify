@@ -15,22 +15,32 @@ interface CronogramaExport {
 
 interface ItemExport {
   id: string;
+  aula_id: string;
+  semana_numero: number;
+  ordem_na_semana: number;
   data_prevista?: string | null;
   concluido: boolean;
   data_conclusao?: string | null;
   aulas?: {
+    id?: string;
     nome?: string;
-    tempo_estimado_minutos?: number;
+    numero_aula?: number | null;
+    tempo_estimado_minutos?: number | null;
+    curso_id?: string | null;
     modulos?: {
+      id?: string;
       nome?: string;
+      numero_modulo?: number | null;
       frentes?: {
+        id?: string;
         nome?: string;
         disciplinas?: {
+          id?: string;
           nome?: string;
-        };
-      };
-    };
-  };
+        } | null;
+      } | null;
+    } | null;
+  } | null;
 }
 
 function formatTempo(minutos?: number | null): string {

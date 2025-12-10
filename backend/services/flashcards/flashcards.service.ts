@@ -1,5 +1,5 @@
 import { getDatabaseClient } from '@/backend/clients/database';
-import { DificuldadePercebida } from '@/backend/services/progresso-atividade/progresso-atividade.types';
+// DificuldadePercebida imported but unused - kept for future use
 import { cacheService } from '@/backend/services/cache';
 import { calculateNextReview, isValidFeedback } from './srs-algorithm';
 import type { FeedbackValue } from './srs-algorithm.types';
@@ -10,6 +10,7 @@ import type {
   ModuloRow,
   FlashcardRow,
   ModuloComFrenteRow,
+  ModuloWithNestedRelations,
 } from './flashcards.query-types';
 
 /**
@@ -1314,15 +1315,15 @@ export class FlashcardsService {
       resposta: flashcard.resposta,
       created_at: flashcard.created_at,
       modulo: {
-        id: (modulo as any).id,
-        nome: (modulo as any).nome,
-        numero_modulo: (modulo as any).numero_modulo,
+        id: (modulo as ModuloWithNestedRelations).id,
+        nome: (modulo as ModuloWithNestedRelations).nome,
+        numero_modulo: (modulo as ModuloWithNestedRelations).numero_modulo,
         frente: {
-          id: (modulo as any).frentes.id,
-          nome: (modulo as any).frentes.nome,
+          id: (modulo as ModuloWithNestedRelations).frentes.id,
+          nome: (modulo as ModuloWithNestedRelations).frentes.nome,
           disciplina: {
-            id: (modulo as any).frentes.disciplinas.id,
-            nome: (modulo as any).frentes.disciplinas.nome,
+            id: (modulo as ModuloWithNestedRelations).frentes.disciplinas.id,
+            nome: (modulo as ModuloWithNestedRelations).frentes.disciplinas.nome,
           },
         },
       },
@@ -1393,15 +1394,15 @@ export class FlashcardsService {
       resposta: flashcard.resposta,
       created_at: flashcard.created_at,
       modulo: {
-        id: (modulo as any).id,
-        nome: (modulo as any).nome,
-        numero_modulo: (modulo as any).numero_modulo,
+        id: (modulo as ModuloWithNestedRelations).id,
+        nome: (modulo as ModuloWithNestedRelations).nome,
+        numero_modulo: (modulo as ModuloWithNestedRelations).numero_modulo,
         frente: {
-          id: (modulo as any).frentes.id,
-          nome: (modulo as any).frentes.nome,
+          id: (modulo as ModuloWithNestedRelations).frentes.id,
+          nome: (modulo as ModuloWithNestedRelations).frentes.nome,
           disciplina: {
-            id: (modulo as any).frentes.disciplinas.id,
-            nome: (modulo as any).frentes.disciplinas.nome,
+            id: (modulo as ModuloWithNestedRelations).frentes.disciplinas.id,
+            nome: (modulo as ModuloWithNestedRelations).frentes.disciplinas.nome,
           },
         },
       },
@@ -1409,8 +1410,8 @@ export class FlashcardsService {
 
     // Invalidar cache
     await this.invalidateFlashcardCache(
-      (modulo as any).frentes.disciplinas.id,
-      (modulo as any).frentes.id,
+      (modulo as ModuloWithNestedRelations).frentes.disciplinas.id,
+      (modulo as ModuloWithNestedRelations).frentes.id,
       flashcard.modulo_id
     );
 
@@ -1426,7 +1427,7 @@ export class FlashcardsService {
       throw new Error('Flashcard não encontrado.');
     }
 
-    const updateData: any = {};
+    const updateData: { modulo_id?: string; pergunta?: string; resposta?: string } = {};
     if (input.moduloId !== undefined) {
       // Verificar se novo módulo existe
       const { data: moduloCheck, error: moduloCheckError } = await this.client
@@ -1500,15 +1501,15 @@ export class FlashcardsService {
       resposta: flashcard.resposta,
       created_at: flashcard.created_at,
       modulo: {
-        id: (modulo as any).id,
-        nome: (modulo as any).nome,
-        numero_modulo: (modulo as any).numero_modulo,
+        id: (modulo as ModuloWithNestedRelations).id,
+        nome: (modulo as ModuloWithNestedRelations).nome,
+        numero_modulo: (modulo as ModuloWithNestedRelations).numero_modulo,
         frente: {
-          id: (modulo as any).frentes.id,
-          nome: (modulo as any).frentes.nome,
+          id: (modulo as ModuloWithNestedRelations).frentes.id,
+          nome: (modulo as ModuloWithNestedRelations).frentes.nome,
           disciplina: {
-            id: (modulo as any).frentes.disciplinas.id,
-            nome: (modulo as any).frentes.disciplinas.nome,
+            id: (modulo as ModuloWithNestedRelations).frentes.disciplinas.id,
+            nome: (modulo as ModuloWithNestedRelations).frentes.disciplinas.nome,
           },
         },
       },
@@ -1516,8 +1517,8 @@ export class FlashcardsService {
 
     // Invalidar cache (tanto do módulo antigo quanto do novo, se mudou)
     await this.invalidateFlashcardCache(
-      (modulo as any).frentes.disciplinas.id,
-      (modulo as any).frentes.id,
+      (modulo as ModuloWithNestedRelations).frentes.disciplinas.id,
+      (modulo as ModuloWithNestedRelations).frentes.id,
       flashcard.modulo_id
     );
     

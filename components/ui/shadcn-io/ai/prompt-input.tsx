@@ -11,7 +11,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { ChatStatus } from 'ai';
-import { Loader2Icon, SendIcon, SquareIcon, XIcon } from 'lucide-react';
+import { Loader2Icon, SendIcon, SquareIcon, XIcon, ArrowUp } from 'lucide-react';
 import type {
   ComponentProps,
   HTMLAttributes,
@@ -146,19 +146,22 @@ export const PromptInputSubmit = ({
   children,
   ...props
 }: PromptInputSubmitProps) => {
-  let Icon = <SendIcon className="size-4" />;
+  let Icon = <ArrowUp className="size-3.5" />;
 
   if (status === 'submitted') {
-    Icon = <Loader2Icon className="size-4 animate-spin" />;
+    Icon = <Loader2Icon className="size-3.5 animate-spin" />;
   } else if (status === 'streaming') {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <SquareIcon className="size-3.5" />;
   } else if (status === 'error') {
-    Icon = <XIcon className="size-4" />;
+    Icon = <XIcon className="size-3.5" />;
   }
 
   return (
     <Button
-      className={cn('gap-1.5 rounded-lg', className)}
+      className={cn(
+        'h-8 w-8 gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 p-0',
+        className
+      )}
       size={size}
       type="submit"
       variant={variant}
