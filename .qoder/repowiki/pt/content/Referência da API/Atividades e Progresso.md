@@ -12,6 +12,7 @@
 - [progresso-atividade.types.ts](file://backend/services/progresso-atividade/progresso-atividade.types.ts)
 - [atividade.service.ts](file://backend/services/atividade/atividade.service.ts)
 - [progresso-atividade.service.ts](file://backend/services/progresso-atividade/progresso-atividade.service.ts)
+- [gerar-estrutura/route.ts](file://app/api/atividade/gerar-estrutura/route.ts)
 </cite>
 
 ## Sumário
@@ -237,6 +238,42 @@ Remove uma atividade do sistema.
 **Section sources**
 - [atividade/[id]/route.ts](file://app/api/atividade/[id]/route.ts#L82-L98)
 
+### Geração de Estrutura de Atividades
+Gera automaticamente atividades personalizadas para uma frente com base nas regras definidas para um curso específico. Este endpoint substitui todas as atividades existentes na frente antes de gerar as novas, garantindo consistência com as regras atuais.
+
+- **Endpoint**: `POST /api/atividade/gerar-estrutura`
+- **Corpo da Requisição**:
+  ```json
+  {
+    "curso_id": "string",
+    "frente_id": "string"
+  }
+  ```
+- **Resposta de Sucesso (200)**:
+  ```json
+  {
+    "message": "Atividades personalizadas geradas com sucesso"
+  }
+  ```
+- **Resposta de Erro (400)**:
+  ```json
+  {
+    "error": "curso_id is required"
+  }
+  ```
+  ou
+  ```json
+  {
+    "error": "frente_id is required"
+  }
+  ```
+
+**Atualização** O parâmetro opcional `force` foi removido da interface do endpoint, simplificando a chamada e tornando o comportamento padrão a substituição das atividades existentes.
+
+**Section sources**
+- [gerar-estrutura/route.ts](file://app/api/atividade/gerar-estrutura/route.ts#L22-L55)
+- [atividade.service.ts](file://backend/services/atividade/atividade.service.ts#L126-L263)
+
 ## Endpoints de Progresso de Atividade
 Os endpoints de progresso permitem acompanhar o estado de uma atividade para um aluno específico, incluindo o registro de desempenho quando necessário.
 
@@ -354,14 +391,15 @@ O conteúdo é organizado em uma hierarquia rígida: Curso > Disciplina > Frente
 A visibilidade das atividades é estritamente controlada pelas matrículas dos alunos. Um aluno só pode ver e interagir com atividades de cursos nos quais está matriculado. Isso é garantido por políticas de segurança no nível do banco de dados (RLS - Row Level Security).
 
 ### Geração de Atividades Personalizadas
-O sistema pode gerar automaticamente atividades para um curso com base em regras definidas (por exemplo, um simulado a cada 3 módulos). Isso é feito pelo serviço `gerarAtividadesPersonalizadas`.
+O sistema pode gerar automaticamente atividades para um curso com base em regras definidas (por exemplo, um simulado a cada 3 módulos). Isso é feito pelo serviço `gerarAtividadesPersonalizadas`. A geração sempre substitui as atividades existentes na frente, garantindo que a estrutura esteja sempre alinhada com as regras atuais.
 
 ### Cache de Atividades
-Para otimizar o desempenho, o sistema utiliza um cache para armazenar as atividades de um módulo. O cache é invalidado sempre que uma atividade é criada, atualizada ou deletada.
+Para otimizar o desempenho, o sistema utiliza um cache para armazenar as atividades de um módulo. O cache é invalidado sempre que uma atividade é criada, atualizada, deletada ou quando a estrutura de atividades é regenerada.
 
 **Section sources**
 - [atividade.service.ts](file://backend/services/atividade/atividade.service.ts#L127-L263)
 - [atividade.repository.ts](file://backend/services/atividade/atividade.repository.ts#L60-L73)
+- [activity-cache.service.ts](file://backend/services/cache/activity-cache.service.ts)
 
 ## Tratamento de Erros
 O sistema possui um tratamento robusto de erros, retornando mensagens claras e códigos de status HTTP apropriados.
@@ -384,6 +422,17 @@ curl -X GET "https://api.areadoaluno.com/api/atividade?modulo_id=mod123" \
   -H "Authorization: Bearer <token>"
 ```
 
+**Gerar estrutura de atividades para uma frente:**
+```bash
+curl -X POST "https://api.areadoaluno.com/api/atividade/gerar-estrutura" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "curso_id": "curso456",
+    "frente_id": "frente789"
+  }'
+```
+
 **Marcar uma atividade como concluída com desempenho:**
 ```bash
 curl -X PATCH "https://api.areadoaluno.com/api/progresso-atividade/atividade/ativ456" \
@@ -402,6 +451,32 @@ curl -X PATCH "https://api.areadoaluno.com/api/progresso-atividade/atividade/ati
 
 ### Exemplo de Código Frontend (TypeScript)
 ```typescript
+// Função para gerar atividades personalizadas
+async function gerarEstruturaAtividades(
+  cursoId: string,
+  frenteId: string
+) {
+  const response = await fetch('/api/atividade/gerar-estrutura', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify({
+      curso_id: cursoId,
+      frente_id: frenteId
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error);
+  }
+
+  const data = await response.json();
+  return data.message;
+}
+
 // Função para concluir uma atividade
 async function concluirAtividade(
   atividadeId: string,
@@ -435,5 +510,6 @@ async function concluirAtividade(
 ```
 
 **Section sources**
+- [gerar-estrutura/route.ts](file://app/api/atividade/gerar-estrutura/route.ts#L22-L55)
 - [progresso-atividade/atividade/[atividadeId]/route.ts](file://app/api/progresso-atividade/atividade/[atividadeId]/route.ts#L51-L125)
 - [atividade.types.ts](file://backend/services/atividade/atividade.types.ts#L69-L74)

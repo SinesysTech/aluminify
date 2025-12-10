@@ -26,6 +26,11 @@ import {
   FrenteInfo,
   ModuloInfo,
   ModuloSelecionadoQueryResult,
+  FrenteQueryResult,
+  getFirst,
+  getDisciplinaNome,
+  getFrenteInfo,
+  getModuloInfo,
 } from './cronograma.query-types';
 import {
   CronogramaValidationError,
@@ -151,11 +156,10 @@ export class CronogramaService {
           total_frentes_sem_aulas: frentesSemAulas.length,
           total_frentes_esperadas: todasFrentes.length,
           total_frentes_com_aulas: frentesComAulas.size,
-          // @ts-ignore - Supabase retorna tipo com estrutura incompatível
-          frentes: frentesSemAulas.map(f => ({
+          frentes: frentesSemAulas.map((f: FrenteValidacaoResult) => ({
             id: f.id,
             nome: f.nome,
-            disciplina: Array.isArray(f.disciplinas) ? f.disciplinas[0]?.nome : f.disciplinas?.nome || 'Desconhecida',
+            disciplina: getDisciplinaNome(f.disciplinas) || 'Desconhecida',
             curso_id: f.curso_id
           })),
           motivo_possivel: excluirConcluidas
@@ -457,7 +461,7 @@ export class CronogramaService {
           frentes: frentesDoCurso.map((f: FrenteValidacaoResult) => ({
             id: f.id,
             nome: f.nome,
-            disciplina: f.disciplinas?.nome
+            disciplina: getDisciplinaNome(f.disciplinas)
           }))
         });
 
@@ -467,7 +471,7 @@ export class CronogramaService {
           console.warn('[CronogramaService] ⚠️ Frentes SEM curso_id encontradas:', frentesSemCurso.map((f: FrenteValidacaoResult) => ({
             id: f.id,
             nome: f.nome,
-            disciplina: f.disciplinas?.nome
+            disciplina: getDisciplinaNome(f.disciplinas)
           })));
         }
       }

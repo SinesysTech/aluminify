@@ -26,27 +26,30 @@ export interface FrenteQueryResult {
 
 /**
  * Estrutura de módulo retornada em queries aninhadas
- * nome e numero_modulo são opcionais pois algumas queries não os selecionam
+ * Campos são opcionais pois diferentes queries selecionam campos diferentes
  */
 export interface ModuloQueryResult {
   id: string;
   nome?: string;
   numero_modulo?: number | null;
-  frente_id: string;
+  frente_id?: string;
+  modulo_id?: string;
   curso_id?: string | null;
   frentes?: FrenteQueryResult | FrenteQueryResult[];
 }
 
 /**
  * Estrutura de aula retornada em queries com joins completos
+ * modulos pode ser objeto ou array dependendo da query do Supabase
  */
 export interface AulaQueryResult {
   id: string;
   nome: string;
-  numero_aula: number | null;
-  tempo_estimado_minutos: number | null;
-  prioridade: number | null;
-  modulos?: ModuloQueryResult;
+  numero_aula?: number | null;
+  tempo_estimado_minutos?: number | null;
+  prioridade?: number | null;
+  modulo_id?: string;
+  modulos?: ModuloQueryResult | ModuloQueryResult[];
 }
 
 /**
@@ -138,16 +141,60 @@ export interface ModuloInfo {
   curso_id: string | null;
 }
 
+/**
+ * Estrutura de frente aninhada em módulo selecionado
+ */
+export interface FrenteNestedInModulo {
+  id?: string;
+  nome?: string;
+  curso_id?: string | null;
+  disciplinas?: { id?: string; nome?: string } | { id?: string; nome?: string }[];
+}
+
 export interface ModuloSelecionadoQueryResult {
   id: string;
   frente_id: string;
   curso_id: string | null;
-  frentes?: {
-    id?: string;
-    nome?: string;
-    curso_id?: string | null;
-    disciplinas?: {
-      nome?: string;
-    };
-  };
+  frentes?: FrenteNestedInModulo | FrenteNestedInModulo[];
+}
+
+/**
+ * Helper functions para acessar propriedades aninhadas de forma segura
+ * Supabase pode retornar objeto único ou array dependendo da query
+ */
+
+/**
+ * Extrai o primeiro item de um valor que pode ser objeto ou array
+ */
+export function getFirst<T>(value: T | T[] | undefined): T | undefined {
+  if (!value) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/**
+ * Extrai o nome da disciplina de forma segura
+ */
+export function getDisciplinaNome(
+  disciplinas: DisciplinaQueryResult | DisciplinaQueryResult[] | undefined
+): string | undefined {
+  const disc = getFirst(disciplinas);
+  return disc?.nome;
+}
+
+/**
+ * Extrai as propriedades da frente de forma segura
+ */
+export function getFrenteInfo(
+  frentes: FrenteQueryResult | FrenteQueryResult[] | undefined
+): FrenteQueryResult | undefined {
+  return getFirst(frentes);
+}
+
+/**
+ * Extrai as propriedades do módulo de forma segura
+ */
+export function getModuloInfo(
+  modulos: ModuloQueryResult | ModuloQueryResult[] | undefined
+): ModuloQueryResult | undefined {
+  return getFirst(modulos);
 }
