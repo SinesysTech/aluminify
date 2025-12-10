@@ -10,6 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SubjectPerformanceListProps {
@@ -39,10 +46,10 @@ export function SubjectPerformanceList({
 
   // Função para determinar a cor da barra baseada no score
   const getBarColor = (score: number) => {
-    if (score >= 75) {
+    if (score >= 80) {
       return 'bg-green-500'
     }
-    if (score >= 60) {
+    if (score >= 50) {
       return 'bg-yellow-500'
     }
     return 'bg-red-500'
@@ -52,9 +59,51 @@ export function SubjectPerformanceList({
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <h2 className="text-slate-900 dark:text-slate-50 text-lg font-semibold">
-            Performance por Disciplina (Frente)
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-slate-900 dark:text-slate-50 text-lg font-semibold">
+              Performance por Disciplina (Frente)
+            </h2>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    aria-label="Informações sobre as classificações de performance"
+                  >
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent 
+                  side="right" 
+                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3"
+                  sideOffset={8}
+                >
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Classificações:</p>
+                    <ul className="space-y-1.5 text-xs">
+                      <li className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
+                        <span>≥ 80%: Excelente</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0" />
+                        <span>≥ 50%: Regular</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0" />
+                        <span>&lt; 50%: Precisa melhorar</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 flex-shrink-0" />
+                        <span>Não iniciada: Sem atividades concluídas</span>
+                      </li>
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Ordenar por" />
@@ -74,17 +123,27 @@ export function SubjectPerformanceList({
                   {subject.name} ({subject.front})
                 </span>
                 <span className="font-medium text-slate-500 dark:text-slate-400">
-                  {subject.score}%
+                  {subject.isNotStarted ? (
+                    <span className="text-slate-400 dark:text-slate-500 italic">
+                      Não iniciada
+                    </span>
+                  ) : (
+                    `${subject.score}%`
+                  )}
                 </span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
-                <div
-                  className={cn(
-                    'h-2.5 rounded-full transition-all',
-                    getBarColor(subject.score)
-                  )}
-                  style={{ width: `${subject.score}%` }}
-                />
+                {subject.isNotStarted ? (
+                  <div className="h-2.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                ) : (
+                  <div
+                    className={cn(
+                      'h-2.5 rounded-full transition-all',
+                      getBarColor(subject.score)
+                    )}
+                    style={{ width: `${subject.score}%` }}
+                  />
+                )}
               </div>
             </div>
           ))}

@@ -482,22 +482,56 @@ export class FlashcardsService {
       });
     }
     
-    // Modos automáticos: buscar cursos do aluno
-    // 1. Buscar cursos do aluno
-    const { data: alunosCursos, error: alunosCursosError } = await this.client
-      .from('alunos_cursos')
-      .select('curso_id')
-      .eq('aluno_id', alunoId);
+    // Modos automáticos: buscar cursos do aluno ou professor
+    // Verificar se é professor ou aluno
+    const { data: professorData } = await this.client
+      .from('professores')
+      .select('id')
+      .eq('id', alunoId)
+      .maybeSingle();
     
-    if (alunosCursosError) {
-      throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
+    const isProfessor = !!professorData;
+    let cursoIds: string[] = [];
+    
+    if (isProfessor) {
+      // Professores: buscar todos os cursos (ou cursos criados por eles)
+      console.log(`[flashcards] Usuário é professor, buscando todos os cursos`);
+      const { data: todosCursos, error: cursosError } = await this.client
+        .from('cursos')
+        .select('id');
+      
+      if (cursosError) {
+        console.error('[flashcards] Erro ao buscar cursos do professor:', cursosError);
+        throw new Error(`Erro ao buscar cursos: ${cursosError.message}`);
+      }
+      
+      cursoIds = (todosCursos ?? []).map((c: any) => c.id);
+      console.log(`[flashcards] Professor tem acesso a ${cursoIds.length} cursos`);
+    } else {
+      // Alunos: buscar cursos matriculados
+      console.log(`[flashcards] Usuário é aluno, buscando cursos matriculados`);
+      const { data: alunosCursos, error: alunosCursosError } = await this.client
+        .from('alunos_cursos')
+        .select('curso_id')
+        .eq('aluno_id', alunoId);
+      
+      if (alunosCursosError) {
+        throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
+      }
+      
+      if (!alunosCursos || alunosCursos.length === 0) {
+        console.warn(`[flashcards] Aluno sem cursos matriculados`);
+        return []; // Aluno sem cursos matriculados
+      }
+      
+      cursoIds = alunosCursos.map((ac: any) => ac.curso_id);
+      console.log(`[flashcards] Aluno matriculado em ${cursoIds.length} cursos`);
     }
     
-    if (!alunosCursos || alunosCursos.length === 0) {
-      return []; // Aluno sem cursos matriculados
+    if (cursoIds.length === 0) {
+      console.warn(`[flashcards] Nenhum curso encontrado para o usuário`);
+      return [];
     }
-    
-    const cursoIds = alunosCursos.map((ac: any) => ac.curso_id);
     
     // 2. Buscar disciplinas dos cursos
     const { data: cursosDisciplinas, error: cdError } = await this.client
@@ -577,34 +611,74 @@ export class FlashcardsService {
         console.warn(`[flashcards] Total de módulos encontrados (antes do filtro): ${todosModulos?.length ?? 0}`);
       }
     } else if (modo === 'mais_errados') {
-      const { data: progressos, error: progError } = await this.client
-        .from('progresso_atividades')
-        .select('atividade_id, dificuldade_percebida, questoes_totais, questoes_acertos')
-        .eq('aluno_id', alunoId);
-      if (progError) {
-        throw new Error(`Erro ao buscar progresso de atividades: ${progError.message}`);
+      console.log(`[flashcards] Modo "mais_errados": buscando flashcards com feedback baixo`);
+      
+      // Buscar flashcards com feedback baixo (1 = Errei, 2 = Parcial, 3 = Dificil)
+      // Primeiro, buscar todos os módulos das frentes do aluno/professor
+      let modulosQuery = this.client
+        .from('modulos')
+        .select('id, importancia, frente_id, curso_id')
+        .in('frente_id', frenteIds);
+      
+      // Aceitar módulos com curso_id null ou igual aos cursos
+      if (cursoIds.length > 0) {
+        const orCondition = cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null';
+        modulosQuery = modulosQuery.or(orCondition);
       }
-      const atividadeIds = (progressos ?? [])
-        .filter((p) => {
-          const dificuldade = p.dificuldade_percebida as DificuldadePercebida | null;
-          const difficult = dificuldade === 'Dificil' || dificuldade === 'Muito Dificil';
-          const aproveitamentoOk =
-            p.questoes_totais && p.questoes_totais > 0
-              ? (p.questoes_acertos ?? 0) / p.questoes_totais <= 0.5
-              : false;
-          return difficult || aproveitamentoOk;
-        })
-        .map((p) => p.atividade_id as string);
-
-      if (atividadeIds.length) {
-        const { data: atividades, error: atvError } = await this.client
-          .from('atividades')
-          .select('id, modulo_id')
-          .in('id', atividadeIds);
-        if (atvError) {
-          throw new Error(`Erro ao buscar atividades: ${atvError.message}`);
+      
+      const { data: todosModulos, error: modulosError } = await modulosQuery;
+      if (modulosError) {
+        throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
+      }
+      
+      const todosModuloIds = (todosModulos ?? []).map((m: any) => m.id);
+      console.log(`[flashcards] Modo "mais_errados": encontrados ${todosModuloIds.length} módulos totais`);
+      
+      if (todosModuloIds.length === 0) {
+        console.warn(`[flashcards] Nenhum módulo encontrado para buscar flashcards`);
+        moduloIds = [];
+      } else {
+        // Buscar flashcards desses módulos que têm feedback baixo
+        const { data: progressosFlashcards, error: progFlashError } = await this.client
+          .from('progresso_flashcards')
+          .select('flashcard_id, ultimo_feedback')
+          .eq('aluno_id', alunoId)
+          .in('ultimo_feedback', [1, 2, 3]); // 1=Errei, 2=Parcial, 3=Dificil
+        
+        if (progFlashError) {
+          console.error('[flashcards] Erro ao buscar progresso de flashcards:', progFlashError);
+          throw new Error(`Erro ao buscar progresso de flashcards: ${progFlashError.message}`);
         }
-        moduloIds = Array.from(new Set((atividades ?? []).map((a) => a.modulo_id as string)));
+        
+        const flashcardIdsComErro = (progressosFlashcards ?? [])
+          .filter((p) => p.ultimo_feedback === 1 || p.ultimo_feedback === 2 || p.ultimo_feedback === 3)
+          .map((p) => p.flashcard_id as string);
+        
+        console.log(`[flashcards] Modo "mais_errados": encontrados ${flashcardIdsComErro.length} flashcards com feedback baixo`);
+        
+        if (flashcardIdsComErro.length > 0) {
+          // Buscar módulos desses flashcards
+          const { data: flashcards, error: cardsError } = await this.client
+            .from('flashcards')
+            .select('id, modulo_id')
+            .in('id', flashcardIdsComErro);
+          
+          if (cardsError) {
+            throw new Error(`Erro ao buscar flashcards: ${cardsError.message}`);
+          }
+          
+          const moduloIdsDosFlashcards = Array.from(
+            new Set((flashcards ?? []).map((f: any) => f.modulo_id as string))
+          );
+          
+          // Filtrar apenas módulos que estão nas frentes do aluno/professor
+          moduloIds = moduloIdsDosFlashcards.filter((id) => todosModuloIds.includes(id));
+          console.log(`[flashcards] Modo "mais_errados": ${moduloIds.length} módulos com flashcards com erro`);
+        } else {
+          // Se não houver flashcards com erro, usar todos os módulos (fallback)
+          console.log(`[flashcards] Modo "mais_errados": nenhum flashcard com erro encontrado, usando todos os módulos`);
+          moduloIds = todosModuloIds;
+        }
       }
     } else {
       // Modo revisao_geral ou outros: buscar todos os módulos das frentes do aluno

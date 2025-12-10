@@ -190,12 +190,21 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
 
+  // Formata a data de forma consistente para evitar problemas de hidratação
+  // Usa formato M/D/YYYY que é consistente entre servidor e cliente
+  const formatDate = (date: Date) => {
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    const year = date.getFullYear()
+    return `${month}/${day}/${year}`
+  }
+
   return (
     <Button
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={formatDate(day.date)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&
