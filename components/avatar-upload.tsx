@@ -100,7 +100,7 @@ export const AvatarUpload = ({
       setPreview(null)
       
       // Atualizar sessão para refletir mudanças
-      const { data: { session: newSession } } = await supabase.auth.refreshSession()
+      await supabase.auth.refreshSession()
       
       if (onUploadSuccess) {
         onUploadSuccess(data.avatar_url)
