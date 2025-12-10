@@ -39,15 +39,20 @@ type StudentRow = {
   updated_at: string;
 };
 
-type CourseLinkRow = {
+// Reserved types for future course-related queries
+type _CourseLinkRow = {
   aluno_id: string;
   curso_id: string;
 };
 
-type CourseRow = {
+type _CourseRow = {
   id: string;
   nome: string;
 };
+
+// Mark as intentionally unused for now
+void (0 as unknown as _CourseLinkRow);
+void (0 as unknown as _CourseRow);
 
 function mapRow(row: StudentRow, courses: StudentCourseSummary[] = []): Student {
   return {

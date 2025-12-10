@@ -342,7 +342,7 @@ export async function getAgendamentosProfessor(
   }
 
   // Mapear os campos da tabela alunos para o formato esperado
-  return (data || []).map((agendamento: any) => ({
+  return (data || []).map((agendamento: { aluno?: { id: string; nome_completo?: string; email: string } } & Record<string, unknown>) => ({
     ...agendamento,
     aluno: agendamento.aluno ? {
       id: agendamento.aluno.id,
@@ -401,18 +401,38 @@ export async function getAgendamentosAluno(alunoId: string): Promise<Agendamento
 
   if (error) {
     console.error('Error fetching student appointments:', {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code,
+      message: error.message || 'No message',
+      details: error.details || 'No details',
+      hint: error.hint || 'No hint',
+      code: error.code || 'No code',
       alunoId,
-      userId: user.id
+      userId: user.id,
+      errorObject: JSON.stringify(error)
     })
+
+    // Se houver erro no join, tentar query simples como fallback
+    if (simpleData && simpleData.length > 0) {
+      console.log('Using simple query fallback, found', simpleData.length, 'appointments')
+
+      // Buscar todos os agendamentos sem join
+      const { data: allSimpleData } = await supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .order('data_inicio', { ascending: false })
+
+      // Retornar dados sem informações do professor
+      return (allSimpleData || []).map((agendamento: Record<string, unknown>) => ({
+        ...agendamento,
+        professor: undefined
+      })) as AgendamentoComDetalhes[]
+    }
+
     return []
   }
 
   // Mapear os campos da tabela professores para o formato esperado
-  return (data || []).map((agendamento: any) => ({
+  return (data || []).map((agendamento: { professor?: { id: string; nome_completo?: string; email: string; foto_url?: string } } & Record<string, unknown>) => ({
     ...agendamento,
     professor: agendamento.professor ? {
       id: agendamento.professor.id,
