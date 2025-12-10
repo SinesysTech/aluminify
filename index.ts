@@ -1,3 +1,4 @@
+// @ts-nocheck - Este arquivo é uma Edge Function do Deno e deve ser processado pelo Deno Language Server
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -102,7 +103,6 @@ Deno.serve(async (req)=>{
         }
       });
     }
-    const token = authHeader.replace("Bearer ", "");
     // Criar cliente Supabase com ANON_KEY e SERVICE_ROLE_KEY
     // Essas variáveis ainda estão disponíveis nas Edge Functions
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -253,7 +253,14 @@ Deno.serve(async (req)=>{
     // ============================================
     // ETAPA 1: Cálculo de Capacidade
     // ============================================
-    const semanas = [];
+    interface Semana {
+      numero: number;
+      data_inicio: Date;
+      data_fim: Date;
+      is_ferias: boolean;
+      capacidade_minutos: number;
+    }
+    const semanas: Semana[] = [];
     const inicio = new Date(dataInicio);
     let semanaNumero = 1;
     while(inicio <= dataFim){
@@ -510,13 +517,19 @@ Deno.serve(async (req)=>{
       frentes.sort((a, b)=>{
         const ordemA = ordemMap.get(a.frente_nome) ?? Infinity;
         const ordemB = ordemMap.get(b.frente_nome) ?? Infinity;
-        return ordemA - ordemB;
+        return Number(ordemA) - Number(ordemB);
       });
     }
-    const itens = [];
+    interface CronogramaItem {
+      cronograma_id: string;
+      aula_id: string;
+      semana_numero: number;
+      ordem_na_semana: number;
+    }
+    const itens: CronogramaItem[] = [];
     const semanasUteis = semanas.filter((s)=>!s.is_ferias);
     let frenteIndex = 0;
-    let aulaIndexPorFrente = new Map();
+    const aulaIndexPorFrente = new Map<string, number>();
     // Inicializar índices de aula por frente
     frentes.forEach((frente)=>{
       aulaIndexPorFrente.set(frente.frente_id, 0);
@@ -622,7 +635,7 @@ Deno.serve(async (req)=>{
       });
     }
     // Preencher cronograma_id nos itens
-    const itensCompleto = itens.map((item)=>({
+    const itensCompleto: CronogramaItem[] = itens.map((item)=>({
         ...item,
         cronograma_id: cronograma.id
       }));
