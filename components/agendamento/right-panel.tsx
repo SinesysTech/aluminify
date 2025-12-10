@@ -35,7 +35,9 @@ export function RightPanel({
       try {
         const dateStr = date.toISOString();
         const available = await getAvailableSlots(professorId, dateStr);
-        setSlots(available);
+        // Remove duplicatas usando Set para garantir chaves únicas no React
+        const uniqueSlots = Array.from(new Set(available));
+        setSlots(uniqueSlots);
       } catch (error) {
         console.error("Failed to fetch slots", error);
       } finally {

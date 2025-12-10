@@ -92,9 +92,9 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
 
         const mapped =
           data
-            ?.map((row: any) => row.disciplina)
+            ?.map((row: { disciplina: { id: string; nome: string } | null }) => row.disciplina)
             .filter(Boolean)
-            .map((d: any) => ({ id: d.id, nome: d.nome })) ?? []
+            .map((d) => ({ id: d.id, nome: d.nome })) ?? []
 
         const unique = Array.from(new Map(mapped.map((d) => [d.id, d])).values())
         setDisciplinas(unique)
@@ -520,7 +520,7 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
       const allErrors = [...errors, ...backendErrors]
 
       if (allErrors.length > 0) {
-        const errorMessages = allErrors.map((e: any) => `Linha ${e.line}: ${e.message}`).join('\n')
+        const errorMessages = allErrors.map((e: { line: number; message: string }) => `Linha ${e.line}: ${e.message}`).join('\n')
         if (inserted > 0) {
           setError(`Importação parcial: ${inserted}/${total} flashcards importados.\nErros:\n${errorMessages}`)
         } else {

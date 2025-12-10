@@ -1,4 +1,3 @@
-import { getDatabaseClient } from '@/backend/clients/database'
 import { DashboardAnalyticsService } from './dashboard-analytics.service'
 
 let _dashboardAnalyticsService: DashboardAnalyticsService | null = null
