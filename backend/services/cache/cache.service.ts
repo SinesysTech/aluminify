@@ -33,8 +33,11 @@ class CacheService {
         this.enabled = false;
       }
     } else {
-      console.warn('[Cache Service] ⚠️ Redis não configurado - cache desabilitado');
-      console.warn('[Cache Service] ⚠️ Configure UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN para habilitar cache');
+      // Aviso apenas em desenvolvimento - não poluir logs de produção
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('[Cache Service] ⚠️ Redis não configurado - cache desabilitado');
+        console.debug('[Cache Service] ⚠️ Configure UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN para habilitar cache');
+      }
       this.enabled = false;
     }
   }

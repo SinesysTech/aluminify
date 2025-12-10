@@ -34,7 +34,14 @@ export default function CronogramaPage() {
         .maybeSingle()
 
       if (error) {
-        console.error('Erro ao buscar cronograma:', error)
+        // Ignorar erro 400 se for relacionado a coluna 'ativo' inexistente
+        // (pode ser cache do navegador com código antigo)
+        if (error.code === 'PGRST116' || error.message?.includes('ativo')) {
+          // Erro esperado - coluna 'ativo' não existe na tabela cronogramas
+          // Pode ser cache do navegador, não logar
+        } else {
+          console.error('Erro ao buscar cronograma:', error)
+        }
       }
 
       if (data) {

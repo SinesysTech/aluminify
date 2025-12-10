@@ -80,19 +80,43 @@ export function NavUser() {
                    email.split('@')[0] || 
                    'Usuário'
         
-        // Tentar buscar nome completo da tabela professores
-        try {
-          const { data: professor } = await supabase
-            .from('professores')
-            .select('nome_completo')
-            .eq('id', session.user.id)
-            .single()
-          
-          if (professor?.nome_completo) {
-            name = professor.nome_completo
+        // Tentar buscar nome completo da tabela professores (apenas se for professor)
+        const userRole = session.user.user_metadata?.role
+        // IMPORTANTE: Só buscar na tabela professores se realmente for professor
+        // Isso evita erros 406 quando alunos tentam acessar
+        if (userRole === 'professor' || userRole === 'superadmin') {
+          try {
+            const { data: professor, error: profError } = await supabase
+              .from('professores')
+              .select('nome_completo')
+              .eq('id', session.user.id)
+              .maybeSingle()
+            
+            // Ignorar erros 406 (Not Acceptable) e outros erros de permissão silenciosamente
+            if (!profError && professor?.nome_completo) {
+              name = professor.nome_completo
+            }
+            // Não logar erros - são esperados se o usuário não tem permissão ou não existe na tabela
+          } catch {
+            // Erro silencioso - não logar
           }
-        } catch {
-          // Se não encontrar na tabela professores, usar o nome do metadata
+        }
+        
+        // Se for aluno, tentar buscar da tabela alunos
+        if (userRole === 'aluno' || !userRole) {
+          try {
+            const { data: aluno, error: alunoError } = await supabase
+              .from('alunos')
+              .select('nome_completo')
+              .eq('id', session.user.id)
+              .maybeSingle()
+            
+            if (!alunoError && aluno?.nome_completo) {
+              name = aluno.nome_completo
+            }
+          } catch {
+            // Se não encontrar, usar o nome do metadata
+          }
         }
         
         // Buscar avatar do user_metadata

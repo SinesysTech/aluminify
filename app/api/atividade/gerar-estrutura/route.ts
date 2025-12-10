@@ -39,7 +39,7 @@ async function postHandler(request: AuthenticatedRequest) {
       return NextResponse.json({ error: 'frente_id is required' }, { status: 400 });
     }
 
-    await atividadeService.gerarAtividadesPersonalizadas(cursoId, frenteId, force);
+    await atividadeService.gerarAtividadesPersonalizadas(cursoId, frenteId);
 
     return NextResponse.json(
       { message: force ? 'Estrutura de atividades recriada com sucesso' : 'Atividades personalizadas geradas com sucesso' },
