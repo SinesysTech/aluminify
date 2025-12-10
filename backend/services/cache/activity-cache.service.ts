@@ -22,6 +22,20 @@ export interface CachedActivity {
   updatedAt: string;
 }
 
+interface ActivityRow {
+  id: string;
+  modulo_id: string;
+  tipo: string;
+  titulo: string;
+  arquivo_url: string | null;
+  gabarito_url: string | null;
+  link_externo: string | null;
+  obrigatorio: boolean;
+  ordem_exibicao: number;
+  created_at: string;
+  updated_at: string;
+}
+
 class ActivityCacheService {
   /**
    * Obter atividades de um módulo (estrutura apenas, sem progresso)
@@ -69,7 +83,7 @@ class ActivityCacheService {
       return [];
     }
 
-    return data.map((row: any) => ({
+    return data.map((row: ActivityRow) => ({
       id: row.id,
       moduloId: row.modulo_id,
       tipo: row.tipo,

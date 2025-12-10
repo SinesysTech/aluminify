@@ -25,17 +25,13 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get current time and calculate reminder window
+    // Get current time
     const now = new Date();
-    const reminderWindowStart = new Date(now.getTime() + 23 * 60 * 60 * 1000); // 23 hours from now
-    const reminderWindowEnd = new Date(now.getTime() + 25 * 60 * 60 * 1000); // 25 hours from now
 
-    console.log("Processing reminders for window:", {
-      start: reminderWindowStart.toISOString(),
-      end: reminderWindowEnd.toISOString()
-    });
+    console.log("Processing reminders at:", now.toISOString());
 
-    // Fetch confirmed appointments within the reminder window that haven't had reminders sent
+    // Fetch confirmed appointments with their professor configuration
+    // to use custom reminder time per professor
     const { data: agendamentos, error: fetchError } = await supabase
       .from('agendamentos')
       .select(`
@@ -45,12 +41,13 @@ Deno.serve(async (req: Request) => {
         data_inicio,
         data_fim,
         link_reuniao,
-        lembrete_enviado
+        lembrete_enviado,
+        professor_config:agendamento_configuracoes!agendamento_configuracoes_professor_id_fkey(
+          tempo_lembrete_minutos
+        )
       `)
       .eq('status', 'confirmado')
-      .eq('lembrete_enviado', false)
-      .gte('data_inicio', reminderWindowStart.toISOString())
-      .lte('data_inicio', reminderWindowEnd.toISOString());
+      .eq('lembrete_enviado', false);
 
     if (fetchError) {
       console.error("Error fetching agendamentos:", fetchError);
@@ -61,19 +58,29 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!agendamentos || agendamentos.length === 0) {
-      console.log("No appointments found requiring reminders");
+      console.log("No appointments found");
       return new Response(
         JSON.stringify({ success: true, processed: 0, message: "Nenhum lembrete a enviar" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    console.log(`Found ${agendamentos.length} appointments requiring reminders`);
+    console.log(`Found ${agendamentos.length} appointments, filtering by reminder time...`);
+
+    // Filter appointments that need reminders based on their professor's configuration
+    const agendamentosParaLembrete = agendamentos.filter(ag => {
+      const dataInicio = new Date(ag.data_inicio);
+      const tempoLembrete = ag.professor_config?.[0]?.tempo_lembrete_minutos || 1440; // default 24h
+      const reminderTime = new Date(dataInicio.getTime() - tempoLembrete * 60 * 1000);
+
+      // Send reminder if current time is past the reminder time and before the appointment
+      return now >= reminderTime && now < dataInicio;
+    });
 
     let processedCount = 0;
     let errorCount = 0;
 
-    for (const agendamento of agendamentos) {
+    for (const agendamento of agendamentosParaLembrete) {
       try {
         // Create reminder notification for professor
         const { error: notifProfError } = await supabase
@@ -161,7 +168,8 @@ Deno.serve(async (req: Request) => {
         success: true,
         processed: processedCount,
         errors: errorCount,
-        total: agendamentos.length
+        total: agendamentosParaLembrete.length,
+        scanned: agendamentos.length
       }),
       {
         status: 200,

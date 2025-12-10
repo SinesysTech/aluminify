@@ -78,8 +78,11 @@ class CacheService {
 
   /**
    * Armazenar valor no cache com TTL
+   * @param key - Chave do cache
+   * @param value - Valor a ser armazenado (deve ser serializável)
+   * @param ttlSeconds - Tempo de vida em segundos (padrão: 3600)
    */
-  async set(key: string, value: any, ttlSeconds: number = 3600): Promise<void> {
+  async set(key: string, value: unknown, ttlSeconds: number = 3600): Promise<void> {
     if (!this.enabled || !this.redis) {
       return;
     }

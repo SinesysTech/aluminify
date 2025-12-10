@@ -68,9 +68,33 @@ export interface CronogramaEstatisticas {
   frentes_distribuidas: number;
 }
 
+/**
+ * Representa o cronograma gerado com seus atributos
+ */
+export interface CronogramaDetalhado {
+  id: string;
+  aluno_id: string;
+  curso_alvo_id: string | null;
+  nome: string;
+  data_inicio: string;
+  data_fim: string;
+  dias_estudo_semana: number;
+  horas_estudo_dia: number;
+  periodos_ferias: FeriasPeriodo[];
+  prioridade_minima: number;
+  modalidade_estudo: 'paralelo' | 'sequencial';
+  disciplinas_selecionadas: string[];
+  ordem_frentes_preferencia: string[] | null;
+  modulos_selecionados: string[] | null;
+  excluir_aulas_concluidas: boolean;
+  velocidade_reproducao: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface GerarCronogramaResult {
   success: true;
-  cronograma: any;
+  cronograma: CronogramaDetalhado;
   estatisticas: CronogramaEstatisticas;
 }
 

@@ -124,7 +124,7 @@ export class AtividadeService {
     return code === 'PGRST116' || code === '42P01' || (typeof message === 'string' && message.includes('regras_atividades'));
   }
 
-  async gerarAtividadesPersonalizadas(cursoId: string, frenteId: string, _force = false): Promise<void> {
+  async gerarAtividadesPersonalizadas(cursoId: string, frenteId: string): Promise<void> {
     if (!cursoId || !cursoId.trim()) {
       throw new AtividadeValidationError('curso_id is required');
     }

@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/server'
 import { revalidatePath } from 'next/cache'
+import { validateCancellation, validateAppointment, generateAvailableSlots } from '@/lib/agendamento-validations'
+import { generateMeetingLink } from '@/lib/meeting-providers'
 
 export type Disponibilidade = {
   id?: string
@@ -76,25 +78,25 @@ export type AgendamentoNotificacao = {
 
 export async function getDisponibilidade(professorId: string) {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('agendamento_disponibilidade')
     .select('*')
     .eq('professor_id', professorId)
     .eq('ativo', true)
-    
+
   if (error) {
     console.error('Error fetching availability:', error)
     return []
   }
-  
+
   return data
 }
 
 export async function upsertDisponibilidade(data: Disponibilidade) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error('Unauthorized')
   }
@@ -120,7 +122,7 @@ export async function upsertDisponibilidade(data: Disponibilidade) {
 
 export async function getAgendamentos(professorId: string, start: Date, end: Date) {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('agendamentos')
     .select('*')
@@ -128,27 +130,73 @@ export async function getAgendamentos(professorId: string, start: Date, end: Dat
     .gte('data_inicio', start.toISOString())
     .lte('data_fim', end.toISOString())
     .neq('status', 'cancelado') // Usually want to see occupied slots
-    
+
   if (error) {
     console.error('Error fetching appointments:', error)
     return []
   }
-  
+
   return data
 }
 
 export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_at' | 'updated_at' | 'status'>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error('Unauthorized')
   }
 
+  // Load professor configuration
+  const config = await getConfiguracoesProfessor(data.professor_id)
+  const minAdvanceMinutes = config?.tempo_antecedencia_minimo || 60
+
+  // Validate appointment using the validation library
+  const dataInicio = new Date(data.data_inicio)
+  const dataFim = new Date(data.data_fim)
+
+  // Get availability rules for validation
+  const { data: rules } = await supabase
+    .from('agendamento_disponibilidade')
+    .select('*')
+    .eq('professor_id', data.professor_id)
+    .eq('ativo', true)
+
+  // Get existing bookings for conflict check
+  const { data: bookings } = await supabase
+    .from('agendamentos')
+    .select('data_inicio, data_fim')
+    .eq('professor_id', data.professor_id)
+    .neq('status', 'cancelado')
+
+  const existingSlots = (bookings || []).map(b => ({
+    start: new Date(b.data_inicio),
+    end: new Date(b.data_fim)
+  }))
+
+  // Validate appointment
+  const validationResult = validateAppointment(
+    { start: dataInicio, end: dataFim },
+    {
+      rules: rules || [],
+      existingSlots,
+      minAdvanceMinutes
+    }
+  )
+
+  if (!validationResult.valid) {
+    throw new Error(validationResult.error || 'Invalid appointment')
+  }
+
+  // Determine initial status based on auto_confirmar setting
+  const initialStatus = config?.auto_confirmar ? 'confirmado' : 'pendente'
+  const confirmadoEm = config?.auto_confirmar ? new Date().toISOString() : null
+
   const payload = {
     ...data,
     aluno_id: user.id,
-    status: 'pendente'
+    status: initialStatus,
+    confirmado_em: confirmadoEm
   }
 
   const { data: result, error } = await supabase
@@ -167,49 +215,50 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
 }
 
 export async function cancelAgendamento(id: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-        throw new Error('Unauthorized')
-    }
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
 
-    const { error } = await supabase
-        .from('agendamentos')
-        .update({ status: 'cancelado' })
-        .eq('id', id)
-    
-    if (error) {
-        console.error('Error cancelling appointment:', error)
-        throw new Error('Failed to cancel appointment')
-    }
+  const { error } = await supabase
+    .from('agendamentos')
+    .update({ status: 'cancelado' })
+    .eq('id', id)
 
-    revalidatePath('/agendamentos')
-    return { success: true }
+  if (error) {
+    console.error('Error cancelling appointment:', error)
+    throw new Error('Failed to cancel appointment')
+  }
+
+  revalidatePath('/agendamentos')
+  return { success: true }
 }
 
 export async function getAvailableSlots(professorId: string, dateStr: string) {
   const supabase = await createClient()
-  
+
   const date = new Date(dateStr)
-  // Ensure we are working with the date part only for dayOfWeek check if possible, but JS Date uses local or UTC. 
-  // Let's rely on the input dateStr being ISO or YYYY-MM-DD.
-  // Ideally, use a library like date-fns for timezone handling, but native is fine if careful.
   const dayOfWeek = date.getUTCDay() // 0-6
-  
-  // 1. Get availability rules
+
+  // Get professor configuration for minimum advance time
+  const config = await getConfiguracoesProfessor(professorId)
+  const minAdvanceMinutes = config?.tempo_antecedencia_minimo || 60
+
+  // Get availability rules
   const { data: rules } = await supabase
     .from('agendamento_disponibilidade')
     .select('*')
     .eq('professor_id', professorId)
     .eq('dia_semana', dayOfWeek)
     .eq('ativo', true)
-    
+
   if (!rules || rules.length === 0) {
     return []
   }
 
-  // 2. Get existing bookings
+  // Get existing bookings
   const startOfDay = new Date(dateStr)
   startOfDay.setUTCHours(0, 0, 0, 0)
   const endOfDay = new Date(dateStr)
@@ -223,43 +272,21 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
     .lte('data_fim', endOfDay.toISOString())
     .neq('status', 'cancelado')
 
-  // 3. Generate slots
-  const slots: string[] = []
-  const SLOT_DURATION_MINUTES = 30
+  const existingSlots = (bookings || []).map(b => ({
+    start: new Date(b.data_inicio),
+    end: new Date(b.data_fim)
+  }))
 
-  // Helper to parse "HH:MM:SS" or "HH:MM" to minutes from midnight
-  const timeToMinutes = (timeStr: string) => {
-    const [h, m] = timeStr.split(':').map(Number)
-    return h * 60 + m
-  }
+  // Use the validation library to generate available slots
+  const slots = generateAvailableSlots(
+    date,
+    rules,
+    existingSlots,
+    30, // slot duration in minutes
+    minAdvanceMinutes
+  )
 
-  for (const rule of rules) {
-    const startMins = timeToMinutes(rule.hora_inicio)
-    const endMins = timeToMinutes(rule.hora_fim)
-    
-    for (let time = startMins; time + SLOT_DURATION_MINUTES <= endMins; time += SLOT_DURATION_MINUTES) {
-      // Create slot date in UTC
-      const slotStart = new Date(dateStr)
-      slotStart.setUTCHours(Math.floor(time / 60), time % 60, 0, 0)
-      
-      const slotEnd = new Date(slotStart)
-      slotEnd.setUTCMinutes(slotEnd.getUTCMinutes() + SLOT_DURATION_MINUTES)
-
-      // Check collision
-      const isOccupied = bookings?.some(booking => {
-        const bookingStart = new Date(booking.data_inicio)
-        const bookingEnd = new Date(booking.data_fim)
-        // Overlap check
-        return (slotStart < bookingEnd && slotEnd > bookingStart)
-      })
-
-      if (!isOccupied) {
-        slots.push(slotStart.toISOString())
-      }
-    }
-  }
-
-  return slots.sort()
+  return slots.map(slot => slot.toISOString())
 }
 
 // =============================================
@@ -360,13 +387,78 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     throw new Error('Unauthorized')
   }
 
+  // Get agendamento details for meeting link generation
+  const { data: agendamento } = await supabase
+    .from('agendamentos')
+    .select(`
+      id,
+      data_inicio,
+      data_fim,
+      professor_id,
+      aluno_id,
+      aluno:alunos!agendamentos_aluno_id_fkey(nome, email)
+    `)
+    .eq('id', id)
+    .single()
+
+  if (!agendamento) {
+    throw new Error('Appointment not found')
+  }
+
+  let linkToUse = linkReuniao
+
+  // If no explicit link provided, try to generate one or use default
+  if (!linkToUse) {
+    // Load professor configuration for default link
+    const config = await getConfiguracoesProfessor(user.id)
+
+    // Load professor integration settings
+    const { data: integration } = await supabase
+      .from('professor_integracoes')
+      .select('*')
+      .eq('professor_id', user.id)
+      .single()
+
+    // Try to generate meeting link if provider is configured
+    if (integration && integration.provider !== 'default' && integration.access_token) {
+      try {
+        const meetingLink = await generateMeetingLink(
+          integration.provider as 'google' | 'zoom' | 'default',
+          {
+            title: `Mentoria com ${(agendamento.aluno as any)?.[0]?.nome || 'Aluno'}`,
+            startTime: new Date(agendamento.data_inicio),
+            endTime: new Date(agendamento.data_fim),
+            description: 'Sessão de mentoria agendada via Área do Aluno',
+            attendees: (agendamento.aluno as any)?.[0]?.email ? [(agendamento.aluno as any)[0].email] : []
+          },
+          {
+            accessToken: integration.access_token,
+            defaultLink: config?.link_reuniao_padrao || undefined
+          }
+        )
+
+        if (meetingLink) {
+          linkToUse = meetingLink.url
+        }
+      } catch (error) {
+        console.error('Error generating meeting link:', error)
+        // Fall back to default link if generation fails
+      }
+    }
+
+    // Use default link if no link was generated
+    if (!linkToUse && config?.link_reuniao_padrao) {
+      linkToUse = config.link_reuniao_padrao
+    }
+  }
+
   const updateData: Record<string, unknown> = {
     status: 'confirmado',
     confirmado_em: new Date().toISOString()
   }
 
-  if (linkReuniao) {
-    updateData.link_reuniao = linkReuniao
+  if (linkToUse) {
+    updateData.link_reuniao = linkToUse
   }
 
   const { data, error } = await supabase
@@ -382,8 +474,8 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     throw new Error('Failed to confirm appointment')
   }
 
-  // Create notification for student
-  await createNotificacao(id, 'confirmacao', data.aluno_id)
+  // Notification is created by database trigger notify_agendamento_change()
+  // No need to create manually here to avoid duplicates
 
   revalidatePath('/professor/agendamentos')
   revalidatePath('/meus-agendamentos')
@@ -415,8 +507,8 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
     throw new Error('Failed to reject appointment')
   }
 
-  // Create notification for student
-  await createNotificacao(id, 'rejeicao', data.aluno_id)
+  // Notification is created by database trigger notify_agendamento_change()
+  // No need to create manually here to avoid duplicates
 
   revalidatePath('/professor/agendamentos')
   revalidatePath('/meus-agendamentos')
@@ -431,15 +523,21 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
     throw new Error('Unauthorized')
   }
 
-  // First get the agendamento to know who to notify
+  // First get the agendamento to validate cancellation
   const { data: agendamento } = await supabase
     .from('agendamentos')
-    .select('professor_id, aluno_id')
+    .select('professor_id, aluno_id, data_inicio, status')
     .eq('id', id)
     .single()
 
   if (!agendamento) {
     throw new Error('Appointment not found')
+  }
+
+  // Validate cancellation timing (2 hours minimum)
+  const validationResult = validateCancellation(new Date(agendamento.data_inicio), 2)
+  if (!validationResult.valid) {
+    throw new Error(validationResult.error || 'Cannot cancel appointment')
   }
 
   const { error } = await supabase
@@ -456,12 +554,8 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
     throw new Error('Failed to cancel appointment')
   }
 
-  // Notify the other party
-  const destinatarioId = user.id === agendamento.professor_id
-    ? agendamento.aluno_id
-    : agendamento.professor_id
-
-  await createNotificacao(id, 'cancelamento', destinatarioId)
+  // Notification is created by database trigger notify_agendamento_change()
+  // No need to create manually here to avoid duplicates
 
   revalidatePath('/professor/agendamentos')
   revalidatePath('/meus-agendamentos')
@@ -500,6 +594,17 @@ export async function updateAgendamento(id: string, data: Partial<Agendamento>) 
 // =============================================
 // Professor Configuration Functions
 // =============================================
+
+export type ProfessorIntegracao = {
+  id?: string
+  professor_id?: string
+  provider: 'google' | 'zoom' | 'default'
+  access_token?: string | null
+  refresh_token?: string | null
+  token_expiry?: string | null
+  created_at?: string
+  updated_at?: string
+}
 
 export async function getConfiguracoesProfessor(professorId: string): Promise<ConfiguracoesProfessor | null> {
   const supabase = await createClient()
@@ -555,6 +660,65 @@ export async function updateConfiguracoesProfessor(
   if (error) {
     console.error('Error updating professor config:', error)
     throw new Error('Failed to update configuration')
+  }
+
+  revalidatePath('/professor/configuracoes')
+  return data
+}
+
+export async function getIntegracaoProfessor(professorId: string): Promise<ProfessorIntegracao | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('professor_integracoes')
+    .select('*')
+    .eq('professor_id', professorId)
+    .single()
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching professor integration:', error)
+    return null
+  }
+
+  // Return defaults if no integration exists
+  if (!data) {
+    return {
+      professor_id: professorId,
+      provider: 'default',
+      access_token: null,
+      refresh_token: null,
+      token_expiry: null
+    }
+  }
+
+  return data
+}
+
+export async function updateIntegracaoProfessor(
+  professorId: string,
+  integration: Partial<ProfessorIntegracao>
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || user.id !== professorId) {
+    throw new Error('Unauthorized')
+  }
+
+  const { id, created_at, updated_at, ...integrationData } = integration
+
+  const { data, error } = await supabase
+    .from('professor_integracoes')
+    .upsert({
+      ...integrationData,
+      professor_id: professorId
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating professor integration:', error)
+    throw new Error('Failed to update integration')
   }
 
   revalidatePath('/professor/configuracoes')

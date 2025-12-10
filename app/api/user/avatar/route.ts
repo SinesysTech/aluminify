@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const blob = new Blob([arrayBuffer], { type: file.type })
 
     // Upload do arquivo diretamente - o bucket já existe e está configurado
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from(AVATAR_BUCKET)
       .upload(filePath, blob, {
         contentType: file.type,

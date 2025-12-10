@@ -70,7 +70,7 @@ export class CourseMaterialService {
   }
 
   async update(id: string, payload: UpdateCourseMaterialInput): Promise<CourseMaterial> {
-    const existing = await this.ensureExists(id);
+    await this.ensureExists(id);
 
     const updateData: UpdateCourseMaterialInput = {};
 

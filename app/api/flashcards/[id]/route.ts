@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 import { flashcardsService } from '@/backend/services/flashcards/flashcards.service';
 
+interface FlashcardUpdateFields {
+  moduloId?: string;
+  pergunta?: string;
+  resposta?: string;
+}
+
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
@@ -33,7 +39,7 @@ async function putHandler(
     const body = await request.json();
     const { moduloId, pergunta, resposta } = body;
 
-    const updateData: any = {};
+    const updateData: Partial<FlashcardUpdateFields> = {};
     if (moduloId !== undefined) updateData.moduloId = moduloId;
     if (pergunta !== undefined) updateData.pergunta = pergunta;
     if (resposta !== undefined) updateData.resposta = resposta;

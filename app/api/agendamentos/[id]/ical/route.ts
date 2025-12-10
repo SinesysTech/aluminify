@@ -1,140 +1,128 @@
-import { createClient } from "@/lib/server"
-import { NextRequest, NextResponse } from "next/server"
-import ical, { ICalCalendarMethod } from "ical-generator"
+import { NextResponse } from 'next/server'
+import { requireUserAuth, type AuthenticatedRequest } from '@/backend/auth/middleware'
+import { getDatabaseClient } from '@/backend/clients/database'
+import ical from 'ical-generator'
 
-interface RouteParams {
-  params: Promise<{ id: string }>
-}
+export const runtime = 'nodejs'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: RouteParams
+async function getHandler(
+  request: AuthenticatedRequest,
+  context?: Record<string, unknown>
 ) {
-  const { id } = await params
-  const supabase = await createClient()
-
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    )
+  if (!request.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch agendamento with user validation
-  const { data: agendamento, error } = await supabase
-    .from("agendamentos")
+  // Extract agendamento ID from context or URL
+  let agendamentoId: string | null = null
+  if (context && 'params' in context) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyCtx: any = context
+    const params = anyCtx.params
+    if (params && typeof params === 'object' && 'id' in params) {
+      agendamentoId = String(params.id)
+    }
+  }
+  if (!agendamentoId) {
+    const url = new URL(request.url)
+    const parts = url.pathname.split('/')
+    const idx = parts.indexOf('ical') - 1
+    if (idx >= 0 && parts[idx]) agendamentoId = parts[idx]
+  }
+  if (!agendamentoId) {
+    return NextResponse.json({ error: 'agendamento_id é obrigatório' }, { status: 400 })
+  }
+
+  const client = getDatabaseClient()
+
+  // Fetch agendamento with professor and aluno details
+  const { data: agendamento, error } = await client
+    .from('agendamentos')
     .select(`
       *,
-      professor:professores!agendamentos_professor_id_fkey(id, nome, email),
-      aluno:alunos!agendamentos_aluno_id_fkey(id, nome, email)
+      professor:professores!agendamentos_professor_id_fkey(nome, email),
+      aluno:alunos!agendamentos_aluno_id_fkey(nome, email)
     `)
-    .eq("id", id)
+    .eq('id', agendamentoId)
     .single()
 
   if (error || !agendamento) {
+    console.error('Error fetching agendamento:', error)
+    return NextResponse.json({ error: 'Agendamento não encontrado' }, { status: 404 })
+  }
+
+  // Verify user has access to this agendamento
+  if (agendamento.professor_id !== request.user.id && agendamento.aluno_id !== request.user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  try {
+    // Create calendar
+    const calendar = ical({
+      prodId: {
+        company: 'Área do Aluno',
+        product: 'Agendamentos',
+        language: 'PT',
+      },
+      name: 'Agendamento de Mentoria',
+      timezone: 'America/Sao_Paulo',
+    })
+
+    // Determine the other party's name
+    const isAluno = request.user.id === agendamento.aluno_id
+    const outraParte = isAluno
+      ? agendamento.professor?.nome || 'Professor'
+      : agendamento.aluno?.nome || 'Aluno'
+
+    // Build event summary
+    const summary = isAluno
+      ? `Mentoria com ${outraParte}`
+      : `Mentoria - ${outraParte}`
+
+    // Build event description
+    const descriptionParts: string[] = []
+    if (isAluno) {
+      descriptionParts.push(`Professor: ${outraParte}`)
+    } else {
+      descriptionParts.push(`Aluno: ${outraParte}`)
+    }
+    descriptionParts.push(`Status: ${agendamento.status}`)
+    if (agendamento.observacoes) {
+      descriptionParts.push(`Observações: ${agendamento.observacoes}`)
+    }
+    if (agendamento.link_reuniao) {
+      descriptionParts.push(`Link da reunião: ${agendamento.link_reuniao}`)
+    }
+
+    const description = descriptionParts.join('\\n')
+
+    // Create event
+    calendar.createEvent({
+      start: new Date(agendamento.data_inicio),
+      end: new Date(agendamento.data_fim),
+      summary: summary,
+      description: description,
+      location: agendamento.link_reuniao || 'Área do Aluno',
+      url: agendamento.link_reuniao || undefined,
+      categories: [{ name: 'Mentoria' }],
+    })
+
+    const icsContent = calendar.toString()
+
+    return new NextResponse(icsContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Content-Disposition': `attachment; filename="agendamento_${agendamentoId}.ics"`,
+      },
+    })
+  } catch (error) {
+    console.error('Erro ao gerar arquivo ICS:', error)
     return NextResponse.json(
-      { error: "Agendamento nao encontrado" },
-      { status: 404 }
+      { error: error instanceof Error ? error.message : 'Erro ao gerar arquivo ICS' },
+      { status: 500 }
     )
   }
-
-  // Verify user is participant
-  if (agendamento.professor_id !== user.id && agendamento.aluno_id !== user.id) {
-    return NextResponse.json(
-      { error: "Nao autorizado" },
-      { status: 403 }
-    )
-  }
-
-  const isProfessor = agendamento.professor_id === user.id
-  const outraParte = isProfessor ? agendamento.aluno : agendamento.professor
-  const outraParteNome = outraParte?.nome || "Participante"
-
-  // Create calendar
-  const calendar = ical({
-    name: "Agendamento de Mentoria",
-    method: ICalCalendarMethod.PUBLISH,
-    prodId: {
-      company: "Area do Aluno",
-      product: "Agendamentos",
-      language: "PT-BR"
-    }
-  })
-
-  const dataInicio = new Date(agendamento.data_inicio)
-  const dataFim = new Date(agendamento.data_fim)
-
-  const eventTitle = isProfessor
-    ? `Mentoria com ${outraParteNome}`
-    : `Mentoria com Prof. ${outraParteNome}`
-
-  let description = `Sessao de mentoria agendada.`
-  if (agendamento.observacoes) {
-    description += `\n\nObservacoes: ${agendamento.observacoes}`
-  }
-  if (agendamento.link_reuniao) {
-    description += `\n\nLink da reuniao: ${agendamento.link_reuniao}`
-  }
-
-  // Create event
-  calendar.createEvent({
-    id: agendamento.id,
-    start: dataInicio,
-    end: dataFim,
-    summary: eventTitle,
-    description: description,
-    location: agendamento.link_reuniao || undefined,
-    url: agendamento.link_reuniao || undefined,
-    organizer: {
-      name: agendamento.professor?.nome || "Professor",
-      email: agendamento.professor?.email || "professor@areadoaluno.com"
-    },
-    attendees: [
-      {
-        name: agendamento.aluno?.nome || "Aluno",
-        email: agendamento.aluno?.email || "aluno@areadoaluno.com",
-        rsvp: true
-      }
-    ],
-    status: agendamento.status === "cancelado" ? "CANCELLED" : "CONFIRMED",
-    alarms: [
-      {
-        type: "display",
-        trigger: 15 * 60, // 15 minutes before
-        description: "Lembrete: Mentoria em 15 minutos"
-      },
-      {
-        type: "display",
-        trigger: 60 * 60, // 1 hour before
-        description: "Lembrete: Mentoria em 1 hora"
-      },
-      {
-        type: "display",
-        trigger: 24 * 60 * 60, // 1 day before
-        description: "Lembrete: Mentoria amanha"
-      }
-    ]
-  })
-
-  // Generate iCal string
-  const icalString = calendar.toString()
-
-  // Create filename
-  const dateStr = dataInicio.toISOString().split("T")[0]
-  const filename = `mentoria-${dateStr}.ics`
-
-  // Return as downloadable file
-  return new NextResponse(icalString, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-      "Cache-Control": "no-cache"
-    }
-  })
 }
+
+export const GET = requireUserAuth(getHandler)
