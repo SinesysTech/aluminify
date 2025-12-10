@@ -29,6 +29,7 @@ export interface SubjectPerformance {
   name: string // Nome da disciplina
   front: string // Nome da frente
   score: number // Percentual (0-100)
+  isNotStarted?: boolean // true se não houver progresso
 }
 
 export interface FocusEfficiencyDay {

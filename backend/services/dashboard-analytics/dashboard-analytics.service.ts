@@ -447,27 +447,26 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>
   ): Promise<number> {
-    // Buscar IDs de atividades de flashcards
-    const { data: atividadesFlashcards } = await client
-      .from('atividades')
-      .select('id')
-      .eq('tipo', 'Flashcards')
+    // Buscar flashcards revisados diretamente da tabela progresso_flashcards
+    // Cada registro nesta tabela representa um flashcard que foi revisado pelo aluno
+    // (mesmo que tenha sido revisado múltiplas vezes, cada flashcard_id único conta como 1)
+    const { data: progressosFlashcards, error } = await client
+      .from('progresso_flashcards')
+      .select('flashcard_id')
+      .eq('aluno_id', alunoId)
 
-    if (!atividadesFlashcards || atividadesFlashcards.length === 0) {
+    if (error) {
+      console.error('[dashboard-analytics] Erro ao buscar flashcards revisados:', error)
       return 0
     }
 
-    const atividadesIds = atividadesFlashcards.map((a) => a.id)
+    if (!progressosFlashcards || progressosFlashcards.length === 0) {
+      return 0
+    }
 
-    // Contar atividades de flashcards concluídas
-    const { data: progressos } = await client
-      .from('progresso_atividades')
-      .select('id')
-      .eq('aluno_id', alunoId)
-      .eq('status', 'Concluido')
-      .in('atividade_id', atividadesIds)
-
-    return progressos?.length || 0
+    // Contar flashcards únicos (um flashcard pode ter múltiplas revisões)
+    const flashcardsUnicos = new Set(progressosFlashcards.map((p: any) => p.flashcard_id))
+    return flashcardsUnicos.size
   }
 
   /**
@@ -524,12 +523,77 @@ export class DashboardAnalyticsService {
 
   /**
    * Calcula performance por disciplina/frente
+   * Retorna todas as frentes dos cursos do aluno, mesmo sem progresso
    */
   private async getSubjectPerformance(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>
   ) {
-    // Buscar progressos com questões
+    // 1. Buscar cursos do aluno (ou todos se for professor)
+    const { data: professorData } = await client
+      .from('professores')
+      .select('id')
+      .eq('id', alunoId)
+      .maybeSingle();
+    
+    const isProfessor = !!professorData;
+    let cursoIds: string[] = [];
+    
+    if (isProfessor) {
+      // Professores: buscar todos os cursos
+      const { data: todosCursos } = await client
+        .from('cursos')
+        .select('id');
+      cursoIds = (todosCursos ?? []).map((c: any) => c.id);
+    } else {
+      // Alunos: buscar cursos matriculados
+      const { data: alunosCursos } = await client
+        .from('alunos_cursos')
+        .select('curso_id')
+        .eq('aluno_id', alunoId);
+      cursoIds = (alunosCursos ?? []).map((ac: any) => ac.curso_id);
+    }
+    
+    if (cursoIds.length === 0) return [];
+
+    // 2. Buscar disciplinas dos cursos
+    const { data: cursosDisciplinas } = await client
+      .from('cursos_disciplinas')
+      .select('disciplina_id, curso_id')
+      .in('curso_id', cursoIds);
+
+    if (!cursosDisciplinas || cursosDisciplinas.length === 0) return [];
+
+    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: any) => cd.disciplina_id))];
+
+    // 3. Buscar TODAS as frentes dessas disciplinas (mesmo sem progresso)
+    const { data: todasFrentes } = await client
+      .from('frentes')
+      .select('id, nome, disciplina_id, curso_id')
+      .in('disciplina_id', disciplinaIds)
+      .or(
+        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+        (cursoIds.length > 0 ? ',' : '') +
+        'curso_id.is.null',
+      );
+
+    if (!todasFrentes || todasFrentes.length === 0) return [];
+
+    // Filtrar frentes que pertencem aos cursos ou são globais
+    const frentesFiltradas = todasFrentes.filter(
+      (f) => !f.curso_id || cursoIds.includes(f.curso_id),
+    );
+
+    // 4. Buscar disciplinas
+    const disciplinaIdsFrentes = [...new Set(frentesFiltradas.map((f) => f.disciplina_id).filter(Boolean))];
+    const { data: disciplinas } = await client
+      .from('disciplinas')
+      .select('id, nome')
+      .in('id', disciplinaIdsFrentes);
+
+    const disciplinaMap = new Map(disciplinas?.map((d) => [d.id, d]) || []);
+
+    // 5. Buscar progressos com questões (se houver)
     const { data: progressos } = await client
       .from('progresso_atividades')
       .select(
@@ -542,105 +606,105 @@ export class DashboardAnalyticsService {
       .eq('aluno_id', alunoId)
       .eq('status', 'Concluido')
       .not('questoes_totais', 'is', null)
-      .gt('questoes_totais', 0)
+      .gt('questoes_totais', 0);
 
-    if (!progressos || progressos.length === 0) return []
-
-    // Buscar atividades
-    const atividadeIds = progressos.map((p) => p.atividade_id)
-    const { data: atividades } = await client
-      .from('atividades')
-      .select('id, modulo_id')
-      .in('id', atividadeIds)
-
-    if (!atividades) return []
-
-    // Buscar módulos
-    const moduloIds = [...new Set(atividades.map((a) => a.modulo_id).filter(Boolean))]
-    const { data: modulos } = await client
-      .from('modulos')
-      .select('id, frente_id')
-      .in('id', moduloIds)
-
-    if (!modulos) return []
-
-    // Buscar frentes
-    const frenteIds = [...new Set(modulos.map((m) => m.frente_id).filter(Boolean))]
-    const { data: frentes } = await client
-      .from('frentes')
-      .select('id, nome, disciplina_id')
-      .in('id', frenteIds)
-
-    if (!frentes) return []
-
-    // Buscar disciplinas
-    const disciplinaIds = [...new Set(frentes.map((f) => f.disciplina_id).filter(Boolean))]
-    const { data: disciplinas } = await client
-      .from('disciplinas')
-      .select('id, nome')
-      .in('id', disciplinaIds)
-
-    // Criar mapas para lookup
-    const atividadeModuloMap = new Map(atividades.map((a) => [a.id, a.modulo_id]))
-    const moduloFrenteMap = new Map(modulos.map((m) => [m.id, m.frente_id]))
-    const frenteMap = new Map(frentes.map((f) => [f.id, f]))
-    const disciplinaMap = new Map(disciplinas?.map((d) => [d.id, d]) || [])
-
-    // Criar mapa de atividade -> progresso
-    const progressoMap = new Map(
-      progressos.map((p) => [p.atividade_id, p])
-    )
-
-    // Agrupar por disciplina/frente
+    // 6. Se houver progressos, calcular performance por frente
     const performanceMap = new Map<
       string,
       { total: number; acertos: number; disciplina: string; frente: string }
-    >()
+    >();
 
-    atividades.forEach((atividade) => {
-      const progresso = progressoMap.get(atividade.id)
-      if (!progresso) return
+    if (progressos && progressos.length > 0) {
+      // Buscar atividades
+      const atividadeIds = progressos.map((p) => p.atividade_id);
+      const { data: atividades } = await client
+        .from('atividades')
+        .select('id, modulo_id')
+        .in('id', atividadeIds);
 
-      const moduloId = atividadeModuloMap.get(atividade.id)
-      if (!moduloId) return
+      if (atividades && atividades.length > 0) {
+        // Buscar módulos
+        const moduloIds = [...new Set(atividades.map((a) => a.modulo_id).filter(Boolean))];
+        const { data: modulos } = await client
+          .from('modulos')
+          .select('id, frente_id')
+          .in('id', moduloIds);
 
-      const frenteId = moduloFrenteMap.get(moduloId)
-      if (!frenteId) return
+        if (modulos && modulos.length > 0) {
+          // Criar mapas para lookup
+          const atividadeModuloMap = new Map(atividades.map((a) => [a.id, a.modulo_id]));
+          const moduloFrenteMap = new Map(modulos.map((m) => [m.id, m.frente_id]));
+          const progressoMap = new Map(
+            progressos.map((p) => [p.atividade_id, p])
+          );
 
-      const frente = frenteMap.get(frenteId)
-      if (!frente) return
+          // Agrupar por disciplina/frente
+          atividades.forEach((atividade) => {
+            const progresso = progressoMap.get(atividade.id);
+            if (!progresso) return;
 
-      const disciplina = disciplinaMap.get(frente.disciplina_id || '')
-      if (!disciplina) return
+            const moduloId = atividadeModuloMap.get(atividade.id);
+            if (!moduloId) return;
 
-      const key = `${disciplina.id}-${frente.id}`
-      const atual = performanceMap.get(key) || {
-        total: 0,
-        acertos: 0,
-        disciplina: disciplina.nome,
-        frente: frente.nome,
-      }
+            const frenteId = moduloFrenteMap.get(moduloId);
+            if (!frenteId) return;
 
-      atual.total += progresso.questoes_totais || 0
-      atual.acertos += progresso.questoes_acertos || 0
-      performanceMap.set(key, atual)
-    })
+            const frente = frentesFiltradas.find((f) => f.id === frenteId);
+            if (!frente) return;
 
-    // Converter para array e calcular scores
-    const subjects = Array.from(performanceMap.entries()).map(
-      ([, data], index) => {
-        const score =
-          data.total > 0 ? Math.round((data.acertos / data.total) * 100) : 0
-        return {
-          id: index + 1,
-          name: data.disciplina,
-          front: data.frente,
-          score,
+            const disciplina = disciplinaMap.get(frente.disciplina_id || '');
+            if (!disciplina) return;
+
+            const key = `${disciplina.id}-${frente.id}`;
+            const atual = performanceMap.get(key) || {
+              total: 0,
+              acertos: 0,
+              disciplina: disciplina.nome,
+              frente: frente.nome,
+            };
+
+            atual.total += progresso.questoes_totais || 0;
+            atual.acertos += progresso.questoes_acertos || 0;
+            performanceMap.set(key, atual);
+          });
         }
       }
-    )
+    }
 
-    return subjects
+    // 7. Criar lista final: todas as frentes, com ou sem progresso
+    const subjects = frentesFiltradas.map((frente, index) => {
+      const disciplina = disciplinaMap.get(frente.disciplina_id || '');
+      if (!disciplina) return null;
+
+      const key = `${disciplina.id}-${frente.id}`;
+      const performance = performanceMap.get(key);
+
+      if (performance) {
+        // Frente com progresso: calcular score
+        const score =
+          performance.total > 0
+            ? Math.round((performance.acertos / performance.total) * 100)
+            : 0;
+        return {
+          id: index + 1,
+          name: disciplina.nome,
+          front: frente.nome,
+          score,
+          isNotStarted: false,
+        };
+      } else {
+        // Frente sem progresso: score 0 e status "Não iniciada"
+        return {
+          id: index + 1,
+          name: disciplina.nome,
+          front: frente.nome,
+          score: 0,
+          isNotStarted: true,
+        };
+      }
+    }).filter((s): s is NonNullable<typeof s> => s !== null);
+
+    return subjects;
   }
 
   /**

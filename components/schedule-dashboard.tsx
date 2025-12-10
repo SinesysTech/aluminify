@@ -136,11 +136,14 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
         if (cronogramaError) {
           console.error('Erro ao carregar cronograma base:', {
-            message: cronogramaError.message,
-            details: cronogramaError.details,
-            hint: cronogramaError.hint,
-            code: cronogramaError.code,
+            message: cronogramaError.message || 'Sem mensagem',
+            details: cronogramaError.details || null,
+            hint: cronogramaError.hint || null,
+            code: cronogramaError.code || null,
             cronogramaId,
+            error: cronogramaError,
+            errorString: String(cronogramaError),
+            errorJSON: JSON.stringify(cronogramaError, Object.getOwnPropertyNames(cronogramaError)),
           })
           setLoading(false)
           return
