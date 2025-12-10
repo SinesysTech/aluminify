@@ -28,10 +28,10 @@ async function getHandler(request: AuthenticatedRequest) {
       )
     }
 
-    // Verificar se é aluno
-    if (request.user?.role !== 'aluno' && request.user?.role !== 'superadmin') {
+    // Permitir acesso para alunos, professores e superadmins
+    if (!['aluno', 'professor', 'superadmin'].includes(request.user?.role || '')) {
       return NextResponse.json(
-        { error: 'Acesso negado. Apenas alunos podem acessar o dashboard.' },
+        { error: 'Acesso negado. Apenas alunos, professores e superadmins podem acessar o dashboard.' },
         { status: 403 }
       )
     }

@@ -1,12 +1,23 @@
--- Atualiza/Cria função importar_cronograma_aulas aceitando coluna importancia (Alta/Media/Baixa/Base)
--- Notas:
--- - Usa p_curso_id para vincular frente e módulos ao curso informado
--- - Busca disciplina por nome (case-insensitive)
--- - Garante frente (cria se não existir)
--- - Upsert de módulos por frente_id + numero_modulo; atualiza nome e importancia
--- - Upsert de aulas por modulo_id + numero_aula; atualiza nome, prioridade e tempo_estimado_minutos
+-- Migration: Fix curso_id in modulos table
+-- Description: 
+-- 1. Updates existing modules to have curso_id from their associated frente
+-- 2. Updates importar_cronograma_aulas function to also update curso_id when updating modules
+-- 3. Creates a trigger to automatically set curso_id from frente when a module is created
+-- Author: Auto-generated
+-- Date: 2025-01-31
 
-create or replace function public.importar_cronograma_aulas(
+-- 1. Update existing modules to get curso_id from their frente
+UPDATE public.modulos m
+SET curso_id = f.curso_id
+FROM public.frentes f
+WHERE m.frente_id = f.id
+  AND m.curso_id IS NULL
+  AND f.curso_id IS NOT NULL;
+
+-- 2. Drop and recreate importar_cronograma_aulas function to also update curso_id when updating modules
+DROP FUNCTION IF EXISTS public.importar_cronograma_aulas(uuid, text, text, jsonb);
+
+CREATE FUNCTION public.importar_cronograma_aulas(
   p_curso_id uuid,
   p_disciplina_nome text,
   p_frente_nome text,
@@ -55,6 +66,12 @@ begin
     insert into public.frentes (disciplina_id, curso_id, nome)
     values (v_disciplina_id, p_curso_id, p_frente_nome)
     returning id into v_frente_id;
+  else
+    -- Atualizar curso_id da frente se estiver NULL
+    update public.frentes
+    set curso_id = p_curso_id
+    where id = v_frente_id
+      and curso_id IS NULL;
   end if;
 
   for v_row in select * from jsonb_array_elements(p_conteudo)
@@ -67,7 +84,7 @@ begin
     v_prioridade    := coalesce((v_row->>'prioridade')::int, null);
     v_importancia   := nullif(v_row->>'importancia', '')::enum_importancia_modulo;
     if v_importancia is null then
-      v_importancia := 'Base';
+      v_importancia := 'Media';
     end if;
 
     if v_modulo_numero is null or v_modulo_nome is null or v_aula_nome is null then
@@ -87,9 +104,11 @@ begin
       returning id into v_modulo_id;
       v_modulos_importados := v_modulos_importados + 1;
     else
+      -- Atualizar também o curso_id quando atualizar módulo existente
       update public.modulos
       set nome = coalesce(v_modulo_nome, nome),
-          importancia = v_importancia
+          importancia = v_importancia,
+          curso_id = coalesce(p_curso_id, curso_id)
       where id = v_modulo_id;
     end if;
 
@@ -118,11 +137,29 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- 3. Create trigger function to automatically set curso_id from frente when module is created
+CREATE OR REPLACE FUNCTION public.set_modulo_curso_id_from_frente()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Se curso_id não foi fornecido, buscar da frente
+  IF NEW.curso_id IS NULL AND NEW.frente_id IS NOT NULL THEN
+    SELECT curso_id INTO NEW.curso_id
+    FROM public.frentes
+    WHERE id = NEW.frente_id;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+-- 4. Create trigger
+DROP TRIGGER IF EXISTS trigger_set_modulo_curso_id ON public.modulos;
+CREATE TRIGGER trigger_set_modulo_curso_id
+  BEFORE INSERT OR UPDATE ON public.modulos
+  FOR EACH ROW
+  WHEN (NEW.curso_id IS NULL)
+  EXECUTE FUNCTION public.set_modulo_curso_id_from_frente();
 
-
-
-
-
-
+-- 5. Add comment
+COMMENT ON FUNCTION public.set_modulo_curso_id_from_frente() IS 'Automatically sets curso_id from the associated frente when a module is created or updated without curso_id';
 

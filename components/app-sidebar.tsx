@@ -12,6 +12,8 @@ import {
   School,
   BrainCircuit,
   LayoutDashboard,
+  Users,
+  GraduationCap,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -87,6 +89,18 @@ const navMainData: NavItem[] = [
     roles: ALL_ROLES,
   },
   // Professor
+  {
+    title: "Alunos",
+    url: "/aluno",
+    icon: Users,
+    roles: PROFESSOR_ONLY,
+  },
+  {
+    title: "Professores",
+    url: "/professor",
+    icon: GraduationCap,
+    roles: PROFESSOR_ONLY,
+  },
   {
     title: "Segmentos",
     url: "/segmento",

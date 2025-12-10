@@ -463,3 +463,5 @@ O sistema de flashcards está **funcionando corretamente** na maioria dos aspect
 
 **Prioridade:** Média - O sistema funciona, mas a "Revisão Geral" pode ser melhorada para ser mais abrangente.
 
+
+

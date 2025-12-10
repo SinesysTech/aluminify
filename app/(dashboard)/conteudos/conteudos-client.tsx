@@ -1796,7 +1796,7 @@ export default function ConteudosClientPage() {
                             <Label className="text-sm font-medium whitespace-nowrap">Importância:</Label>
                             {editingImportancia === modulo.id ? (
                               <Select
-                                value={modulo.importancia || 'Base'}
+                                value={modulo.importancia || 'Media'}
                                 onValueChange={(value) => {
                                   handleUpdateModuloImportancia(modulo.id, value as 'Alta' | 'Media' | 'Baixa' | 'Base')
                                 }}
@@ -1814,7 +1814,7 @@ export default function ConteudosClientPage() {
                             ) : (
                               <div className="flex items-center gap-2">
                                 <Badge variant="outline" className="font-normal">
-                                  {modulo.importancia || 'Base'}
+                                  {modulo.importancia || 'Media'}
                                 </Badge>
                                 <Button
                                   size="sm"

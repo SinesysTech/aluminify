@@ -14,15 +14,17 @@ async function handler(request: AuthenticatedRequest) {
     const excludeIdsParam = searchParams.get('excludeIds');
     const excludeIds = excludeIdsParam ? excludeIdsParam.split(',').filter(Boolean) : undefined;
 
+    console.log(`[flashcards/revisao] Requisição recebida - modo: ${modo}, alunoId: ${request.user!.id}`);
     const data = await flashcardsService.listForReview(
       request.user!.id,
       modo,
       { cursoId, frenteId, moduloId },
       excludeIds
     );
+    console.log(`[flashcards/revisao] Retornando ${data.length} flashcards`);
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('[flashcards/revisao]', error);
+    console.error('[flashcards/revisao] Erro:', error);
     const message = error instanceof Error ? error.message : 'Erro interno';
     return NextResponse.json({ error: message }, { status: 400 });
   }

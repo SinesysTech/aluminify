@@ -1,4 +1,5 @@
 import { getDatabaseClient } from '@/backend/clients/database'
+import { getServiceRoleClient } from '@/backend/clients/database-auth'
 import type { DashboardData } from '@/types/dashboard'
 import { progressoAtividadeService } from '@/backend/services/progresso-atividade'
 import { sessaoEstudoService } from '@/backend/services/sessao-estudo'
@@ -42,22 +43,142 @@ export class DashboardAnalyticsService {
   }
 
   /**
-   * Busca informações do usuário
+   * Busca informações do usuário (aluno ou professor)
    */
   private async getUserInfo(alunoId: string, client: ReturnType<typeof getDatabaseClient>) {
-    // Buscar dados do aluno
+    // Buscar dados do usuário autenticado primeiro para obter o email e role
+    const { data: authUser } = await client.auth.admin.getUserById(alunoId)
+    
+    if (!authUser?.user) {
+      throw new Error('Usuário não encontrado no sistema de autenticação')
+    }
+
+    const userEmail = authUser.user.email || ''
+    const userRole = (authUser.user.user_metadata?.role as string) || 'aluno'
+    const isProfessor = userRole === 'professor' || userRole === 'superadmin'
+    
+    // Buscar nome do professor se for professor
+    let professorName: string | null = null
+    if (isProfessor) {
+      const { data: professor } = await client
+        .from('professores')
+        .select('nome_completo')
+        .eq('id', alunoId)
+        .maybeSingle()
+      
+      professorName = professor?.nome_completo || null
+    }
+    
+    // Buscar dados do aluno (professores também precisam ter registro aqui para dados de sessões/progresso)
     const { data: aluno, error: alunoError } = await client
       .from('alunos')
-      .select('id, full_name, email')
+      .select('id, nome_completo, email')
       .eq('id', alunoId)
-      .single()
+      .maybeSingle()
 
-    if (alunoError || !aluno) {
-      throw new Error('Aluno não encontrado')
+    // Se houver erro de RLS ou permissão, tentar com cliente admin
+    let alunoFinal = aluno
+    if (alunoError && !aluno) {
+      console.log('[DashboardAnalytics] Erro ao buscar aluno, tentando com cliente admin:', alunoError.message)
+      const adminClient = getServiceRoleClient()
+      const { data: alunoAdmin, error: adminError } = await adminClient
+        .from('alunos')
+        .select('id, nome_completo, email')
+        .eq('id', alunoId)
+        .maybeSingle()
+      
+      if (adminError) {
+        console.error('[DashboardAnalytics] Erro mesmo com cliente admin:', adminError)
+        // Se ainda houver erro, pode ser que o registro realmente não exista
+      } else if (alunoAdmin) {
+        alunoFinal = alunoAdmin
+      }
+    }
+
+    // Se o registro não existe, criar um registro básico
+    if (!alunoFinal) {
+      console.log(`[DashboardAnalytics] Registro não encontrado na tabela alunos para ${isProfessor ? 'professor' : 'aluno'}, criando registro...`)
+      
+      if (!userEmail) {
+        throw new Error('Email do usuário é necessário para criar o registro')
+      }
+
+      // Usar nome do professor se disponível, senão usar metadata
+      const fullName = professorName || 
+                       authUser.user.user_metadata?.full_name || 
+                       authUser.user.user_metadata?.name || 
+                       userEmail.split('@')[0] || 
+                       (isProfessor ? 'Professor' : 'Aluno')
+
+      // Tentar inserir com o cliente normal primeiro (pode funcionar se RLS permitir)
+      let insertClient = client
+      let insertError = null
+      
+      const { error: normalInsertError } = await client
+        .from('alunos')
+        .insert({
+          id: alunoId,
+          email: userEmail,
+          nome_completo: fullName,
+        })
+
+      if (normalInsertError) {
+        console.log('[DashboardAnalytics] Erro ao inserir com cliente normal, tentando com cliente admin:', normalInsertError.message)
+        // Tentar com cliente admin (bypass RLS)
+        insertClient = getServiceRoleClient()
+        const { error: adminInsertError } = await insertClient
+          .from('alunos')
+          .insert({
+            id: alunoId,
+            email: userEmail,
+            nome_completo: fullName,
+          })
+        
+        if (adminInsertError) {
+          insertError = adminInsertError
+        }
+      }
+
+      if (insertError) {
+        console.error('[DashboardAnalytics] Erro ao criar registro mesmo com cliente admin:', insertError)
+        throw new Error(`Erro ao criar registro: ${insertError.message}`)
+      }
+
+      console.log('[DashboardAnalytics] Registro criado com sucesso')
+      
+      // Buscar o registro recém-criado usando o cliente que funcionou
+      const { data: novoAluno, error: selectError } = await insertClient
+        .from('alunos')
+        .select('id, nome_completo, email')
+        .eq('id', alunoId)
+        .single()
+
+      if (selectError || !novoAluno) {
+        throw new Error('Erro ao buscar registro recém-criado')
+      }
+
+      // Usar o novo registro
+      alunoFinal = novoAluno
+      const avatarUrl =
+        authUser?.user?.user_metadata?.avatar_url ||
+        authUser?.user?.user_metadata?.picture ||
+        ''
+
+      // Calcular streak (dias consecutivos com sessões de estudo)
+      const streakDays = await this.calculateStreak(alunoId, client)
+
+      // Usar nome do professor se disponível, senão usar o nome do registro
+      const displayName = professorName || alunoFinal.nome_completo || alunoFinal.email.split('@')[0] || (isProfessor ? 'Professor' : 'Aluno')
+
+      return {
+        name: displayName,
+        email: alunoFinal.email,
+        avatarUrl,
+        streakDays,
+      }
     }
 
     // Buscar avatar do usuário (se existir)
-    const { data: authUser } = await client.auth.admin.getUserById(alunoId)
     const avatarUrl =
       authUser?.user?.user_metadata?.avatar_url ||
       authUser?.user?.user_metadata?.picture ||
@@ -66,9 +187,12 @@ export class DashboardAnalyticsService {
     // Calcular streak (dias consecutivos com sessões de estudo)
     const streakDays = await this.calculateStreak(alunoId, client)
 
+    // Usar nome do professor se disponível, senão usar o nome do registro de aluno
+    const displayName = professorName || alunoFinal.nome_completo || alunoFinal.email.split('@')[0] || (isProfessor ? 'Professor' : 'Aluno')
+
     return {
-      name: aluno.full_name || aluno.email.split('@')[0] || 'Aluno',
-      email: aluno.email,
+      name: displayName,
+      email: alunoFinal.email,
       avatarUrl,
       streakDays,
     }
@@ -162,42 +286,43 @@ export class DashboardAnalyticsService {
 
   /**
    * Calcula progresso do cronograma
+   * Considera aulas concluídas (cronograma_itens.concluido) para evitar duplicação
+   * Não conta tempo_estudos_concluido separadamente para não duplicar
+   * 
+   * Usa a mesma lógica das páginas de calendário e cronograma: busca o cronograma mais recente
    */
   private async getScheduleProgress(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>
   ): Promise<number> {
-    // Buscar cronograma ativo do aluno
+    // Buscar cronograma mais recente do aluno (mesma lógica das páginas de calendário e cronograma)
+    // Não filtra por 'ativo' pois esse campo pode não existir ou não estar definido
     const { data: cronograma } = await client
       .from('cronogramas')
       .select('id')
       .eq('aluno_id', alunoId)
-      .eq('ativo', true)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (!cronograma) return 0
 
-    // Buscar total de dias do cronograma
-    const { data: semanas } = await client
-      .from('cronograma_semanas')
-      .select('id')
+    // Buscar total de itens (aulas) no cronograma
+    const { data: itens, error: itensError } = await client
+      .from('cronograma_itens')
+      .select('id, concluido')
       .eq('cronograma_id', cronograma.id)
 
-    if (!semanas || semanas.length === 0) return 0
+    if (itensError || !itens || itens.length === 0) return 0
 
-    // Buscar dias concluídos
-    const { data: diasConcluidos } = await client
-      .from('cronograma_tempo_estudos')
-      .select('id')
-      .eq('cronograma_id', cronograma.id)
-      .eq('tempo_estudos_concluido', true)
+    // Contar aulas concluídas (mesma lógica do calendário)
+    const totalAulas = itens.length
+    const aulasConcluidas = itens.filter((item) => item.concluido === true).length
 
-    const totalDias = semanas.length * 7 // Aproximação
-    const concluidos = diasConcluidos?.length || 0
-
-    return totalDias > 0 ? Math.round((concluidos / totalDias) * 100) : 0
+    // Calcular percentual baseado em aulas concluídas
+    // Isso evita duplicação pois conta cada aula apenas uma vez
+    // Usa a mesma fórmula do calendário: (concluídas / total) * 100
+    return totalAulas > 0 ? Math.round((aulasConcluidas / totalAulas) * 100) : 0
   }
 
   /**

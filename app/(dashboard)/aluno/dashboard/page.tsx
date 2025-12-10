@@ -95,6 +95,60 @@ export default function StudentDashboardPage() {
     }
   }, [loadDashboardData])
 
+  // Subscription Realtime para atualizar dashboard quando aulas são concluídas
+  useEffect(() => {
+    let channel: any = null
+    let supabaseInstance: any = null
+
+    async function setupRealtimeSubscription() {
+      const { createClient } = await import('@/lib/client')
+      supabaseInstance = createClient()
+      
+      // Buscar ID do aluno atual
+      const { data: { user } } = await supabaseInstance.auth.getUser()
+      if (!user) return
+
+      // Buscar cronograma ativo do aluno
+      const { data: cronograma } = await supabaseInstance
+        .from('cronogramas')
+        .select('id')
+        .eq('aluno_id', user.id)
+        .eq('ativo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!cronograma) return
+
+      // Subscription para mudanças em cronograma_itens
+      channel = supabaseInstance
+        .channel(`dashboard-cronograma-itens-${cronograma.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cronograma_itens',
+            filter: `cronograma_id=eq.${cronograma.id}`,
+          },
+          (payload: any) => {
+            console.log('[Dashboard Realtime] Mudança detectada em cronograma_itens:', payload)
+            // Recarregar dados do dashboard
+            loadDashboardData(true)
+          }
+        )
+        .subscribe()
+    }
+
+    setupRealtimeSubscription()
+
+    return () => {
+      if (channel && supabaseInstance) {
+        supabaseInstance.removeChannel(channel)
+      }
+    }
+  }, [loadDashboardData])
+
   // Função para refresh manual
   const handleManualRefresh = () => {
     loadDashboardData(true)

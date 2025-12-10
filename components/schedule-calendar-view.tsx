@@ -549,6 +549,32 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     }
 
     loadCronograma()
+
+    // Subscription Realtime para sincronizar mudanças em cronograma_itens
+    if (cronogramaId) {
+      const supabase = createClient()
+      const channel = supabase
+        .channel(`cronograma-itens-${cronogramaId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cronograma_itens',
+            filter: `cronograma_id=eq.${cronogramaId}`,
+          },
+          (payload) => {
+            console.log('[Realtime] Mudança detectada em cronograma_itens:', payload)
+            // Recarregar cronograma completo quando houver mudanças
+            loadCronograma()
+          }
+        )
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
   }, [cronogramaId])
 
   const calcularDatasItens = (cronograma: Cronograma, itensCompletos: any[]): ItemComData[] => {

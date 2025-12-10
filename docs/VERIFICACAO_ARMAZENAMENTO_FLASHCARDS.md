@@ -322,3 +322,5 @@ USING (auth.uid() = aluno_id);
 
 **Status Geral:** ✅ **FUNCIONANDO CORRETAMENTE** (com verificações pendentes no banco)
 
+
+

@@ -185,6 +185,29 @@ export class FlashcardsService {
           continue;
         }
 
+        // Validar se o módulo existe antes de inserir
+        const { data: moduloExists, error: moduloCheckError } = await this.client
+          .from('modulos')
+          .select('id, importancia')
+          .eq('id', row.moduloId)
+          .maybeSingle();
+
+        if (moduloCheckError) {
+          errors.push({
+            line: row._index,
+            message: `Erro ao validar módulo: ${moduloCheckError.message}`,
+          });
+          continue;
+        }
+
+        if (!moduloExists) {
+          errors.push({
+            line: row._index,
+            message: `Módulo não encontrado: ${row.moduloId}`,
+          });
+          continue;
+        }
+
         const { error: insertError } = await this.client.from('flashcards').insert({
           modulo_id: row.moduloId,
           pergunta: row.pergunta,
@@ -514,25 +537,45 @@ export class FlashcardsService {
     const frenteIds = frentesData.map((f: any) => f.id);
     
     // 4. Buscar módulos das frentes (considerando curso)
-    let modulosQuery = this.client
-      .from('modulos')
-      .select('id, importancia, frente_id, curso_id')
-      .in('frente_id', frenteIds);
-    
-    // Aceitar módulos com curso_id null ou igual aos cursos do aluno
-    if (cursoIds.length > 0) {
-      modulosQuery = modulosQuery.or(
-        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
-        ',curso_id.is.null',
-      );
-    }
-    
     let moduloIds: string[] = [];
 
     if (modo === 'mais_cobrados') {
-      const { data, error } = await modulosQuery.eq('importancia', 'Alta');
-      if (error) throw new Error(`Erro ao buscar módulos prioritários: ${error.message}`);
-      moduloIds = (data ?? []).map((m: any) => m.id);
+      // Para "mais_cobrados", buscar módulos com importancia = 'Alta'
+      console.log(`[flashcards] Modo "mais_cobrados": buscando módulos com importancia = 'Alta'`);
+      console.log(`[flashcards] Frente IDs: ${frenteIds.length}, Curso IDs: ${cursoIds.length}`);
+      
+      // Buscar todos os módulos das frentes com importancia = 'Alta'
+      // Usar uma abordagem mais simples: buscar todos e filtrar no código se necessário
+      const { data: todosModulos, error: todosModulosError } = await this.client
+        .from('modulos')
+        .select('id, importancia, frente_id, curso_id')
+        .in('frente_id', frenteIds)
+        .eq('importancia', 'Alta');
+      
+      if (todosModulosError) {
+        console.error('[flashcards] Erro ao buscar módulos prioritários:', todosModulosError);
+        console.error('[flashcards] Detalhes do erro:', JSON.stringify(todosModulosError, null, 2));
+        throw new Error(`Erro ao buscar módulos prioritários: ${todosModulosError.message}`);
+      }
+      
+      // Filtrar módulos que pertencem aos cursos do aluno ou são globais (curso_id null)
+      const modulosFiltrados = (todosModulos ?? []).filter((m: any) => {
+        if (!m.curso_id) return true; // Módulos globais
+        return cursoIds.includes(m.curso_id);
+      });
+      
+      console.log(`[flashcards] Modo "mais_cobrados": encontrados ${modulosFiltrados.length} módulos com importancia = 'Alta' (de ${todosModulos?.length ?? 0} total)`);
+      if (modulosFiltrados.length > 0) {
+        console.log(`[flashcards] Primeiros módulos encontrados:`, modulosFiltrados.slice(0, 3).map((m: any) => ({ id: m.id, importancia: m.importancia, curso_id: m.curso_id })));
+      }
+      moduloIds = modulosFiltrados.map((m: any) => m.id);
+      
+      if (moduloIds.length === 0) {
+        console.warn('[flashcards] Nenhum módulo com importancia = "Alta" encontrado para os cursos do aluno');
+        console.warn(`[flashcards] Frente IDs usados: ${frenteIds.join(', ')}`);
+        console.warn(`[flashcards] Curso IDs usados: ${cursoIds.join(', ')}`);
+        console.warn(`[flashcards] Total de módulos encontrados (antes do filtro): ${todosModulos?.length ?? 0}`);
+      }
     } else if (modo === 'mais_errados') {
       const { data: progressos, error: progError } = await this.client
         .from('progresso_atividades')
@@ -564,68 +607,85 @@ export class FlashcardsService {
         moduloIds = Array.from(new Set((atividades ?? []).map((a) => a.modulo_id as string)));
       }
     } else {
+      // Modo revisao_geral ou outros: buscar todos os módulos das frentes do aluno
+      let modulosQuery = this.client
+        .from('modulos')
+        .select('id, importancia, frente_id, curso_id')
+        .in('frente_id', frenteIds);
+      
+      // Aceitar módulos com curso_id null ou igual aos cursos do aluno
+      if (cursoIds.length > 0) {
+        const orCondition = cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null';
+        modulosQuery = modulosQuery.or(orCondition);
+      }
+      
+      const { data: modulosData, error: modulosError } = await modulosQuery;
+      if (modulosError) {
+        throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
+      }
+      moduloIds = (modulosData ?? []).map((m: any) => m.id);
+      
       // Modo revisao_geral: buscar módulos de flashcards já vistos OU módulos com atividades concluídas
-      
-      // 1. Buscar flashcards já vistos
-      const { data: progFlash, error: progFlashError } = await this.client
-        .from('progresso_flashcards')
-        .select('flashcard_id')
-        .eq('aluno_id', alunoId);
-      if (progFlashError) {
-        console.warn('[flashcards] erro ao buscar progresso para revisao_geral', progFlashError);
-      }
-      const flashcardIdsVistos = (progFlash ?? []).map((p) => p.flashcard_id as string);
-      let moduloIdsVisited: string[] = [];
-      if (flashcardIdsVistos.length) {
-        const { data: cardsVisitados } = await this.client
-          .from('flashcards')
-          .select('id, modulo_id')
-          .in('id', flashcardIdsVistos);
-        moduloIdsVisited = Array.from(
-          new Set((cardsVisitados ?? []).map((c) => c.modulo_id as string)),
+      if (modo === 'revisao_geral') {
+        // 1. Buscar flashcards já vistos
+        const { data: progFlash, error: progFlashError } = await this.client
+          .from('progresso_flashcards')
+          .select('flashcard_id')
+          .eq('aluno_id', alunoId);
+        if (progFlashError) {
+          console.warn('[flashcards] erro ao buscar progresso para revisao_geral', progFlashError);
+        }
+        const flashcardIdsVistos = (progFlash ?? []).map((p) => p.flashcard_id as string);
+        let moduloIdsVisited: string[] = [];
+        if (flashcardIdsVistos.length) {
+          const { data: cardsVisitados } = await this.client
+            .from('flashcards')
+            .select('id, modulo_id')
+            .in('id', flashcardIdsVistos);
+          moduloIdsVisited = Array.from(
+            new Set((cardsVisitados ?? []).map((c) => c.modulo_id as string)),
+          );
+        }
+        
+        // 2. Buscar módulos com atividades concluídas
+        const { data: atividadesConcluidas, error: atividadesError } = await this.client
+          .from('progresso_atividades')
+          .select('atividade_id, atividades(modulo_id)')
+          .eq('aluno_id', alunoId)
+          .eq('status', 'Concluido');
+        
+        if (atividadesError) {
+          console.warn('[flashcards] erro ao buscar atividades concluídas para revisao_geral', atividadesError);
+        }
+        
+        const moduloIdsConcluidos = Array.from(
+          new Set(
+            (atividadesConcluidas ?? [])
+              .map((a: any) => a.atividades?.modulo_id)
+              .filter(Boolean)
+          )
         );
+        
+        // 3. Combinar módulos de flashcards vistos + módulos com atividades concluídas
+        const moduloIdsCombinados = Array.from(
+          new Set([...moduloIdsVisited, ...moduloIdsConcluidos])
+        );
+        
+        // 4. Se houver módulos combinados, filtrar apenas esses. Caso contrário, usar todos os módulos já buscados
+        if (moduloIdsCombinados.length > 0) {
+          // Filtrar apenas os módulos que estão nas frentes do aluno E foram visitados/concluídos
+          moduloIds = moduloIds.filter((id) => moduloIdsCombinados.includes(id));
+        }
+        // Se moduloIdsCombinados estiver vazio, usar todos os módulos já buscados (moduloIds permanece como está)
       }
-      
-      // 2. Buscar módulos com atividades concluídas
-      const { data: atividadesConcluidas, error: atividadesError } = await this.client
-        .from('progresso_atividades')
-        .select('atividade_id, atividades(modulo_id)')
-        .eq('aluno_id', alunoId)
-        .eq('status', 'Concluido');
-      
-      if (atividadesError) {
-        console.warn('[flashcards] erro ao buscar atividades concluídas para revisao_geral', atividadesError);
-      }
-      
-      const moduloIdsConcluidos = Array.from(
-        new Set(
-          (atividadesConcluidas ?? [])
-            .map((a: any) => a.atividades?.modulo_id)
-            .filter(Boolean)
-        )
-      );
-      
-      // 3. Combinar módulos de flashcards vistos + módulos com atividades concluídas
-      const moduloIdsCombinados = Array.from(
-        new Set([...moduloIdsVisited, ...moduloIdsConcluidos])
-      );
-      
-      // 4. Se não houver nenhum, usar todos os módulos
-      const { data: todosModulos, error: todosModulosError } = await modulosQuery;
-      if (todosModulosError) {
-        console.warn('[flashcards] erro ao buscar todos os módulos', todosModulosError);
-      }
-      const moduloIdsAll = Array.from(
-        new Set((todosModulos ?? []).map((m: any) => m.id)),
-      );
-      
-      moduloIds = moduloIdsCombinados.length > 0 ? moduloIdsCombinados : moduloIdsAll;
     }
 
     if (!moduloIds.length) {
+      console.warn(`[flashcards] Nenhum módulo encontrado para modo "${modo}"`);
       return [];
     }
 
+    console.log(`[flashcards] Buscando flashcards para ${moduloIds.length} módulos (modo: ${modo})`);
     const { data: flashcards, error: cardsError } = await this.client
       .from('flashcards')
       .select('id, modulo_id, pergunta, resposta, modulos(importancia)')
@@ -633,9 +693,11 @@ export class FlashcardsService {
       .limit(50);
 
     if (cardsError) {
+      console.error('[flashcards] Erro ao buscar flashcards:', cardsError);
       throw new Error(`Erro ao buscar flashcards: ${cardsError.message}`);
     }
 
+    console.log(`[flashcards] Encontrados ${flashcards?.length ?? 0} flashcards`);
     const cards = (flashcards ?? []).map((c) => ({
       id: c.id as string,
       moduloId: c.modulo_id as string,
@@ -729,13 +791,14 @@ export class FlashcardsService {
       });
     }
 
-    // Para outros modos, usar lógica padrão
+    // Para outros modos (incluindo "mais_cobrados"), usar lógica padrão
     const dueCards = cards.filter((card) => {
       // Excluir cards já vistos na sessão
       if (excludeIds && excludeIds.includes(card.id)) {
         return false;
       }
       const progress = progressMap.get(card.id);
+      // Cards sem progresso são sempre "due" (prontos para revisão)
       if (!progress) return true;
       const nextDate = progress.data_proxima_revisao
         ? new Date(progress.data_proxima_revisao)
@@ -743,14 +806,17 @@ export class FlashcardsService {
       return !nextDate || nextDate <= now;
     });
 
+    console.log(`[flashcards] Modo "${modo}": ${dueCards.length} flashcards "due" de ${cards.length} total`);
     const shuffled = this.shuffle(dueCards);
-    return shuffled.slice(0, 10).map((c) => {
+    const resultado = shuffled.slice(0, 10).map((c) => {
       const progress = progressMap.get(c.id);
       return {
         ...c,
         dataProximaRevisao: progress?.data_proxima_revisao ?? null,
       };
     });
+    console.log(`[flashcards] Retornando ${resultado.length} flashcards para revisão`);
+    return resultado;
   }
 
   /**

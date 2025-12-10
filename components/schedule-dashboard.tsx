@@ -459,7 +459,47 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     }
 
     loadCronograma()
-  }, [cronogramaId])
+
+    // Subscription Realtime para sincronizar mudanças em cronograma_itens
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`cronograma-itens-dashboard-${cronogramaId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cronograma_itens',
+          filter: `cronograma_id=eq.${cronogramaId}`,
+        },
+        (payload) => {
+          console.log('[Realtime Dashboard] Mudança detectada em cronograma_itens:', payload)
+          
+          // Recarregar o item específico que mudou
+          if (cronograma && payload.new) {
+            const updatedItem = payload.new as any
+            const updatedItems = cronograma.cronograma_itens.map((item) =>
+              item.id === updatedItem.id
+                ? { ...item, concluido: updatedItem.concluido, data_conclusao: updatedItem.data_conclusao }
+                : item
+            )
+            setCronograma({ ...cronograma, cronograma_itens: updatedItems })
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            // Remover item deletado
+            const deletedId = (payload.old as any).id
+            const updatedItems = cronograma?.cronograma_itens.filter((item) => item.id !== deletedId) || []
+            if (cronograma) {
+              setCronograma({ ...cronograma, cronograma_itens: updatedItems })
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [cronogramaId, cronograma])
 
   const toggleConcluido = async (itemId: string, concluido: boolean) => {
     const supabase = createClient()
