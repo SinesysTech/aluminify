@@ -1,8 +1,6 @@
 import { getDatabaseClient } from '@/backend/clients/database'
 import { getServiceRoleClient } from '@/backend/clients/database-auth'
 import type { DashboardData } from '@/types/dashboard'
-import { progressoAtividadeService } from '@/backend/services/progresso-atividade'
-import { sessaoEstudoService } from '@/backend/services/sessao-estudo'
 
 export class DashboardAnalyticsService {
   /**
@@ -764,8 +762,8 @@ export class DashboardAnalyticsService {
    * Calcula domínio estratégico
    */
   private async getStrategicDomain(
-    alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    _alunoId: string,
+    _client: ReturnType<typeof getDatabaseClient>
   ) {
     // Por enquanto, valores mockados - pode ser melhorado com lógica real
     return {

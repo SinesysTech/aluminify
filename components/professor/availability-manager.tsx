@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import {
   Table,
@@ -136,13 +133,7 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Gerenciar Disponibilidade</CardTitle>
-        <CardDescription>
-          Defina seus horários de atendimento para que os alunos possam agendar.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         <Table>
           <TableHeader>
             <TableRow>

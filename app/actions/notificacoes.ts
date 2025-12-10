@@ -77,7 +77,7 @@ export async function getNotificacoesNaoLidas(userId: string): Promise<number> {
   return count || 0
 }
 
-export async function marcarComoLida(notificacaoId: string) {
+export async function marcarComoLida(_notificacaoId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

@@ -24,7 +24,6 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
 import { format, addDays } from 'date-fns'
-import { ptBR } from 'date-fns/locale/pt-BR'
 import { GripVertical } from 'lucide-react'
 import { createClient } from '@/lib/client'
 import { cn } from '@/lib/utils'
@@ -65,7 +64,7 @@ interface ScheduleListProps {
   modalidade: 'paralelo' | 'sequencial'
   cronogramaId: string
   onToggleConcluido: (itemId: string, concluido: boolean) => void
-  onUpdate: (updater: (prev: any) => any) => void
+  onUpdate: (updater: (prev: Record<number, CronogramaItem[]>) => Record<number, CronogramaItem[]>) => void
 }
 
 const formatTempo = (minutes: number) => {
@@ -177,10 +176,11 @@ export function ScheduleList({
   dataFim,
   periodosFerias,
   modalidade,
-  cronogramaId,
+  cronogramaId: _cronogramaId,
   onToggleConcluido,
   onUpdate,
 }: ScheduleListProps) {
+  void _cronogramaId // Marked as intentionally unused
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -195,8 +195,8 @@ export function ScheduleList({
   const dataFimDate = new Date(dataFim)
   const todasSemanas: number[] = []
   let semanaNumero = 1
-  let dataAtual = new Date(dataInicioDate)
-  
+  const dataAtual = new Date(dataInicioDate)
+
   while (dataAtual <= dataFimDate) {
     todasSemanas.push(semanaNumero)
     dataAtual.setDate(dataAtual.getDate() + 7)

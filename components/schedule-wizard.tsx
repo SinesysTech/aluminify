@@ -11,8 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -20,7 +18,6 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
 } from '@/components/ui/accordion'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { ChevronDownIcon } from 'lucide-react'
@@ -37,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { CalendarIcon, Loader2, X, AlertCircle, Info } from 'lucide-react'
+import { Loader2, X, AlertCircle, Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 import { cn } from '@/lib/utils'
@@ -145,6 +142,26 @@ type FrenteResumo = {
   modulos: ModuloResumo[]
 }
 
+// Types for state data
+interface CursoData {
+  id: string
+  nome: string
+  [key: string]: unknown
+}
+
+interface DisciplinaData {
+  id: string
+  nome: string
+  [key: string]: unknown
+}
+
+interface FrenteData {
+  id: string
+  nome: string
+  disciplina_id: string
+  [key: string]: unknown
+}
+
 const formatHorasFromMinutes = (minutos?: number) => {
   if (!minutos || minutos <= 0) {
     return '--'
@@ -234,10 +251,10 @@ export function ScheduleWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [cursos, setCursos] = useState<any[]>([])
-  const [disciplinas, setDisciplinas] = useState<any[]>([]) // Todas as disciplinas (para referência)
-  const [disciplinasDoCurso, setDisciplinasDoCurso] = useState<any[]>([]) // Disciplinas do curso selecionado
-  const [frentes, setFrentes] = useState<any[]>([])
+  const [cursos, setCursos] = useState<CursoData[]>([])
+  const [disciplinas, setDisciplinas] = useState<DisciplinaData[]>([]) // Todas as disciplinas (para referência)
+  const [disciplinasDoCurso, setDisciplinasDoCurso] = useState<DisciplinaData[]>([]) // Disciplinas do curso selecionado
+  const [frentes, setFrentes] = useState<FrenteData[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [showTempoInsuficienteDialog, setShowTempoInsuficienteDialog] = useState(false)
   const [tempoInsuficienteDetalhes, setTempoInsuficienteDetalhes] = useState<{
@@ -303,7 +320,7 @@ export function ScheduleWizard() {
       console.log(`Usuário ${user.id} é professor: ${isProfessor}`)
 
       // Buscar cursos: se for professor, buscar cursos que ele criou; se for aluno, buscar através de matrículas
-      let cursosData: any[] = []
+      let cursosData: CursoData[] = []
 
       if (isProfessor) {
         // Professor vê todos os cursos disponíveis (os que ele criou + cursos sem created_by para testes)
@@ -336,11 +353,11 @@ export function ScheduleWizard() {
 
         // Remover duplicatas por ID
         const cursosUnicos = Array.from(
-          new Map(todosCursos.map((curso: any) => [curso.id, curso])).values()
-        ).sort((a: any, b: any) => a.nome.localeCompare(b.nome))
+          new Map(todosCursos.map((curso) => [curso.id, curso])).values()
+        ).sort((a, b) => (a.nome as string).localeCompare(b.nome as string)) as CursoData[]
 
         cursosData = cursosUnicos
-        console.log(`Professor ${user.id} encontrou ${cursosUnicos.length} curso(s):`, cursosUnicos.map((c: any) => c.nome))
+        console.log(`Professor ${user.id} encontrou ${cursosUnicos.length} curso(s):`, cursosUnicos.map((c) => c.nome))
       } else {
         // Aluno vê cursos através da tabela alunos_cursos
         const { data: alunosCursos, error: alunosCursosError } = await supabase
@@ -353,8 +370,8 @@ export function ScheduleWizard() {
         }
 
         if (alunosCursos) {
-          cursosData = alunosCursos.map((ac: any) => ac.cursos).filter(Boolean)
-          console.log(`Aluno ${user.id} encontrou ${cursosData.length} curso(s):`, cursosData.map((c: any) => c?.nome))
+          cursosData = alunosCursos.map((ac: { cursos: CursoData | null }) => ac.cursos).filter(Boolean) as CursoData[]
+          console.log(`Aluno ${user.id} encontrou ${cursosData.length} curso(s):`, cursosData.map((c) => c?.nome))
         }
       }
 

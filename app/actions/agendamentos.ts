@@ -574,7 +574,7 @@ export async function updateAgendamento(id: string, data: Partial<Agendamento>) 
   }
 
   // Remove fields that shouldn't be updated directly
-  const { id: _id, created_at, updated_at, ...updateData } = data
+  const { id: _id, created_at: _created_at, updated_at: _updated_at, ...updateData } = data
 
   const { data: result, error } = await supabase
     .from('agendamentos')
@@ -648,7 +648,7 @@ export async function updateConfiguracoesProfessor(
     throw new Error('Unauthorized')
   }
 
-  const { id, created_at, updated_at, ...configData } = config
+  const { id: _id, created_at: _created_at, updated_at: _updated_at, ...configData } = config
 
   const { data, error } = await supabase
     .from('agendamento_configuracoes')
@@ -707,7 +707,7 @@ export async function updateIntegracaoProfessor(
     throw new Error('Unauthorized')
   }
 
-  const { id, created_at, updated_at, ...integrationData } = integration
+  const { id: _id, created_at: _created_at, updated_at: _updated_at, ...integrationData } = integration
 
   const { data, error } = await supabase
     .from('professor_integracoes')
@@ -882,7 +882,7 @@ export async function validateAgendamento(
 // Notification Helper
 // =============================================
 
-async function createNotificacao(
+async function _createNotificacao(
   agendamentoId: string,
   tipo: AgendamentoNotificacao['tipo'],
   destinatarioId: string
