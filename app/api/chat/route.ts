@@ -12,6 +12,37 @@ import type { ChatAttachment } from '@/backend/services/chat/chat.types';
 
 export const runtime = 'nodejs';
 
+/**
+ * Obtém a URL base acessível para o n8n baixar os anexos.
+ * Prioriza variável de ambiente, depois headers da requisição.
+ */
+function getPublicBaseUrl(request: AuthenticatedRequest): string {
+  // 1. Verificar variável de ambiente (mais confiável)
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.PUBLIC_API_URL;
+  if (envUrl) {
+    return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+  }
+
+  // 2. Tentar usar headers da requisição (x-forwarded-host, host)
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const host = request.headers.get('host');
+  
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+  
+  if (host) {
+    // Se for localhost, tentar usar http (desenvolvimento)
+    const protocol = host.includes('localhost') ? 'http' : forwardedProto;
+    return `${protocol}://${host}`;
+  }
+
+  // 3. Fallback: usar a URL da requisição
+  const baseUrl = new URL(request.url);
+  return `${baseUrl.protocol}//${baseUrl.host}`;
+}
+
 function isChatMessage(value: unknown): value is ChatMessage {
   if (!value || typeof value !== 'object') {
     return false;
@@ -151,7 +182,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
     if (uploadedFiles.length > 0) {
       attachments = await saveChatAttachments(uploadedFiles);
-      const baseUrl = new URL(request.url);
+      const publicBaseUrl = getPublicBaseUrl(request);
 
       attachments = attachments.map((attachment) => {
         // Garantir que o nome do arquivo sempre tenha extensão
@@ -172,8 +203,9 @@ async function postHandler(request: AuthenticatedRequest) {
         
         // Incluir nome do arquivo com extensão na URL para o analyzer do N8N conseguir identificar o formato
         const encodedFileName = encodeURIComponent(fileName);
-        const downloadUrl = `${baseUrl.protocol}//${baseUrl.host}/api/chat/attachments/${attachment.id}/${encodedFileName}?token=${attachment.token}`;
+        const downloadUrl = `${publicBaseUrl}/api/chat/attachments/${attachment.id}/${encodedFileName}?token=${attachment.token}`;
         
+        console.log('[Chat API] URL base pública:', publicBaseUrl);
         console.log('[Chat API] URL do anexo gerada:', downloadUrl);
         console.log('[Chat API] Nome do arquivo:', fileName);
         console.log('[Chat API] Tipo MIME:', attachment.mimeType);

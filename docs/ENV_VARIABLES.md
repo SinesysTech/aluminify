@@ -117,6 +117,36 @@ N8N_WEBHOOK_URL=https://webhook.sinesys.app/webhook/...
 
 **Nota:** Atualmente a URL está configurada em `backend/services/chat/chat.service.ts`. Para maior flexibilidade, considere mover para variável de ambiente.
 
+### Chat - URL Base da API (Recomendado para N8N)
+
+Quando o N8N precisa baixar anexos (imagens, PDFs) enviados pelo chat, ele precisa de uma URL acessível. Se o N8N estiver rodando em um container Docker ou servidor diferente, `localhost:3000` não funcionará.
+
+```env
+# URL base pública da API (para o N8N acessar anexos)
+# Exemplos:
+# - Desenvolvimento local com N8N no mesmo host: http://host.docker.internal:3000
+# - Desenvolvimento local com N8N via ngrok: https://seu-subdominio.ngrok.io
+# - Produção: https://seu-dominio.com
+NEXT_PUBLIC_API_URL=https://seu-dominio.com
+# ou
+PUBLIC_API_URL=https://seu-dominio.com
+```
+
+**Como funciona:**
+1. Se `NEXT_PUBLIC_API_URL` ou `PUBLIC_API_URL` estiver configurada, ela será usada
+2. Caso contrário, o sistema tenta usar headers da requisição (`x-forwarded-host`, `host`)
+3. Se ainda não funcionar, usa a URL da requisição atual (pode não funcionar se for `localhost`)
+
+**Para desenvolvimento local com Docker:**
+- Se o N8N estiver em um container Docker e o app em `localhost:3000`, use:
+  ```env
+  NEXT_PUBLIC_API_URL=http://host.docker.internal:3000
+  ```
+- Ou use um túnel como ngrok:
+  ```env
+  NEXT_PUBLIC_API_URL=https://seu-subdominio.ngrok.io
+  ```
+
 ---
 
 **Última atualização:** Janeiro 2025

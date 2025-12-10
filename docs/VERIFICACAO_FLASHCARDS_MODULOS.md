@@ -102,3 +102,5 @@ if (!moduloExists) {
 - A importância dos flashcards está correta (herdada dos módulos)
 - As validações foram melhoradas para prevenir inconsistências futuras
 
+
+

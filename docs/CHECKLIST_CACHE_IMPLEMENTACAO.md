@@ -80,3 +80,5 @@ O sistema de cache está totalmente funcional e todas as oportunidades identific
 
 
 
+
+
