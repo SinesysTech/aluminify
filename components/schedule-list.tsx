@@ -137,17 +137,17 @@ function AulaItem({
       <div className="flex-1 min-w-0">
         {item.aulas ? (
           <>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-xs">
+            <div className="flex items-center gap-2 mb-1 flex-nowrap min-w-0">
+              <Badge variant="outline" className="text-xs whitespace-nowrap shrink-0">
                 Aula {item.aulas.numero_aula || 'N/A'}
               </Badge>
               {item.aulas.modulos?.numero_modulo && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0">
                   Módulo {item.aulas.modulos.numero_modulo}
                 </Badge>
               )}
               {item.aulas.modulos?.frentes?.nome && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs whitespace-nowrap min-w-0 truncate">
                   {item.aulas.modulos.frentes.nome}
                 </Badge>
               )}

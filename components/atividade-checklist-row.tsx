@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CheckCircle2, Circle, PlayCircle, Eye, FileX, Loader2, FileText, Timer } from 'lucide-react'
+import { PlayCircle, Eye, FileX, Loader2, FileText, Timer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +11,7 @@ import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progre
 import { atividadeRequerDesempenho } from '@/backend/services/atividade'
 import { AtividadeComProgresso } from '@/app/(dashboard)/aluno/sala-de-estudos/types'
 import { RegistrarDesempenhoModal } from './registrar-desempenho-modal'
+import { PdfViewerModal } from './pdf-viewer-modal'
 import Link from 'next/link'
 
 interface AtividadeChecklistRowProps {
@@ -55,6 +56,7 @@ export function AtividadeChecklistRow({
   const [isUpdating, setIsUpdating] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
+  const [pdfModalOpen, setPdfModalOpen] = React.useState(false)
 
   const status = atividade.progressoStatus || 'Pendente'
   const precisaModal = atividadeRequerDesempenho(atividade.tipo)
@@ -124,7 +126,7 @@ export function AtividadeChecklistRow({
 
   const handleVisualizar = () => {
     if (atividade.arquivoUrl) {
-      window.open(atividade.arquivoUrl, '_blank')
+      setPdfModalOpen(true)
     }
   }
 
@@ -139,14 +141,6 @@ export function AtividadeChecklistRow({
     atividade.questoesTotais !== null &&
     atividade.questoesTotais !== undefined &&
     atividade.questoesTotais > 0
-
-  const statusIcon = isConcluido ? (
-    <CheckCircle2 className="h-5 w-5 text-green-500" />
-  ) : isIniciado ? (
-    <PlayCircle className="h-5 w-5 text-blue-500" />
-  ) : (
-    <Circle className="h-5 w-5 text-muted-foreground" />
-  )
 
   const statusBadgeColor =
     isConcluido
@@ -166,7 +160,6 @@ export function AtividadeChecklistRow({
               disabled={isUpdating}
               className="h-5 w-5"
             />
-            {statusIcon}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -204,7 +197,7 @@ export function AtividadeChecklistRow({
                   </Badge>
                 )}
                 {atividade.anotacoesPessoais && (
-                  <TooltipProvider>
+                  <TooltipProvider delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Badge variant="outline" className="text-xs cursor-help">
@@ -212,8 +205,13 @@ export function AtividadeChecklistRow({
                           Anotações
                         </Badge>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p>{atividade.anotacoesPessoais}</p>
+                      <TooltipContent
+                        side="right"
+                        align="start"
+                        className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                        sideOffset={8}
+                      >
+                        <p className="text-sm">{atividade.anotacoesPessoais}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -223,7 +221,7 @@ export function AtividadeChecklistRow({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <TooltipProvider>
+            <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
@@ -235,8 +233,20 @@ export function AtividadeChecklistRow({
                     </Button>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p>Ir para o Modo Foco</p>
+                <TooltipContent
+                  side="left"
+                  align="start"
+                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                  sideOffset={8}
+                >
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      Clique para abrir esta atividade no Modo Foco, um ambiente dedicado para estudo sem distrações.
+                    </p>
+                    <p>
+                      No Modo Foco você pode visualizar o PDF da atividade, fazer anotações e acompanhar seu tempo de estudo.
+                    </p>
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -263,7 +273,7 @@ export function AtividadeChecklistRow({
               </Button>
             )}
 
-            <TooltipProvider>
+            <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   {hasFile ? (
@@ -291,8 +301,13 @@ export function AtividadeChecklistRow({
                   )}
                 </TooltipTrigger>
                 {!hasFile && (
-                  <TooltipContent>
-                    <p>Arquivo ainda não disponível</p>
+                  <TooltipContent
+                    side="left"
+                    align="start"
+                    className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                    sideOffset={8}
+                  >
+                    <p className="text-sm">Arquivo ainda não disponível</p>
                   </TooltipContent>
                 )}
               </Tooltip>
@@ -314,6 +329,16 @@ export function AtividadeChecklistRow({
           onOpenChange={setModalOpen}
           atividade={atividade}
           onSave={handleSaveDesempenho}
+        />
+      )}
+
+      {/* Modal de visualização de PDF */}
+      {hasFile && (
+        <PdfViewerModal
+          open={pdfModalOpen}
+          onOpenChange={setPdfModalOpen}
+          pdfUrl={atividade.arquivoUrl!}
+          title={atividade.titulo}
         />
       )}
     </>

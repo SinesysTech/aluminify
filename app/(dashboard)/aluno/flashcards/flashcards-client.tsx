@@ -611,7 +611,7 @@ export default function FlashcardsClient() {
 
       {/* Sessão de Estudo Ativa */}
       {current && !sessaoCompleta && (
-        <div className="space-y-4">
+        <div className="space-y-4 pb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <BrainCircuit className="h-4 w-4" />
@@ -667,7 +667,7 @@ export default function FlashcardsClient() {
           <Progress value={progresso} className="h-2" />
 
           <Card className="cursor-pointer border-primary/50" onClick={() => setShowAnswer(!showAnswer)}>
-            <CardContent className="p-8 text-center space-y-4">
+            <CardContent className="p-6 text-center space-y-3">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">Pergunta</div>
               <div className="text-xl font-semibold leading-relaxed whitespace-pre-line">{current.pergunta}</div>
               {showAnswer && (
@@ -682,39 +682,38 @@ export default function FlashcardsClient() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Button 
-              variant="destructive" 
-              onClick={() => handleFeedback(1)}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-            >
-              <span className="text-2xl">🔴</span>
-              <span className="text-sm font-medium">Errei o item</span>
-            </Button>
-            <Button 
-              variant="secondary" 
-              onClick={() => handleFeedback(2)}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-            >
-              <span className="text-2xl">🟠</span>
-              <span className="text-sm font-medium">Acertei parcialmente</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleFeedback(3)}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-            >
-              <span className="text-2xl">🔵</span>
-              <span className="text-sm font-medium">Acertei com dificuldade</span>
-            </Button>
-            <Button 
-              variant="default" 
-              onClick={() => handleFeedback(4)}
-              className="flex flex-col items-center gap-1 h-auto py-3"
-            >
-              <span className="text-2xl">🟢</span>
-              <span className="text-sm font-medium">Acertei com facilidade</span>
-            </Button>
+          <div className="space-y-2 mt-6">
+            <h3 className="text-sm font-semibold text-foreground">Indique aqui o seu desempenho:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+              <Button 
+                onClick={() => handleFeedback(1)}
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-700 hover:text-red-800 transition-colors"
+              >
+                <span className="text-xl">❌</span>
+                <span className="text-xs font-semibold">Errei o item</span>
+              </Button>
+              <Button 
+                onClick={() => handleFeedback(2)}
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-orange-50 hover:bg-orange-100 border-2 border-orange-200 text-orange-700 hover:text-orange-800 transition-colors"
+              >
+                <span className="text-xl">⚠️</span>
+                <span className="text-xs font-semibold">Acertei parcialmente</span>
+              </Button>
+              <Button 
+                onClick={() => handleFeedback(3)}
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-yellow-50 hover:bg-yellow-100 border-2 border-yellow-200 text-yellow-700 hover:text-yellow-800 transition-colors"
+              >
+                <span className="text-xl">💡</span>
+                <span className="text-xs font-semibold">Acertei com dificuldade</span>
+              </Button>
+              <Button 
+                onClick={() => handleFeedback(4)}
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-green-50 hover:bg-green-100 border-2 border-green-200 text-green-700 hover:text-green-800 transition-colors"
+              >
+                <span className="text-xl">✅</span>
+                <span className="text-xs font-semibold">Acertei com facilidade</span>
+              </Button>
+            </div>
           </div>
         </div>
       )}

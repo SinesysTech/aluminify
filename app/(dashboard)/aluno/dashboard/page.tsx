@@ -10,7 +10,7 @@ import {
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { ScheduleProgress } from '@/components/dashboard/schedule-progress'
 import { MetricCard } from '@/components/dashboard/metric-card'
-import { ConsistencyHeatmap } from '@/components/dashboard/consistency-heatmap'
+import { ConsistencyHeatmap, type HeatmapPeriod } from '@/components/dashboard/consistency-heatmap'
 import { SubjectPerformanceList } from '@/components/dashboard/subject-performance-list'
 import { FocusEfficiencyChart } from '@/components/dashboard/focus-efficiency-chart'
 import { SubjectDistribution } from '@/components/dashboard/subject-distribution'
@@ -28,9 +28,11 @@ export default function StudentDashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [, setIsRefreshing] = useState(false)
   const [, setLastRefresh] = useState<Date | null>(null)
+  const [heatmapPeriod, setHeatmapPeriod] = useState<HeatmapPeriod>('anual')
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const loadDashboardData = useCallback(async (showRefreshing = false) => {
+  const loadDashboardData = useCallback(async (showRefreshing = false, period?: HeatmapPeriod) => {
+    const periodToUse = period ?? heatmapPeriod
     try {
       if (showRefreshing) {
         setIsRefreshing(true)
@@ -39,7 +41,7 @@ export default function StudentDashboardPage() {
       }
       setError(null)
 
-      const dashboardData = await fetchDashboardData()
+      const dashboardData = await fetchDashboardData(periodToUse)
       setData(dashboardData)
       setLastRefresh(new Date())
     } catch (err) {
@@ -68,11 +70,17 @@ export default function StudentDashboardPage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [])
+  }, [heatmapPeriod])
 
   // Carregamento inicial
   useEffect(() => {
     loadDashboardData()
+  }, [loadDashboardData])
+
+  // Handler para mudança de período do heatmap
+  const handleHeatmapPeriodChange = useCallback((period: HeatmapPeriod) => {
+    setHeatmapPeriod(period)
+    loadDashboardData(true, period)
   }, [loadDashboardData])
 
   // Refresh automático
@@ -224,29 +232,50 @@ export default function StudentDashboardPage() {
             value: data.metrics.focusTimeDelta,
             isPositive: data.metrics.focusTimeDelta.startsWith('+'),
           }}
+          tooltip={[
+            "Este é o tempo total que você passou estudando com foco, considerando apenas o tempo líquido (sem pausas).",
+            "O valor mostra a diferença em relação ao período anterior, ajudando você a acompanhar sua evolução no estudo."
+          ]}
         />
         <MetricCard
           label="Questões Feitas"
           value={data.metrics.questionsAnswered}
           subtext={data.metrics.questionsAnsweredPeriod}
           icon={CheckCircle2}
+          tooltip={[
+            "Este número representa a quantidade total de questões que você já resolveu no período indicado.",
+            "Resolver questões é fundamental para fixar o conteúdo e se preparar melhor para as provas."
+          ]}
         />
         <MetricCard
           label="Aproveitamento"
           value={`${data.metrics.accuracy}%`}
           showProgressCircle={true}
           progressValue={data.metrics.accuracy}
+          tooltip={[
+            "Seu aproveitamento mostra a porcentagem de acertos nas questões que você resolveu.",
+            "Quanto maior o percentual, melhor você está dominando o conteúdo.",
+            "Este indicador ajuda a identificar áreas que precisam de mais estudo."
+          ]}
         />
         <MetricCard
           label="Flashcards"
           value={data.metrics.flashcardsReviewed}
           subtext="Cartas revisadas"
           icon={Brain}
+          tooltip={[
+            "Este número indica quantas cartas de flashcards você já revisou.",
+            "Os flashcards são uma técnica eficaz de memorização e revisão, ajudando você a consolidar conceitos importantes de forma rápida e eficiente."
+          ]}
         />
       </div>
 
       {/* Linha 2: Consistency Heatmap (largura total) */}
-      <ConsistencyHeatmap data={data.heatmap} />
+      <ConsistencyHeatmap 
+        data={data.heatmap} 
+        period={heatmapPeriod}
+        onPeriodChange={handleHeatmapPeriodChange}
+      />
 
       {/* Linha 3: 2 Colunas - Subject Performance List e Subject Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">

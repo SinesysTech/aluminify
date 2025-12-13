@@ -36,8 +36,20 @@ async function getHandler(request: AuthenticatedRequest) {
       )
     }
 
+    // Obter parâmetro de período (semanal, mensal, anual)
+    const { searchParams } = new URL(request.url)
+    const period = (searchParams.get('period') || 'anual') as 'semanal' | 'mensal' | 'anual'
+
+    // Validar período
+    if (!['semanal', 'mensal', 'anual'].includes(period)) {
+      return NextResponse.json(
+        { error: 'Período inválido. Use: semanal, mensal ou anual' },
+        { status: 400 }
+      )
+    }
+
     // Buscar dados agregados do dashboard
-    const dashboardData = await dashboardAnalyticsService.getDashboardData(userId)
+    const dashboardData = await dashboardAnalyticsService.getDashboardData(userId, period)
 
     return NextResponse.json({ data: dashboardData })
   } catch (error) {

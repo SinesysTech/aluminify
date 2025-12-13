@@ -46,7 +46,21 @@ export function AlunoLoginForm() {
       }
 
       // Verificar se precisa alterar senha no primeiro acesso
-      const mustChangePassword = authData.user.user_metadata?.must_change_password;
+      // Primeiro verifica o user_metadata, depois consulta a tabela alunos para garantir consistência
+      let mustChangePassword = Boolean(authData.user.user_metadata?.must_change_password);
+      
+      // Consultar a tabela alunos para obter o valor mais atualizado
+      const { data: alunoData } = await supabase
+        .from('alunos')
+        .select('must_change_password')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      // Se o valor existe na tabela alunos, usar esse (fonte de verdade)
+      if (alunoData?.must_change_password !== undefined) {
+        mustChangePassword = alunoData.must_change_password;
+      }
+
       if (mustChangePassword) {
         router.push('/primeiro-acesso');
         return;

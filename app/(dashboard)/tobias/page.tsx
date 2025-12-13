@@ -498,8 +498,8 @@ export default function TobIAsPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-8rem)] flex-col">
-      <div className="mb-2 md:mb-4 flex items-center gap-2">
+    <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-8rem)] flex-col overflow-hidden">
+      <div className="mb-2 md:mb-4 flex items-center gap-2 shrink-0">
         <Button
           variant="outline"
           size="icon"
@@ -517,7 +517,7 @@ export default function TobIAsPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden rounded-lg border">
+      <div className="flex flex-1 min-h-0 overflow-hidden rounded-lg border">
         {/* Painel de conversas */}
         <ConversationsPanel
           selectedConversationId={selectedConversationId}
@@ -531,7 +531,7 @@ export default function TobIAsPage() {
         />
 
         {/* Área do chat - full width em mobile quando painel fechado */}
-        <div className="relative flex flex-1 flex-col overflow-hidden">
+        <div className="relative flex flex-1 flex-col min-h-0">
           <Conversation>
             <ConversationContent>
               {messages.length === 0 && (

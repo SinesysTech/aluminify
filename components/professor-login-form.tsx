@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
-import { isProfessorRole } from '@/lib/roles';
+import { isProfessorRole, getDefaultRouteForRole } from '@/lib/roles';
 import Link from 'next/link';
 
 export function ProfessorLoginForm() {
@@ -47,8 +47,9 @@ export function ProfessorLoginForm() {
         throw new Error('Esta área é exclusiva para professores. Alunos devem usar a área de login adequada.');
       }
 
-      // Redirecionar para dashboard do professor
-      router.push('/tobias');
+      // Redirecionar para dashboard
+      const defaultRoute = getDefaultRouteForRole(userRole);
+      router.push(defaultRoute);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');

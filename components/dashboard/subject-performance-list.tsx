@@ -76,7 +76,8 @@ export function SubjectPerformanceList({
                 </TooltipTrigger>
                 <TooltipContent
                   side="right"
-                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3"
+                  align="start"
+                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
                   sideOffset={8}
                 >
                   <div className="space-y-2">

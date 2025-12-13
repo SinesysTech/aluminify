@@ -2,8 +2,9 @@
 
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, CheckCircle2, Circle, PlayCircle } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Circle, PlayCircle, Info } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { AtividadeComProgresso } from '@/app/(dashboard)/aluno/sala-de-estudos/types'
 
 interface ProgressoStatsCardProps {
@@ -46,6 +47,42 @@ export function ProgressoStatsCard({
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             Estatísticas de Progresso
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    aria-label="Informações sobre estatísticas de progresso"
+                  >
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  align="start"
+                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                  sideOffset={8}
+                >
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      Este card mostra um resumo do seu progresso nas atividades da sala de estudos.
+                    </p>
+                    <p>
+                      As estatísticas são calculadas com base no status de cada atividade: pendente, iniciada ou concluída.
+                    </p>
+                    <p>
+                      O percentual de progresso geral mostra quantas atividades você já concluiu em relação ao total disponível.
+                    </p>
+                    {hasFilters && (
+                      <p>
+                        Quando há filtros ativos, as estatísticas mostram apenas as atividades que correspondem aos filtros selecionados.
+                      </p>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardTitle>
           {hasFilters && totalGeral && totalGeral !== stats.total && (
             <span className="text-sm text-muted-foreground">

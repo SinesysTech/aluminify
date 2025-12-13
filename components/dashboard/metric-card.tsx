@@ -2,6 +2,8 @@
 
 import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface MetricCardProps {
@@ -16,6 +18,7 @@ interface MetricCardProps {
   // Para o caso especial do card de Aproveitamento
   showProgressCircle?: boolean
   progressValue?: number // 0-100 para o círculo de progresso
+  tooltip?: string | string[] // Texto explicativo do tooltip (string única ou array de parágrafos)
 }
 
 /**
@@ -66,6 +69,7 @@ export function MetricCard({
   trend,
   showProgressCircle = false,
   progressValue = 0,
+  tooltip,
 }: MetricCardProps) {
   return (
     <Card>
@@ -80,9 +84,42 @@ export function MetricCard({
               ) : Icon ? (
                 <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-[18px] lg:w-[18px] shrink-0" />
               ) : null}
-              <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base font-medium break-words leading-tight hyphens-auto">
-                {label}
-              </p>
+              <div className="flex items-center gap-1 min-w-0 flex-1">
+                <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base font-medium break-words leading-tight hyphens-auto">
+                  {label}
+                </p>
+                {tooltip && (
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                          aria-label={`Informações sobre ${label}`}
+                        >
+                          <Info className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="right"
+                        align="start"
+                        className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                        sideOffset={8}
+                      >
+                        <div className="space-y-2 text-sm">
+                          {Array.isArray(tooltip) ? (
+                            tooltip.map((paragraph, index) => (
+                              <p key={index}>{paragraph}</p>
+                            ))
+                          ) : (
+                            <p>{tooltip}</p>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             </div>
           </div>
           <p className="text-slate-900 dark:text-slate-50 tracking-tight text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold break-words leading-none">
@@ -114,6 +151,7 @@ export function MetricCard({
     </Card>
   )
 }
+
 
 
 

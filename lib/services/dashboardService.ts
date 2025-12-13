@@ -1,6 +1,7 @@
 import type { DashboardData } from '@/types/dashboard'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { dashboardMockData } from '@/lib/mock/dashboardMockData'
+import type { HeatmapPeriod } from '@/components/dashboard/consistency-heatmap'
 
 export interface DashboardServiceError extends Error {
   status?: number
@@ -13,14 +14,15 @@ export interface DashboardServiceError extends Error {
  * 
  * Tenta buscar dados da API real. Em caso de erro, retorna dados mock como fallback.
  * 
+ * @param period - Período do heatmap: 'semanal', 'mensal' ou 'anual' (padrão: 'anual')
  * @returns Promise<DashboardData> - Dados completos do dashboard
  * @throws DashboardServiceError - Em caso de erro crítico
  */
-export async function fetchDashboardData(): Promise<DashboardData> {
+export async function fetchDashboardData(period: HeatmapPeriod = 'anual'): Promise<DashboardData> {
   try {
     // Tentar buscar dados da API real
     const response = await apiClient.get<{ data: DashboardData }>(
-      '/api/dashboard/analytics'
+      `/api/dashboard/analytics?period=${period}`
     )
 
     if (response && 'data' in response && response.data) {

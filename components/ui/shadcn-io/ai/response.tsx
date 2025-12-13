@@ -5,6 +5,7 @@ import type { ComponentProps, HTMLAttributes } from 'react';
 import { isValidElement, memo } from 'react';
 import ReactMarkdown, { type Options } from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
+import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { CodeBlock, CodeBlockCopyButton } from './code-block';
@@ -175,6 +176,11 @@ export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const components: Options['components'] = {
+  p: ({ node, children, className, ...props }) => (
+    <p className={cn('mb-3 mt-3 leading-relaxed first:mt-0 last:mb-0', className)} {...props}>
+      {children}
+    </p>
+  ),
   ol: ({ node, children, className, ...props }) => (
     <ol className={cn('ml-4 list-outside list-decimal', className)} {...props}>
       {children}
@@ -359,10 +365,21 @@ export const Response = memo(
     ...props
   }: ResponseProps) => {
     // Parse the children to remove incomplete markdown tokens if enabled
-    const parsedChildren =
+    let parsedChildren =
       typeof children === 'string' && shouldParseIncompleteMarkdown
         ? parseIncompleteMarkdown(children)
         : children;
+
+    // Normalize line breaks: ensure \n\n creates paragraphs
+    // Normalize Windows (\r\n) and old Mac (\r) line endings to Unix (\n)
+    if (typeof parsedChildren === 'string') {
+      parsedChildren = parsedChildren.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      // Ensure that \n\n (double newline) creates paragraph breaks
+      // The remark-breaks plugin handles single \n as <br>
+      // Double \n\n should create paragraphs - ensure they're preserved
+      // by keeping at least two newlines for paragraph breaks
+      parsedChildren = parsedChildren.replace(/\n{3,}/g, '\n\n'); // Collapse 3+ newlines to 2
+    }
 
     return (
       <div
@@ -378,7 +395,7 @@ export const Response = memo(
           components={components}
           defaultOrigin={defaultOrigin}
           rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkGfm, remarkMath]}
+          remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
           {...options}
         >
           {parsedChildren}

@@ -31,6 +31,8 @@ Este diretório contém toda a documentação técnica do projeto Área do Aluno
 - [Correção Rápida: Erro "No password given"](./N8N_PDF_QUICK_FIX.md) - ⚡ Solução rápida passo a passo
 - [Erro "No password given" no Extract from PDF](./N8N_PDF_PASSWORD_ERROR.md) - Solução detalhada para erro de senha
 - [Solução Alternativa: Extrair PDF sem Extract from File](./N8N_EXTRACT_PDF_ALTERNATIVE.md) - Workarounds quando Extract from File não funciona
+- [Formatação LaTeX para o Agente](./N8N_LATEX_FORMATTING.md) - Instruções completas sobre formatação de equações
+- [Snippet de Prompt LaTeX](./N8N_LATEX_PROMPT_SNIPPET.md) - Versão resumida para copiar no prompt do sistema
 
 ### ⚙️ Infraestrutura
 
@@ -66,6 +68,8 @@ Este diretório contém toda a documentação técnica do projeto Área do Aluno
 - Erro "No password given"? → [N8N_PDF_QUICK_FIX.md](./N8N_PDF_QUICK_FIX.md) ⚡ **COMECE AQUI**
 - Mais detalhes sobre o erro → [N8N_PDF_PASSWORD_ERROR.md](./N8N_PDF_PASSWORD_ERROR.md)
 - Extract from File não funciona? → [N8N_EXTRACT_PDF_ALTERNATIVE.md](./N8N_EXTRACT_PDF_ALTERNATIVE.md)
+- Como formatar equações LaTeX? → [N8N_LATEX_FORMATTING.md](./N8N_LATEX_FORMATTING.md)
+- Snippet rápido para prompt → [N8N_LATEX_PROMPT_SNIPPET.md](./N8N_LATEX_PROMPT_SNIPPET.md)
 
 **Cronogramas**
 - Como funciona? → [FLUXO_GERACAO_CRONOGRAMA.md](../FLUXO_GERACAO_CRONOGRAMA.md)

@@ -5,6 +5,7 @@ import { Upload, FileText, CheckCircle2, Loader2, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/client'
 import { cn } from '@/lib/utils'
+import { PdfViewerModal } from './pdf-viewer-modal'
 
 const MATERIAIS_BUCKET = 'materiais_didaticos'
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -30,6 +31,7 @@ export function ActivityUploadRow({
   const [error, setError] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [isReplacing, setIsReplacing] = React.useState(false)
+  const [pdfModalOpen, setPdfModalOpen] = React.useState(false)
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -124,7 +126,7 @@ export function ActivityUploadRow({
 
   const handleView = () => {
     if (arquivoUrl) {
-      window.open(arquivoUrl, '_blank')
+      setPdfModalOpen(true)
     }
   }
 
@@ -231,6 +233,16 @@ export function ActivityUploadRow({
         <div className="mt-2 rounded-md bg-destructive/15 p-2 text-xs text-destructive">
           {error}
         </div>
+      )}
+
+      {/* Modal de visualização de PDF */}
+      {hasFile && arquivoUrl && (
+        <PdfViewerModal
+          open={pdfModalOpen}
+          onOpenChange={setPdfModalOpen}
+          pdfUrl={arquivoUrl}
+          title={titulo}
+        />
       )}
     </div>
   )

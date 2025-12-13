@@ -16,8 +16,9 @@ import { ptBR } from 'date-fns/locale/pt-BR'
 import { DateRange } from 'react-day-picker'
 import { cn } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
-import { Loader2, Save, ChevronDown, ChevronUp, CheckSquare2, ChevronLeft, ChevronRight, CalendarCheck } from 'lucide-react'
+import { Loader2, Save, ChevronDown, ChevronUp, CheckSquare2, ChevronLeft, ChevronRight, CalendarCheck, Info } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useSwipe } from '@/hooks/use-swipe'
 import { useIsMobile } from '@/hooks/use-mobile'
 
@@ -1994,8 +1995,42 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progresso Geral</span>
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <span>Progresso Geral</span>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                        aria-label="Informações sobre progresso geral"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="right"
+                      align="start"
+                      className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                      sideOffset={8}
+                    >
+                      <div className="space-y-2 text-sm">
+                        <p>
+                          Este indicador mostra o progresso geral do seu cronograma de estudos.
+                        </p>
+                        <p>
+                          O percentual é calculado com base no número de aulas que você já marcou como concluídas
+                          em relação ao total de aulas previstas no cronograma.
+                        </p>
+                        <p>
+                          Acompanhar seu progresso ajuda a manter a motivação e identificar se está no ritmo esperado.
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <span>{itensConcluidos} de {totalItens} aulas concluídas</span>
             </div>
             <Progress value={progressoPercentual} />
@@ -2010,11 +2045,49 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <div>
-              <CardTitle>Calendário de Estudos</CardTitle>
-              <CardDescription>
-                Visualize suas aulas agendadas e marque as concluídas
-              </CardDescription>
+            <div className="flex items-center gap-2">
+              <div>
+                <CardTitle>Calendário de Estudos</CardTitle>
+                <CardDescription>
+                  Visualize suas aulas agendadas e marque as concluídas
+                </CardDescription>
+              </div>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                      aria-label="Informações sobre calendário de estudos"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    align="start"
+                    className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                    sideOffset={8}
+                  >
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        O calendário mostra todas as suas aulas agendadas de forma visual, organizadas por data.
+                      </p>
+                      <p>
+                        Você pode selecionar um período clicando em duas datas para ver as aulas daquele intervalo.
+                      </p>
+                      <p>
+                        As cores indicam o status das aulas: verde para concluídas, laranja para parcialmente concluídas,
+                        azul para pendentes e amarelo para dias selecionados sem aulas ainda.
+                      </p>
+                      <p>
+                        Use o botão "Exportar Calendário" para baixar seu cronograma em formato ICS e importá-lo
+                        em aplicativos de calendário como Google Calendar ou Outlook.
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <Button
               variant="outline"
@@ -2148,7 +2221,49 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   {/* Primeira parte: Legendas */}
                   <div className="md:w-64 shrink-0">
                     <CardHeader className="pb-1 pt-1.5 px-3">
-                      <CardTitle className="text-base font-bold">Legendas</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base font-bold">Legendas</CardTitle>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                aria-label="Informações sobre legendas"
+                              >
+                                <Info className="h-4 w-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="right"
+                              align="start"
+                              className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                              sideOffset={8}
+                            >
+                              <div className="space-y-2 text-sm">
+                                <p>
+                                  As cores no calendário ajudam você a identificar rapidamente o status das suas aulas.
+                                </p>
+                                <p>
+                                  <strong>Amarelo:</strong> Dias selecionados para estudo, mas sem aulas agendadas ainda.
+                                </p>
+                                <p>
+                                  <strong>Azul:</strong> Dias com aulas agendadas, mas nenhuma concluída.
+                                </p>
+                                <p>
+                                  <strong>Verde:</strong> Dias com todas as aulas concluídas.
+                                </p>
+                                <p>
+                                  <strong>Laranja:</strong> Dias com algumas aulas concluídas, mas ainda há pendentes.
+                                </p>
+                                <p>
+                                  <strong>Rosa:</strong> Períodos de férias ou recesso definidos no cronograma.
+                                </p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </CardHeader>
                     <CardContent className="px-3 pb-1.5 pt-0">
                       <div className="flex flex-col gap-1.5 text-sm">
@@ -2182,7 +2297,47 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   {/* Segunda parte: Instruções */}
                   <div className="md:w-[500px] shrink-0">
                     <CardHeader className="pb-1 pt-1.5 px-3">
-                      <CardTitle className="text-base font-bold">Como usar</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base font-bold">Como usar</CardTitle>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                aria-label="Informações sobre como usar o calendário"
+                              >
+                                <Info className="h-4 w-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="right"
+                              align="start"
+                              className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                              sideOffset={8}
+                            >
+                              <div className="space-y-2 text-sm">
+                                <p>
+                                  Este calendário permite visualizar e gerenciar suas aulas de forma prática e organizada.
+                                </p>
+                                <p>
+                                  Selecione os dias da semana em que deseja estudar no painel lateral e clique em
+                                  "Salvar e Atualizar Calendário" para recalcular as datas automaticamente.
+                                </p>
+                                <p>
+                                  Clique em uma data ou selecione um período para ver as aulas agendadas naquele intervalo.
+                                </p>
+                                <p>
+                                  Marque as aulas como concluídas usando os checkboxes na lista que aparece abaixo do calendário.
+                                </p>
+                                <p>
+                                  Use o botão "Exportar Calendário" para baixar seu cronograma e importá-lo em outros aplicativos.
+                                </p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </CardHeader>
                     <CardContent className="px-3 pb-1.5 pt-0">
                       <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
@@ -2220,7 +2375,48 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   <CollapsibleTrigger asChild>
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">Resumo por Semana</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-base">Resumo por Semana</CardTitle>
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                  aria-label="Informações sobre resumo por semana"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Info className="h-4 w-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="right"
+                                align="start"
+                                className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                sideOffset={8}
+                              >
+                                <div className="space-y-2 text-sm">
+                                  <p>
+                                    Este painel mostra um resumo detalhado de cada semana do seu cronograma.
+                                  </p>
+                                  <p>
+                                    Para cada semana, você pode ver quanto tempo está disponível, quanto foi usado,
+                                    quanto resta e quantas aulas foram concluídas.
+                                  </p>
+                                  <p>
+                                    A barra de progresso indica o percentual de uso da capacidade semanal.
+                                    Cores diferentes indicam diferentes níveis de uso: verde (bom), amarelo (moderado),
+                                    laranja (alto) e vermelho (sobrecarregado).
+                                  </p>
+                                  <p>
+                                    Semanas sobrecarregadas (acima de 100%) indicam que há mais conteúdo do que tempo disponível,
+                                    e você pode precisar ajustar o cronograma.
+                                  </p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
                       </div>
                       <CardDescription className="text-xs">
@@ -2263,27 +2459,178 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                   )}
                                 />
                                 <div className="grid grid-cols-2 gap-2 text-xs">
-                                  <div>
+                                  <div className="flex items-center gap-1">
+                                    <TooltipProvider delayDuration={200}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                            aria-label="Informações sobre tempo disponível"
+                                          >
+                                            <Info className="h-3 w-3" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                          side="right"
+                                          align="start"
+                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                          sideOffset={8}
+                                        >
+                                          <div className="space-y-2 text-sm">
+                                            <p>
+                                              Tempo disponível é o total de horas de estudo que você tem nesta semana,
+                                              calculado com base nos dias selecionados e horas por dia configuradas no cronograma.
+                                            </p>
+                                            <p>
+                                              Este valor considera apenas os dias úteis, excluindo períodos de férias.
+                                            </p>
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                     <span className="text-muted-foreground">Disponível:</span>
                                     <span className="ml-1 font-medium">{formatarMinutos(semana.capacidade_minutos)}</span>
                                   </div>
-                                  <div>
+                                  <div className="flex items-center gap-1">
+                                    <TooltipProvider delayDuration={200}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                            aria-label="Informações sobre tempo usado"
+                                          >
+                                            <Info className="h-3 w-3" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                          side="right"
+                                          align="start"
+                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                          sideOffset={8}
+                                        >
+                                          <div className="space-y-2 text-sm">
+                                            <p>
+                                              Tempo usado é a soma do tempo estimado de todas as aulas agendadas para esta semana.
+                                            </p>
+                                            <p>
+                                              Este valor considera o tempo estimado de cada aula, incluindo tempo de estudo
+                                              e tempo adicional para anotações e exercícios.
+                                            </p>
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                     <span className="text-muted-foreground">Usado:</span>
                                     <span className="ml-1 font-medium">{formatarMinutos(semana.tempo_usado_minutos)}</span>
                                   </div>
-                                  <div>
+                                  <div className="flex items-center gap-1">
+                                    <TooltipProvider delayDuration={200}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                            aria-label="Informações sobre tempo restante"
+                                          >
+                                            <Info className="h-3 w-3" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                          side="right"
+                                          align="start"
+                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                          sideOffset={8}
+                                        >
+                                          <div className="space-y-2 text-sm">
+                                            <p>
+                                              Tempo restante é a diferença entre o tempo disponível e o tempo usado.
+                                            </p>
+                                            <p>
+                                              Um valor positivo indica que você tem tempo livre na semana.
+                                              Um valor negativo indica que a semana está sobrecarregada.
+                                            </p>
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                     <span className="text-muted-foreground">Restante:</span>
                                     <span className="ml-1 font-medium">{formatarMinutos(semana.tempo_disponivel_minutos)}</span>
                                   </div>
-                                  <div>
+                                  <div className="flex items-center gap-1">
+                                    <TooltipProvider delayDuration={200}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                            aria-label="Informações sobre aulas"
+                                          >
+                                            <Info className="h-3 w-3" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                          side="right"
+                                          align="start"
+                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                          sideOffset={8}
+                                        >
+                                          <div className="space-y-2 text-sm">
+                                            <p>
+                                              Mostra quantas aulas foram concluídas em relação ao total de aulas agendadas para esta semana.
+                                            </p>
+                                            <p>
+                                              O formato é "concluídas/total", onde o primeiro número são as aulas que você já marcou
+                                              como concluídas e o segundo é o total de aulas da semana.
+                                            </p>
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                     <span className="text-muted-foreground">Aulas:</span>
                                     <span className="ml-1 font-medium">
                                       {semana.aulas_concluidas}/{semana.total_aulas}
                                     </span>
                                   </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {semana.percentual_usado.toFixed(1)}% da capacidade
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <TooltipProvider delayDuration={200}>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          type="button"
+                                          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                          aria-label="Informações sobre percentual da capacidade"
+                                        >
+                                          <Info className="h-3 w-3" />
+                                        </button>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        side="right"
+                                        align="start"
+                                        className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                        sideOffset={8}
+                                      >
+                                        <div className="space-y-2 text-sm">
+                                          <p>
+                                            Este percentual mostra quanto da capacidade semanal está sendo utilizada.
+                                          </p>
+                                          <p>
+                                            Valores abaixo de 80% indicam que há tempo livre na semana.
+                                            Entre 80% e 95% indica uso moderado.
+                                            Entre 95% e 100% indica uso completo.
+                                            Acima de 100% indica sobrecarga.
+                                          </p>
+                                          <p>
+                                            Semanas sobrecarregadas podem precisar de ajustes no cronograma para distribuir
+                                            melhor o conteúdo.
+                                          </p>
+                                        </div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <span>{semana.percentual_usado.toFixed(1)}% da capacidade</span>
                                 </div>
                                 {semana.percentual_usado > 100 && (
                                   <div className="text-xs text-red-600 dark:text-red-400 font-medium">
@@ -2303,7 +2650,44 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             {/* Painel de Filtros - Lado Direito - Alinhado com o calendário */}
             <Card className="w-full lg:w-80 shrink-0 flex flex-col border rounded-md shadow-sm py-2 mt-0 md:mt-0">
               <CardHeader className="pb-1 pt-2 px-3">
-                <CardTitle className="text-base font-bold leading-tight">Selecionar dias para ver a aula</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base font-bold leading-tight">Selecionar dias para ver a aula</CardTitle>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                          aria-label="Informações sobre seleção de dias"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="left"
+                        align="start"
+                        className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                        sideOffset={8}
+                      >
+                        <div className="space-y-2 text-sm">
+                          <p>
+                            Selecione os dias da semana em que você deseja estudar.
+                          </p>
+                          <p>
+                            Ao selecionar os dias e clicar em "Salvar e Atualizar Calendário", o sistema recalcula
+                            automaticamente as datas de todas as aulas para que sejam distribuídas apenas nos dias selecionados.
+                          </p>
+                          <p>
+                            Isso permite personalizar seu cronograma de acordo com sua disponibilidade semanal.
+                          </p>
+                          <p>
+                            Os dias selecionados aparecem em amarelo no calendário, mesmo que ainda não tenham aulas agendadas.
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <CardDescription className="text-xs mt-0.5 leading-tight mb-0">
                   Selecione os dias em que deseja ver as aulas no calendário
                 </CardDescription>
@@ -2351,6 +2735,38 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     >
                       Manter dias atuais
                     </Label>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                            aria-label="Informações sobre manter dias atuais"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="left"
+                          align="start"
+                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                          sideOffset={8}
+                        >
+                          <div className="space-y-2 text-sm">
+                            <p>
+                              Quando marcado, este checkbox mantém os dias da semana que já estão salvos no seu cronograma.
+                            </p>
+                            <p>
+                              Com o checkbox marcado, você não pode editar os dias selecionados. Desmarque para poder
+                              alterar quais dias da semana deseja estudar.
+                            </p>
+                            <p>
+                              Após alterar os dias e salvar, o sistema recalcula todas as datas das aulas automaticamente.
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                   <p className="text-xs text-muted-foreground ml-6 mb-1.5 leading-tight">
                     {manterDiasAtuais
@@ -2805,19 +3221,19 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                               <div className="flex items-start justify-between gap-2">
                                                 <div className="flex-1">
                                                   {/* Badges: Aula, Módulo, Frente */}
-                                                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                                  <div className="flex items-center gap-2 mb-1.5 flex-nowrap min-w-0">
                                                     {item.aulas?.numero_aula && (
-                                                      <Badge variant="outline" className="text-xs">
+                                                      <Badge variant="outline" className="text-xs whitespace-nowrap shrink-0">
                                                         Aula {item.aulas.numero_aula}
                                                       </Badge>
                                                     )}
                                                     {item.aulas?.modulos?.numero_modulo && (
-                                                      <Badge variant="secondary" className="text-xs">
+                                                      <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0">
                                                         Módulo {item.aulas.modulos.numero_modulo}
                                                       </Badge>
                                                     )}
                                                     {item.aulas?.modulos?.frentes?.nome && (
-                                                      <Badge variant="outline" className="text-xs">
+                                                      <Badge variant="outline" className="text-xs whitespace-nowrap min-w-0 truncate">
                                                         {item.aulas.modulos.frentes.nome}
                                                       </Badge>
                                                     )}

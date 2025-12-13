@@ -6,7 +6,10 @@ export class DashboardAnalyticsService {
   /**
    * Busca dados agregados do dashboard para um aluno
    */
-  async getDashboardData(alunoId: string): Promise<DashboardData> {
+  async getDashboardData(
+    alunoId: string, 
+    period: 'semanal' | 'mensal' | 'anual' = 'anual'
+  ): Promise<DashboardData> {
     const client = getDatabaseClient()
 
     // Buscar dados do usuário
@@ -22,7 +25,7 @@ export class DashboardAnalyticsService {
       subjectDistribution,
     ] = await Promise.all([
       this.getMetrics(alunoId, client),
-      this.getHeatmapData(alunoId, client),
+      this.getHeatmapData(alunoId, client, period),
       this.getSubjectPerformance(alunoId, client),
       this.getFocusEfficiency(alunoId, client),
       this.getStrategicDomain(alunoId, client),
@@ -472,19 +475,42 @@ export class DashboardAnalyticsService {
    */
   private async getHeatmapData(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: 'semanal' | 'mensal' | 'anual' = 'anual'
   ) {
     const hoje = new Date()
-    const inicioAno = new Date(hoje)
-    inicioAno.setDate(hoje.getDate() - 365)
+    hoje.setHours(0, 0, 0, 0) // Normalizar para início do dia
+    
+    let inicioPeriodo: Date
+    let dias: number
 
-    // Buscar sessões dos últimos 365 dias
+    // Calcular período baseado no parâmetro
+    switch (period) {
+      case 'semanal':
+        inicioPeriodo = new Date(hoje)
+        inicioPeriodo.setDate(hoje.getDate() - 7)
+        dias = 7
+        break
+      case 'mensal':
+        inicioPeriodo = new Date(hoje)
+        inicioPeriodo.setDate(hoje.getDate() - 31)
+        dias = 31
+        break
+      case 'anual':
+      default:
+        inicioPeriodo = new Date(hoje)
+        inicioPeriodo.setDate(hoje.getDate() - 365)
+        dias = 365
+        break
+    }
+
+    // Buscar sessões do período
     const { data: sessoes } = await client
       .from('sessoes_estudo')
       .select('inicio, tempo_total_liquido_segundos')
       .eq('aluno_id', alunoId)
       .eq('status', 'concluido')
-      .gte('inicio', inicioAno.toISOString())
+      .gte('inicio', inicioPeriodo.toISOString())
 
     // Criar mapa de dias
     const diasMap = new Map<string, number>()
@@ -496,11 +522,11 @@ export class DashboardAnalyticsService {
       diasMap.set(data, atual + minutos)
     })
 
-    // Gerar array de 365 dias
+    // Gerar array de dias
     const heatmap: Array<{ date: string; intensity: number }> = []
-    for (let i = 0; i < 365; i++) {
-      const data = new Date(inicioAno)
-      data.setDate(inicioAno.getDate() + i)
+    for (let i = 0; i < dias; i++) {
+      const data = new Date(inicioPeriodo)
+      data.setDate(inicioPeriodo.getDate() + i)
       const dataStr = data.toISOString().split('T')[0]
 
       const minutos = diasMap.get(dataStr) || 0
