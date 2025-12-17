@@ -115,7 +115,7 @@ async function rollback(backupFile: string): Promise<void> {
     throw new Error(`Arquivo de backup não encontrado: ${backupFile}`)
   }
 
-  JSON.parse(fs.readFileSync(backupFile, 'utf-8'))
+  const _backup = JSON.parse(fs.readFileSync(backupFile, 'utf-8'))
 
   // Deletar recorrências criadas na migração
   const { error: deleteError } = await supabase
@@ -171,14 +171,26 @@ async function migrate(dryRun: boolean = false): Promise<MigrationStats> {
       return stats
     }
 
+    interface ProfessorData {
+      empresa_id: string;
+      [key: string]: unknown;
+    }
+    interface DisponibilidadeWithProfessor {
+      professor: ProfessorData | null;
+      professor_id: string;
+      dia_semana: number;
+      hora_inicio: string;
+      hora_fim: string;
+      [key: string]: unknown;
+    }
     // Preparar dados para migração
-    const recorrencias = disponibilidades
+    const recorrencias = (disponibilidades as DisponibilidadeWithProfessor[])
       .filter(d => {
-        const prof = d.professor as any
+        const prof = d.professor as ProfessorData | null
         return prof && prof.empresa_id
       })
       .map(d => {
-        const prof = d.professor as any
+        const prof = d.professor as ProfessorData
         return {
           professor_id: d.professor_id,
           empresa_id: prof.empresa_id,

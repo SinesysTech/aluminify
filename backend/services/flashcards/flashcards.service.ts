@@ -1214,8 +1214,13 @@ export class FlashcardsService {
           const frentes = Array.isArray(m.frentes) ? m.frentes[0] : m.frentes;
           if (!m || !frentes) return false;
           
+          interface FrenteComDisciplina {
+            disciplinas?: { id: string; nome: string } | { id: string; nome: string }[];
+            [key: string]: unknown;
+          }
           // Verificar se a disciplina foi realmente carregada (não apenas a foreign key)
-          const disciplinasData = (frentes as any)?.disciplinas;
+          const frentesWithDisciplina = frentes as FrenteComDisciplina;
+          const disciplinasData = frentesWithDisciplina?.disciplinas;
           const disciplina = Array.isArray(disciplinasData) ? disciplinasData[0] : disciplinasData;
           return disciplina && disciplina.id && disciplina.nome;
         })
@@ -1223,7 +1228,12 @@ export class FlashcardsService {
           const frentes = Array.isArray(m.frentes) ? m.frentes[0]! : m.frentes!;
           // Acessar disciplinas do objeto frentes (estrutura retornada pela query SQL)
           // Supabase pode retornar como objeto único ou array, tratar ambos os casos
-          const disciplinasData = (frentes as any)?.disciplinas;
+          interface FrenteComDisciplina {
+            disciplinas?: { id: string; nome: string } | { id: string; nome: string }[];
+            [key: string]: unknown;
+          }
+          const frentesWithDisciplina = frentes as FrenteComDisciplina;
+          const disciplinasData = frentesWithDisciplina?.disciplinas;
           const disciplina = Array.isArray(disciplinasData) ? disciplinasData[0] : disciplinasData;
           
           // Garantir que temos a disciplina carregada (já filtrado acima, mas double-check para type safety)

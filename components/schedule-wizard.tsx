@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -458,9 +458,9 @@ export function ScheduleWizard() {
   }, [cursoSelecionado, form])
 
   // Carregar frentes quando disciplinas são selecionadas (filtradas pelo curso também)
+  const disciplinasIds = form.watch('disciplinas_ids');
   React.useEffect(() => {
     async function loadFrentes() {
-      const disciplinasIds = form.watch('disciplinas_ids')
       if (!disciplinasIds || disciplinasIds.length === 0 || !cursoSelecionado) {
         setFrentes([])
         return
@@ -479,10 +479,10 @@ export function ScheduleWizard() {
       }
     }
 
-    const disciplinasIds = form.watch('disciplinas_ids');
     loadFrentes()
-  }, [form.watch('disciplinas_ids'), cursoSelecionado, form])
+  }, [disciplinasIds, cursoSelecionado])
 
+  const disciplinasIdsModulos = form.watch('disciplinas_ids');
   useEffect(() => {
     if (!cursoSelecionado || !userId) {
       setModulosCurso([])
@@ -491,8 +491,7 @@ export function ScheduleWizard() {
       return
     }
 
-    const disciplinasIds = form.watch('disciplinas_ids')
-    if (!disciplinasIds || disciplinasIds.length === 0) {
+    if (!disciplinasIdsModulos || disciplinasIdsModulos.length === 0) {
       setModulosCurso([])
       setModulosSelecionados([])
       setCompletedLessonsCount(0)
@@ -1115,7 +1114,7 @@ export function ScheduleWizard() {
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep)
-    const isValid = await form.trigger(fieldsToValidate as any)
+    const isValid = await form.trigger(fieldsToValidate)
 
     if (isValid) {
       if (currentStep === 2) {

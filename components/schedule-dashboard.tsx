@@ -371,9 +371,9 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
             // Montar estrutura completa das aulas
             const aulasCompletas = (aulasBasicas || []).map(aula => {
-              const modulo = modulosMap.get(aula.modulo_id)
-              const frente = modulo ? frentesMap.get((modulo as any).frente_id) : null
-              const disciplina = frente ? disciplinasMap.get((frente as any).disciplina_id) : null
+              const modulo = modulosMap.get(aula.modulo_id) as ModuloMapValue | undefined
+              const frente = modulo ? frentesMap.get(modulo.frente_id) as FrenteMapValue | undefined : null
+              const disciplina = frente ? disciplinasMap.get(frente.disciplina_id) as DisciplinaMapValue | undefined : null
 
               return {
                 id: aula.id,
@@ -382,15 +382,15 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 tempo_estimado_minutos: aula.tempo_estimado_minutos,
                 curso_id: aula.curso_id,
                 modulos: modulo ? {
-                  id: (modulo as any).id,
-                  nome: (modulo as any).nome,
-                  numero_modulo: (modulo as any).numero_modulo,
+                  id: modulo.id,
+                  nome: modulo.nome,
+                  numero_modulo: modulo.numero_modulo,
                   frentes: frente ? {
-                    id: (frente as any).id,
-                    nome: (frente as any).nome,
+                    id: frente.id,
+                    nome: frente.nome,
                     disciplinas: disciplina ? {
-                      id: (disciplina as any).id,
-                      nome: (disciplina as any).nome,
+                      id: disciplina.id,
+                      nome: disciplina.nome,
                     } : null,
                   } : null,
                 } : null,
@@ -522,9 +522,15 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         (payload) => {
           console.log('[Realtime Dashboard] Mudança detectada em cronograma_itens:', payload)
           
+          interface CronogramaItemUpdate {
+            id: string;
+            concluido: boolean;
+            data_conclusao: string | null;
+            [key: string]: unknown;
+          }
           // Recarregar o item específico que mudou
           if (cronograma && payload.new) {
-            const updatedItem = payload.new as any
+            const updatedItem = payload.new as CronogramaItemUpdate
             const updatedItems = cronograma.cronograma_itens.map((item) =>
               item.id === updatedItem.id
                 ? { ...item, concluido: updatedItem.concluido, data_conclusao: updatedItem.data_conclusao }
@@ -533,7 +539,8 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             setCronograma({ ...cronograma, cronograma_itens: updatedItems })
           } else if (payload.eventType === 'DELETE' && payload.old) {
             // Remover item deletado
-            const deletedId = (payload.old as any).id
+            const deletedItem = payload.old as { id: string; [key: string]: unknown }
+            const deletedId = deletedItem.id
             const updatedItems = cronograma?.cronograma_itens.filter((item) => item.id !== deletedId) || []
             if (cronograma) {
               setCronograma({ ...cronograma, cronograma_itens: updatedItems })

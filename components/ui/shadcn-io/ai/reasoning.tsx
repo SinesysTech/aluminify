@@ -75,7 +75,10 @@ export const Reasoning = memo(
       } else if (startTime !== null) {
         const durationValue = Math.round((Date.now() - startTime) / 1000);
         setDuration(durationValue);
-        setStartTime(null);
+        // Use setTimeout to avoid synchronous setState in effect
+        setTimeout(() => {
+          setStartTime(null);
+        }, 0);
       }
     }, [isStreaming, startTime, setDuration]);
 

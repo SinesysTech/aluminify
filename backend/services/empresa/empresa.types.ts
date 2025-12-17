@@ -22,7 +22,7 @@ export interface CreateEmpresaInput {
   telefone?: string;
   logoUrl?: string;
   plano?: EmpresaPlano;
-  configuracoes?: Record<string, any>;
+  configuracoes?: Record<string, unknown>;
 }
 
 export interface UpdateEmpresaInput {
@@ -33,6 +33,6 @@ export interface UpdateEmpresaInput {
   logoUrl?: string;
   plano?: EmpresaPlano;
   ativo?: boolean;
-  configuracoes?: Record<string, any>;
+  configuracoes?: Record<string, unknown>;
 }
 

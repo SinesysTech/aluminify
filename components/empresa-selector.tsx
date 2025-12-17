@@ -18,21 +18,29 @@ export function EmpresaSelector() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('');
 
-  const fetchEmpresas = useCallback(async () => {
-    try {
-      const response = await fetch('/api/empresas');
-      if (response.ok) {
-        const data = await response.json();
-        setEmpresas(data);
-      }
-    } catch (error) {
-      console.error('Error fetching empresas:', error);
-    }
-  }, []);
-
   useEffect(() => {
+    let cancelled = false;
+    
+    async function fetchEmpresas() {
+      try {
+        const response = await fetch('/api/empresas');
+        if (response.ok) {
+          const data = await response.json();
+          if (!cancelled) {
+            setEmpresas(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching empresas:', error);
+      }
+    }
+    
     fetchEmpresas();
-  }, [fetchEmpresas]);
+    
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleChange(value: string) {
     setSelectedEmpresa(value);

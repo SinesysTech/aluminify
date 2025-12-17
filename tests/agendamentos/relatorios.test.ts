@@ -136,7 +136,7 @@ describe('Sistema de Relatórios de Agendamentos', () => {
     it('deve gerar relatório com dados agregados', async () => {
       const dataInicio = new Date()
       dataInicio.setMonth(dataInicio.getMonth() - 1)
-      const dataFim = new Date()
+      const _dataFim = new Date()
 
       // Simular chamada da Edge Function
       // Em produção, isso seria feito via HTTP

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -445,10 +446,10 @@ interface StatusBarProps {
   label: string
   value: number
   total: number
-  color: string
+  color?: string
 }
 
-function StatusBar({ label, value, total }: StatusBarProps) {
+function StatusBar({ label, value, total, color: _color }: StatusBarProps) {
   const percentage = total > 0 ? (value / total) * 100 : 0
   return (
     <div className="space-y-1">

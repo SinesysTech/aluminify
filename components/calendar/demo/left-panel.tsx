@@ -41,8 +41,6 @@ export function LeftPanel({
 						width={40}
 						height={40}
 						className="rounded-full border"
-							width={24}
-							height={24}
 						/>
 					</TooltipTrigger>
 					<TooltipContent>Shadcn Cal</TooltipContent>
@@ -73,11 +71,12 @@ export function LeftPanel({
 					<p className="text-sm font-semibold">15 mins</p>
 				</div>
 				<div className="flex items-center text-gray-12">
-					<img
+					<Image
 						alt="Cal video"
 						src="/cal-video.svg"
 						className="mr-2"
 						width={16}
+						height={16}
 						height={16}
 					/>
 					<Tooltip>
