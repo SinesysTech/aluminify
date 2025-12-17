@@ -40,7 +40,9 @@ export const PromptInputTextarea = ({
   onChange,
   className,
   placeholder = 'What would you like to know?',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   minHeight: _minHeight,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   maxHeight: _maxHeight,
   ...props
 }: PromptInputTextareaProps) => {

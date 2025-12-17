@@ -136,6 +136,7 @@ describe('Sistema de Relatórios de Agendamentos', () => {
     it('deve gerar relatório com dados agregados', async () => {
       const dataInicio = new Date()
       dataInicio.setMonth(dataInicio.getMonth() - 1)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _dataFim = new Date()
 
       // Simular chamada da Edge Function

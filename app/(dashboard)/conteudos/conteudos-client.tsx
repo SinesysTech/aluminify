@@ -164,7 +164,6 @@ export default function ConteudosClientPage() {
   const [editingTitle, setEditingTitle] = React.useState<string | null>(null)
   const [editingImportancia, setEditingImportancia] = React.useState<string | null>(null)
   const [atividadesPorModulo, setAtividadesPorModulo] = React.useState<Record<string, AtividadeItem[]>>({})
-  const [, setIsGeneratingEstrutura] = React.useState(false)
   const [isCreatingActivity, setIsCreatingActivity] = React.useState(false)
   const [isUpdatingEstrutura, setIsUpdatingEstrutura] = React.useState(false)
   const [showUpdateDialog, setShowUpdateDialog] = React.useState(false)
@@ -618,10 +617,6 @@ export default function ConteudosClientPage() {
     return { totalAulas, tempoTotal }
   }
 
-  const _cursoAtual = React.useMemo(
-    () => cursos.find((curso) => curso.id === cursoSelecionado) ?? null,
-    [cursos, cursoSelecionado],
-  )
 
   const handleCursoChange = (value: string) => {
     setCursoSelecionado(value)
@@ -1368,38 +1363,6 @@ export default function ConteudosClientPage() {
     }
   }
 
-  const _handleGerarEstrutura = async () => {
-    if (!cursoSelecionado || !frenteSelecionada) {
-      setError('Selecione curso e frente para gerar atividades')
-      return
-    }
-
-    try {
-      setIsGeneratingEstrutura(true)
-      setError(null)
-      const response = await fetchWithAuth('/api/atividade/gerar-estrutura', {
-        method: 'POST',
-        body: JSON.stringify({
-          curso_id: cursoSelecionado,
-          frente_id: frenteSelecionada,
-        }),
-      })
-      const body = await response.json()
-      if (!response.ok) {
-        throw new Error(body?.error || 'Erro ao gerar estrutura')
-      }
-
-      if (modulos.length > 0) {
-        await loadAtividadesForModulos(modulos.map((m) => m.id))
-      }
-      setSuccessMessage('Estrutura de atividades gerada com sucesso')
-    } catch (err) {
-      console.error('Erro ao gerar estrutura:', err)
-      setError(err instanceof Error ? err.message : 'Erro ao gerar estrutura de atividades')
-    } finally {
-      setIsGeneratingEstrutura(false)
-    }
-  }
 
   const handleAtualizarEstrutura = async () => {
     if (!cursoSelecionado || !frenteSelecionada) {
@@ -1436,61 +1399,7 @@ export default function ConteudosClientPage() {
     }
   }
 
-  const _handleCreateRegra = async (payload: {
-    tipoAtividade: TipoAtividade
-    nomePadrao: string
-    frequenciaModulos: number
-    comecarNoModulo: number
-    acumulativo: boolean
-    gerarNoUltimo: boolean
-  }) => {
-    if (!cursoSelecionado) {
-      setError('Selecione um curso para criar regras')
-      return
-    }
 
-    try {
-      const response = await fetchWithAuth('/api/regras-atividades', {
-        method: 'POST',
-        body: JSON.stringify({
-          curso_id: cursoSelecionado,
-          tipo_atividade: payload.tipoAtividade,
-          nome_padrao: payload.nomePadrao,
-          frequencia_modulos: payload.frequenciaModulos,
-          comecar_no_modulo: payload.comecarNoModulo,
-          acumulativo: payload.acumulativo,
-          gerar_no_ultimo: payload.gerarNoUltimo,
-        }),
-      })
-
-      const body = await response.json()
-      if (!response.ok) {
-        throw new Error(body?.error || 'Erro ao criar regra')
-      }
-
-      setRegras((prev) => [...prev, body.data])
-    } catch (err) {
-      console.error('Erro ao criar regra:', err)
-      setError(err instanceof Error ? err.message : 'Erro ao criar regra de atividade')
-    }
-  }
-
-  const _handleDeleteRegra = async (regraId: string) => {
-    try {
-      const response = await fetchWithAuth(`/api/regras-atividades/${regraId}`, {
-        method: 'DELETE',
-      })
-      const body = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(body?.error || 'Erro ao remover regra')
-      }
-
-      setRegras((prev) => prev.filter((regra) => regra.id !== regraId))
-    } catch (err) {
-      console.error('Erro ao remover regra:', err)
-      setError(err instanceof Error ? err.message : 'Erro ao remover regra')
-    }
-  }
 
   if (isProfessor === null) {
     return (

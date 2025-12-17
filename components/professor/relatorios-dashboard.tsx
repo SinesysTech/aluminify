@@ -449,6 +449,7 @@ interface StatusBarProps {
   color?: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function StatusBar({ label, value, total, color: _color }: StatusBarProps) {
   const percentage = total > 0 ? (value / total) * 100 : 0
   return (

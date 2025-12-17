@@ -57,6 +57,7 @@ async function createBackup(): Promise<string> {
   return backupFile
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function validateMigration(_stats: MigrationStats): Promise<boolean> {
   console.log('🔍 Validando migração...')
   
@@ -115,6 +116,7 @@ async function rollback(backupFile: string): Promise<void> {
     throw new Error(`Arquivo de backup não encontrado: ${backupFile}`)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _backup = JSON.parse(fs.readFileSync(backupFile, 'utf-8'))
 
   // Deletar recorrências criadas na migração

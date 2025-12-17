@@ -7,6 +7,7 @@ interface NotificacaoPayload {
   destinatario_id: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface _AgendamentoData {
   id: string;
   professor_id: string;
@@ -19,6 +20,7 @@ interface _AgendamentoData {
   motivo_cancelamento: string | null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface _UserData {
   id: string;
   email: string;
@@ -259,6 +261,7 @@ Deno.serve(async (req: Request) => {
     const { data: outraParte } = await supabase.auth.admin.getUserById(outraParteId);
 
     const destinatarioEmail = destinatario.user.email;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _destinatarioNome = destinatario.user.user_metadata?.name || destinatario.user.user_metadata?.full_name || destinatarioEmail;
     const outraParteNome = outraParte?.user?.user_metadata?.name || outraParte?.user?.user_metadata?.full_name || "Usuario";
 

@@ -22,6 +22,7 @@ interface AgendamentosDashboardProps {
 export function AgendamentosDashboard({
   agendamentos,
   stats,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   professorId: _professorId
 }: AgendamentosDashboardProps) {
   const [activeTab, setActiveTab] = useState("pendentes")

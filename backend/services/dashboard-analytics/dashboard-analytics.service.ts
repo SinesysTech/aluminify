@@ -788,7 +788,9 @@ export class DashboardAnalyticsService {
    * Calcula domínio estratégico
    */
   private async getStrategicDomain(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _alunoId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _client: ReturnType<typeof getDatabaseClient>
   ) {
     // Por enquanto, valores mockados - pode ser melhorado com lógica real

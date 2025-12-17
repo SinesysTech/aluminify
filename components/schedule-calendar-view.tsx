@@ -624,6 +624,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         supabase.removeChannel(channel)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cronogramaId])
 
   const calcularDatasItens = (cronograma: Cronograma, itensCompletos: CronogramaItem[]): ItemComData[] => {
@@ -640,7 +641,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       // Se tiver data_prevista, usar ela
       if (item.data_prevista) {
         // Parsear data_prevista corretamente (pode vir como string YYYY-MM-DD ou ISO)
-        const dataPrevistaStr = (item as any).data_prevista
+        const dataPrevistaStr = item.data_prevista
         // Se for apenas data (YYYY-MM-DD), criar Date no horário local para evitar problemas de timezone
         if (typeof dataPrevistaStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dataPrevistaStr)) {
           const [year, month, day] = dataPrevistaStr.split('-').map(Number)

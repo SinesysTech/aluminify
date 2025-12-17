@@ -20,8 +20,8 @@ interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
   ({ className, setApi, ...props }, ref) => {
-    const [, setCanScrollNext] = React.useState(false)
-    const [, setCanScrollPrev] = React.useState(false)
+    const [canScrollNext] = React.useState(false)
+    const [canScrollPrev] = React.useState(false)
 
     React.useEffect(() => {
       if (setApi) {

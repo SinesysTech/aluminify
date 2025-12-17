@@ -4,8 +4,11 @@ import { createClient } from '@/lib/server';
 import { getAuthUser } from '@/backend/auth/middleware';
 import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
 
-// GET /api/empresas/[id]/admins - Listar admins da empresa
-export async function GET(
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -49,8 +52,7 @@ export async function GET(
   }
 }
 
-// POST /api/empresas/[id]/admins - Adicionar admin
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -140,3 +142,20 @@ export async function POST(
   }
 }
 
+// GET /api/empresas/[id]/admins - Listar admins da empresa
+export async function GET(
+  request: NextRequest,
+  context: RouteContext
+) {
+  const params = await context.params;
+  return getHandler(request, params);
+}
+
+// POST /api/empresas/[id]/admins - Adicionar admin
+export async function POST(
+  request: NextRequest,
+  context: RouteContext
+) {
+  const params = await context.params;
+  return postHandler(request, params);
+}

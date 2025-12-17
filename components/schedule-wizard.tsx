@@ -252,7 +252,6 @@ export function ScheduleWizard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cursos, setCursos] = useState<CursoData[]>([])
-  const [_disciplinas, setDisciplinas] = useState<DisciplinaData[]>([]) // Todas as disciplinas (para referência)
   const [disciplinasDoCurso, setDisciplinasDoCurso] = useState<DisciplinaData[]>([]) // Disciplinas do curso selecionado
   const [frentes, setFrentes] = useState<FrenteData[]>([])
   const [loadingData, setLoadingData] = useState(true)
@@ -793,14 +792,14 @@ export function ScheduleWizard() {
     return () => {
       cancelled = true
     }
-  }, [cursoSelecionado, userId, form.watch('disciplinas_ids')])
+  }, [cursoSelecionado, userId, disciplinasIds, disciplinasIdsModulos])
 
   useEffect(() => {
     form.setValue('modulos_ids', modulosSelecionados)
   }, [modulosSelecionados, form])
 
   React.useEffect(() => {
-    const disciplinasSelecionadas = form.getValues('disciplinas_ids')
+    const disciplinasSelecionadas = disciplinasIds
 
     if (!disciplinasSelecionadas || disciplinasSelecionadas.length === 0) {
       setModalidadeStats({})
@@ -879,7 +878,7 @@ export function ScheduleWizard() {
     return () => {
       cancelled = true
     }
-  }, [form.watch('disciplinas_ids')])
+  }, [disciplinasIds])
 
   const onSubmit = async (data: WizardFormData) => {
     // Validar que estamos no último step

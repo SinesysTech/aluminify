@@ -23,6 +23,7 @@ export type SourcesTriggerProps = ComponentProps<typeof CollapsibleTrigger> & {
 };
 
 export const SourcesTrigger = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   className: _className,
   count,
   children,

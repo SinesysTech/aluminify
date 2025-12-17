@@ -33,6 +33,7 @@ export class DefaultMeetingProvider implements MeetingProvider {
     this.defaultLink = defaultLink || null
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async generateLink(_options: MeetingOptions): Promise<MeetingLink | null> {
     if (!this.defaultLink) {
       return null

@@ -109,6 +109,7 @@ function parseIncompleteMarkdown(text: string): string {
   const inlineCodeMatch = result.match(inlineCodePattern);
   if (inlineCodeMatch) {
     // Check if we're dealing with a code block (triple backticks)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const codeBlockPattern = /```[\s\S]*?```/g;
     const allTripleBackticks = (result.match(/```/g) || []).length;
 
@@ -174,34 +175,41 @@ export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const components: Options['components'] = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   p: ({ node: _node, children, className, ...props }) => (
     <p className={cn('mb-3 mt-3 leading-relaxed first:mt-0 last:mb-0', className)} {...props}>
       {children}
     </p>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ol: ({ node: _node, children, className, ...props }) => (
     <ol className={cn('ml-4 list-outside list-decimal', className)} {...props}>
       {children}
     </ol>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   li: ({ node: _node, children, className, ...props }) => (
     <li className={cn('py-1', className)} {...props}>
       {children}
     </li>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ul: ({ node: _node, children, className, ...props }) => (
     <ul className={cn('ml-4 list-outside list-disc', className)} {...props}>
       {children}
     </ul>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hr: ({ node: _node, className, ...props }) => (
     <hr className={cn('my-6 border-border', className)} {...props} />
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   strong: ({ node: _node, children, className, ...props }) => (
     <span className={cn('font-semibold', className)} {...props}>
       {children}
     </span>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   a: ({ node: _node, children, className, ...props }) => (
     <a
       className={cn('font-medium text-primary underline', className)}
@@ -212,6 +220,7 @@ const components: Options['components'] = {
       {children}
     </a>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h1: ({ node: _node, children, className, ...props }) => (
     <h1
       className={cn('mt-6 mb-2 font-semibold text-3xl', className)}
@@ -220,6 +229,7 @@ const components: Options['components'] = {
       {children}
     </h1>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h2: ({ node: _node, children, className, ...props }) => (
     <h2
       className={cn('mt-6 mb-2 font-semibold text-2xl', className)}
@@ -228,16 +238,19 @@ const components: Options['components'] = {
       {children}
     </h2>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h3: ({ node: _node, children, className, ...props }) => (
     <h3 className={cn('mt-6 mb-2 font-semibold text-xl', className)} {...props}>
       {children}
     </h3>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h4: ({ node: _node, children, className, ...props }) => (
     <h4 className={cn('mt-6 mb-2 font-semibold text-lg', className)} {...props}>
       {children}
     </h4>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h5: ({ node: _node, children, className, ...props }) => (
     <h5
       className={cn('mt-6 mb-2 font-semibold text-base', className)}
@@ -246,11 +259,13 @@ const components: Options['components'] = {
       {children}
     </h5>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h6: ({ node: _node, children, className, ...props }) => (
     <h6 className={cn('mt-6 mb-2 font-semibold text-sm', className)} {...props}>
       {children}
     </h6>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   table: ({ node: _node, children, className, ...props }) => (
     <div className="my-4 overflow-x-auto">
       <table
@@ -261,21 +276,25 @@ const components: Options['components'] = {
       </table>
     </div>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   thead: ({ node: _node, children, className, ...props }) => (
     <thead className={cn('bg-muted/50', className)} {...props}>
       {children}
     </thead>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tbody: ({ node: _node, children, className, ...props }) => (
     <tbody className={cn('divide-y divide-border', className)} {...props}>
       {children}
     </tbody>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tr: ({ node: _node, children, className, ...props }) => (
     <tr className={cn('border-border border-b', className)} {...props}>
       {children}
     </tr>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   th: ({ node: _node, children, className, ...props }) => (
     <th
       className={cn('px-4 py-2 text-left font-semibold text-sm', className)}
@@ -284,11 +303,13 @@ const components: Options['components'] = {
       {children}
     </th>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   td: ({ node: _node, children, className, ...props }) => (
     <td className={cn('px-4 py-2 text-sm', className)} {...props}>
       {children}
     </td>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   blockquote: ({ node: _node, children, className, ...props }) => (
     <blockquote
       className={cn(
