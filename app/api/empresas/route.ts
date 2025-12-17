@@ -98,10 +98,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(empresa, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating empresa:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao criar empresa';
     return NextResponse.json(
-      { error: error.message || 'Erro ao criar empresa' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

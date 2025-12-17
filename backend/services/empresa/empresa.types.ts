@@ -10,7 +10,7 @@ export interface Empresa {
   logoUrl: string | null;
   plano: EmpresaPlano;
   ativo: boolean;
-  configuracoes: Record<string, any>;
+  configuracoes: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }

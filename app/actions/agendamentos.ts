@@ -670,7 +670,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
 
     // Load professor integration settings
     const { data: integration } = await supabase
-      .from('professor_integracoes' as any)
+      .from('professor_integracoes')
       .select('*')
       .eq('professor_id', user.id)
       .single()

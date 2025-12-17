@@ -83,10 +83,11 @@ export async function PATCH(
 
     const empresa = await service.update(params.id, body);
     return NextResponse.json(empresa);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating empresa:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar empresa';
     return NextResponse.json(
-      { error: error.message || 'Erro ao atualizar empresa' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -114,10 +115,11 @@ export async function DELETE(
     await service.delete(params.id);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting empresa:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao deletar empresa';
     return NextResponse.json(
-      { error: error.message || 'Erro ao deletar empresa' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

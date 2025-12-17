@@ -31,8 +31,15 @@ interface Admin {
 
 export default function EmpresaAdminsPage() {
   const { toast } = useToast();
+  interface Professor {
+    id: string;
+    nome: string;
+    email: string;
+    [key: string]: unknown;
+  }
+
   const [admins, setAdmins] = useState<Admin[]>([]);
-  const [professores, setProfessores] = useState<any[]>([]);
+  const [professores, setProfessores] = useState<Professor[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedProfessor, setSelectedProfessor] = useState<string>('');

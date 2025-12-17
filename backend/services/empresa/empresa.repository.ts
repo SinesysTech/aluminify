@@ -24,7 +24,7 @@ type EmpresaRow = {
   logo_url: string | null;
   plano: 'basico' | 'profissional' | 'enterprise';
   ativo: boolean;
-  configuracoes: Record<string, any>;
+  configuracoes: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };

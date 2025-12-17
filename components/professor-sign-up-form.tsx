@@ -86,7 +86,7 @@ export function ProfessorSignUpForm() {
     try {
       const supabase = createClient();
 
-      const userMetadata: Record<string, any> = {
+      const userMetadata: Record<string, string> = {
         role: 'professor',
         full_name: fullName,
       };

@@ -51,11 +51,12 @@ export default function NovaEmpresaPage() {
         description: 'Empresa criada com sucesso',
       });
       router.push(`/superadmin/empresas`);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating empresa:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar empresa';
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao criar empresa',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

@@ -18,11 +18,30 @@ interface CalendarioCompartilhadoProps {
   empresaId: string
 }
 
+interface Agendamento {
+  id: string;
+  data_inicio: string;
+  data_fim: string;
+  professor_id: string;
+  aluno_id: string;
+  status: string;
+  [key: string]: unknown;
+}
+
+interface Disponibilidade {
+  id: string;
+  professor_id: string;
+  dia_semana: number;
+  hora_inicio: string;
+  hora_fim: string;
+  [key: string]: unknown;
+}
+
 export function CalendarioCompartilhado({ empresaId }: CalendarioCompartilhadoProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<'week' | 'month'>('week')
-  const [agendamentos, setAgendamentos] = useState<any[]>([])
-  const [disponibilidade, setDisponibilidade] = useState<any[]>([])
+  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
+  const [disponibilidade, setDisponibilidade] = useState<Disponibilidade[]>([])
   const [selectedProfessor, setSelectedProfessor] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [isLoading, setIsLoading] = useState(true)

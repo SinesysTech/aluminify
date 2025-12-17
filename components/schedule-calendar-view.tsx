@@ -438,8 +438,8 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
         // Calcular datas dos itens (usar data_prevista se disponível, senão calcular)
         console.log('[Load] Total de itens carregados:', itensCompletos.length)
-        console.log('[Load] Itens com data_prevista:', itensCompletos.filter((i: any) => i.data_prevista).length)
-        console.log('[Load] Itens sem data_prevista:', itensCompletos.filter((i: any) => !i.data_prevista).length)
+        console.log('[Load] Itens com data_prevista:', itensCompletos.filter((i) => i.data_prevista).length)
+        console.log('[Load] Itens sem data_prevista:', itensCompletos.filter((i) => !i.data_prevista).length)
 
         const itensComData = calcularDatasItens(data as unknown as Cronograma, itensCompletos)
         const mapaPorData = new Map<string, ItemComData[]>()
@@ -1273,7 +1273,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
 
       // Carregar aulas
-      let itensCompletos: any[] = []
+      let itensCompletos: CronogramaItem[] = []
       if (itensData && itensData.length > 0) {
         const aulaIds = [...new Set(itensData.map(item => item.aula_id).filter(Boolean))]
 
@@ -1285,7 +1285,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             lotes.push(aulaIds.slice(i, i + LOTE_SIZE))
           }
 
-          const todasAulas: any[] = []
+          const todasAulas: AulaData[] = []
           for (const lote of lotes) {
             const { data: loteData, error: loteError } = await supabase
               .from('aulas')
@@ -1313,7 +1313,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           }
 
           // Buscar frentes
-          const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: any) => m.frente_id).filter(Boolean))]
+          const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: ModuloMapValue) => m.frente_id).filter(Boolean))]
           let frentesMap = new Map()
 
           if (frenteIds.length > 0) {
@@ -1328,7 +1328,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           }
 
           // Buscar disciplinas
-          const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: any) => f.disciplina_id).filter(Boolean))]
+          const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: FrenteMapValue) => f.disciplina_id).filter(Boolean))]
           let disciplinasMap = new Map()
 
           if (disciplinaIds.length > 0) {
@@ -2081,7 +2081,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                         azul para pendentes e amarelo para dias selecionados sem aulas ainda.
                       </p>
                       <p>
-                        Use o botão "Exportar Calendário" para baixar seu cronograma em formato ICS e importá-lo
+                        Use o botão &quot;Exportar Calendário&quot; para baixar seu cronograma em formato ICS e importá-lo
                         em aplicativos de calendário como Google Calendar ou Outlook.
                       </p>
                     </div>
@@ -2322,7 +2322,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                 </p>
                                 <p>
                                   Selecione os dias da semana em que deseja estudar no painel lateral e clique em
-                                  "Salvar e Atualizar Calendário" para recalcular as datas automaticamente.
+                                  &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas automaticamente.
                                 </p>
                                 <p>
                                   Clique em uma data ou selecione um período para ver as aulas agendadas naquele intervalo.
@@ -2331,7 +2331,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                   Marque as aulas como concluídas usando os checkboxes na lista que aparece abaixo do calendário.
                                 </p>
                                 <p>
-                                  Use o botão "Exportar Calendário" para baixar seu cronograma e importá-lo em outros aplicativos.
+                                  Use o botão &quot;Exportar Calendário&quot; para baixar seu cronograma e importá-lo em outros aplicativos.
                                 </p>
                               </div>
                             </TooltipContent>
@@ -2581,7 +2581,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                               Mostra quantas aulas foram concluídas em relação ao total de aulas agendadas para esta semana.
                                             </p>
                                             <p>
-                                              O formato é "concluídas/total", onde o primeiro número são as aulas que você já marcou
+                                              O formato é &quot;concluídas/total&quot;, onde o primeiro número são as aulas que você já marcou
                                               como concluídas e o segundo é o total de aulas da semana.
                                             </p>
                                           </div>
@@ -2674,7 +2674,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                             Selecione os dias da semana em que você deseja estudar.
                           </p>
                           <p>
-                            Ao selecionar os dias e clicar em "Salvar e Atualizar Calendário", o sistema recalcula
+                            Ao selecionar os dias e clicar em &quot;Salvar e Atualizar Calendário&quot;, o sistema recalcula
                             automaticamente as datas de todas as aulas para que sejam distribuídas apenas nos dias selecionados.
                           </p>
                           <p>

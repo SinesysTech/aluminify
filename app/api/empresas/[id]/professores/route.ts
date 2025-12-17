@@ -107,10 +107,11 @@ export async function POST(
     const professor = await repository.findById(newUser.user.id);
 
     return NextResponse.json(professor, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating professor:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao criar professor';
     return NextResponse.json(
-      { error: error.message || 'Erro ao criar professor' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

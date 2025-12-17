@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -18,11 +18,7 @@ export function EmpresaSelector() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('');
 
-  useEffect(() => {
-    fetchEmpresas();
-  }, []);
-
-  async function fetchEmpresas() {
+  const fetchEmpresas = useCallback(async () => {
     try {
       const response = await fetch('/api/empresas');
       if (response.ok) {
@@ -32,7 +28,11 @@ export function EmpresaSelector() {
     } catch (error) {
       console.error('Error fetching empresas:', error);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchEmpresas();
+  }, [fetchEmpresas]);
 
   function handleChange(value: string) {
     setSelectedEmpresa(value);

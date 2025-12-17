@@ -71,10 +71,11 @@ export async function DELETE(
       .eq('id', params.userId);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error removing admin:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao remover admin';
     return NextResponse.json(
-      { error: error.message || 'Erro ao remover admin' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

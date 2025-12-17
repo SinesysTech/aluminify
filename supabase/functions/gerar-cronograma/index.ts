@@ -724,7 +724,7 @@ Deno.serve(async (req: Request) => {
     const itens: ItemDistribuicao[] = [];
     const semanasUteis = semanas.filter((s) => !s.is_ferias);
     let frenteIndex = 0;
-    let aulaIndexPorFrente = new Map<string, number>();
+    const aulaIndexPorFrente = new Map<string, number>();
 
     // Inicializar índices de aula por frente
     frentes.forEach((frente) => {

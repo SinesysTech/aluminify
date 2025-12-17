@@ -336,7 +336,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             }
 
             // Buscar frentes dos módulos
-            const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: any) => m.frente_id).filter(Boolean))]
+            const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: ModuloMapValue) => m.frente_id).filter(Boolean))]
             let frentesMap = new Map()
             
             if (frenteIds.length > 0) {
@@ -353,7 +353,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             }
 
             // Buscar disciplinas das frentes
-            const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: any) => f.disciplina_id).filter(Boolean))]
+            const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: FrenteMapValue) => f.disciplina_id).filter(Boolean))]
             let disciplinasMap = new Map()
             
             if (disciplinaIds.length > 0) {
@@ -459,7 +459,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
         // Ordenar itens por semana e ordem
         if (data.cronograma_itens) {
-          data.cronograma_itens.sort((a: any, b: any) => {
+          data.cronograma_itens.sort((a, b) => {
             if (a.semana_numero !== b.semana_numero) {
               return a.semana_numero - b.semana_numero
             }
@@ -551,7 +551,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const toggleConcluido = async (itemId: string, concluido: boolean) => {
     const supabase = createClient()
     
-    const updateData: any = { concluido }
+    const updateData: { concluido: boolean; data_conclusao: string | null } = { concluido, data_conclusao: null }
     if (concluido) {
       updateData.data_conclusao = new Date().toISOString()
     } else {
@@ -766,7 +766,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const dataFim = new Date(cronograma.data_fim)
   const todasSemanas: number[] = []
   let semanaNumero = 1
-  let dataAtual = new Date(dataInicio)
+  const dataAtual = new Date(dataInicio)
   
   while (dataAtual <= dataFim) {
     todasSemanas.push(semanaNumero)

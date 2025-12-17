@@ -127,10 +127,11 @@ export async function POST(
       .eq('id', professorId);
 
     return NextResponse.json({ success: true }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error adding admin:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro ao adicionar admin';
     return NextResponse.json(
-      { error: error.message || 'Erro ao adicionar admin' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
