@@ -742,10 +742,14 @@ export class FlashcardsService {
           console.warn('[flashcards] erro ao buscar atividades concluídas para revisao_geral', atividadesError);
         }
         
+        interface AtividadeRow {
+          atividades: { modulo_id?: string } | { modulo_id?: string }[] | null;
+          [key: string]: unknown;
+        }
         const moduloIdsConcluidos = Array.from(
           new Set(
             (atividadesConcluidas ?? [])
-              .map((a: any) => {
+              .map((a: AtividadeRow) => {
                 // Supabase retorna atividades como objeto único (não array) para relações foreign key
                 const atividades = Array.isArray(a.atividades) ? a.atividades[0] : a.atividades;
                 return atividades?.modulo_id;

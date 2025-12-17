@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,11 +16,7 @@ export default function EmpresaAlunosPage() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAlunos();
-  }, []);
-
-  async function fetchAlunos() {
+  const fetchAlunos = useCallback(async () => {
     try {
       const userResponse = await fetch('/api/user/profile');
       const userData = await userResponse.json();
@@ -42,7 +38,11 @@ export default function EmpresaAlunosPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchAlunos();
+  }, [fetchAlunos]);
 
   if (loading) {
     return <div>Carregando...</div>;

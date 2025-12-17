@@ -22,11 +22,7 @@ export default function EmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchEmpresas();
-  }, []);
-
-  async function fetchEmpresas() {
+  const fetchEmpresas = useCallback(async () => {
     try {
       const response = await fetch('/api/empresas');
       if (response.ok) {

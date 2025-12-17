@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,11 +33,7 @@ export default function EmpresaPage() {
     telefone: '',
   });
 
-  useEffect(() => {
-    fetchEmpresa();
-  }, []);
-
-  async function fetchEmpresa() {
+  const fetchEmpresa = useCallback(async () => {
     try {
       // Buscar empresa do usuário logado
       const response = await fetch('/api/user/profile');
@@ -69,7 +65,11 @@ export default function EmpresaPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchEmpresa();
+  }, [fetchEmpresa]);
 
   async function handleSave() {
     if (!empresa) return;

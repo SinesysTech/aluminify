@@ -98,33 +98,33 @@ export async function fetchCronogramaCompleto(cronogramaId: string): Promise<Cro
     }
 
     const moduloIds = [...new Set(todasAulas.map((a) => a.modulo_id).filter(Boolean))]
-    let modulosMap = new Map<string, any>()
+    let modulosMap = new Map<string, ModuloData>()
     if (moduloIds.length) {
       const { data: modulos } = await client
         .from('modulos')
         .select('id, nome, numero_modulo, frente_id')
         .in('id', moduloIds)
-      if (modulos) modulosMap = new Map(modulos.map((m: any) => [m.id, m]))
+      if (modulos) modulosMap = new Map(modulos.map((m: ModuloData) => [m.id, m]))
     }
 
-    const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: any) => m.frente_id).filter(Boolean))]
-    let frentesMap = new Map<string, any>()
+    const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: ModuloData) => m.frente_id).filter(Boolean))]
+    let frentesMap = new Map<string, FrenteData>()
     if (frenteIds.length) {
       const { data: frentes } = await client
         .from('frentes')
         .select('id, nome, disciplina_id')
         .in('id', frenteIds)
-      if (frentes) frentesMap = new Map(frentes.map((f: any) => [f.id, f]))
+      if (frentes) frentesMap = new Map(frentes.map((f: FrenteData) => [f.id, f]))
     }
 
-    const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: any) => f.disciplina_id).filter(Boolean))]
-    let disciplinasMap = new Map<string, any>()
+    const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: FrenteData) => f.disciplina_id).filter(Boolean))]
+    let disciplinasMap = new Map<string, DisciplinaData>()
     if (disciplinaIds.length) {
       const { data: disciplinas } = await client
         .from('disciplinas')
         .select('id, nome')
         .in('id', disciplinaIds)
-      if (disciplinas) disciplinasMap = new Map(disciplinas.map((d: any) => [d.id, d]))
+      if (disciplinas) disciplinasMap = new Map(disciplinas.map((d: DisciplinaData) => [d.id, d]))
     }
 
     aulasMap = new Map(

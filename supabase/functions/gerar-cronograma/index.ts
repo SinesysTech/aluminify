@@ -250,12 +250,13 @@ Deno.serve(async (req: Request) => {
 
       userId = userData.id;
       console.log("Usuário autenticado com sucesso:", userId);
-    } catch (authErr: any) {
+    } catch (authErr: unknown) {
+      const error = authErr as { constructor?: { name?: string }; message?: string; stack?: string };
       console.error("=== ERRO NA VALIDAÇÃO DE AUTENTICAÇÃO ===");
-      console.error("Tipo:", authErr?.constructor?.name);
-      console.error("Mensagem:", authErr?.message);
-      console.error("Stack:", authErr?.stack);
-      console.error("Erro completo:", JSON.stringify(authErr, Object.getOwnPropertyNames(authErr)));
+      console.error("Tipo:", error?.constructor?.name);
+      console.error("Mensagem:", error?.message);
+      console.error("Stack:", error?.stack);
+      console.error("Erro completo:", JSON.stringify(authErr, Object.getOwnPropertyNames(authErr as Record<string, unknown>)));
       
       return new Response(
         JSON.stringify({ 
@@ -284,11 +285,12 @@ Deno.serve(async (req: Request) => {
         disciplinasCount: input.disciplinas_ids?.length || 0,
         modalidade: input.modalidade,
       });
-    } catch (parseError: any) {
+    } catch (parseError: unknown) {
+      const error = parseError as { constructor?: { name?: string }; message?: string; stack?: string };
       console.error("=== ERRO AO FAZER PARSE DO BODY ===");
-      console.error("Tipo:", parseError?.constructor?.name);
-      console.error("Mensagem:", parseError?.message);
-      console.error("Stack:", parseError?.stack);
+      console.error("Tipo:", error?.constructor?.name);
+      console.error("Mensagem:", error?.message);
+      console.error("Stack:", error?.stack);
       
       return new Response(
         JSON.stringify({ error: "Erro ao processar dados da requisição: " + (parseError.message || "Formato inválido") }),
@@ -568,7 +570,27 @@ Deno.serve(async (req: Request) => {
     }
 
     // Mapear dados para estrutura mais simples
-    let aulas: AulaCompleta[] = aulasData.map((aula: any) => ({
+    interface AulaRow {
+      id: string;
+      nome: string;
+      numero_aula: number | null;
+      tempo_estimado_minutos: number | null;
+      prioridade: number | null;
+      modulos: {
+        id: string;
+        nome: string;
+        numero_modulo: number | null;
+        frentes: {
+          id: string;
+          nome: string;
+          disciplinas: {
+            id: string;
+            nome: string;
+          };
+        };
+      };
+    }
+    let aulas: AulaCompleta[] = aulasData.map((aula: AulaRow) => ({
       id: aula.id,
       nome: aula.nome,
       numero_aula: aula.numero_aula,

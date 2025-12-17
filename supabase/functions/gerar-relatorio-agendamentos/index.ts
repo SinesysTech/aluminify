@@ -126,7 +126,7 @@ serve(async (req) => {
       if (!por_professor_map.has(profId)) {
         por_professor_map.set(profId, {
           professor_id: profId,
-          nome: (a.professor as any)?.nome_completo || 'Desconhecido',
+          nome: (a.professor as { nome_completo?: string } | null)?.nome_completo || 'Desconhecido',
           total: 0,
           concluidos: 0,
           confirmados: 0,

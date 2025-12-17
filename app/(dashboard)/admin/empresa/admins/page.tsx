@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -44,11 +44,7 @@ export default function EmpresaAdminsPage() {
   const [open, setOpen] = useState(false);
   const [selectedProfessor, setSelectedProfessor] = useState<string>('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       // Buscar empresa do usuário
       const userResponse = await fetch('/api/user/profile');
@@ -79,7 +75,11 @@ export default function EmpresaAdminsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   async function handleAddAdmin() {
     if (!selectedProfessor) return;

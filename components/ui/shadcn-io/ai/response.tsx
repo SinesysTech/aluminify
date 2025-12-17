@@ -327,13 +327,16 @@ const components: Options['components'] = {
     }
 
     // Extract code content from children safely
+    interface PropsWithChildren {
+      children?: string | React.ReactNode;
+    }
     let code = '';
     if (
       isValidElement(children) &&
       children.props &&
-      typeof (children.props as any).children === 'string'
+      typeof (children.props as PropsWithChildren).children === 'string'
     ) {
-      code = (children.props as any).children;
+      code = (children.props as PropsWithChildren).children;
     } else if (typeof children === 'string') {
       code = children;
     }

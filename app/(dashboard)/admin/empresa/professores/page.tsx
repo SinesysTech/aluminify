@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -35,11 +35,7 @@ export default function EmpresaProfessoresPage() {
     isAdmin: false,
   });
 
-  useEffect(() => {
-    fetchProfessores();
-  }, []);
-
-  async function fetchProfessores() {
+  const fetchProfessores = useCallback(async () => {
     try {
       const userResponse = await fetch('/api/user/profile');
       const userData = await userResponse.json();
