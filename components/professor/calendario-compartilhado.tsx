@@ -26,12 +26,10 @@ interface Agendamento {
 }
 
 interface Disponibilidade {
-  id: string;
   professor_id: string;
-  dia_semana: number;
-  hora_inicio: string;
-  hora_fim: string;
-  [key: string]: unknown;
+  nome: string;
+  foto: string | null;
+  slots_disponiveis: string[];
 }
 
 export function CalendarioCompartilhado({ empresaId }: CalendarioCompartilhadoProps) {
