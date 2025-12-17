@@ -10,7 +10,20 @@ import type {
 } from './conversation.types';
 
 // Helper function to map database conversation to Conversation type
-function mapConversation(data: any): Conversation {
+interface ConversationRow {
+  id: string;
+  user_id: string;
+  session_id: string;
+  title: string;
+  messages?: ChatMessage[] | null;
+  created_at?: string;
+  updated_at?: string;
+  is_active?: boolean;
+  history?: ChatMessage[];
+  [key: string]: unknown;
+}
+
+function mapConversation(data: ConversationRow): Conversation {
   return {
     ...data,
     messages: (data.messages && typeof data.messages === 'object' && Array.isArray(data.messages))
@@ -252,7 +265,7 @@ export class ConversationService {
         {
           conversation_id: conversationId,
           user_id: userId,
-          history: history as unknown as any,
+          history: history as unknown as ChatMessage[],
         },
         { onConflict: 'conversation_id' },
       );

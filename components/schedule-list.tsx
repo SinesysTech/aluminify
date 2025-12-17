@@ -302,7 +302,7 @@ export function ScheduleList({
         }
 
         // Atualizar estado local
-        onUpdate((prev: any) => {
+        onUpdate((prev) => {
           if (!prev) return prev
           return {
             ...prev,

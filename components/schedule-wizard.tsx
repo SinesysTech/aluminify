@@ -273,7 +273,7 @@ export function ScheduleWizard() {
   const [completedLessonsCount, setCompletedLessonsCount] = useState(0)
 
   const form = useForm<WizardFormData>({
-    resolver: zodResolver(wizardSchema) as any,
+    resolver: zodResolver(wizardSchema),
     defaultValues: {
       dias_semana: 3,
       horas_dia: 2,
@@ -535,7 +535,7 @@ export function ScheduleWizard() {
           return
         }
 
-        const frenteIds = frentesData.map((f: any) => f.id)
+        const frenteIds = frentesData.map((f: FrenteData) => f.id)
 
         // Buscar módulos das frentes
         const { data: modulosData, error: modulosError } = await supabase
@@ -556,7 +556,7 @@ export function ScheduleWizard() {
         if (!modulosData || modulosData.length === 0) {
           console.log('Nenhum módulo encontrado para as frentes')
           // Criar estrutura vazia com as frentes
-          const arvore = frentesData.map((frente: any) => ({
+          const arvore = frentesData.map((frente: FrenteData) => ({
             id: frente.id,
             nome: frente.nome,
             modulos: [],
@@ -573,7 +573,15 @@ export function ScheduleWizard() {
           return
         }
 
-        const moduloIds = modulosData.map((m: any) => m.id)
+        interface ModuloData {
+          id: string;
+          nome: string;
+          numero_modulo: number | null;
+          frente_id: string;
+          importancia?: string | null;
+          [key: string]: unknown;
+        }
+        const moduloIds = modulosData.map((m: ModuloData) => m.id)
 
         if (moduloIds.length === 0) {
           console.log('Nenhum ID de módulo válido encontrado')
@@ -624,28 +632,37 @@ export function ScheduleWizard() {
           } else if (concluidasData) {
             concluidasSet = new Set(concluidasData.map((row) => row.aula_id as string))
           }
-        } catch (concluidasErr: any) {
+        } catch (concluidasErr: unknown) {
           // Se houver erro na tabela aulas_concluidas, apenas logar e continuar
+          const error = concluidasErr as { message?: string; details?: string; code?: string };
           console.warn('Aviso: não foi possível buscar aulas concluídas:', {
-            message: concluidasErr?.message,
-            details: concluidasErr?.details,
-            code: concluidasErr?.code,
+            message: error?.message,
+            details: error?.details,
+            code: error?.code,
           })
         }
 
         // Agrupar módulos por frente
-        const modulosPorFrente = new Map<string, any[]>()
-        modulosData.forEach((modulo: any) => {
+        const modulosPorFrente = new Map<string, ModuloData[]>()
+        modulosData.forEach((modulo: ModuloData) => {
           if (!modulosPorFrente.has(modulo.frente_id)) {
             modulosPorFrente.set(modulo.frente_id, [])
           }
           modulosPorFrente.get(modulo.frente_id)!.push(modulo)
         })
 
+        interface AulaData {
+          id: string;
+          nome: string;
+          numero_aula: number | null;
+          tempo_estimado_minutos: number | null;
+          modulo_id: string;
+          [key: string]: unknown;
+        }
         // Agrupar aulas por módulo
-        const aulasPorModulo = new Map<string, any[]>()
+        const aulasPorModulo = new Map<string, AulaData[]>()
         if (aulasData) {
-          aulasData.forEach((aula: any) => {
+          aulasData.forEach((aula: AulaData) => {
             if (!aulasPorModulo.has(aula.modulo_id)) {
               aulasPorModulo.set(aula.modulo_id, [])
             }
@@ -654,15 +671,15 @@ export function ScheduleWizard() {
         }
 
         // Construir árvore de frentes > módulos > aulas
-        const arvore = frentesData.map((frente: any) => {
-          const modulos = (modulosPorFrente.get(frente.id) || []).map((modulo: any) => {
+        const arvore = frentesData.map((frente: FrenteData) => {
+          const modulos = (modulosPorFrente.get(frente.id) || []).map((modulo: ModuloData) => {
             const aulas = aulasPorModulo.get(modulo.id) || []
             const totalAulas = aulas.length
             const tempoTotal = aulas.reduce(
-              (acc: number, aula: any) => acc + (aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS),
+              (acc: number, aula: AulaData) => acc + (aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS),
               0,
             )
-            const concluidas = aulas.filter((aula: any) => concluidasSet.has(aula.id)).length
+            const concluidas = aulas.filter((aula: AulaData) => concluidasSet.has(aula.id)).length
 
             return {
               id: modulo.id,
@@ -691,7 +708,7 @@ export function ScheduleWizard() {
           frente_id: f.id,
           frente_nome: f.nome,
           total_modulos: f.modulos.length,
-          modulo_ids: f.modulos.map((m: any) => m.id)
+          modulo_ids: f.modulos.map((m) => m.id)
         })))
 
         // Filtrar frentes que têm pelo menos um módulo
@@ -714,9 +731,10 @@ export function ScheduleWizard() {
 
         // Agrupar por disciplina
         const agrupadosPorDisciplina: Record<string, { disciplinaNome: string; frentes: FrenteResumo[] }> = {}
-        arvoreComModulos.forEach((frente: any) => {
-          const disciplinaId = frentesData.find((f: any) => f.id === frente.id)?.disciplina_id
-          const disciplinaNome = (frentesData.find((f: any) => f.id === frente.id)?.disciplinas as any)?.nome || 'Sem disciplina'
+        arvoreComModulos.forEach((frente) => {
+          const frenteData = frentesData.find((f: FrenteData) => f.id === frente.id)
+          const disciplinaId = frenteData?.disciplina_id
+          const disciplinaNome = (frenteData as { disciplinas?: { nome?: string } })?.disciplinas?.nome || 'Sem disciplina'
 
           if (!agrupadosPorDisciplina[disciplinaId || 'sem-id']) {
             agrupadosPorDisciplina[disciplinaId || 'sem-id'] = {
@@ -729,7 +747,7 @@ export function ScheduleWizard() {
 
         setModulosCurso(arvoreComModulos)
         setModulosCursoAgrupadosPorDisciplina(agrupadosPorDisciplina)
-        const todosModulos = arvoreComModulos.flatMap((frente) => frente.modulos.map((modulo: any) => modulo.id))
+        const todosModulos = arvoreComModulos.flatMap((frente) => frente.modulos.map((modulo) => modulo.id))
 
         console.log('[ScheduleWizard] Total de módulos selecionados:', todosModulos.length)
         console.log('[ScheduleWizard] Módulos selecionados por frente:',
@@ -737,19 +755,20 @@ export function ScheduleWizard() {
             frente_id: f.id,
             frente_nome: f.nome,
             total_modulos: f.modulos.length,
-            modulo_ids: f.modulos.map((m: any) => m.id)
+            modulo_ids: f.modulos.map((m) => m.id)
           }))
         )
 
         setModulosSelecionados(todosModulos)
         setCompletedLessonsCount(concluidasSet.size)
         setError(null)
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as { message?: string; details?: string; hint?: string; code?: string };
         console.error('Erro ao carregar módulos do curso:', {
-          message: err?.message,
-          details: err?.details,
-          hint: err?.hint,
-          code: err?.code,
+          message: error?.message,
+          details: error?.details,
+          hint: error?.hint,
+          code: error?.code,
           error: err,
           cursoSelecionado,
           disciplinasIds,
@@ -936,8 +955,8 @@ export function ScheduleWizard() {
           frente_id: frente.id,
           frente_nome: frente.nome,
           total_modulos_frente: frente.modulos.length,
-          modulos_selecionados: frente.modulos.filter((m: any) => data.modulos_ids?.includes(m.id)).length,
-          todos_selecionados: frente.modulos.every((m: any) => data.modulos_ids?.includes(m.id))
+          modulos_selecionados: frente.modulos.filter((m) => data.modulos_ids?.includes(m.id)).length,
+          todos_selecionados: frente.modulos.every((m) => data.modulos_ids?.includes(m.id))
         }))
         console.log('[ScheduleWizard] Status de módulos por frente:', modulosPorFrenteEnvio)
 
@@ -977,7 +996,13 @@ export function ScheduleWizard() {
       console.log('Status da resposta:', response.status, response.statusText)
       console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
-      let result: any = {}
+      interface ApiResponse {
+        id?: string;
+        error?: string;
+        message?: string;
+        [key: string]: unknown;
+      }
+      let result: ApiResponse = {}
       const contentType = response.headers.get('content-type')
 
       try {
@@ -1075,12 +1100,13 @@ export function ScheduleWizard() {
         setError('Erro desconhecido ao gerar cronograma')
         setLoading(false)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro na requisição:', err)
-      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+      const error = err as { message?: string; name?: string };
+      if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
         setError('Erro de conexão. Verifique sua internet e tente novamente. Se o problema persistir, verifique se a Edge Function está configurada corretamente.')
       } else {
-        setError(err.message || 'Erro ao gerar cronograma')
+        setError(error.message || 'Erro ao gerar cronograma')
       }
       setLoading(false)
     }
