@@ -1,17 +1,9 @@
 import { requireUser } from '@/lib/auth';
 import ModoFocoClient from './modo-foco-client';
 
-type SearchParams = {
-  cursoId?: string;
-  disciplinaId?: string;
-  frenteId?: string;
-  moduloId?: string;
-  atividadeId?: string;
-};
-
-export default async function ModoFocoPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function ModoFocoPage() {
   await requireUser();
 
-  return <ModoFocoClient searchParams={searchParams} />;
+  return <ModoFocoClient />;
 }
 

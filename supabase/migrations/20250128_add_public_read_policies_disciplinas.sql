@@ -16,3 +16,5 @@ CREATE POLICY "Catálogo de Disciplinas é Público"
 
 
 
+
+
