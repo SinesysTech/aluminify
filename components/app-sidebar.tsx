@@ -210,7 +210,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         {studentItems.length > 0 && <NavMain items={studentItems} label="Menu Estudante" />}
         {studentItems.length > 0 && professorItems.length > 0 && (
-          <div className="h-px bg-border/60 mx-3 my-2" aria-hidden="true" />
+          <div className="h-px bg-border/60 mx-3 my-0" aria-hidden="true" />
         )}
         {professorItems.length > 0 && <NavMain items={professorItems} label="Menu Professor" />}
         {empresaItems.length > 0 && (

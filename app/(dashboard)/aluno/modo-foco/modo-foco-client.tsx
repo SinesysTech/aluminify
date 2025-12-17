@@ -16,16 +16,6 @@ import { createClient } from '@/lib/client';
 import { useStudyTimer } from '@/hooks/use-study-timer';
 import { MetodoEstudo } from '@/types/sessao-estudo';
 
-type Props = {
-  searchParams: {
-    cursoId?: string;
-    disciplinaId?: string;
-    frenteId?: string;
-    moduloId?: string;
-    atividadeId?: string;
-  };
-};
-
 type PresenceCounter = {
   count: number;
   channel: string;
@@ -56,16 +46,17 @@ function formatMs(ms: number) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-export default function ModoFocoClient({ searchParams }: Props) {
+export default function ModoFocoClient() {
   const { state, start, pause, resume, finalize, latestState } = useStudyTimer();
   const [metodo, setMetodo] = useState<MetodoEstudo>('cronometro');
   const [timerMin, setTimerMin] = useState<number>(25);
   const [pomodoroConfig, setPomodoroConfig] = useState(POMODORO_DEFAULT);
-  const [cursoId, setCursoId] = useState<string>(searchParams.cursoId ?? '');
-  const [disciplinaId, setDisciplinaId] = useState(searchParams.disciplinaId ?? '');
-  const [frenteId, setFrenteId] = useState(searchParams.frenteId ?? '');
-  const [moduloId, setModuloId] = useState<string>(searchParams.moduloId ?? '');
-  const [atividadeId, setAtividadeId] = useState(searchParams.atividadeId ?? '');
+  const nextSearchParams = useNextSearchParams();
+  const [cursoId, setCursoId] = useState<string>('');
+  const [disciplinaId, setDisciplinaId] = useState('');
+  const [frenteId, setFrenteId] = useState('');
+  const [moduloId, setModuloId] = useState<string>('');
+  const [atividadeId, setAtividadeId] = useState('');
   const [sessaoId, setSessaoId] = useState<string | null>(null);
   const [nivelFoco, setNivelFoco] = useState<number>(3);
   const [concluiuAtividade, setConcluiuAtividade] = useState<boolean>(false);
@@ -88,7 +79,6 @@ export default function ModoFocoClient({ searchParams }: Props) {
   const [timelineReady, setTimelineReady] = useState(false);
 
   const supabase = useMemo(() => createClient(), []);
-  const nextSearchParams = useNextSearchParams();
   const router = useRouter();
 
   useEffect(() => {
