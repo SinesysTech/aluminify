@@ -1,11 +1,11 @@
-export type StatusAtividade = 'Pendente' | 'Iniciado' | 'Concluido';
-
-export type DificuldadePercebida =
-  | 'Muito Facil'
-  | 'Facil'
-  | 'Medio'
-  | 'Dificil'
-  | 'Muito Dificil';
+/**
+ * @deprecated Use types from '@/types/shared/enums' instead
+ * This file re-exports for backward compatibility
+ */
+export type {
+  StatusAtividade,
+  DificuldadePercebida,
+} from '@/types/shared/enums';
 
 export interface ProgressoAtividade {
   id: string;

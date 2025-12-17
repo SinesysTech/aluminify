@@ -1,8 +1,14 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Segment, CreateSegmentInput, UpdateSegmentInput } from './segment.types';
+import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
 
 export interface SegmentRepository {
-  list(): Promise<Segment[]>;
+  list(params?: PaginationParams): Promise<PaginatedResult<Segment>>;
   findById(id: string): Promise<Segment | null>;
   findByName(name: string): Promise<Segment | null>;
   findBySlug(slug: string): Promise<Segment | null>;
@@ -34,17 +40,47 @@ function mapRow(row: SegmentRow): Segment {
 export class SegmentRepositoryImpl implements SegmentRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(): Promise<Segment[]> {
+  async list(params?: PaginationParams): Promise<PaginatedResult<Segment>> {
+    const page = params?.page ?? 1;
+    const perPage = params?.perPage ?? 50;
+    const sortBy = params?.sortBy ?? 'nome';
+    const sortOrder = params?.sortOrder === 'desc' ? false : true;
+    
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    // Get total count
+    const { count, error: countError } = await this.client
+      .from(TABLE)
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      throw new Error(`Failed to count segments: ${countError.message}`);
+    }
+
+    const total = count ?? 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    // Get paginated data
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .order('nome', { ascending: true });
+      .order(sortBy, { ascending: sortOrder })
+      .range(from, to);
 
     if (error) {
       throw new Error(`Failed to list segments: ${error.message}`);
     }
 
-    return (data ?? []).map(mapRow);
+    return {
+      data: (data ?? []).map(mapRow),
+      meta: {
+        page,
+        perPage,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findById(id: string): Promise<Segment | null> {

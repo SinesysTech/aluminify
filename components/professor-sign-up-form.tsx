@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,12 +12,47 @@ import Link from 'next/link';
 
 export function ProfessorSignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [empresaId, setEmpresaId] = useState<string | null>(null);
+  const [empresaNome, setEmpresaNome] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Buscar empresa_id via empresa_slug se fornecido
+    const empresaSlug = searchParams.get('empresa');
+    if (empresaSlug) {
+      fetchEmpresaBySlug(empresaSlug);
+    }
+  }, [searchParams]);
+
+  async function fetchEmpresaBySlug(slug: string) {
+    try {
+      const response = await fetch(`/api/empresas/lookup?slug=${encodeURIComponent(slug)}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Empresa não encontrada ou inativa');
+        } else {
+          setError('Erro ao buscar empresa');
+        }
+        return;
+      }
+
+      const data = await response.json();
+      if (data) {
+        setEmpresaId(data.id);
+        setEmpresaNome(data.nome);
+      }
+    } catch (err) {
+      console.error('Error fetching empresa:', err);
+      setError('Erro ao buscar empresa');
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,19 +74,33 @@ export function ProfessorSignUpForm() {
       return;
     }
 
+    // Se empresa_slug foi fornecido, validar que empresa foi encontrada
+    const empresaSlug = searchParams.get('empresa');
+    if (empresaSlug && !empresaId) {
+      setError('Empresa não encontrada. Verifique o link de cadastro.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const supabase = createClient();
 
+      const userMetadata: Record<string, any> = {
+        role: 'professor',
+        full_name: fullName,
+      };
+
+      // Adicionar empresa_id se fornecido
+      if (empresaId) {
+        userMetadata.empresa_id = empresaId;
+      }
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            role: 'professor',
-            full_name: fullName,
-          },
+          data: userMetadata,
         },
       });
 
@@ -80,6 +129,14 @@ export function ProfessorSignUpForm() {
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {empresaNome && (
+        <Alert>
+          <AlertDescription>
+            Cadastrando para: <strong>{empresaNome}</strong>
+          </AlertDescription>
         </Alert>
       )}
 

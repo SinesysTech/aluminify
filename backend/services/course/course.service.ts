@@ -7,11 +7,13 @@ import {
 } from './course.types';
 import {
   CourseRepository,
+  PaginatedResult,
 } from './course.repository';
 import {
   CourseNotFoundError,
   CourseValidationError,
 } from './errors';
+import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 
 const NAME_MIN_LENGTH = 3;
 const NAME_MAX_LENGTH = 200;
@@ -27,11 +29,55 @@ const VALID_COURSE_TYPES: CourseType[] = ['Superextensivo', 'Extensivo', 'Intens
 export class CourseService {
   constructor(private readonly repository: CourseRepository) {}
 
-  async list(): Promise<Course[]> {
-    return this.repository.list();
+  async list(params?: PaginationParams): Promise<PaginatedResult<Course>> {
+    // Cache apenas para listagem completa sem paginação ou primeira página sem ordenação customizada
+    // Se houver parâmetros de paginação/ordenação, não usar cache para garantir dados corretos
+    if (!params || (params.page === 1 && !params.sortBy && !params.sortOrder && !params.perPage)) {
+      const { cacheService } = await import('@/backend/services/cache');
+      const cacheKey = 'courses:list:all';
+      const cached = await cacheService.get<PaginatedResult<Course>>(cacheKey);
+      
+      if (cached) {
+        return cached;
+      }
+      
+      const result = await this.repository.list(params);
+      
+      // Cache por 1 hora (cursos raramente mudam)
+      await cacheService.set(cacheKey, result, 3600);
+      
+      return result;
+    }
+    
+    // Se houver parâmetros de paginação/ordenação, incluir na chave do cache ou pular cache
+    // Para garantir que dados corretos sejam retornados, vamos incluir na chave do cache
+    const { cacheService } = await import('@/backend/services/cache');
+    const page = params?.page ?? 1;
+    const perPage = params?.perPage ?? 50;
+    const sortBy = params?.sortBy ?? 'nome';
+    const sortOrder = params?.sortOrder ?? 'asc';
+    
+    const cacheKey = `courses:list:page:${page}:perPage:${perPage}:sortBy:${sortBy}:sortOrder:${sortOrder}`;
+    const cached = await cacheService.get<PaginatedResult<Course>>(cacheKey);
+    
+    if (cached) {
+      return cached;
+    }
+    
+    const result = await this.repository.list(params);
+    
+    // Cache por 1 hora (cursos raramente mudam)
+    await cacheService.set(cacheKey, result, 3600);
+    
+    return result;
   }
 
   async create(payload: CreateCourseInput): Promise<Course> {
+    // Validar empresaId é obrigatório
+    if (!payload.empresaId) {
+      throw new CourseValidationError('empresaId is required');
+    }
+
     const name = this.validateName(payload.name);
     const modality = this.validateModality(payload.modality);
     const type = this.validateCourseType(payload.type);
@@ -56,6 +102,7 @@ export class CourseService {
     }
 
     const course = await this.repository.create({
+      empresaId: payload.empresaId,
       segmentId: payload.segmentId ?? undefined,
       disciplineId: payload.disciplineId ?? undefined, // Mantido para compatibilidade
       disciplineIds: disciplineIds, // Nova propriedade
@@ -71,9 +118,10 @@ export class CourseService {
       coverImageUrl: payload.coverImageUrl ?? undefined,
     });
 
-    // Invalidar cache de estrutura hierárquica
-    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    // Invalidar cache de estrutura hierárquica e listagem
+    const { courseStructureCacheService, cacheService } = await import('@/backend/services/cache');
     await courseStructureCacheService.invalidateCourse(course.id);
+    await cacheService.del('courses:list:all');
 
     return course;
   }
@@ -153,9 +201,10 @@ export class CourseService {
 
     const course = await this.repository.update(id, updateData);
 
-    // Invalidar cache de estrutura hierárquica
-    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    // Invalidar cache de estrutura hierárquica e listagem
+    const { courseStructureCacheService, cacheService } = await import('@/backend/services/cache');
     await courseStructureCacheService.invalidateCourse(id);
+    await cacheService.del('courses:list:all');
 
     return course;
   }
@@ -164,9 +213,10 @@ export class CourseService {
     await this.ensureExists(id);
     await this.repository.delete(id);
 
-    // Invalidar cache de estrutura hierárquica
-    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    // Invalidar cache de estrutura hierárquica e listagem
+    const { courseStructureCacheService, cacheService } = await import('@/backend/services/cache');
     await courseStructureCacheService.invalidateCourse(id);
+    await cacheService.del('courses:list:all');
   }
 
   async getById(id: string): Promise<Course> {

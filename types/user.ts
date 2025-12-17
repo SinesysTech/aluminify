@@ -1,11 +1,6 @@
-export type AppUserRole = 'aluno' | 'professor' | 'superadmin'
-
-export interface AppUser {
-  id: string
-  email: string
-  role: AppUserRole
-  fullName?: string
-  avatarUrl?: string
-  mustChangePassword?: boolean
-}
+/**
+ * @deprecated Use types from '@/types/shared' instead
+ * This file is kept for backward compatibility
+ */
+export * from './shared';
 

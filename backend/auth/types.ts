@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   isSuperAdmin?: boolean;
+  empresaId?: string;
 }
 
 export interface ApiKeyAuth {

@@ -1,11 +1,3 @@
 {
-  "mcpServers": {
-    "shadcn": {
-      "command": "shadcn mcp",
-      "args": [
-        "shadcn@latest",
-        "mcp"
-      ]
-    }
-  }
+  "mcpServers": {}
 }

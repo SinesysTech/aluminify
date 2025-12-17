@@ -6,8 +6,15 @@ import {
   StudentCourseSummary,
 } from './student.types';
 
+import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
 export interface StudentRepository {
-  list(): Promise<Student[]>;
+  list(params?: PaginationParams): Promise<PaginatedResult<Student>>;
   findById(id: string): Promise<Student | null>;
   findByEmail(email: string): Promise<Student | null>;
   findByCpf(cpf: string): Promise<Student | null>;
@@ -15,6 +22,7 @@ export interface StudentRepository {
   create(payload: CreateStudentInput): Promise<Student>;
   update(id: string, payload: UpdateStudentInput): Promise<Student>;
   delete(id: string): Promise<void>;
+  findByEmpresa(empresaId: string): Promise<Student[]>;
 }
 
 const TABLE = 'alunos';
@@ -78,17 +86,49 @@ function mapRow(row: StudentRow, courses: StudentCourseSummary[] = []): Student 
 export class StudentRepositoryImpl implements StudentRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(): Promise<Student[]> {
+  async list(params?: PaginationParams): Promise<PaginatedResult<Student>> {
+    const page = params?.page ?? 1;
+    const perPage = params?.perPage ?? 50;
+    const sortBy = params?.sortBy ?? 'nome_completo';
+    const sortOrder = params?.sortOrder === 'desc' ? false : true;
+    
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    // Get total count
+    const { count, error: countError } = await this.client
+      .from(TABLE)
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      throw new Error(`Failed to count students: ${countError.message}`);
+    }
+
+    const total = count ?? 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    // Get paginated data
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .order('nome_completo', { ascending: true });
+      .order(sortBy, { ascending: sortOrder })
+      .range(from, to);
 
     if (error) {
       throw new Error(`Failed to list students: ${error.message}`);
     }
 
-    return this.attachCourses(data ?? []);
+    const students = await this.attachCourses(data ?? []);
+
+    return {
+      data: students,
+      meta: {
+        page,
+        perPage,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findById(id: string): Promise<Student | null> {
@@ -334,6 +374,52 @@ export class StudentRepositoryImpl implements StudentRepository {
     });
 
     return map;
+  }
+
+  async findByEmpresa(empresaId: string): Promise<Student[]> {
+    // Buscar cursos da empresa
+    const { data: cursos, error: cursosError } = await this.client
+      .from(COURSES_TABLE)
+      .select('id')
+      .eq('empresa_id', empresaId);
+
+    if (cursosError) {
+      throw new Error(`Failed to fetch courses by empresa: ${cursosError.message}`);
+    }
+
+    const cursoIds = (cursos ?? []).map((c: { id: string }) => c.id);
+
+    if (!cursoIds.length) {
+      return [];
+    }
+
+    // Buscar alunos matriculados nesses cursos
+    const { data: alunosCursos, error: alunosCursosError } = await this.client
+      .from(COURSE_LINK_TABLE)
+      .select('aluno_id')
+      .in('curso_id', cursoIds);
+
+    if (alunosCursosError) {
+      throw new Error(`Failed to fetch students by empresa: ${alunosCursosError.message}`);
+    }
+
+    const alunoIds = Array.from(new Set((alunosCursos ?? []).map((ac: { aluno_id: string }) => ac.aluno_id)));
+
+    if (!alunoIds.length) {
+      return [];
+    }
+
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .in('id', alunoIds)
+      .order('nome_completo', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to list students by empresa: ${error.message}`);
+    }
+
+    return this.attachCourses(data ?? []);
   }
 
   private async setCourses(studentId: string, courseIds: string[]): Promise<void> {

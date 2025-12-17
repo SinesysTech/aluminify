@@ -1,11 +1,12 @@
 import { Student, CreateStudentInput, UpdateStudentInput } from './student.types';
-import { StudentRepository } from './student.repository';
+import { StudentRepository, PaginatedResult } from './student.repository';
 import {
   StudentConflictError,
   StudentNotFoundError,
   StudentValidationError,
 } from './errors';
 import { getDatabaseClient } from '@/backend/clients/database';
+import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 
 const FULL_NAME_MIN_LENGTH = 3;
 const FULL_NAME_MAX_LENGTH = 200;
@@ -31,8 +32,8 @@ function getAdminClient() {
 export class StudentService {
   constructor(private readonly repository: StudentRepository) {}
 
-  async list(): Promise<Student[]> {
-    return this.repository.list();
+  async list(params?: PaginationParams): Promise<PaginatedResult<Student>> {
+    return this.repository.list(params);
   }
 
   async create(payload: CreateStudentInput): Promise<Student> {

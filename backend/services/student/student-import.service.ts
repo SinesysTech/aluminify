@@ -68,10 +68,18 @@ export class StudentImportService {
       rows: [],
     };
 
+    // Fase 1: Validar todos os registros primeiro
+    const validatedRows: Array<{
+      row: StudentImportInputRow;
+      courseIds: string[];
+      errors: string[];
+    }> = [];
+
     for (const row of rows) {
       const errors = this.validateRow(row);
-
       const courseIds = this.resolveCourses(row, courseLookup, errors);
+
+      validatedRows.push({ row, courseIds, errors });
 
       if (errors.length > 0) {
         summary.failed += 1;
@@ -81,49 +89,80 @@ export class StudentImportService {
           status: 'failed',
           message: errors.join(' | '),
         });
-        continue;
       }
+    }
 
-      try {
-        await this.studentService.create({
-          fullName: row.fullName,
-          email: row.email,
-          cpf: row.cpf,
-          phone: row.phone,
-          enrollmentNumber: row.enrollmentNumber,
-          courseIds,
-          temporaryPassword: row.temporaryPassword,
-          mustChangePassword: true,
-        });
+    // Fase 2: Processar registros válidos em lotes
+    const validRows = validatedRows.filter(v => v.errors.length === 0);
+    const BATCH_SIZE = 10; // Processar 10 alunos por vez para evitar sobrecarga
 
-        summary.created += 1;
-        summary.rows.push({
-          rowNumber: row.rowNumber,
-          email: row.email,
-          status: 'created',
-        });
-      } catch (error) {
-        if (error instanceof StudentConflictError) {
-          summary.skipped += 1;
+    for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
+      const batch = validRows.slice(i, i + BATCH_SIZE);
+      
+      // Processar lote em paralelo
+      const batchResults = await Promise.allSettled(
+        batch.map(async ({ row, courseIds }) => {
+          try {
+            await this.studentService.create({
+              fullName: row.fullName,
+              email: row.email,
+              cpf: row.cpf,
+              phone: row.phone,
+              enrollmentNumber: row.enrollmentNumber,
+              courseIds,
+              temporaryPassword: row.temporaryPassword,
+              mustChangePassword: true,
+            });
+
+            return {
+              rowNumber: row.rowNumber,
+              email: row.email,
+              status: 'created' as const,
+            };
+          } catch (error) {
+            if (error instanceof StudentConflictError) {
+              return {
+                rowNumber: row.rowNumber,
+                email: row.email,
+                status: 'skipped' as const,
+                message: error.message,
+              };
+            }
+
+            const message =
+              error instanceof Error ? error.message : 'Erro inesperado ao importar aluno.';
+            return {
+              rowNumber: row.rowNumber,
+              email: row.email,
+              status: 'failed' as const,
+              message,
+            };
+          }
+        })
+      );
+
+      // Processar resultados do lote
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const rowResult = result.value;
+          if (rowResult.status === 'created') {
+            summary.created += 1;
+          } else if (rowResult.status === 'skipped') {
+            summary.skipped += 1;
+          } else {
+            summary.failed += 1;
+          }
+          summary.rows.push(rowResult);
+        } else {
+          summary.failed += 1;
           summary.rows.push({
-            rowNumber: row.rowNumber,
-            email: row.email,
-            status: 'skipped',
-            message: error.message,
+            rowNumber: 0,
+            email: '',
+            status: 'failed',
+            message: result.reason?.message || 'Erro inesperado ao processar lote',
           });
-          continue;
         }
-
-        const message =
-          error instanceof Error ? error.message : 'Erro inesperado ao importar aluno.';
-        summary.failed += 1;
-        summary.rows.push({
-          rowNumber: row.rowNumber,
-          email: row.email,
-          status: 'failed',
-          message,
-        });
-      }
+      });
     }
 
     return summary;

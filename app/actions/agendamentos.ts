@@ -76,6 +76,35 @@ export type AgendamentoNotificacao = {
   created_at?: string
 }
 
+export type Recorrencia = {
+  id?: string
+  professor_id: string
+  empresa_id: string
+  tipo_servico: 'plantao' | 'mentoria'
+  data_inicio: string // YYYY-MM-DD
+  data_fim?: string | null // YYYY-MM-DD, null = indefinida
+  dia_semana: number // 0-6
+  hora_inicio: string // HH:MM
+  hora_fim: string // HH:MM
+  duracao_slot_minutos: number // 15, 30, 45, or 60
+  ativo: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export type Bloqueio = {
+  id?: string
+  professor_id?: string | null // null = bloqueio para toda empresa
+  empresa_id: string
+  tipo: 'feriado' | 'recesso' | 'imprevisto' | 'outro'
+  data_inicio: string | Date
+  data_fim: string | Date
+  motivo?: string | null
+  criado_por: string
+  created_at?: string
+  updated_at?: string
+}
+
 export async function getDisponibilidade(professorId: string) {
   const supabase = await createClient()
 
@@ -154,13 +183,18 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
   // Validate appointment using the validation library
   const dataInicio = new Date(data.data_inicio)
   const dataFim = new Date(data.data_fim)
+  const dateOnly = dataInicio.toISOString().split('T')[0] // YYYY-MM-DD format
+  const dayOfWeek = dataInicio.getUTCDay()
 
-  // Get availability rules for validation
+  // Get availability rules from agendamento_recorrencia for validation
   const { data: rulesData } = await supabase
-    .from('agendamento_disponibilidade')
+    .from('agendamento_recorrencia')
     .select('*')
     .eq('professor_id', data.professor_id)
+    .eq('dia_semana', dayOfWeek)
     .eq('ativo', true)
+    .lte('data_inicio', dateOnly)
+    .or(`data_fim.is.null,data_fim.gte.${dateOnly}`)
 
   // Filter and map rules to ensure ativo is boolean
   const rules = (rulesData || [])
@@ -183,6 +217,33 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
     start: new Date(b.data_inicio),
     end: new Date(b.data_fim)
   }))
+
+  // Get bloqueios for this professor and date
+  const { data: professor } = await supabase
+    .from('professores')
+    .select('empresa_id')
+    .eq('id', data.professor_id)
+    .single()
+
+  const empresaId = professor?.empresa_id
+
+  if (empresaId) {
+    const { data: bloqueios } = await supabase
+      .from('agendamento_bloqueios')
+      .select('data_inicio, data_fim')
+      .eq('empresa_id', empresaId)
+      .or(`professor_id.is.null,professor_id.eq.${data.professor_id}`)
+      .lte('data_inicio', dataFim.toISOString())
+      .gte('data_fim', dataInicio.toISOString())
+
+    // Add bloqueios to existing slots to exclude them
+    const blockedSlots = (bloqueios || []).map(b => ({
+      start: new Date(b.data_inicio),
+      end: new Date(b.data_fim)
+    }))
+
+    existingSlots.push(...blockedSlots)
+  }
 
   // Validate appointment - filter and map rules to ensure ativo is boolean
   const validRules = (rules || [])
@@ -260,18 +321,22 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
 
   const date = new Date(dateStr)
   const dayOfWeek = date.getUTCDay() // 0-6
+  const dateOnly = dateStr.split('T')[0] // YYYY-MM-DD format
 
   // Get professor configuration for minimum advance time
   const config = await getConfiguracoesProfessor(professorId)
   const minAdvanceMinutes = config?.tempo_antecedencia_minimo || 60
 
-  // Get availability rules
+  // Get availability rules from agendamento_recorrencia
+  // Filtrar por data_inicio <= dateStr <= data_fim (ou data_fim IS NULL)
   const { data: rulesData } = await supabase
-    .from('agendamento_disponibilidade')
+    .from('agendamento_recorrencia')
     .select('*')
     .eq('professor_id', professorId)
     .eq('dia_semana', dayOfWeek)
     .eq('ativo', true)
+    .lte('data_inicio', dateOnly)
+    .or(`data_fim.is.null,data_fim.gte.${dateOnly}`)
 
   // Filter and map rules to ensure ativo is boolean
   const rules = (rulesData || [])
@@ -281,6 +346,7 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
       hora_inicio: r.hora_inicio,
       hora_fim: r.hora_fim,
       ativo: r.ativo,
+      duracao_slot_minutos: r.duracao_slot_minutos || 30,
     }))
 
   if (!rules || rules.length === 0) {
@@ -306,15 +372,48 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
     end: new Date(b.data_fim)
   }))
 
+  // Get bloqueios for this professor and date
+  const { data: professor } = await supabase
+    .from('professores')
+    .select('empresa_id')
+    .eq('id', professorId)
+    .single()
+
+  const empresaId = professor?.empresa_id
+
+  let bloqueios: Array<{ data_inicio: string; data_fim: string }> = []
+  if (empresaId) {
+    const { data: bloqueiosData } = await supabase
+      .from('agendamento_bloqueios')
+      .select('data_inicio, data_fim')
+      .eq('empresa_id', empresaId)
+      .or(`professor_id.is.null,professor_id.eq.${professorId}`)
+      .lte('data_inicio', endOfDay.toISOString())
+      .gte('data_fim', startOfDay.toISOString())
+    
+    bloqueios = bloqueiosData || []
+  }
+
+  // Add bloqueios to existing slots to exclude them
+  const blockedSlots = bloqueios.map(b => ({
+    start: new Date(b.data_inicio),
+    end: new Date(b.data_fim)
+  }))
+
+  const allBlockedSlots = [...existingSlots, ...blockedSlots]
+
   // Use the validation library to generate available slots
   // Filter rules to ensure ativo is boolean
   const validRules = rules.filter((r): r is typeof r & { ativo: boolean } => r.ativo === true)
 
+  // Use the first rule's slot duration (or default to 30)
+  const slotDuration = validRules[0]?.duracao_slot_minutos || 30
+
   const slots = generateAvailableSlots(
     date,
     validRules,
-    existingSlots,
-    30, // slot duration in minutes
+    allBlockedSlots,
+    slotDuration,
     minAdvanceMinutes
   )
 
@@ -919,6 +1018,141 @@ export async function updateIntegracaoProfessor(
 }
 
 // =============================================
+// Shared Calendar Functions
+// =============================================
+
+export async function getProfessoresDisponibilidade(empresaId: string, date: Date) {
+  const supabase = await createClient()
+  const dateStr = date.toISOString().split('T')[0]
+  const dayOfWeek = date.getUTCDay()
+
+  // Get all professors from the company
+  const { data: professores } = await supabase
+    .from('professores')
+    .select('id, nome_completo, foto_url')
+    .eq('empresa_id', empresaId)
+
+  if (!professores || professores.length === 0) {
+    return []
+  }
+
+  const professorIds = professores.map(p => p.id)
+
+  // Get availability patterns for all professors
+  const { data: recorrencias } = await supabase
+    .from('agendamento_recorrencia')
+    .select('*')
+    .in('professor_id', professorIds)
+    .eq('dia_semana', dayOfWeek)
+    .eq('ativo', true)
+    .lte('data_inicio', dateStr)
+    .or(`data_fim.is.null,data_fim.gte.${dateStr}`)
+
+  // Get bloqueios for all professors
+  const startOfDay = new Date(date)
+  startOfDay.setUTCHours(0, 0, 0, 0)
+  const endOfDay = new Date(date)
+  endOfDay.setUTCHours(23, 59, 59, 999)
+
+  const { data: bloqueios } = await supabase
+    .from('agendamento_bloqueios')
+    .select('professor_id, data_inicio, data_fim')
+    .eq('empresa_id', empresaId)
+    .or(`professor_id.is.null,professor_id.in.(${professorIds.join(',')})`)
+    .lte('data_inicio', endOfDay.toISOString())
+    .gte('data_fim', startOfDay.toISOString())
+
+  // Get existing appointments (reuse startOfDay and endOfDay from above)
+
+  const { data: agendamentos } = await supabase
+    .from('agendamentos')
+    .select('professor_id, data_inicio, data_fim')
+    .in('professor_id', professorIds)
+    .gte('data_inicio', startOfDay.toISOString())
+    .lte('data_fim', endOfDay.toISOString())
+    .neq('status', 'cancelado')
+
+  // Build result for each professor
+  const result = professores.map(professor => {
+    const profRecorrencias = (recorrencias || []).filter(r => r.professor_id === professor.id)
+    const profBloqueios = (bloqueios || []).filter(b => !b.professor_id || b.professor_id === professor.id)
+    const profAgendamentos = (agendamentos || []).filter(a => a.professor_id === professor.id)
+
+    // Generate available slots for this professor
+    const rules = profRecorrencias.map(r => ({
+      dia_semana: r.dia_semana,
+      hora_inicio: r.hora_inicio,
+      hora_fim: r.hora_fim,
+      ativo: r.ativo,
+    }))
+
+    const existingSlots = profAgendamentos.map(a => ({
+      start: new Date(a.data_inicio),
+      end: new Date(a.data_fim)
+    }))
+
+    const blockedSlots = profBloqueios.map(b => ({
+      start: new Date(b.data_inicio),
+      end: new Date(b.data_fim)
+    }))
+
+    const allBlockedSlots = [...existingSlots, ...blockedSlots]
+
+    const slotDuration = profRecorrencias[0]?.duracao_slot_minutos || 30
+
+    const slots = generateAvailableSlots(
+      date,
+      rules,
+      allBlockedSlots,
+      slotDuration,
+      60 // min advance
+    )
+
+    return {
+      professor_id: professor.id,
+      nome: professor.nome_completo,
+      foto: professor.foto_url,
+      slots_disponiveis: slots.map(s => s.toISOString())
+    }
+  })
+
+  return result
+}
+
+export async function getAgendamentosEmpresa(empresaId: string, dateStart: Date, dateEnd: Date) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('v_agendamentos_empresa')
+    .select('*')
+    .eq('empresa_id', empresaId)
+    .gte('data_inicio', dateStart.toISOString())
+    .lte('data_fim', dateEnd.toISOString())
+    .order('data_inicio', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching company appointments:', error)
+    return []
+  }
+
+  return (data || []).map(item => ({
+    id: item.id,
+    professor_id: item.professor_id,
+    professor_nome: item.professor_nome,
+    professor_foto: item.professor_foto,
+    aluno_nome: item.aluno_nome,
+    aluno_email: item.aluno_email,
+    data_inicio: item.data_inicio,
+    data_fim: item.data_fim,
+    status: item.status as Agendamento['status'],
+    link_reuniao: item.link_reuniao,
+    observacoes: item.observacoes,
+    created_at: item.created_at,
+    updated_at: item.updated_at
+  }))
+}
+
+// =============================================
 // Availability Management
 // =============================================
 
@@ -969,6 +1203,432 @@ export async function bulkUpsertDisponibilidade(items: Disponibilidade[]) {
   }
 
   revalidatePath('/professor/disponibilidade')
+  revalidatePath('/agendamentos')
+  return { success: true }
+}
+
+// =============================================
+// Recorrência Management
+// =============================================
+
+export async function getRecorrencias(professorId: string): Promise<Recorrencia[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || user.id !== professorId) {
+    throw new Error('Unauthorized')
+  }
+
+  const { data, error } = await supabase
+    .from('agendamento_recorrencia')
+    .select('*')
+    .eq('professor_id', professorId)
+    .order('dia_semana', { ascending: true })
+    .order('hora_inicio', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching recorrencias:', error)
+    throw new Error('Failed to fetch recorrencias')
+  }
+
+  return (data || []).map(item => ({
+    id: item.id,
+    professor_id: item.professor_id,
+    empresa_id: item.empresa_id,
+    tipo_servico: item.tipo_servico as 'plantao' | 'mentoria',
+    data_inicio: item.data_inicio,
+    data_fim: item.data_fim,
+    dia_semana: item.dia_semana,
+    hora_inicio: item.hora_inicio,
+    hora_fim: item.hora_fim,
+    duracao_slot_minutos: item.duracao_slot_minutos,
+    ativo: item.ativo,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  }))
+}
+
+export async function createRecorrencia(data: Omit<Recorrencia, 'id' | 'created_at' | 'updated_at'>): Promise<Recorrencia> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || user.id !== data.professor_id) {
+    throw new Error('Unauthorized')
+  }
+
+  const payload = {
+    professor_id: data.professor_id,
+    empresa_id: data.empresa_id,
+    tipo_servico: data.tipo_servico,
+    data_inicio: data.data_inicio,
+    data_fim: data.data_fim || null,
+    dia_semana: data.dia_semana,
+    hora_inicio: data.hora_inicio,
+    hora_fim: data.hora_fim,
+    duracao_slot_minutos: data.duracao_slot_minutos,
+    ativo: data.ativo ?? true,
+  }
+
+  const { data: result, error } = await supabase
+    .from('agendamento_recorrencia')
+    .insert(payload)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating recorrencia:', error)
+    throw new Error('Failed to create recorrencia')
+  }
+
+  revalidatePath('/professor/disponibilidade')
+  revalidatePath('/agendamentos')
+  
+  return {
+    id: result.id,
+    professor_id: result.professor_id,
+    empresa_id: result.empresa_id,
+    tipo_servico: result.tipo_servico as 'plantao' | 'mentoria',
+    data_inicio: result.data_inicio,
+    data_fim: result.data_fim,
+    dia_semana: result.dia_semana,
+    hora_inicio: result.hora_inicio,
+    hora_fim: result.hora_fim,
+    duracao_slot_minutos: result.duracao_slot_minutos,
+    ativo: result.ativo,
+    created_at: result.created_at,
+    updated_at: result.updated_at,
+  }
+}
+
+export async function updateRecorrencia(id: string, data: Partial<Omit<Recorrencia, 'id' | 'professor_id' | 'empresa_id' | 'created_at' | 'updated_at'>>): Promise<Recorrencia> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from('agendamento_recorrencia')
+    .select('professor_id')
+    .eq('id', id)
+    .single()
+
+  if (!existing || existing.professor_id !== user.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const updateData: Record<string, unknown> = {}
+  if (data.tipo_servico !== undefined) updateData.tipo_servico = data.tipo_servico
+  if (data.data_inicio !== undefined) updateData.data_inicio = data.data_inicio
+  if (data.data_fim !== undefined) updateData.data_fim = data.data_fim
+  if (data.dia_semana !== undefined) updateData.dia_semana = data.dia_semana
+  if (data.hora_inicio !== undefined) updateData.hora_inicio = data.hora_inicio
+  if (data.hora_fim !== undefined) updateData.hora_fim = data.hora_fim
+  if (data.duracao_slot_minutos !== undefined) updateData.duracao_slot_minutos = data.duracao_slot_minutos
+  if (data.ativo !== undefined) updateData.ativo = data.ativo
+
+  const { data: result, error } = await supabase
+    .from('agendamento_recorrencia')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating recorrencia:', error)
+    throw new Error('Failed to update recorrencia')
+  }
+
+  revalidatePath('/professor/disponibilidade')
+  revalidatePath('/agendamentos')
+  
+  return {
+    id: result.id,
+    professor_id: result.professor_id,
+    empresa_id: result.empresa_id,
+    tipo_servico: result.tipo_servico as 'plantao' | 'mentoria',
+    data_inicio: result.data_inicio,
+    data_fim: result.data_fim,
+    dia_semana: result.dia_semana,
+    hora_inicio: result.hora_inicio,
+    hora_fim: result.hora_fim,
+    duracao_slot_minutos: result.duracao_slot_minutos,
+    ativo: result.ativo,
+    created_at: result.created_at,
+    updated_at: result.updated_at,
+  }
+}
+
+export async function deleteRecorrencia(id: string): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from('agendamento_recorrencia')
+    .select('professor_id')
+    .eq('id', id)
+    .single()
+
+  if (!existing || existing.professor_id !== user.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const { error } = await supabase
+    .from('agendamento_recorrencia')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting recorrencia:', error)
+    throw new Error('Failed to delete recorrencia')
+  }
+
+  revalidatePath('/professor/disponibilidade')
+  revalidatePath('/agendamentos')
+  return { success: true }
+}
+
+// =============================================
+// Bloqueios Management
+// =============================================
+
+export async function getBloqueios(professorId?: string, empresaId?: string): Promise<Bloqueio[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  let query = supabase
+    .from('agendamento_bloqueios')
+    .select('*')
+    .order('data_inicio', { ascending: true })
+
+  if (empresaId) {
+    query = query.eq('empresa_id', empresaId)
+  }
+
+  if (professorId) {
+    query = query.or(`professor_id.is.null,professor_id.eq.${professorId}`)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching bloqueios:', error)
+    throw new Error('Failed to fetch bloqueios')
+  }
+
+  return (data || []).map(item => ({
+    id: item.id,
+    professor_id: item.professor_id,
+    empresa_id: item.empresa_id,
+    tipo: item.tipo as 'feriado' | 'recesso' | 'imprevisto' | 'outro',
+    data_inicio: item.data_inicio,
+    data_fim: item.data_fim,
+    motivo: item.motivo,
+    criado_por: item.criado_por,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  }))
+}
+
+export async function createBloqueio(data: Omit<Bloqueio, 'id' | 'created_at' | 'updated_at'>): Promise<Bloqueio> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // Verify user has permission (professor_id must be null or match user.id)
+  if (data.professor_id && data.professor_id !== user.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const dataInicio = typeof data.data_inicio === 'string' ? data.data_inicio : data.data_inicio.toISOString()
+  const dataFim = typeof data.data_fim === 'string' ? data.data_fim : data.data_fim.toISOString()
+
+  const payload = {
+    professor_id: data.professor_id || null,
+    empresa_id: data.empresa_id,
+    tipo: data.tipo,
+    data_inicio: dataInicio,
+    data_fim: dataFim,
+    motivo: data.motivo || null,
+    criado_por: user.id,
+  }
+
+  const { data: result, error } = await supabase
+    .from('agendamento_bloqueios')
+    .insert(payload)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating bloqueio:', error)
+    throw new Error('Failed to create bloqueio')
+  }
+
+  // If blocking affects existing appointments, cancel them
+  if (result.professor_id) {
+    const { error: cancelError } = await supabase
+      .from('agendamentos')
+      .update({ status: 'cancelado', motivo_cancelamento: `Bloqueio de agenda: ${data.motivo || 'Sem motivo especificado'}` })
+      .eq('professor_id', result.professor_id)
+      .in('status', ['pendente', 'confirmado'])
+      .gte('data_inicio', dataInicio)
+      .lte('data_fim', dataFim)
+
+    if (cancelError) {
+      console.error('Error cancelling affected appointments:', cancelError)
+    }
+  } else {
+    // Company-wide bloqueio - cancel all affected appointments
+    const { data: professores } = await supabase
+      .from('professores')
+      .select('id')
+      .eq('empresa_id', data.empresa_id)
+
+    if (professores && professores.length > 0) {
+      const professorIds = professores.map(p => p.id)
+      const { error: cancelError } = await supabase
+        .from('agendamentos')
+        .update({ status: 'cancelado', motivo_cancelamento: `Bloqueio de agenda: ${data.motivo || 'Sem motivo especificado'}` })
+        .in('professor_id', professorIds)
+        .in('status', ['pendente', 'confirmado'])
+        .gte('data_inicio', dataInicio)
+        .lte('data_fim', dataFim)
+
+      if (cancelError) {
+        console.error('Error cancelling affected appointments:', cancelError)
+      }
+    }
+  }
+
+  revalidatePath('/professor/agendamentos')
+  revalidatePath('/agendamentos')
+  
+  return {
+    id: result.id,
+    professor_id: result.professor_id,
+    empresa_id: result.empresa_id,
+    tipo: result.tipo as 'feriado' | 'recesso' | 'imprevisto' | 'outro',
+    data_inicio: result.data_inicio,
+    data_fim: result.data_fim,
+    motivo: result.motivo,
+    criado_por: result.criado_por,
+    created_at: result.created_at,
+    updated_at: result.updated_at,
+  }
+}
+
+export async function updateBloqueio(id: string, data: Partial<Omit<Bloqueio, 'id' | 'empresa_id' | 'criado_por' | 'created_at' | 'updated_at'>>): Promise<Bloqueio> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from('agendamento_bloqueios')
+    .select('professor_id, empresa_id')
+    .eq('id', id)
+    .single()
+
+  if (!existing) {
+    throw new Error('Bloqueio not found')
+  }
+
+  // User must own the bloqueio (professor_id matches) or be admin updating company bloqueio
+  if (existing.professor_id && existing.professor_id !== user.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const updateData: Record<string, unknown> = {}
+  if (data.professor_id !== undefined) updateData.professor_id = data.professor_id || null
+  if (data.tipo !== undefined) updateData.tipo = data.tipo
+  if (data.data_inicio !== undefined) {
+    updateData.data_inicio = typeof data.data_inicio === 'string' ? data.data_inicio : data.data_inicio.toISOString()
+  }
+  if (data.data_fim !== undefined) {
+    updateData.data_fim = typeof data.data_fim === 'string' ? data.data_fim : data.data_fim.toISOString()
+  }
+  if (data.motivo !== undefined) updateData.motivo = data.motivo || null
+
+  const { data: result, error } = await supabase
+    .from('agendamento_bloqueios')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating bloqueio:', error)
+    throw new Error('Failed to update bloqueio')
+  }
+
+  revalidatePath('/professor/agendamentos')
+  revalidatePath('/agendamentos')
+  
+  return {
+    id: result.id,
+    professor_id: result.professor_id,
+    empresa_id: result.empresa_id,
+    tipo: result.tipo as 'feriado' | 'recesso' | 'imprevisto' | 'outro',
+    data_inicio: result.data_inicio,
+    data_fim: result.data_fim,
+    motivo: result.motivo,
+    criado_por: result.criado_por,
+    created_at: result.created_at,
+    updated_at: result.updated_at,
+  }
+}
+
+export async function deleteBloqueio(id: string): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // Verify ownership
+  const { data: existing } = await supabase
+    .from('agendamento_bloqueios')
+    .select('professor_id')
+    .eq('id', id)
+    .single()
+
+  if (!existing) {
+    throw new Error('Bloqueio not found')
+  }
+
+  if (existing.professor_id && existing.professor_id !== user.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const { error } = await supabase
+    .from('agendamento_bloqueios')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting bloqueio:', error)
+    throw new Error('Failed to delete bloqueio')
+  }
+
+  revalidatePath('/professor/agendamentos')
   revalidatePath('/agendamentos')
   return { success: true }
 }
@@ -1071,6 +1731,139 @@ export async function validateAgendamento(
 
 // Note: Notifications are now handled by database trigger notify_agendamento_change()
 // The manual _createNotificacao function was removed to avoid duplicates
+
+// =============================================
+// Reports Functions
+// =============================================
+
+export type RelatorioTipo = 'mensal' | 'semanal' | 'customizado'
+
+export type RelatorioDados = {
+  total_agendamentos: number
+  por_status: {
+    confirmado: number
+    cancelado: number
+    concluido: number
+    pendente: number
+  }
+  por_professor: Array<{
+    professor_id: string
+    nome: string
+    total: number
+    taxa_comparecimento: number
+  }>
+  taxa_ocupacao: number
+  horarios_pico: string[]
+  taxa_nao_comparecimento: number
+}
+
+export type Relatorio = {
+  id: string
+  empresa_id: string
+  periodo_inicio: string
+  periodo_fim: string
+  tipo: RelatorioTipo
+  dados_json: RelatorioDados
+  gerado_em: string
+  gerado_por: string
+  created_at?: string
+  updated_at?: string
+}
+
+export async function gerarRelatorio(
+  empresaId: string,
+  dataInicio: Date,
+  dataFim: Date,
+  tipo: RelatorioTipo
+): Promise<Relatorio> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // Call Edge Function to generate report
+  const { data, error } = await supabase.functions.invoke('gerar-relatorio-agendamentos', {
+    body: {
+      empresa_id: empresaId,
+      data_inicio: dataInicio.toISOString().split('T')[0],
+      data_fim: dataFim.toISOString().split('T')[0],
+      tipo,
+    },
+  })
+
+  if (error) {
+    console.error('Error generating report:', error)
+    throw new Error('Failed to generate report')
+  }
+
+  return data.relatorio
+}
+
+export async function getRelatorios(empresaId: string, limit?: number): Promise<Relatorio[]> {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('agendamento_relatorios')
+    .select('*')
+    .eq('empresa_id', empresaId)
+    .order('gerado_em', { ascending: false })
+
+  if (limit) {
+    query = query.limit(limit)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching reports:', error)
+    return []
+  }
+
+  return (data || []).map(item => ({
+    id: item.id,
+    empresa_id: item.empresa_id,
+    periodo_inicio: item.periodo_inicio,
+    periodo_fim: item.periodo_fim,
+    tipo: item.tipo as RelatorioTipo,
+    dados_json: item.dados_json as RelatorioDados,
+    gerado_em: item.gerado_em,
+    gerado_por: item.gerado_por,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  }))
+}
+
+export async function getRelatorioById(id: string): Promise<Relatorio | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('agendamento_relatorios')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching report:', error)
+    return null
+  }
+
+  if (!data) return null
+
+  return {
+    id: data.id,
+    empresa_id: data.empresa_id,
+    periodo_inicio: data.periodo_inicio,
+    periodo_fim: data.periodo_fim,
+    tipo: data.tipo as RelatorioTipo,
+    dados_json: data.dados_json as RelatorioDados,
+    gerado_em: data.gerado_em,
+    gerado_por: data.gerado_por,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+  }
+}
 
 // =============================================
 // Statistics

@@ -10,6 +10,7 @@ export interface EnrollmentRepository {
   create(payload: CreateEnrollmentInput): Promise<Enrollment>;
   update(id: string, payload: UpdateEnrollmentInput): Promise<Enrollment>;
   delete(id: string): Promise<void>;
+  findByEmpresa(empresaId: string): Promise<Enrollment[]>;
   studentExists(studentId: string): Promise<boolean>;
   courseExists(courseId: string): Promise<boolean>;
 }
@@ -199,6 +200,36 @@ export class EnrollmentRepositoryImpl implements EnrollmentRepository {
     }
 
     return !!data;
+  }
+
+  async findByEmpresa(empresaId: string): Promise<Enrollment[]> {
+    // Buscar matrículas em cursos da empresa
+    const { data: cursos, error: cursosError } = await this.client
+      .from(COURSE_TABLE)
+      .select('id')
+      .eq('empresa_id', empresaId);
+
+    if (cursosError) {
+      throw new Error(`Failed to fetch courses by empresa: ${cursosError.message}`);
+    }
+
+    const cursoIds = (cursos ?? []).map((c: { id: string }) => c.id);
+
+    if (!cursoIds.length) {
+      return [];
+    }
+
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .in('curso_id', cursoIds)
+      .order('data_matricula', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to list enrollments by empresa: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapRow);
   }
 }
 

@@ -1,12 +1,19 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Course, CreateCourseInput, UpdateCourseInput, Modality, CourseType } from './course.types';
+import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
 
 export interface CourseRepository {
-  list(): Promise<Course[]>;
+  list(params?: PaginationParams): Promise<PaginatedResult<Course>>;
   findById(id: string): Promise<Course | null>;
   create(payload: CreateCourseInput): Promise<Course>;
   update(id: string, payload: UpdateCourseInput): Promise<Course>;
   delete(id: string): Promise<void>;
+  findByEmpresa(empresaId: string): Promise<Course[]>;
   segmentExists(segmentId: string): Promise<boolean>;
   disciplineExists(disciplineId: string): Promise<boolean>;
   setCourseDisciplines(courseId: string, disciplineIds: string[]): Promise<void>;
@@ -20,6 +27,7 @@ const COURSE_DISCIPLINES_TABLE = 'cursos_disciplinas';
 
 type CourseRow = {
   id: string;
+  empresa_id: string;
   segmento_id: string | null;
   disciplina_id: string | null;
   nome: string;
@@ -42,6 +50,7 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Course> {
   
   return {
     id: row.id,
+    empresaId: row.empresa_id,
     segmentId: row.segmento_id,
     disciplineId: row.disciplina_id, // Mantido para compatibilidade
     disciplineIds, // Nova propriedade
@@ -77,17 +86,49 @@ async function getCourseDisciplinesFromDb(courseId: string, client: SupabaseClie
 export class CourseRepositoryImpl implements CourseRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(): Promise<Course[]> {
+  async list(params?: PaginationParams): Promise<PaginatedResult<Course>> {
+    const page = params?.page ?? 1;
+    const perPage = params?.perPage ?? 50;
+    const sortBy = params?.sortBy ?? 'nome';
+    const sortOrder = params?.sortOrder === 'desc' ? false : true;
+    
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    // Get total count
+    const { count, error: countError } = await this.client
+      .from(TABLE)
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      throw new Error(`Failed to count courses: ${countError.message}`);
+    }
+
+    const total = count ?? 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    // Get paginated data
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .order('nome', { ascending: true });
+      .order(sortBy, { ascending: sortOrder })
+      .range(from, to);
 
     if (error) {
       throw new Error(`Failed to list courses: ${error.message}`);
     }
 
-    return Promise.all((data ?? []).map(row => mapRow(row, this.client)));
+    const courses = await Promise.all((data ?? []).map(row => mapRow(row, this.client)));
+
+    return {
+      data: courses,
+      meta: {
+        page,
+        perPage,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findById(id: string): Promise<Course | null> {
@@ -105,6 +146,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     const disciplineIds = payload.disciplineIds ?? (payload.disciplineId ? [payload.disciplineId] : []);
 
     const insertData: Record<string, unknown> = {
+      empresa_id: payload.empresaId,
       segmento_id: payload.segmentId ?? null,
       disciplina_id: disciplineIds.length > 0 ? disciplineIds[0] : null, // Manter primeira disciplina para compatibilidade
       nome: payload.name,
@@ -276,6 +318,20 @@ export class CourseRepositoryImpl implements CourseRepository {
 
   async getCourseDisciplines(courseId: string): Promise<string[]> {
     return getCourseDisciplinesFromDb(courseId, this.client);
+  }
+
+  async findByEmpresa(empresaId: string): Promise<Course[]> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .order('nome', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to list courses by empresa: ${error.message}`);
+    }
+
+    return Promise.all((data ?? []).map(row => mapRow(row, this.client)));
   }
 }
 

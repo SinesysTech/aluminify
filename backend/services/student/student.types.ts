@@ -1,57 +1,11 @@
-export interface StudentCourseSummary {
-  id: string;
-  name: string;
-}
-
-export interface Student {
-  id: string;
-  fullName: string | null;
-  email: string;
-  cpf: string | null;
-  phone: string | null;
-  birthDate: Date | null;
-  address: string | null;
-  zipCode: string | null;
-  enrollmentNumber: string | null;
-  instagram: string | null;
-  twitter: string | null;
-  courses: StudentCourseSummary[];
-  mustChangePassword: boolean;
-  temporaryPassword: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateStudentInput {
-  id?: string;
-  fullName?: string;
-  email: string;
-  cpf?: string;
-  phone?: string;
-  birthDate?: string;
-  address?: string;
-  zipCode?: string;
-  enrollmentNumber?: string;
-  instagram?: string;
-  twitter?: string;
-  courseIds: string[];
-  temporaryPassword?: string;
-  mustChangePassword?: boolean;
-}
-
-export interface UpdateStudentInput {
-  fullName?: string | null;
-  email?: string;
-  cpf?: string | null;
-  phone?: string | null;
-  birthDate?: string | null;
-  address?: string | null;
-  zipCode?: string | null;
-  enrollmentNumber?: string | null;
-  instagram?: string | null;
-  twitter?: string | null;
-  courseIds?: string[];
-  temporaryPassword?: string | null;
-  mustChangePassword?: boolean;
-}
+/**
+ * @deprecated Use types from '@/types/shared/entities/user' instead
+ * This file re-exports for backward compatibility
+ */
+export type {
+  Student,
+  StudentCourseSummary,
+  CreateStudentInput,
+  UpdateStudentInput,
+} from '@/types/shared/entities/user';
 

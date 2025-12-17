@@ -17,8 +17,6 @@ import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import Papa from 'papaparse'
-import ExcelJS from 'exceljs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -104,18 +102,6 @@ export type Aluno = {
   updatedAt: string
 }
 
-type StudentImportPreviewRow = {
-  rowNumber: number
-  fullName: string
-  email: string
-  cpf: string
-  phone: string
-  enrollmentNumber: string
-  temporaryPassword: string
-  coursesRaw: string
-  courses: string[]
-  errors: string[]
-}
 
 type StudentImportApiSummary = {
   total: number
@@ -130,106 +116,12 @@ type StudentImportApiSummary = {
   }[]
 }
 
-type ParsedSpreadsheetRow = Record<string, string>
-
-const STUDENT_IMPORT_COLUMN_ALIASES = {
-  fullName: ['nome completo', 'nome'],
-  email: ['email', 'e-mail'],
-  cpf: ['cpf'],
-  phone: ['telefone', 'celular'],
-  enrollmentNumber: ['numero de matricula', 'número de matrícula', 'matricula', 'matrícula'],
-  courses: ['cursos', 'curso', 'courses'],
-  temporaryPassword: ['senha temporaria', 'senha temporária', 'senha', 'password'],
-} as const
-
 const STUDENT_IMPORT_TEMPLATE = [
   ['Nome Completo', 'Email', 'CPF', 'Telefone', 'Número de Matrícula', 'Cursos', 'Senha Temporária'],
   ['Maria Souza', 'maria@example.com', '12345678901', '11999990000', 'MAT-0001', 'Curso A; Curso B', 'Senha@123'],
 ] as const
 
 const STUDENT_IMPORT_FILE_ACCEPT = '.csv,.xlsx,.xls'
-
-const normalizeColumnName = (value?: string | null) =>
-  (value ?? '')
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, ' ')
-
-const splitCourses = (value: string) =>
-  value
-    .split(/[,;|/]/)
-    .map((course) => course.trim())
-    .filter(Boolean)
-
-const filterSpreadsheetRows = (rows: Record<string, string>[]) =>
-  rows.filter((row) =>
-    Object.values(row).some((value) => String(value ?? '').trim()),
-  )
-
-const parseCSVFile = (file: File): Promise<ParsedSpreadsheetRow[]> =>
-  new Promise((resolve, reject) => {
-    Papa.parse<ParsedSpreadsheetRow>(file, {
-      header: true,
-      skipEmptyLines: 'greedy',
-      transformHeader: (header: string) => header.trim(),
-      delimiter: ';', // Padrão Excel PT-BR para evitar quebra por vírgulas em textos
-      quoteChar: '"',
-      escapeChar: '"',
-      complete: (results) => {
-        if (results.errors?.length) {
-          reject(new Error(results.errors[0].message ?? 'Erro ao processar CSV.'))
-          return
-        }
-        resolve(filterSpreadsheetRows(results.data ?? []))
-      },
-      error: (error) => reject(new Error(error.message)),
-    })
-  })
-
-const parseXLSXFile = async (file: File): Promise<ParsedSpreadsheetRow[]> => {
-  try {
-    const buffer = await file.arrayBuffer()
-    const workbook = new ExcelJS.Workbook()
-    await workbook.xlsx.load(buffer)
-
-    const worksheet = workbook.worksheets[0]
-    if (!worksheet) {
-      throw new Error('O arquivo XLSX não contém planilhas.')
-    }
-
-    const rows: ParsedSpreadsheetRow[] = []
-    const headers: string[] = []
-
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) {
-        // First row = headers
-        row.eachCell({ includeEmpty: false }, (cell) => {
-          headers.push(String(cell.value ?? '').trim())
-        })
-      } else {
-        // Data rows
-        const rowData: ParsedSpreadsheetRow = {}
-        row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-          const header = headers[colNumber - 1]
-          if (header) {
-            rowData[header] = String(cell.value ?? '').trim()
-          }
-        })
-        if (Object.keys(rowData).length > 0) {
-          rows.push(rowData)
-        }
-      }
-    })
-
-    return filterSpreadsheetRows(rows)
-  } catch (error) {
-    throw new Error(
-      `Erro ao processar XLSX: ${
-        error instanceof Error ? error.message : 'Erro desconhecido'
-      }`,
-    )
-  }
-}
 
 const alunoSchema = z.object({
   fullName: z.string().optional().nullable(),
@@ -248,16 +140,6 @@ const alunoSchema = z.object({
 
 type AlunoFormValues = z.infer<typeof alunoSchema>
 
-const normalizeCourseName = (name: string) =>
-  name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .slice(0, 32)
-    .toUpperCase()
-
-const generateDefaultPassword = (cpf: string, courseName: string) =>
-  `${cpf}@${normalizeCourseName(courseName)}`
 
 export function AlunoTable() {
   const [data, setData] = React.useState<Aluno[]>([])
@@ -281,7 +163,6 @@ export function AlunoTable() {
   const [deletingAluno, setDeletingAluno] = React.useState<Aluno | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [importDialogOpen, setImportDialogOpen] = React.useState(false)
-  const [importRows, setImportRows] = React.useState<StudentImportPreviewRow[]>([])
   const [importErrors, setImportErrors] = React.useState<string[]>([])
   const [importSummary, setImportSummary] = React.useState<StudentImportApiSummary | null>(null)
   const [importLoading, setImportLoading] = React.useState(false)
@@ -428,95 +309,7 @@ export function AlunoTable() {
     fetchAlunos()
   }, [fetchAlunos])
 
-  const courseNameLookup = React.useMemo(() => {
-    const map = new Map<string, boolean>()
-    courseOptions.forEach((course) => {
-      map.set(course.name.trim().toLowerCase(), true)
-    })
-    return map
-  }, [courseOptions])
-
-  const transformImportRows = React.useCallback(
-    (rawRows: ParsedSpreadsheetRow[]): StudentImportPreviewRow[] =>
-      rawRows.map((row, index) => {
-        const normalizedRow = new Map<string, string>()
-        Object.entries(row).forEach(([key, value]) => {
-          if (!key) return
-          normalizedRow.set(normalizeColumnName(key), value != null ? String(value).trim() : '')
-        })
-
-        const getValue = (aliases: readonly string[]) => {
-          for (const alias of aliases) {
-            const normalizedKey = normalizeColumnName(alias)
-            if (normalizedRow.has(normalizedKey)) {
-              return normalizedRow.get(normalizedKey) || ''
-            }
-          }
-          return ''
-        }
-
-        const rawRowNumber = (row as Record<string, unknown> & { __rowNum__?: number }).__rowNum__
-        const rowNumber =
-          typeof rawRowNumber === 'number' && Number.isFinite(rawRowNumber)
-            ? rawRowNumber + 1
-            : index + 2
-
-        const fullName = getValue(STUDENT_IMPORT_COLUMN_ALIASES.fullName)
-        const email = getValue(STUDENT_IMPORT_COLUMN_ALIASES.email).toLowerCase()
-        const cpfDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.cpf).replace(/\D/g, '')
-        const phoneDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.phone).replace(/\D/g, '')
-        const enrollmentNumber = getValue(STUDENT_IMPORT_COLUMN_ALIASES.enrollmentNumber)
-        const coursesRaw = getValue(STUDENT_IMPORT_COLUMN_ALIASES.courses)
-        const temporaryPassword = getValue(STUDENT_IMPORT_COLUMN_ALIASES.temporaryPassword)
-        const courses = coursesRaw ? Array.from(new Set(splitCourses(coursesRaw))) : []
-
-        const errors: string[] = []
-
-        if (!fullName) errors.push('Nome completo é obrigatório.')
-        if (!email) errors.push('Email é obrigatório.')
-        if (!cpfDigits || cpfDigits.length !== 11) errors.push('CPF deve ter 11 dígitos.')
-        if (!phoneDigits || phoneDigits.length < 10) errors.push('Telefone deve ter ao menos 10 dígitos.')
-        if (!enrollmentNumber) errors.push('Número de matrícula é obrigatório.')
-        if (!temporaryPassword) {
-          errors.push('Senha temporária é obrigatória.')
-        } else if (temporaryPassword.length < 8) {
-          errors.push('Senha temporária deve ter pelo menos 8 caracteres.')
-        }
-        if (!coursesRaw) {
-          errors.push('Informe pelo menos um curso.')
-        } else if (courseNameLookup.size > 0) {
-          const invalidCourses = courses.filter(
-            (course) => !courseNameLookup.has(course.trim().toLowerCase()),
-          )
-          if (invalidCourses.length) {
-            errors.push(`Cursos não encontrados: ${invalidCourses.join(', ')}`)
-          }
-        }
-
-        return {
-          rowNumber,
-          fullName,
-          email,
-          cpf: cpfDigits,
-          phone: phoneDigits,
-          enrollmentNumber,
-          temporaryPassword,
-          coursesRaw,
-          courses,
-          errors,
-        }
-      }),
-    [courseNameLookup],
-  )
-
-  const validImportRows = React.useMemo(
-    () => importRows.filter((row) => row.errors.length === 0),
-    [importRows],
-  )
-  const invalidImportCount = importRows.length - validImportRows.length
-
   const resetImportState = React.useCallback(() => {
-    setImportRows([])
     setImportErrors([])
     setImportSummary(null)
     setImportLoading(false)
@@ -545,73 +338,68 @@ export function AlunoTable() {
     URL.revokeObjectURL(url)
   }
 
-  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     setImportSummary(null)
+    setImportErrors([])
 
     if (!file) {
-      setImportRows([])
       return
     }
 
     const extension = file.name.toLowerCase()
     if (!extension.endsWith('.csv') && !extension.endsWith('.xlsx') && !extension.endsWith('.xls')) {
       setImportErrors(['Selecione um arquivo CSV ou XLSX.'])
-      setImportRows([])
-      return
-    }
-
-    try {
-      setImportErrors([])
-      const rawRows = extension.endsWith('.xlsx') || extension.endsWith('.xls')
-        ? await parseXLSXFile(file)
-        : await parseCSVFile(file)
-
-      const previewRows = transformImportRows(rawRows)
-      if (previewRows.length === 0) {
-        setImportErrors(['Nenhum dado válido encontrado na planilha.'])
-        setImportRows([])
-        return
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
       }
-
-      setImportRows(previewRows)
-    } catch (error) {
-      setImportRows([])
-      setImportErrors([
-        error instanceof Error ? error.message : 'Não foi possível processar o arquivo.',
-      ])
+      return
     }
   }
 
   const handleSubmitImport = async () => {
-    if (!validImportRows.length) {
-      setImportErrors(['Nenhuma linha válida para importação.'])
+    const file = fileInputRef.current?.files?.[0]
+    if (!file) {
+      setImportErrors(['Selecione um arquivo para importação.'])
       return
     }
 
     try {
       setImportLoading(true)
       setImportErrors([])
+      setImportSummary(null)
 
-      const payload = {
-        rows: validImportRows.map((row) => ({
-          rowNumber: row.rowNumber,
-          fullName: row.fullName,
-          email: row.email,
-          cpf: row.cpf,
-          phone: row.phone,
-          enrollmentNumber: row.enrollmentNumber,
-          temporaryPassword: row.temporaryPassword,
-          courses: row.courses,
-        })),
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Usar fetch diretamente para FormData
+      const { createClient } = await import('@/lib/client')
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const headers: Record<string, string> = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
       }
 
-      const response = await apiClient.post<{ data: StudentImportApiSummary }>(
-        '/api/student/import',
-        payload,
-      )
+      const response = await fetch('/api/student/bulk-import', {
+        method: 'POST',
+        headers,
+        body: formData,
+      })
 
-      setImportSummary(response.data)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }))
+        throw new ApiClientError(
+          errorData.error || `Erro ${response.status}`,
+          response.status,
+          errorData
+        )
+      }
+
+      const result = await response.json()
+      setImportSummary(result.data)
       setSuccessMessage('Importação de alunos concluída!')
       setTimeout(() => setSuccessMessage(null), 3000)
       await fetchAlunos()
@@ -1273,71 +1061,6 @@ export function AlunoTable() {
                           ))}
                         </div>
                       )}
-                      {importRows.length > 0 && (
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap items-center gap-3 text-sm">
-                            <span>Total de linhas: {importRows.length}</span>
-                            <span className="text-green-600 dark:text-green-400">
-                              Válidas: {validImportRows.length}
-                            </span>
-                            {invalidImportCount > 0 && (
-                              <span className="text-destructive">
-                                Com ajustes: {invalidImportCount}
-                              </span>
-                            )}
-                          </div>
-                          <div className="rounded-md border">
-                            <ScrollArea className="h-64">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="w-16 text-xs">Linha</TableHead>
-                                    <TableHead>Aluno</TableHead>
-                                    <TableHead>Contato</TableHead>
-                                    <TableHead>Cursos</TableHead>
-                                    <TableHead>Validação</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {importRows.map((row) => (
-                                    <TableRow
-                                      key={`${row.rowNumber}-${row.email}`}
-                                      className={row.errors.length ? 'bg-destructive/5' : undefined}
-                                    >
-                                      <TableCell className="text-xs font-mono">{row.rowNumber}</TableCell>
-                                      <TableCell>
-                                        <div className="text-sm font-medium">{row.fullName || '-'}</div>
-                                        <div className="text-xs text-muted-foreground">{row.email || '-'}</div>
-                                      </TableCell>
-                                      <TableCell className="text-xs text-muted-foreground">
-                                        <div>CPF: {row.cpf || '-'}</div>
-                                        <div>Matrícula: {row.enrollmentNumber || '-'}</div>
-                                        <div>Telefone: {row.phone || '-'}</div>
-                                      </TableCell>
-                                      <TableCell className="text-xs">
-                                        {row.courses.length ? row.courses.join(', ') : row.coursesRaw || '-'}
-                                      </TableCell>
-                                      <TableCell>
-                                        {row.errors.length ? (
-                                          <ul className="list-disc space-y-1 pl-4 text-xs text-destructive">
-                                            {row.errors.map((error, idx) => (
-                                              <li key={`${row.rowNumber}-${idx}`}>{error}</li>
-                                            ))}
-                                          </ul>
-                                        ) : (
-                                          <span className="text-xs text-muted-foreground">
-                                            Pronto para importar
-                                          </span>
-                                        )}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </ScrollArea>
-                          </div>
-                        </div>
-                      )}
                       {importSummary && (
                         <div className="rounded-md border p-3 text-sm">
                           <p className="font-medium">Resumo da importação</p>
@@ -1382,11 +1105,9 @@ export function AlunoTable() {
                       <Button
                         type="button"
                         onClick={handleSubmitImport}
-                        disabled={importLoading || !validImportRows.length}
+                        disabled={importLoading || !fileInputRef.current?.files?.[0]}
                       >
-                        {importLoading
-                          ? 'Importando...'
-                          : `Importar ${validImportRows.length} aluno${validImportRows.length === 1 ? '' : 's'}`}
+                        {importLoading ? 'Importando...' : 'Importar alunos'}
                       </Button>
                     </DialogFooter>
                   </DialogContent>

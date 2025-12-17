@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
   studentService,
   StudentConflictError,
   StudentValidationError,
 } from '@/backend/services/student';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 
 const serializeStudent = (student: Awaited<ReturnType<typeof studentService.getById>>) => ({
   id: student.id,
@@ -56,10 +57,42 @@ function handleError(error: unknown) {
 }
 
 // GET - RLS filtra automaticamente (alunos veem apenas seu próprio perfil, superadmin vê todos)
-async function getHandler() {
+async function getHandler(request: AuthenticatedRequest) {
   try {
-    const students = await studentService.list();
-    return NextResponse.json({ data: students.map(serializeStudent) });
+    const searchParams = request.nextUrl.searchParams;
+    const params: PaginationParams = {};
+    
+    const page = searchParams.get('page');
+    if (page) {
+      const pageNum = parseInt(page, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        params.page = pageNum;
+      }
+    }
+    
+    const perPage = searchParams.get('perPage');
+    if (perPage) {
+      const perPageNum = parseInt(perPage, 10);
+      if (!isNaN(perPageNum) && perPageNum > 0) {
+        params.perPage = perPageNum;
+      }
+    }
+    
+    const sortBy = searchParams.get('sortBy');
+    if (sortBy) {
+      params.sortBy = sortBy;
+    }
+    
+    const sortOrder = searchParams.get('sortOrder');
+    if (sortOrder === 'asc' || sortOrder === 'desc') {
+      params.sortOrder = sortOrder;
+    }
+    
+    const { data, meta } = await studentService.list(params);
+    return NextResponse.json({ 
+      data: data.map(serializeStudent),
+      meta 
+    });
   } catch (error) {
     return handleError(error);
   }

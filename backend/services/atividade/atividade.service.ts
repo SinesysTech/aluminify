@@ -117,12 +117,6 @@ export class AtividadeService {
     return listByAlunoMatriculasHelper(client, alunoId);
   }
 
-  private isMissingRulesTable(error: unknown): boolean {
-    if (!error || typeof error !== 'object') return false;
-    const code = (error as { code?: string }).code;
-    const message = (error as { message?: string }).message;
-    return code === 'PGRST116' || code === '42P01' || (typeof message === 'string' && message.includes('regras_atividades'));
-  }
 
   async gerarAtividadesPersonalizadas(cursoId: string, frenteId: string): Promise<void> {
     if (!cursoId || !cursoId.trim()) {
@@ -191,10 +185,6 @@ export class AtividadeService {
       .order('created_at', { ascending: true });
 
     if (regrasError) {
-      if (this.isMissingRulesTable(regrasError)) {
-        // Sem migração aplicada: não gera atividades, mas não quebra o fluxo
-        return;
-      }
       throw new Error(`Failed to fetch activity rules: ${regrasError.message}`);
     }
 

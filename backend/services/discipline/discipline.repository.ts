@@ -1,8 +1,14 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Discipline, CreateDisciplineInput, UpdateDisciplineInput } from './discipline.types';
+import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
 
 export interface DisciplineRepository {
-  list(): Promise<Discipline[]>;
+  list(params?: PaginationParams): Promise<PaginatedResult<Discipline>>;
   findById(id: string): Promise<Discipline | null>;
   findByName(name: string): Promise<Discipline | null>;
   create(payload: CreateDisciplineInput): Promise<Discipline>;
@@ -31,17 +37,47 @@ function mapRow(row: DisciplineRow): Discipline {
 export class DisciplineRepositoryImpl implements DisciplineRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(): Promise<Discipline[]> {
+  async list(params?: PaginationParams): Promise<PaginatedResult<Discipline>> {
+    const page = params?.page ?? 1;
+    const perPage = params?.perPage ?? 50;
+    const sortBy = params?.sortBy ?? 'nome';
+    const sortOrder = params?.sortOrder === 'desc' ? false : true;
+    
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    // Get total count
+    const { count, error: countError } = await this.client
+      .from(TABLE)
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      throw new Error(`Failed to count disciplines: ${countError.message}`);
+    }
+
+    const total = count ?? 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    // Get paginated data
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .order('nome', { ascending: true });
+      .order(sortBy, { ascending: sortOrder })
+      .range(from, to);
 
     if (error) {
       throw new Error(`Failed to list disciplines: ${error.message}`);
     }
 
-    return (data ?? []).map(mapRow);
+    return {
+      data: (data ?? []).map(mapRow),
+      meta: {
+        page,
+        perPage,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findById(id: string): Promise<Discipline | null> {

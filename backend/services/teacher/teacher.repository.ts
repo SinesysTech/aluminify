@@ -1,20 +1,30 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Teacher, CreateTeacherInput, UpdateTeacherInput } from './teacher.types';
+import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
 
 export interface TeacherRepository {
-  list(): Promise<Teacher[]>;
+  list(params?: PaginationParams): Promise<PaginatedResult<Teacher>>;
   findById(id: string): Promise<Teacher | null>;
   findByEmail(email: string): Promise<Teacher | null>;
   findByCpf(cpf: string): Promise<Teacher | null>;
   create(payload: CreateTeacherInput): Promise<Teacher>;
   update(id: string, payload: UpdateTeacherInput): Promise<Teacher>;
   delete(id: string): Promise<void>;
+  findByEmpresa(empresaId: string): Promise<Teacher[]>;
+  setAsAdmin(teacherId: string, isAdmin: boolean): Promise<void>;
 }
 
 const TABLE = 'professores';
 
 type TeacherRow = {
   id: string;
+  empresa_id: string;
+  is_admin: boolean;
   nome_completo: string;
   email: string;
   cpf: string | null;
@@ -29,6 +39,8 @@ type TeacherRow = {
 function mapRow(row: TeacherRow): Teacher {
   return {
     id: row.id,
+    empresaId: row.empresa_id,
+    isAdmin: row.is_admin,
     fullName: row.nome_completo,
     email: row.email,
     cpf: row.cpf,
@@ -44,17 +56,47 @@ function mapRow(row: TeacherRow): Teacher {
 export class TeacherRepositoryImpl implements TeacherRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(): Promise<Teacher[]> {
+  async list(params?: PaginationParams): Promise<PaginatedResult<Teacher>> {
+    const page = params?.page ?? 1;
+    const perPage = params?.perPage ?? 50;
+    const sortBy = params?.sortBy ?? 'nome_completo';
+    const sortOrder = params?.sortOrder === 'desc' ? false : true;
+    
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+
+    // Get total count
+    const { count, error: countError } = await this.client
+      .from(TABLE)
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      throw new Error(`Failed to count teachers: ${countError.message}`);
+    }
+
+    const total = count ?? 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    // Get paginated data
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .order('nome_completo', { ascending: true });
+      .order(sortBy, { ascending: sortOrder })
+      .range(from, to);
 
     if (error) {
       throw new Error(`Failed to list teachers: ${error.message}`);
     }
 
-    return (data ?? []).map(mapRow);
+    return {
+      data: (data ?? []).map(mapRow),
+      meta: {
+        page,
+        perPage,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async findById(id: string): Promise<Teacher | null> {
@@ -95,6 +137,8 @@ export class TeacherRepositoryImpl implements TeacherRepository {
     const insertData: Record<string, unknown> = {
       nome_completo: payload.fullName,
       email: payload.email.toLowerCase(),
+      empresa_id: payload.empresaId,
+      is_admin: payload.isAdmin ?? false,
       cpf: payload.cpf ?? null,
       telefone: payload.phone ?? null,
       biografia: payload.biography ?? null,
@@ -171,6 +215,31 @@ export class TeacherRepositoryImpl implements TeacherRepository {
 
     if (error) {
       throw new Error(`Failed to delete teacher: ${error.message}`);
+    }
+  }
+
+  async findByEmpresa(empresaId: string): Promise<Teacher[]> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .order('nome_completo', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to list teachers by empresa: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapRow);
+  }
+
+  async setAsAdmin(teacherId: string, isAdmin: boolean): Promise<void> {
+    const { error } = await this.client
+      .from(TABLE)
+      .update({ is_admin: isAdmin })
+      .eq('id', teacherId);
+
+    if (error) {
+      throw new Error(`Failed to update teacher admin status: ${error.message}`);
     }
   }
 }

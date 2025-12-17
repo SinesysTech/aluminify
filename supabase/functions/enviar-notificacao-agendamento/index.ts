@@ -3,7 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 interface NotificacaoPayload {
   agendamento_id: string;
-  tipo: 'criacao' | 'confirmacao' | 'cancelamento' | 'lembrete' | 'alteracao' | 'rejeicao';
+  tipo: 'criacao' | 'confirmacao' | 'cancelamento' | 'lembrete' | 'alteracao' | 'rejeicao' | 'bloqueio_criado' | 'recorrencia_alterada' | 'substituicao_solicitada';
   destinatario_id: string;
 }
 
@@ -102,6 +102,38 @@ const emailTemplates = {
       <p><strong>Data:</strong> ${data.dataFormatada}</p>
       <p><strong>Horario:</strong> ${data.horario}</p>
       <p>Acesse a plataforma para ver os detalhes.</p>
+    `
+  },
+  bloqueio_criado: {
+    subject: "Agendamento afetado por bloqueio de agenda",
+    getBody: (data: { nomeOutraParte: string; dataFormatada: string; horario: string; motivo?: string }) => `
+      <h2>Agendamento Afetado por Bloqueio</h2>
+      <p>Seu agendamento foi afetado por um bloqueio de agenda.</p>
+      <p><strong>Com:</strong> ${data.nomeOutraParte}</p>
+      <p><strong>Data:</strong> ${data.dataFormatada}</p>
+      <p><strong>Horario:</strong> ${data.horario}</p>
+      ${data.motivo ? `<p><strong>Motivo do bloqueio:</strong> ${data.motivo}</p>` : ''}
+      <p>Por favor, entre em contato para reagendar ou verifique outras opcoes disponiveis.</p>
+    `
+  },
+  recorrencia_alterada: {
+    subject: "Disponibilidade do professor alterada",
+    getBody: (data: { nomeOutraParte: string; mensagem?: string }) => `
+      <h2>Disponibilidade Alterada</h2>
+      <p>O professor ${data.nomeOutraParte} alterou sua disponibilidade.</p>
+      ${data.mensagem ? `<p>${data.mensagem}</p>` : ''}
+      <p>Acesse a plataforma para ver os novos horarios disponiveis.</p>
+    `
+  },
+  substituicao_solicitada: {
+    subject: "Solicitacao de substituicao de agendamento",
+    getBody: (data: { nomeOutraParte: string; dataFormatada: string; horario: string }) => `
+      <h2>Solicitacao de Substituicao</h2>
+      <p>Foi solicitada uma substituicao para seu agendamento.</p>
+      <p><strong>Com:</strong> ${data.nomeOutraParte}</p>
+      <p><strong>Data:</strong> ${data.dataFormatada}</p>
+      <p><strong>Horario:</strong> ${data.horario}</p>
+      <p>Acesse a plataforma para mais detalhes.</p>
     `
   }
 };
@@ -288,6 +320,27 @@ Deno.serve(async (req: Request) => {
         });
         break;
       case 'alteracao':
+        emailBody = template.getBody({
+          nomeOutraParte: outraParteNome,
+          dataFormatada,
+          horario
+        });
+        break;
+      case 'bloqueio_criado':
+        emailBody = template.getBody({
+          nomeOutraParte: outraParteNome,
+          dataFormatada,
+          horario,
+          motivo: agendamento.motivo_cancelamento || undefined
+        });
+        break;
+      case 'recorrencia_alterada':
+        emailBody = template.getBody({
+          nomeOutraParte: outraParteNome,
+          mensagem: 'A disponibilidade do professor foi atualizada.'
+        });
+        break;
+      case 'substituicao_solicitada':
         emailBody = template.getBody({
           nomeOutraParte: outraParteNome,
           dataFormatada,

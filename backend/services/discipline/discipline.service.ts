@@ -5,12 +5,14 @@ import {
 } from './discipline.types';
 import {
   DisciplineRepository,
+  PaginatedResult,
 } from './discipline.repository';
 import {
   DisciplineConflictError,
   DisciplineNotFoundError,
   DisciplineValidationError,
 } from './errors';
+import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 
 const NAME_MIN_LENGTH = 3;
 const NAME_MAX_LENGTH = 120;
@@ -18,8 +20,26 @@ const NAME_MAX_LENGTH = 120;
 export class DisciplineService {
   constructor(private readonly repository: DisciplineRepository) {}
 
-  async list(): Promise<Discipline[]> {
-    return this.repository.list();
+  async list(params?: PaginationParams): Promise<PaginatedResult<Discipline>> {
+    // Cache apenas para listagem completa sem paginação ou primeira página
+    if (!params || (params.page === 1 && !params.sortBy)) {
+      const { cacheService } = await import('@/backend/services/cache');
+      const cacheKey = 'disciplines:list:all';
+      const cached = await cacheService.get<PaginatedResult<Discipline>>(cacheKey);
+      
+      if (cached) {
+        return cached;
+      }
+      
+      const result = await this.repository.list(params);
+      
+      // Cache por 1 hora (disciplinas raramente mudam)
+      await cacheService.set(cacheKey, result, 3600);
+      
+      return result;
+    }
+    
+    return this.repository.list(params);
   }
 
   async create(payload: CreateDisciplineInput): Promise<Discipline> {
@@ -32,9 +52,10 @@ export class DisciplineService {
 
     const discipline = await this.repository.create({ name });
 
-    // Invalidar cache de estrutura hierárquica
-    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    // Invalidar cache de estrutura hierárquica e listagem
+    const { courseStructureCacheService, cacheService } = await import('@/backend/services/cache');
     await courseStructureCacheService.invalidateDisciplines([discipline.id]);
+    await cacheService.del('disciplines:list:all');
 
     return discipline;
   }
@@ -52,9 +73,10 @@ export class DisciplineService {
 
     const discipline = await this.repository.update(id, { name });
 
-    // Invalidar cache de estrutura hierárquica
-    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    // Invalidar cache de estrutura hierárquica e listagem
+    const { courseStructureCacheService, cacheService } = await import('@/backend/services/cache');
     await courseStructureCacheService.invalidateDisciplines([id]);
+    await cacheService.del('disciplines:list:all');
 
     return discipline;
   }
@@ -67,9 +89,10 @@ export class DisciplineService {
 
     await this.repository.delete(id);
 
-    // Invalidar cache de estrutura hierárquica
-    const { courseStructureCacheService } = await import('@/backend/services/cache');
+    // Invalidar cache de estrutura hierárquica e listagem
+    const { courseStructureCacheService, cacheService } = await import('@/backend/services/cache');
     await courseStructureCacheService.invalidateDisciplines([id]);
+    await cacheService.del('disciplines:list:all');
   }
 
   async getById(id: string): Promise<Discipline> {

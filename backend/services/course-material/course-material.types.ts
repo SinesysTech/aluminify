@@ -1,4 +1,8 @@
-export type MaterialType = 'Apostila' | 'Lista de Exercícios' | 'Planejamento' | 'Resumo' | 'Gabarito' | 'Outros';
+/**
+ * @deprecated Use types from '@/types/shared/enums' instead
+ * This file re-exports for backward compatibility
+ */
+export type { MaterialType } from '@/types/shared/enums';
 
 export interface CourseMaterial {
   id: string;

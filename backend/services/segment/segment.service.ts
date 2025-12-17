@@ -5,12 +5,14 @@ import {
 } from './segment.types';
 import {
   SegmentRepository,
+  PaginatedResult,
 } from './segment.repository';
 import {
   SegmentConflictError,
   SegmentNotFoundError,
   SegmentValidationError,
 } from './errors';
+import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 
 const NAME_MIN_LENGTH = 3;
 const NAME_MAX_LENGTH = 120;
@@ -20,8 +22,8 @@ const SLUG_MAX_LENGTH = 100;
 export class SegmentService {
   constructor(private readonly repository: SegmentRepository) {}
 
-  async list(): Promise<Segment[]> {
-    return this.repository.list();
+  async list(params?: PaginationParams): Promise<PaginatedResult<Segment>> {
+    return this.repository.list(params);
   }
 
   async create(payload: CreateSegmentInput): Promise<Segment> {

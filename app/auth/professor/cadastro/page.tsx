@@ -1,7 +1,8 @@
 import { ProfessorSignUpForm } from '@/components/professor-sign-up-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Suspense } from 'react';
 
-export default function ProfessorCadastroPage() {
+function ProfessorCadastroContent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
@@ -16,5 +17,13 @@ export default function ProfessorCadastroPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ProfessorCadastroPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ProfessorCadastroContent />
+    </Suspense>
   );
 }

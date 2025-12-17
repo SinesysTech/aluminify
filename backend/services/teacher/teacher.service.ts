@@ -5,6 +5,7 @@ import {
 } from './teacher.types';
 import {
   TeacherRepository,
+  PaginatedResult,
 } from './teacher.repository';
 import {
   TeacherConflictError,
@@ -13,6 +14,7 @@ import {
 } from './errors';
 import { getDatabaseClient } from '@/backend/clients/database';
 import { randomBytes } from 'crypto';
+import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 
 const FULL_NAME_MIN_LENGTH = 3;
 const FULL_NAME_MAX_LENGTH = 200;
@@ -26,11 +28,16 @@ const SPECIALTY_MAX_LENGTH = 200;
 export class TeacherService {
   constructor(private readonly repository: TeacherRepository) {}
 
-  async list(): Promise<Teacher[]> {
-    return this.repository.list();
+  async list(params?: PaginationParams): Promise<PaginatedResult<Teacher>> {
+    return this.repository.list(params);
   }
 
   async create(payload: CreateTeacherInput): Promise<Teacher> {
+    // Validar empresaId é obrigatório
+    if (!payload.empresaId) {
+      throw new TeacherValidationError('empresaId is required');
+    }
+
     const fullName = this.validateFullName(payload.fullName);
     const email = this.validateEmail(payload.email);
     
@@ -66,46 +73,25 @@ export class TeacherService {
         user_metadata: {
           role: 'professor',
           full_name: fullName,
+          empresa_id: payload.empresaId,
+          is_admin: payload.isAdmin ?? false,
         },
       });
 
       if (authError) {
-        // Se o erro for de email já existente, buscar o usuário existente
+        // Se o erro for de email já existente, buscar o usuário existente diretamente
         if (authError.message?.includes('already registered') || 
             authError.message?.includes('already exists') ||
             authError.status === 422) {
           
-          // Buscar usuário existente por email usando paginação para eficiência
-          let existingUser = null;
-          let page = 1;
-          const perPage = 1000; // Máximo por página
+          // Buscar usuário existente por email diretamente
+          const { data: usersData, error: getUserError } = await adminClient.auth.admin.getUserByEmail(email);
           
-          while (!existingUser) {
-            const { data: usersData, error: listError } = await adminClient.auth.admin.listUsers({
-              page,
-              perPage,
-            });
-            
-            if (listError || !usersData) {
-              throw new Error(`Failed to list users: ${listError?.message || 'Unknown error'}`);
-            }
-            
-            existingUser = usersData.users.find(
-              (u) => u.email?.toLowerCase() === email.toLowerCase()
-            );
-            
-            // Se encontrou ou não há mais páginas, sair do loop
-            if (existingUser || usersData.users.length < perPage) {
-              break;
-            }
-            
-            page++;
-            
-            // Limite de segurança: não buscar mais que 10 páginas (10k usuários)
-            if (page > 10) {
-              break;
-            }
+          if (getUserError || !usersData?.user) {
+            throw new Error(`Failed to get existing user: ${getUserError?.message || 'User not found'}`);
           }
+          
+          const existingUser = usersData.user;
           
           if (existingUser) {
             teacherId = existingUser.id;
@@ -116,6 +102,8 @@ export class TeacherService {
                 ...existingUser.user_metadata,
                 role: 'professor',
                 full_name: fullName,
+                empresa_id: payload.empresaId,
+                is_admin: payload.isAdmin ?? false,
               },
             });
           } else {
@@ -133,6 +121,8 @@ export class TeacherService {
 
     return this.repository.create({
       id: teacherId,
+      empresaId: payload.empresaId,
+      isAdmin: payload.isAdmin ?? false,
       fullName,
       email,
       cpf: payload.cpf ? this.validateCpf(payload.cpf) : undefined,
