@@ -1,5 +1,3 @@
-export { responseStore } from './response-store';
-export type { ChatResponseData } from './response-store';
 export { cacheService } from './cache.service';
 export { courseStructureCacheService } from './course-structure-cache.service';
 export type { CourseStructure, DisciplineStructure, FrenteStructure, ModuloStructure, AulaStructure } from './course-structure-cache.service';
