@@ -62,3 +62,4 @@ O discriminante $\Delta = b^2-4ac$ determina o número de raízes:
 
 
 
+
