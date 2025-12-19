@@ -54,3 +54,4 @@ CREATE POLICY "Aluno gerencia suas sessoes" ON public.sessoes_estudo FOR ALL USI
 
 
 
+
