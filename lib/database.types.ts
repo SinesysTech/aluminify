@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamento_bloqueios: {
+        Row: {
+          created_at: string
+          criado_por: string
+          data_fim: string
+          data_inicio: string
+          empresa_id: string
+          id: string
+          motivo: string | null
+          professor_id: string | null
+          tipo: Database["public"]["Enums"]["enum_tipo_bloqueio"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por: string
+          data_fim: string
+          data_inicio: string
+          empresa_id: string
+          id?: string
+          motivo?: string | null
+          professor_id?: string | null
+          tipo?: Database["public"]["Enums"]["enum_tipo_bloqueio"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string
+          data_fim?: string
+          data_inicio?: string
+          empresa_id?: string
+          id?: string
+          motivo?: string | null
+          professor_id?: string | null
+          tipo?: Database["public"]["Enums"]["enum_tipo_bloqueio"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_bloqueios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agendamento_configuracoes: {
         Row: {
           auto_confirmar: boolean | null
@@ -120,6 +167,62 @@ export type Database = {
             columns: ["agendamento_id"]
             isOneToOne: false
             referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agendamento_recorrencia: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          dia_semana: number
+          duracao_slot_minutos: number
+          empresa_id: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          professor_id: string
+          tipo_servico: Database["public"]["Enums"]["enum_tipo_servico_agendamento"]
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio: string
+          dia_semana: number
+          duracao_slot_minutos?: number
+          empresa_id: string
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+          professor_id: string
+          tipo_servico?: Database["public"]["Enums"]["enum_tipo_servico_agendamento"]
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          dia_semana?: number
+          duracao_slot_minutos?: number
+          empresa_id?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          professor_id?: string
+          tipo_servico?: Database["public"]["Enums"]["enum_tipo_servico_agendamento"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_recorrencia_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
@@ -1670,6 +1773,7 @@ export type Database = {
         | "Intensivo"
         | "Superintensivo"
         | "Revisão"
+      enum_tipo_bloqueio: "feriado" | "recesso" | "imprevisto" | "outro"
       enum_tipo_material:
         | "Apostila"
         | "Lista de Exercícios"
@@ -1677,6 +1781,7 @@ export type Database = {
         | "Resumo"
         | "Gabarito"
         | "Outros"
+      enum_tipo_servico_agendamento: "plantao" | "mentoria"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1835,6 +1940,7 @@ export const Constants = {
         "Superintensivo",
         "Revisão",
       ],
+      enum_tipo_bloqueio: ["feriado", "recesso", "imprevisto", "outro"],
       enum_tipo_material: [
         "Apostila",
         "Lista de Exercícios",
@@ -1843,6 +1949,7 @@ export const Constants = {
         "Gabarito",
         "Outros",
       ],
+      enum_tipo_servico_agendamento: ["plantao", "mentoria"],
     },
   },
 } as const
