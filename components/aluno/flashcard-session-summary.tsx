@@ -55,8 +55,23 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
 
   const scoreMessage = getScoreMessage(score)
 
+  // Gerar ID único para este componente para evitar conflitos de CSS
+  const chartId = React.useId()
+
   return (
     <Card className="border-2 border-primary/50">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .chart-container-${chartId} {
+          --errei-width: ${erreiPercent}%;
+          --parcial-width: ${parcialPercent}%;
+          --dificil-width: ${dificilPercent}%;
+          --facil-width: ${facilPercent}%;
+        }
+      `,
+        }}
+      />
       <CardHeader className="text-center">
         <div className="flex justify-center mb-2">
           <Trophy className="h-12 w-12 text-yellow-500" />
@@ -71,7 +86,7 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
             <TrendingUp className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Score Geral</span>
           </div>
-          <div className="text-4xl font-bold" style={{ color: scoreMessage.color }}>
+          <div className={`text-4xl font-bold ${scoreMessage.color}`}>
             {score}%
           </div>
           <p className={`text-lg font-medium ${scoreMessage.color}`}>{scoreMessage.text}</p>
@@ -84,32 +99,28 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-center">Distribuição de Respostas</h3>
           <div className="relative h-8 rounded-md overflow-hidden border">
-            <div className="absolute inset-0 flex">
+            <div className={`absolute inset-0 flex chart-container-${chartId}`}>
               {erreiPercent > 0 && (
                 <div
-                  className={erreiColor}
-                  style={{ width: `${erreiPercent}%` }}
+                  className={`${erreiColor} flex-[0_0_var(--errei-width)]`}
                   title={`Errei: ${counts.errei}`}
                 />
               )}
               {parcialPercent > 0 && (
                 <div
-                  className={parcialColor}
-                  style={{ width: `${parcialPercent}%` }}
+                  className={`${parcialColor} flex-[0_0_var(--parcial-width)]`}
                   title={`Parcial: ${counts.parcial}`}
                 />
               )}
               {dificilPercent > 0 && (
                 <div
-                  className={dificilColor}
-                  style={{ width: `${dificilPercent}%` }}
+                  className={`${dificilColor} flex-[0_0_var(--dificil-width)]`}
                   title={`Difícil: ${counts.dificil}`}
                 />
               )}
               {facilPercent > 0 && (
                 <div
-                  className={facilColor}
-                  style={{ width: `${facilPercent}%` }}
+                  className={`${facilColor} flex-[0_0_var(--facil-width)]`}
                   title={`Fácil: ${counts.facil}`}
                 />
               )}

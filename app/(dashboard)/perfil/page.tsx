@@ -1,4 +1,4 @@
-import { ProfileSettings } from '@/components/profile-settings'
+import { ProfileSettings } from '@/components/perfil/profile-settings'
 import { requireUser } from '@/lib/auth'
 
 export default async function PerfilPage() {

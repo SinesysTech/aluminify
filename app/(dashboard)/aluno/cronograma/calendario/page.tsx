@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/client'
-import { ScheduleCalendarView } from '@/components/schedule-calendar-view'
+import { ScheduleCalendarView } from '@/components/aluno/schedule-calendar-view'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CalendarCheck, Plus } from 'lucide-react'

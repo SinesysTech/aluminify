@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Loader2, RefreshCcw, BrainCircuit, Target, Info } from 'lucide-react'
-import { FlashcardSessionSummary } from '@/components/flashcard-session-summary'
+import { FlashcardSessionSummary } from '@/components/aluno/flashcard-session-summary'
 import {
   Tooltip,
   TooltipContent,

@@ -5,7 +5,7 @@ import { Upload, FileText, CheckCircle2, Loader2, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/client'
 import { cn } from '@/lib/utils'
-import { PdfViewerModal } from './pdf-viewer-modal'
+import { PdfViewerModal } from '@/components/shared/pdf-viewer-modal'
 
 const MATERIAIS_BUCKET = 'materiais_didaticos'
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB

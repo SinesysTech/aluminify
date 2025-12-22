@@ -3084,12 +3084,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                               const hue = Math.abs(hash) % 360
                               const borderColor = `hsl(${hue}, 70%, 50%)`
 
-                              // Estilo dinâmico para borda colorida (cores geradas dinamicamente)
-                              const borderStyle: React.CSSProperties & { '--border-color'?: string } = {
-                                '--border-color': borderColor,
-                                borderLeftColor: 'var(--border-color)',
-                              }
-
                               const estaExpandido = cardsExpandidos.has(chave)
 
                               return (
@@ -3109,8 +3103,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                   }}
                                 >
                                   <div
-                                    className="border rounded-lg p-4 bg-card space-y-2 border-l-4"
-                                    style={borderStyle}
+                                    className={`border rounded-lg p-4 bg-card space-y-2 border-l-4 border-l-[${borderColor}]`}
                                   >
                                     {/* Cabeçalho do grupo: Disciplina e Frente */}
                                     <div className="mb-3 pb-2 border-b">

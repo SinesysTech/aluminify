@@ -1,4 +1,4 @@
-import { AlunoTable } from '@/components/aluno-table'
+import { AlunoTable } from '@/components/aluno/aluno-table'
 import { requireUser } from '@/lib/auth'
 
 export default async function AlunoPage() {

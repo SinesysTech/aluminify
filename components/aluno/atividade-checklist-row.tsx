@@ -11,7 +11,7 @@ import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progre
 import { atividadeRequerDesempenho } from '@/backend/services/atividade'
 import { AtividadeComProgresso } from '@/app/(dashboard)/aluno/sala-de-estudos/types'
 import { RegistrarDesempenhoModal } from './registrar-desempenho-modal'
-import { PdfViewerModal } from './pdf-viewer-modal'
+import { PdfViewerModal } from '@/components/shared/pdf-viewer-modal'
 import Link from 'next/link'
 
 interface AtividadeChecklistRowProps {

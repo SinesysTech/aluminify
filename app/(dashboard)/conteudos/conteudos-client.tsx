@@ -47,8 +47,8 @@ import { ChevronDown, Upload, FileText, AlertCircle, CheckCircle2, Trash2, Plus 
 import Papa from 'papaparse'
 import ExcelJS from 'exceljs'
 import { useRouter } from 'next/navigation'
-import AddActivityModal from '../../../components/add-activity-modal'
-import InlineEditableTitle from '../../../components/inline-editable-title'
+import AddActivityModal from '../../../components/conteudos/add-activity-modal'
+import InlineEditableTitle from '@/components/shared/inline-editable-title'
 
 type Disciplina = {
   id: string

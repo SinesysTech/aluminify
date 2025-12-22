@@ -7,6 +7,8 @@ export const contentType = "image/png";
 export default function Icon() {
   return new ImageResponse(
     (
+      // Note: Inline styles are required for ImageResponse as it generates images dynamically
+      // and cannot use external CSS files
       <div
         style={{
           width: size,

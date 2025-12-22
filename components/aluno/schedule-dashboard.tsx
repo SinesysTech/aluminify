@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScheduleList } from '@/components/schedule-list'
+import { ScheduleList } from '@/components/aluno/schedule-list'
 import { Download, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import {
   AlertDialog,

@@ -5,9 +5,9 @@ import { createClient } from '@/lib/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, School } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SalaEstudosFilters } from '@/components/sala-estudos-filters'
-import { ModuloActivitiesAccordion } from '@/components/modulo-activities-accordion'
-import { ProgressoStatsCard } from '@/components/progresso-stats-card'
+import { SalaEstudosFilters } from '@/components/aluno/sala-estudos-filters'
+import { ModuloActivitiesAccordion } from '@/components/aluno/modulo-activities-accordion'
+import { ProgressoStatsCard } from '@/components/aluno/progresso-stats-card'
 import {
   AtividadeComProgresso,
   ModuloComAtividades,

@@ -17,7 +17,7 @@ import {
   PromptInputSubmit,
 } from '@/components/ui/shadcn-io/ai/prompt-input'
 import { Loader } from '@/components/ui/shadcn-io/ai/loader'
-import { ConversationsPanel } from '@/components/conversations-panel'
+import { ConversationsPanel } from '@/components/tobias/conversations-panel'
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Paperclip, X } from 'lucide-react'
 import type { Conversation as ConversationType } from '@/backend/services/conversation/conversation.types'
