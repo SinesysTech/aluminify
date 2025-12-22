@@ -1,7 +1,5 @@
 'use server'
 
-import type { Database } from '@/lib/database.types'
-
 import { createClient } from '@/lib/server'
 
 // Tipos para tabelas que não estão no schema gerado
@@ -24,17 +22,6 @@ type AgendamentoBloqueio = {
   data_inicio: string
   data_fim: string
   motivo?: string | null
-}
-
-type AgendamentoRelatorio = {
-  id?: string
-  empresa_id: string
-  professor_id: string | null
-  data_inicio: string
-  data_fim: string
-  total_agendamentos?: number
-  total_confirmados?: number
-  total_cancelados?: number
 }
 
 type VAgendamentosEmpresa = {

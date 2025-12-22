@@ -101,7 +101,7 @@ export default function ProfessoresPage() {
               <TableRow key={prof.id}>
                 <TableCell className="font-medium">{prof.nome_completo}</TableCell>
                 <TableCell>{prof.email}</TableCell>
-                <TableCell>{(prof.empresas as any)?.nome || 'N/A'}</TableCell>
+                <TableCell>{prof.empresas?.nome || 'N/A'}</TableCell>
                 <TableCell>
                   {prof.is_admin ? (
                     <Badge variant="default">Sim</Badge>
