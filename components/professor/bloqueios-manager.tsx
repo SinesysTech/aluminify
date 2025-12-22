@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 "use client"
 
 import { useCallback, useState, useEffect } from "react"

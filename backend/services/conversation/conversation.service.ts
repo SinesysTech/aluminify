@@ -67,7 +67,17 @@ export class ConversationService {
 
     console.log('[Conversation Service] ✅ Conversation created:', data.id);
     
-    return mapConversation(data as any);
+    type ConversationRow = {
+      id: string
+      user_id: string
+      session_id: string
+      title: string
+      messages: unknown
+      is_active: boolean | null
+      created_at: string | null
+      updated_at: string | null
+    }
+    return mapConversation(data as ConversationRow);
   }
 
   /**
@@ -265,7 +275,7 @@ export class ConversationService {
         {
           conversation_id: conversationId,
           user_id: userId,
-          history: history as any,
+          history: history,
         },
         { onConflict: 'conversation_id' },
       );

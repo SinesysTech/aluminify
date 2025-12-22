@@ -53,14 +53,14 @@ const parseCSVFile = (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> =>
         }
         resolve(filterSpreadsheetRows(results.data ?? []));
       },
-      error: (error: any) => reject(new Error(error.message)),
+      error: (error: { message?: string }) => reject(new Error(error.message || 'Erro desconhecido')),
     });
   });
 
 const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> => {
   try {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer as any);
+    await workbook.xlsx.load(buffer);
 
     const worksheet = workbook.worksheets[0];
     if (!worksheet) {

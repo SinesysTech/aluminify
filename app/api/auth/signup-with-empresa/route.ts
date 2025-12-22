@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
 import { EmpresaService, EmpresaRepositoryImpl } from '@/backend/services/empresa';
@@ -82,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Inserir em empresa_admins como owner
     const { error: adminError } = await supabase
-      .from('empresa_admins' as any)
+      .from('empresa_admins')
       .insert({
         empresa_id: empresa.id,
         user_id: newUser.user.id,

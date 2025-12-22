@@ -1,5 +1,5 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 import { getDatabaseClient } from '@/backend/clients/database'
+import type { Database } from '@/lib/database.types'
 
 interface CronogramaData {
   id: string;

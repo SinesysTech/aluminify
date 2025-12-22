@@ -58,7 +58,28 @@ export async function getNotificacoesUsuario(userId: string): Promise<Notificaca
   // Mapear os dados para garantir que o tipo seja correto
   const validTipos: NotificacaoAgendamento['tipo'][] = ['criacao', 'confirmacao', 'cancelamento', 'lembrete', 'alteracao', 'rejeicao', 'bloqueio_criado', 'recorrencia_alterada', 'substituicao_solicitada']
 
-  return ((data || []) as any[]).map((item: any) => ({
+  type NotificacaoRow = {
+    id: string
+    agendamento_id: string
+    tipo: string
+    destinatario_id: string
+    enviado: boolean | null
+    enviado_em: string | null
+    erro: string | null
+    created_at: string | null
+    agendamento?: {
+      id: string
+      professor_id: string
+      aluno_id: string
+      data_inicio: string
+      data_fim: string
+      status: string
+      professor?: { nome: string } | null
+      aluno?: { nome: string } | null
+    } | null
+  }
+
+  return ((data || []) as NotificacaoRow[]).map((item) => ({
     ...item,
     tipo: (validTipos as string[]).includes(item.tipo) ? item.tipo : 'criacao',
     enviado: item.enviado ?? false,

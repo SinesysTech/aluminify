@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
 import { getAuthUser } from '@/backend/auth/middleware';
@@ -10,10 +9,10 @@ interface RouteContext {
 
 async function deleteHandler(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; userId: string }> }
+  context: RouteContext
 ) {
   try {
-    const { id, userId } = await params;
+    const { id, userId } = await context.params;
     const user = await getAuthUser(request);
 
     if (!user) {
@@ -29,7 +28,7 @@ async function deleteHandler(
     
     // Verificar se é owner ou superadmin
     const { data: isOwner } = await supabase
-      .from('empresa_admins' as any)
+      .from('empresa_admins')
       .select('is_owner')
       .eq('empresa_id', id)
       .eq('user_id', user.id)
@@ -45,7 +44,7 @@ async function deleteHandler(
     // Não permitir remover a si mesmo se for o único owner
     if (userId === user.id) {
       const { data: owners } = await supabase
-        .from('empresa_admins' as any)
+        .from('empresa_admins')
         .select('user_id')
         .eq('empresa_id', id)
         .eq('is_owner', true);
@@ -60,7 +59,7 @@ async function deleteHandler(
 
     // Remover de empresa_admins
     const { error: deleteError } = await supabase
-      .from('empresa_admins' as any)
+      .from('empresa_admins')
       .delete()
       .eq('empresa_id', id)
       .eq('user_id', userId);
@@ -91,7 +90,6 @@ export async function DELETE(
   request: NextRequest,
   context: RouteContext
 ) {
-  const params = await context.params;
-  return deleteHandler(request, params);
+  return deleteHandler(request, context);
 }
 

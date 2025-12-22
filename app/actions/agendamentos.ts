@@ -1,7 +1,54 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 'use server'
 
+import type { Database } from '@/lib/database.types'
+
 import { createClient } from '@/lib/server'
+
+// Tipos para tabelas que não estão no schema gerado
+type AgendamentoRecorrencia = {
+  id?: string
+  professor_id: string
+  dia_semana: number
+  hora_inicio: string
+  hora_fim: string
+  ativo: boolean
+  data_inicio: string
+  data_fim: string | null
+  duracao_slot_minutos?: number
+}
+
+type AgendamentoBloqueio = {
+  id?: string
+  empresa_id: string
+  professor_id: string | null
+  data_inicio: string
+  data_fim: string
+  motivo?: string | null
+}
+
+type AgendamentoRelatorio = {
+  id?: string
+  empresa_id: string
+  professor_id: string | null
+  data_inicio: string
+  data_fim: string
+  total_agendamentos?: number
+  total_confirmados?: number
+  total_cancelados?: number
+}
+
+type VAgendamentosEmpresa = {
+  id: string
+  professor_id: string
+  aluno_id: string
+  data_inicio: string
+  data_fim: string
+  status: string
+  empresa_id: string
+  professor_nome?: string
+  aluno_nome?: string
+  [key: string]: unknown
+}
 import { revalidatePath } from 'next/cache'
 import { validateCancellation, validateAppointment, generateAvailableSlots } from '@/lib/agendamento-validations'
 import { generateMeetingLink } from '@/lib/meeting-providers'
@@ -188,8 +235,19 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
   const dayOfWeek = dataInicio.getUTCDay()
 
   // Get availability rules from agendamento_recorrencia for validation
+  // Note: agendamento_recorrencia não está no schema atual, usando tipo genérico
+  type RecorrenciaRule = {
+    dia_semana: number
+    hora_inicio: string
+    hora_fim: string
+    ativo: boolean
+    data_inicio: string
+    data_fim: string | null
+    professor_id: string
+  }
+
   const { data: rulesData } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .select('*')
     .eq('professor_id', data.professor_id)
     .eq('dia_semana', dayOfWeek)
@@ -198,9 +256,9 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
     .or(`data_fim.is.null,data_fim.gte.${dateOnly}`)
 
   // Filter and map rules to ensure ativo is boolean
-  const rules = ((rulesData || []) as any[])
-    .filter((r: any) => r.ativo === true)
-    .map((r: any) => ({
+  const rules = ((rulesData || []) as RecorrenciaRule[])
+    .filter((r) => r.ativo === true)
+    .map((r) => ({
       dia_semana: r.dia_semana,
       hora_inicio: r.hora_inicio,
       hora_fim: r.hora_fim,
@@ -226,11 +284,18 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
     .eq('id', data.professor_id)
     .single()
 
-  const empresaId = (professor as any)?.empresa_id
+  type ProfessorRow = {
+    empresa_id: string | null
+  }
+  const empresaId = (professor as ProfessorRow)?.empresa_id
 
   if (empresaId) {
+    type BloqueioRow = {
+      data_inicio: string
+      data_fim: string
+    }
     const { data: bloqueios } = await supabase
-      .from('agendamento_bloqueios' as any)
+      .from('agendamento_bloqueios')
       .select('data_inicio, data_fim')
       .eq('empresa_id', empresaId)
       .or(`professor_id.is.null,professor_id.eq.${data.professor_id}`)
@@ -238,7 +303,7 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
       .gte('data_fim', dataInicio.toISOString())
 
     // Add bloqueios to existing slots to exclude them
-    const blockedSlots = ((bloqueios || []) as any[]).map((b: any) => ({
+    const blockedSlots = ((bloqueios || []) as BloqueioRow[]).map((b) => ({
       start: new Date(b.data_inicio),
       end: new Date(b.data_fim)
     }))
@@ -247,8 +312,8 @@ export async function createAgendamento(data: Omit<Agendamento, 'id' | 'created_
   }
 
   // Validate appointment - filter and map rules to ensure ativo is boolean
-  const validRules = ((rules || []) as any[])
-    .filter((r: any) => r.ativo === true)
+  const validRules = rules
+    .filter((r) => r.ativo === true)
 
   const validationResult = validateAppointment(
     { start: dataInicio, end: dataFim },
@@ -331,7 +396,7 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
   // Get availability rules from agendamento_recorrencia
   // Filtrar por data_inicio <= dateStr <= data_fim (ou data_fim IS NULL)
   const { data: rulesData } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .select('*')
     .eq('professor_id', professorId)
     .eq('dia_semana', dayOfWeek)
@@ -340,9 +405,9 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
     .or(`data_fim.is.null,data_fim.gte.${dateOnly}`)
 
   // Filter and map rules to ensure ativo is boolean
-  const rules = ((rulesData || []) as any[])
-    .filter((r: any) => r.ativo === true)
-    .map((r: any) => ({
+  const rules = ((rulesData || []) as AgendamentoRecorrencia[])
+    .filter((r) => r.ativo === true)
+    .map((r) => ({
       dia_semana: r.dia_semana,
       hora_inicio: r.hora_inicio,
       hora_fim: r.hora_fim,
@@ -380,19 +445,22 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
     .eq('id', professorId)
     .single()
 
-  const empresaId = (professor as any)?.empresa_id
+  type ProfessorRow = {
+    empresa_id: string | null
+  }
+  const empresaId = (professor as ProfessorRow)?.empresa_id
 
   let bloqueios: Array<{ data_inicio: string; data_fim: string }> = []
   if (empresaId) {
     const { data: bloqueiosData } = await supabase
-      .from('agendamento_bloqueios' as any)
+      .from('agendamento_bloqueios')
       .select('data_inicio, data_fim')
       .eq('empresa_id', empresaId)
       .or(`professor_id.is.null,professor_id.eq.${professorId}`)
       .lte('data_inicio', endOfDay.toISOString())
       .gte('data_fim', startOfDay.toISOString())
     
-    bloqueios = (bloqueiosData as any) || []
+    bloqueios = (bloqueiosData as AgendamentoBloqueio[]) || []
   }
 
   // Add bloqueios to existing slots to exclude them
@@ -405,7 +473,7 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
 
   // Use the validation library to generate available slots
   // Filter rules to ensure ativo is boolean
-  const validRules = (rules as any[]).filter((r: any) => r.ativo === true)
+  const validRules = rules.filter((r) => r.ativo === true)
 
   // Use the first rule's slot duration (or default to 30)
   const slotDuration = validRules[0]?.duracao_slot_minutos || 30
@@ -680,16 +748,19 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     const validIntegration = integration && !('code' in integration) ? (integration as unknown as { provider: string; access_token: string }) : null
     if (validIntegration && validIntegration.provider !== 'default' && validIntegration.access_token) {
       try {
+        type AlunoData = {
+          nome: string
+          email: string
+        } | null
+        const alunoData = agendamento.aluno as AlunoData
         const meetingLink = await generateMeetingLink(
           validIntegration.provider as 'google' | 'zoom' | 'default',
           {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            title: `Mentoria com ${(agendamento.aluno as any)?.[0]?.nome || 'Aluno'}`,
+            title: `Mentoria com ${alunoData?.nome || 'Aluno'}`,
             startTime: new Date(agendamento.data_inicio),
             endTime: new Date(agendamento.data_fim),
             description: 'Sessão de mentoria agendada via Área do Aluno',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            attendees: (agendamento.aluno as any)?.[0]?.email ? [(agendamento.aluno as any)[0].email] : []
+            attendees: alunoData?.email ? [alunoData.email] : []
           },
           {
             accessToken: validIntegration.access_token,
@@ -1041,7 +1112,7 @@ export async function getProfessoresDisponibilidade(empresaId: string, date: Dat
 
   // Get availability patterns for all professors
   const { data: recorrencias } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .select('*')
     .in('professor_id', professorIds)
     .eq('dia_semana', dayOfWeek)
@@ -1056,7 +1127,7 @@ export async function getProfessoresDisponibilidade(empresaId: string, date: Dat
   endOfDay.setUTCHours(23, 59, 59, 999)
 
   const { data: bloqueios } = await supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .select('professor_id, data_inicio, data_fim')
     .eq('empresa_id', empresaId)
     .or(`professor_id.is.null,professor_id.in.(${professorIds.join(',')})`)
@@ -1075,9 +1146,14 @@ export async function getProfessoresDisponibilidade(empresaId: string, date: Dat
 
   // Build result for each professor
   const result = professores.map(professor => {
-    const profRecorrencias = ((recorrencias || []) as any[]).filter((r: any) => r.professor_id === professor.id)
-    const profBloqueios = ((bloqueios || []) as any[]).filter((b: any) => !b.professor_id || b.professor_id === professor.id)
-    const profAgendamentos = ((agendamentos || []) as any[]).filter((a: any) => a.professor_id === professor.id)
+    const profRecorrencias = ((recorrencias || []) as AgendamentoRecorrencia[]).filter((r) => r.professor_id === professor.id)
+    const profBloqueios = ((bloqueios || []) as AgendamentoBloqueio[]).filter((b) => !b.professor_id || b.professor_id === professor.id)
+    type AgendamentoRow = {
+      professor_id: string
+      data_inicio: string
+      data_fim: string
+    }
+    const profAgendamentos = ((agendamentos || []) as AgendamentoRow[]).filter((a) => a.professor_id === professor.id)
 
     // Generate available slots for this professor
     const rules = profRecorrencias.map(r => ({
@@ -1124,7 +1200,7 @@ export async function getAgendamentosEmpresa(empresaId: string, dateStart: Date,
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('v_agendamentos_empresa' as any)
+    .from('v_agendamentos_empresa')
     .select('*')
     .eq('empresa_id', empresaId)
     .gte('data_inicio', dateStart.toISOString())
@@ -1136,13 +1212,13 @@ export async function getAgendamentosEmpresa(empresaId: string, dateStart: Date,
     return []
   }
 
-  return ((data || []) as any[]).map((item: any) => ({
+  return ((data || []) as VAgendamentosEmpresa[]).map((item) => ({
     id: item.id,
     professor_id: item.professor_id,
     professor_nome: item.professor_nome,
-    professor_foto: item.professor_foto,
+    professor_foto: item.professor_foto as string | undefined,
     aluno_nome: item.aluno_nome,
-    aluno_email: item.aluno_email,
+    aluno_email: item.aluno_email as string | undefined,
     data_inicio: item.data_inicio,
     data_fim: item.data_fim,
     status: item.status as Agendamento['status'],
@@ -1221,7 +1297,7 @@ export async function getRecorrencias(professorId: string): Promise<Recorrencia[
   }
 
   const { data, error } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .select('*')
     .eq('professor_id', professorId)
     .order('dia_semana', { ascending: true })
@@ -1232,7 +1308,11 @@ export async function getRecorrencias(professorId: string): Promise<Recorrencia[
     throw new Error('Failed to fetch recorrencias')
   }
 
-  return ((data || []) as any[]).map((item: any) => ({
+  type RecorrenciaWithExtras = AgendamentoRecorrencia & {
+    empresa_id?: string
+    tipo_servico?: string
+  }
+  return ((data || []) as RecorrenciaWithExtras[]).map((item) => ({
     id: item.id,
     professor_id: item.professor_id,
     empresa_id: item.empresa_id,
@@ -1271,7 +1351,7 @@ export async function createRecorrencia(data: Omit<Recorrencia, 'id' | 'created_
   }
 
   const { data: result, error } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .insert(payload)
     .select()
     .single()
@@ -1284,7 +1364,11 @@ export async function createRecorrencia(data: Omit<Recorrencia, 'id' | 'created_
   revalidatePath('/professor/disponibilidade')
   revalidatePath('/agendamentos')
   
-  const typedResult = result as any
+  type RecorrenciaResult = AgendamentoRecorrencia & {
+    empresa_id?: string
+    tipo_servico?: string
+  }
+  const typedResult = result as RecorrenciaResult
   return {
     id: typedResult.id,
     professor_id: typedResult.professor_id,
@@ -1312,7 +1396,7 @@ export async function updateRecorrencia(id: string, data: Partial<Omit<Recorrenc
 
   // Verify ownership
   const { data: existing } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .select('professor_id')
     .eq('id', id)
     .single()
@@ -1332,7 +1416,7 @@ export async function updateRecorrencia(id: string, data: Partial<Omit<Recorrenc
   if (data.ativo !== undefined) updateData.ativo = data.ativo
 
   const { data: result, error } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .update(updateData)
     .eq('id', id)
     .select()
@@ -1373,7 +1457,7 @@ export async function deleteRecorrencia(id: string): Promise<{ success: boolean 
 
   // Verify ownership
   const { data: existing } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .select('professor_id')
     .eq('id', id)
     .single()
@@ -1383,7 +1467,7 @@ export async function deleteRecorrencia(id: string): Promise<{ success: boolean 
   }
 
   const { error } = await supabase
-    .from('agendamento_recorrencia' as any)
+    .from('agendamento_recorrencia')
     .delete()
     .eq('id', id)
 
@@ -1410,7 +1494,7 @@ export async function getBloqueios(professorId?: string, empresaId?: string): Pr
   }
 
   let query = supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .select('*')
     .order('data_inicio', { ascending: true })
 
@@ -1470,7 +1554,7 @@ export async function createBloqueio(data: Omit<Bloqueio, 'id' | 'created_at' | 
   }
 
   const { data: result, error } = await supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .insert(payload)
     .select()
     .single()
@@ -1543,7 +1627,7 @@ export async function updateBloqueio(id: string, data: Partial<Omit<Bloqueio, 'i
 
   // Verify ownership
   const { data: existing } = await supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .select('professor_id, empresa_id')
     .eq('id', id)
     .single()
@@ -1569,7 +1653,7 @@ export async function updateBloqueio(id: string, data: Partial<Omit<Bloqueio, 'i
   if (data.motivo !== undefined) updateData.motivo = data.motivo || null
 
   const { data: result, error } = await supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .update(updateData)
     .eq('id', id)
     .select()
@@ -1607,7 +1691,7 @@ export async function deleteBloqueio(id: string): Promise<{ success: boolean }> 
 
   // Verify ownership
   const { data: existing } = await supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .select('professor_id')
     .eq('id', id)
     .single()
@@ -1621,7 +1705,7 @@ export async function deleteBloqueio(id: string): Promise<{ success: boolean }> 
   }
 
   const { error } = await supabase
-    .from('agendamento_bloqueios' as any)
+    .from('agendamento_bloqueios')
     .delete()
     .eq('id', id)
 
@@ -1807,7 +1891,7 @@ export async function getRelatorios(empresaId: string, limit?: number): Promise<
   const supabase = await createClient()
 
   let query = supabase
-    .from('agendamento_relatorios' as any)
+    .from('agendamento_relatorios')
     .select('*')
     .eq('empresa_id', empresaId)
     .order('gerado_em', { ascending: false })
@@ -1841,7 +1925,7 @@ export async function getRelatorioById(id: string): Promise<Relatorio | null> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('agendamento_relatorios' as any)
+    .from('agendamento_relatorios')
     .select('*')
     .eq('id', id)
     .single()

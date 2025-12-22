@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
 import { getAuthUser } from '@/backend/auth/middleware';
@@ -34,7 +33,7 @@ async function getHandler(
     }
 
     const { data: admins, error } = await supabase
-      .from('empresa_admins' as any)
+      .from('empresa_admins')
       .select('*, professores:user_id(*)')
       .eq('empresa_id', id);
 
@@ -83,7 +82,7 @@ async function postHandler(
     
     // Verificar se é owner ou superadmin
     const { data: isOwner } = await supabase
-      .from('empresa_admins' as any)
+      .from('empresa_admins')
       .select('is_owner')
       .eq('empresa_id', id)
       .eq('user_id', user.id)
@@ -113,7 +112,7 @@ async function postHandler(
 
     // Adicionar como admin
     const { error: insertError } = await supabase
-      .from('empresa_admins' as any)
+      .from('empresa_admins')
       .insert({
         empresa_id: id,
         user_id: professorId,

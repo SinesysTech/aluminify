@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary: Supabase types need to be regenerated after new migrations
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
 import { getAuthUser } from '@/backend/auth/middleware';
@@ -47,9 +46,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Transformar dados para facilitar visualização
-    const alunosFormatados = (alunos || []).map((aluno: any) => {
+    type AlunoComCursos = {
+      id: string
+      email: string
+      nome_completo: string | null
+      cpf: string | null
+      created_at: string
+      updated_at: string
+      alunos_cursos?: Array<{
+        curso_id: string
+        cursos?: {
+          id: string
+          nome: string
+          empresa_id: string | null
+          empresas?: {
+            nome: string
+          } | null
+        } | null
+      }>
+    }
+
+    const alunosFormatados = (alunos || []).map((aluno: AlunoComCursos) => {
       const empresas = new Set<string>();
-      const cursos = (aluno.alunos_cursos || []).map((ac: any) => {
+      const cursos = (aluno.alunos_cursos || []).map((ac) => {
         if (ac.cursos?.empresas?.nome) {
           empresas.add(ac.cursos.empresas.nome);
         }

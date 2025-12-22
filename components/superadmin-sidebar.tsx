@@ -3,7 +3,6 @@
 import {
   Building2,
   GraduationCap,
-  LayoutDashboard,
   Shield,
   Users,
 } from "lucide-react"
@@ -32,11 +31,6 @@ type NavItem = {
 
 const superAdminNavItems: NavItem[] = [
   {
-    title: "Dashboard",
-    url: "/admin/empresas",
-    icon: LayoutDashboard,
-  },
-  {
     title: "Empresas",
     url: "/admin/empresas",
     icon: Building2,
@@ -61,7 +55,7 @@ export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Side
     let isActive = false;
     
     if (item.url === '/admin/empresas') {
-      // Dashboard e Empresas são ativos quando estamos em /admin ou /admin/empresas
+      // Empresas é ativo quando estamos em /admin ou /admin/empresas
       isActive = pathname === '/admin' || pathname === '/admin/empresas' || pathname?.startsWith('/admin/empresas/');
     } else if (item.url === '/admin/professores') {
       isActive = pathname === '/admin/professores' || pathname?.startsWith('/admin/professores/');
