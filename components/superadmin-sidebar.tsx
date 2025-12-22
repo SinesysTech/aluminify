@@ -2,7 +2,6 @@
 
 import {
   Building2,
-  Command,
   GraduationCap,
   LayoutDashboard,
   Shield,
@@ -34,22 +33,22 @@ type NavItem = {
 const superAdminNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/admin?tab=empresas",
+    url: "/admin/empresas",
     icon: LayoutDashboard,
   },
   {
     title: "Empresas",
-    url: "/admin?tab=empresas",
+    url: "/admin/empresas",
     icon: Building2,
   },
   {
     title: "Professores",
-    url: "/admin?tab=professores",
+    url: "/admin/professores",
     icon: GraduationCap,
   },
   {
     title: "Alunos",
-    url: "/admin?tab=alunos",
+    url: "/admin/alunos",
     icon: Users,
   },
 ]
@@ -58,10 +57,25 @@ export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Side
   const pathname = usePathname()
   const user = useCurrentUser()
 
-  const navMainWithActive = superAdminNavItems.map((item) => ({
-    ...item,
-    isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
-  }))
+  const navMainWithActive = superAdminNavItems.map((item) => {
+    let isActive = false;
+    
+    if (item.url === '/admin/empresas') {
+      // Dashboard e Empresas são ativos quando estamos em /admin ou /admin/empresas
+      isActive = pathname === '/admin' || pathname === '/admin/empresas' || pathname?.startsWith('/admin/empresas/');
+    } else if (item.url === '/admin/professores') {
+      isActive = pathname === '/admin/professores' || pathname?.startsWith('/admin/professores/');
+    } else if (item.url === '/admin/alunos') {
+      isActive = pathname === '/admin/alunos' || pathname?.startsWith('/admin/alunos/');
+    } else {
+      isActive = pathname === item.url || pathname?.startsWith(item.url + "/");
+    }
+    
+    return {
+      ...item,
+      isActive,
+    };
+  })
 
   return (
     <Sidebar variant="inset" {...props}>
