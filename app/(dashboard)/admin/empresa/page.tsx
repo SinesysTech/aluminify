@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { formatBRPhone, formatCNPJ } from '@/lib/br';
+import Link from 'next/link';
 
 interface Empresa {
   id: string;
@@ -108,7 +109,23 @@ export default function EmpresaPage() {
   }
 
   if (!empresa) {
-    return <div>Empresa não encontrada</div>;
+    return (
+      <div className="container mx-auto py-8 max-w-xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Empresa não encontrada</CardTitle>
+            <CardDescription>
+              Seu usuário ainda não está vinculado a uma empresa. Para continuar, crie sua empresa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link href="/professor/empresa/nova">Criar Empresa</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

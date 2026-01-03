@@ -18,6 +18,10 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
   const role = (user.user_metadata?.role as AppUserRole) || 'aluno'
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password)
 
+  let empresaId: string | undefined
+  let empresaNome: string | undefined
+  let isEmpresaAdmin: boolean | undefined
+
   // Ensure professor record exists if user is a professor
   // Note: This is a best-effort attempt. The handle_new_user() trigger should have created it,
   // but this ensures it exists even if the trigger didn't fire or if the user was created differently.
@@ -89,6 +93,31 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     }
   }
 
+  // Carregar contexto de empresa para professor/superadmin (melhora navegação e guards)
+  if (role === 'professor' || role === 'superadmin') {
+    const { data: professorRow, error: professorError } = await supabase
+      .from('professores')
+      .select('empresa_id,is_admin,nome_completo,empresas(nome)')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (!professorError && professorRow) {
+      empresaId = professorRow.empresa_id ?? undefined
+      isEmpresaAdmin = Boolean(professorRow.is_admin)
+      // @ts-expect-error - join typed as any in generated types
+      empresaNome = professorRow.empresas?.nome ?? undefined
+
+      // Se existir nome_completo, preferir como fullName
+      if (professorRow.nome_completo) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(user.user_metadata as any) = {
+          ...(user.user_metadata || {}),
+          full_name: professorRow.nome_completo,
+        }
+      }
+    }
+  }
+
   if (role === 'aluno') {
     const { data: alunoData } = await supabase
       .from('alunos')
@@ -111,6 +140,9 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
       user.email?.split('@')[0],
     avatarUrl: user.user_metadata?.avatar_url,
     mustChangePassword,
+    empresaId,
+    empresaNome,
+    isEmpresaAdmin,
   }
 }
 

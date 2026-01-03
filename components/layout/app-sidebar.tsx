@@ -5,6 +5,7 @@ import {
   Calendar,
   CalendarCheck,
   Command,
+  Building2,
   FileText,
   Layers,
   MessageSquare,
@@ -185,14 +186,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     hasRequiredRole(user.role, item.roles)
   )
 
-  const navMainWithActive = filteredNav.map((item) => ({
-    ...item,
-    isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
-  }))
+  const navMainWithActive = filteredNav.map((item) => {
+    // Se professor ainda não tem empresa, trocar o link de Configurações para "Criar Empresa"
+    if (user.role === 'professor' && !user.empresaId && item.url === '/admin/empresa') {
+      const url = '/professor/empresa/nova'
+      return {
+        ...item,
+        title: 'Criar Empresa',
+        url,
+        icon: Building2,
+        isActive: pathname === url || pathname?.startsWith(url + '/'),
+      }
+    }
+
+    return {
+      ...item,
+      isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
+    }
+  })
 
   const studentItems = navMainWithActive.filter((item) => hasRequiredRole("aluno", item.roles))
   const professorItems = navMainWithActive.filter((item) => hasRequiredRole("professor", item.roles) && !hasRequiredRole("aluno", item.roles) && !item.url.startsWith("/admin/empresa"))
-  const empresaItems = navMainWithActive.filter((item) => item.url.startsWith("/admin/empresa"))
+  const empresaItemsAll = navMainWithActive.filter((item) => item.url.startsWith("/admin/empresa") || item.url.startsWith("/professor/empresa"))
+  const empresaItems =
+    user.role === 'professor' && !user.empresaId
+      ? empresaItemsAll.filter((item) => item.url.startsWith('/professor/empresa'))
+      : empresaItemsAll.filter((item) => item.url.startsWith('/admin/empresa'))
 
   return (
     <Sidebar variant="inset" {...props}>
