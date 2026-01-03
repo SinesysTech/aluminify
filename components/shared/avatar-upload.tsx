@@ -103,8 +103,16 @@ ${instructions.join('\n')}`
       setAvatarUrl(data.avatar_url)
       setPreview(null)
 
-      // Atualizar sessão para refletir mudanças
-      await supabase.auth.refreshSession()
+      // Tentar atualizar sessão para refletir mudanças
+      // Ignorar erros de refresh token (pode estar inválido ou expirado)
+      try {
+        await supabase.auth.refreshSession()
+      } catch (refreshError) {
+        // Erro ao renovar sessão - não é crítico, apenas logar em desenvolvimento
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Não foi possível atualizar a sessão após upload do avatar:', refreshError)
+        }
+      }
 
       if (onUploadSuccess) {
         onUploadSuccess(data.avatar_url)
@@ -147,8 +155,16 @@ ${instructions.join('\n')}`
       setAvatarUrl(null)
       setPreview(null)
 
-      // Atualizar sessão
-      await supabase.auth.refreshSession()
+      // Tentar atualizar sessão
+      // Ignorar erros de refresh token (pode estar inválido ou expirado)
+      try {
+        await supabase.auth.refreshSession()
+      } catch (refreshError) {
+        // Erro ao renovar sessão - não é crítico, apenas logar em desenvolvimento
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Não foi possível atualizar a sessão após remover avatar:', refreshError)
+        }
+      }
 
       // Forçar atualização do componente pai
       window.dispatchEvent(new Event('avatar-updated'))

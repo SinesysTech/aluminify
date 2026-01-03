@@ -29,15 +29,6 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims()
-  const user = data?.claims
-
   // Rotas públicas que não precisam de autenticação
   const publicPaths = [
     '/login',
@@ -50,14 +41,22 @@ export async function updateSession(request: NextRequest) {
 
   const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
 
-  if (
-    !user &&
-    !isPublicPath
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth'
-    return NextResponse.redirect(url)
+  // Tentar obter o usuário autenticado
+  // getUser() renova automaticamente a sessão se necessário usando o refresh token
+  // Se o refresh token estiver inválido ou não encontrado, retornará um erro
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  // Se houver erro de autenticação (incluindo refresh token inválido/não encontrado)
+  // ou se não houver usuário autenticado
+  if (error || !user) {
+    // Se não for rota pública, redirecionar para login
+    // O cliente Supabase irá limpar os cookies inválidos automaticamente
+    if (!isPublicPath) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth'
+      return NextResponse.redirect(url)
+    }
+    // Se for rota pública, continuar normalmente (usuário não autenticado é esperado)
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

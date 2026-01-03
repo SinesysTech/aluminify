@@ -410,12 +410,30 @@ export default function TobIAsPage() {
 
     try {
       const supabase = createClient()
+      
+      // Usar getUser() que tenta renovar o token automaticamente se necessário
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser()
+      
+      if (userError || !authUser) {
+        setError('Sessão expirada. Faça login novamente.')
+        setIsLoading(false)
+        // Se não conseguir autenticar, redirecionar para login após um breve delay
+        setTimeout(() => {
+          window.location.href = '/auth'
+        }, 2000)
+        return
+      }
+
+      // Obter a sessão atualizada após getUser()
       const { data: { session } } = await supabase.auth.getSession()
       const authToken = session?.access_token
 
       if (!authToken) {
         setError('Sessão expirada. Faça login novamente.')
         setIsLoading(false)
+        setTimeout(() => {
+          window.location.href = '/auth'
+        }, 2000)
         return
       }
 
@@ -437,7 +455,21 @@ export default function TobIAsPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        // Se for erro 401 (Unauthorized), redirecionar para login
+        if (response.status === 401) {
+          setError('Sessão expirada. Redirecionando para login...')
+          setTimeout(() => {
+            window.location.href = '/auth'
+          }, 2000)
+          return
+        }
+
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          errorData = { error: `Erro HTTP ${response.status}: ${response.statusText}` }
+        }
         throw new Error(errorData.error || 'Erro ao enviar mensagem')
       }
 
