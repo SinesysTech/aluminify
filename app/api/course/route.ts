@@ -5,6 +5,7 @@ import {
   CourseValidationError,
 } from '@/backend/services/course';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { getDatabaseClient } from '@/backend/clients/database';
 
 const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({
   id: course.id,
@@ -57,8 +58,37 @@ async function postHandler(request: AuthenticatedRequest) {
 
   try {
     const body = await request.json();
+
+    // Resolver empresaId:
+    // - Professor: sempre deriva da tabela `professores` (fonte de verdade)
+    // - Superadmin: pode passar empresaId no body (ou via query param `empresa_id` se quiser)
+    let empresaId: string | null = null;
+
+    if (request.user?.role === 'superadmin') {
+      empresaId =
+        body?.empresaId ||
+        request.nextUrl?.searchParams?.get('empresa_id') ||
+        null;
+    } else if (request.user?.role === 'professor') {
+      const adminClient = getDatabaseClient();
+      const { data: professor } = await adminClient
+        .from('professores')
+        .select('empresa_id')
+        .eq('id', request.user.id)
+        .maybeSingle();
+
+      empresaId = professor?.empresa_id ?? null;
+
+      if (!empresaId) {
+        return NextResponse.json(
+          { error: 'empresaId is required (crie/vincule uma empresa antes de cadastrar cursos)' },
+          { status: 400 },
+        );
+      }
+    }
+
     const course = await courseService.create({
-      empresaId: body?.empresaId || null,
+      empresaId,
       segmentId: body?.segmentId,
       disciplineId: body?.disciplineId, // Mantido para compatibilidade
       disciplineIds: body?.disciplineIds, // Nova propriedade
