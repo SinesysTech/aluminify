@@ -1137,23 +1137,47 @@ export default function ConteudosClientPage() {
 
       // Supabase RPC costuma retornar PostgrestError como objeto (não instanceof Error)
       // com campos: message, details, hint, code.
-      const anyErr = err as
-        | { message?: string; details?: string; hint?: string; code?: string }
-        | undefined
-        | null
+      const formatUnknownError = (e: unknown) => {
+        if (typeof e === 'string') return e
+        if (e instanceof Error) return e.message || 'Erro ao importar cronograma'
 
-      const baseMessage =
-        (anyErr && typeof anyErr === 'object' && anyErr.message) ||
-        (err instanceof Error ? err.message : null) ||
-        'Erro ao importar cronograma'
+        if (e && typeof e === 'object') {
+          // Algumas libs retornam erros com props não-enumeráveis, e o console mostra "{}".
+          const obj = e as Record<string, unknown>
+          const getString = (v: unknown) => (typeof v === 'string' ? v : v != null ? String(v) : undefined)
 
-      // Em desenvolvimento, ajuda muito mostrar detalhes do Postgres/Supabase
-      const detailed =
-        process.env.NODE_ENV === 'development' && anyErr && typeof anyErr === 'object'
-          ? [baseMessage, anyErr.details, anyErr.hint, anyErr.code].filter(Boolean).join(' | ')
-          : baseMessage
+          const message =
+            getString(obj.message) ||
+            getString(obj.error_description) ||
+            getString(obj.error) ||
+            'Erro ao importar cronograma'
 
-      setError(detailed)
+          const details = getString(obj.details)
+          const hint = getString(obj.hint)
+          const code = getString(obj.code)
+
+          // Tenta também inspecionar propriedades não-enumeráveis
+          const allProps = Object.getOwnPropertyNames(e)
+            .filter((k) => k !== 'stack')
+            .slice(0, 12)
+          const propsPreview =
+            allProps.length > 0
+              ? `props: ${allProps
+                  .map((k) => `${k}=${getString((obj as any)[k]) ?? '[obj]'}`)
+                  .join(', ')}`
+              : null
+
+          if (process.env.NODE_ENV === 'development') {
+            return [message, details, hint, code, propsPreview].filter(Boolean).join(' | ')
+          }
+
+          return message
+        }
+
+        return 'Erro ao importar cronograma'
+      }
+
+      setError(formatUnknownError(err))
     } finally {
       setIsLoading(false)
     }
