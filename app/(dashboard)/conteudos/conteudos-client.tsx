@@ -1118,6 +1118,7 @@ export default function ConteudosClientPage() {
 
       setSuccessMessage('Cronograma importado com sucesso!')
       setArquivo(null)
+      const createdFrenteNome = frenteNome.trim()
       
       // Resetar input de arquivo
       const fileInput = document.getElementById('csv-file') as HTMLInputElement
@@ -1125,9 +1126,48 @@ export default function ConteudosClientPage() {
         fileInput.value = ''
       }
 
-      // Recarregar conteúdo (apenas refetch de frentes)
-      if (disciplinaSelecionada) {
-        setFrenteSelecionada('')
+      // Auto-refresh de conteúdo após import:
+      // refetch frentes e selecionar automaticamente a frente criada/atualizada,
+      // disparando o carregamento de módulos/aulas sem precisar recarregar a página.
+      if (disciplinaSelecionada && cursoSelecionado) {
+        try {
+          const { data: frentesData, error: frentesError } = await supabase
+            .from('frentes')
+            .select('id, nome, disciplina_id, curso_id')
+            .eq('disciplina_id', disciplinaSelecionada)
+            .eq('curso_id', cursoSelecionado)
+            .order('nome', { ascending: true })
+
+          if (frentesError) {
+            throw frentesError
+          }
+
+          const mappedFrentes =
+            (frentesData || [])
+              .filter((f): f is typeof f & { disciplina_id: string } => f.disciplina_id !== null)
+              .map((f) => ({ id: f.id, nome: f.nome, disciplina_id: f.disciplina_id, curso_id: f.curso_id }))
+
+          setFrentes(mappedFrentes)
+
+          // Selecionar automaticamente a frente recém-criada (match por nome, case-insensitive)
+          const created = mappedFrentes.find(
+            (f) => f.nome?.trim().toLowerCase() === createdFrenteNome.toLowerCase(),
+          )
+
+          if (created) {
+            setFrenteSelecionada(created.id)
+          } else {
+            // Se não encontrar, apenas limpar seleção (usuário escolhe manualmente)
+            setFrenteSelecionada('')
+          }
+
+          // Limpar campo de nome da frente após concluir import
+          setFrenteNome('')
+        } catch (refreshErr) {
+          console.error('Erro ao atualizar frentes após import:', refreshErr)
+          // fallback: limpar seleção para forçar o usuário a selecionar novamente
+          setFrenteSelecionada('')
+        }
       }
 
       // Forçar refresh da página para atualizar seletores
