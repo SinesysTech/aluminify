@@ -26,12 +26,24 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const nome = String(body?.nome ?? '').trim();
-    const cnpj = body?.cnpj ? String(body.cnpj).trim() : undefined;
+    const cnpjRaw = body?.cnpj ? String(body.cnpj).trim() : '';
+    const cnpjDigits = cnpjRaw.replace(/\D/g, '');
+    const cnpj =
+      cnpjDigits.length === 0 ? undefined : cnpjDigits; // sempre normaliza para dígitos
     const emailContato = body?.emailContato ? String(body.emailContato).trim() : undefined;
     const telefone = body?.telefone ? String(body.telefone).trim() : undefined;
 
     if (!nome) {
       return NextResponse.json({ error: 'Nome da empresa é obrigatório' }, { status: 400 });
+    }
+
+    // Validação amigável (evita 500 por erro de input)
+    if (cnpj && cnpj.length !== 14) {
+      return NextResponse.json({ error: 'CNPJ deve ter 14 dígitos' }, { status: 400 });
+    }
+
+    if (cnpj && /^(\d)\1+$/.test(cnpj)) {
+      return NextResponse.json({ error: 'CNPJ inválido' }, { status: 400 });
     }
 
     const adminClient = getDatabaseClient();
@@ -110,6 +122,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating self empresa:', error);
     const message = error instanceof Error ? error.message : 'Erro ao criar empresa';
+    // Se cair aqui por erro de validação, devolver 400 para UX melhor
+    if (typeof message === 'string' && (message.includes('CNPJ deve ter 14 dígitos') || message.includes('CNPJ inválido'))) {
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

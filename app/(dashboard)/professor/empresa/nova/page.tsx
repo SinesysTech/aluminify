@@ -30,6 +30,15 @@ export default function ProfessorNovaEmpresaPage() {
         throw new Error('Sessão expirada. Faça login novamente.');
       }
 
+      const cnpjDigits = formData.cnpj.replace(/\D/g, '');
+      const cnpjToSend = cnpjDigits.length === 0 ? undefined : cnpjDigits;
+      if (cnpjToSend && cnpjToSend.length !== 14) {
+        throw new Error('CNPJ deve ter 14 dígitos (ou deixe em branco)');
+      }
+      if (cnpjToSend && /^(\d)\1+$/.test(cnpjToSend)) {
+        throw new Error('CNPJ inválido');
+      }
+
       const response = await fetch('/api/empresas/self', {
         method: 'POST',
         headers: {
@@ -38,7 +47,7 @@ export default function ProfessorNovaEmpresaPage() {
         },
         body: JSON.stringify({
           nome: formData.nome,
-          cnpj: formData.cnpj || undefined,
+          cnpj: cnpjToSend,
           emailContato: formData.emailContato || undefined,
           telefone: formData.telefone || undefined,
         }),
@@ -98,6 +107,9 @@ export default function ProfessorNovaEmpresaPage() {
               placeholder="00.000.000/0000-00"
               disabled={loading}
             />
+            <div className="text-xs text-muted-foreground">
+              Opcional. Se informar, deve ter 14 dígitos.
+            </div>
           </div>
 
           <div className="space-y-2">
