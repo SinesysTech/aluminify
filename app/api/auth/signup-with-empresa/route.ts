@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/server';
 import { EmpresaService, EmpresaRepositoryImpl } from '@/backend/services/empresa';
 import { getDatabaseClient } from '@/backend/clients/database';
 
@@ -21,12 +20,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
     const adminClient = getDatabaseClient();
 
     // 1. Criar empresa automaticamente
-    const repository = new EmpresaRepositoryImpl(supabase);
-    const service = new EmpresaService(repository, supabase);
+    // Usar adminClient (service role) para bypass de RLS
+    const repository = new EmpresaRepositoryImpl(adminClient);
+    const service = new EmpresaService(repository, adminClient);
 
     // Usar nome da empresa fornecido ou gerar a partir do nome do professor
     const nomeEmpresa = empresaNome || `${fullName} - Instituição`;
@@ -80,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Inserir em empresa_admins como owner
-    const { error: adminError } = await supabase
+    const { error: adminError } = await adminClient
       .from('empresa_admins')
       .insert({
         empresa_id: empresa.id,

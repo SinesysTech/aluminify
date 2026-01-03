@@ -117,8 +117,9 @@ export function ProfessorSignUpForm() {
         router.push('/tobias');
         router.refresh();
       } else {
-        // Se não há empresa_id, criar empresa automaticamente
-        const response = await fetch('/api/auth/signup-with-empresa', {
+        // Se não há empresa_id, criar conta de professor SEM empresa (onboarding)
+        // (precisa ser no backend para não disparar o trigger que exige empresa_id)
+        const response = await fetch('/api/auth/professor/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -130,7 +131,7 @@ export function ProfessorSignUpForm() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Erro ao criar conta e empresa');
+          throw new Error(errorData.error || 'Erro ao criar conta');
         }
 
         await response.json();
@@ -147,8 +148,8 @@ export function ProfessorSignUpForm() {
           return;
         }
 
-        // Redirecionar para dashboard do professor
-        router.push('/tobias');
+        // Redirecionar para cadastro de empresa (dentro do app)
+        router.push('/professor/empresa/nova');
         router.refresh();
       }
     } catch (err) {
