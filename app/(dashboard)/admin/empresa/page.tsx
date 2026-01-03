@@ -151,11 +151,12 @@ export default function EmpresaPage() {
             <Label htmlFor="cnpj">CNPJ</Label>
             <Input
               id="cnpj"
-              value={formData.cnpj}
+              value={formatCNPJ(formData.cnpj)}
               onChange={(e) => setFormData({ ...formData, cnpj: formatCNPJ(e.target.value) })}
               inputMode="numeric"
               maxLength={18}
               placeholder="00.000.000/0000-00"
+              pattern="^[0-9./-]*$"
             />
           </div>
 
@@ -173,11 +174,12 @@ export default function EmpresaPage() {
             <Label htmlFor="telefone">Telefone</Label>
             <Input
               id="telefone"
-              value={formData.telefone}
+              value={formatBRPhone(formData.telefone)}
               onChange={(e) => setFormData({ ...formData, telefone: formatBRPhone(e.target.value) })}
               inputMode="numeric"
               maxLength={15}
               placeholder="(11) 99999-9999"
+              pattern="^[0-9()\\s+-]*$"
             />
           </div>
 
