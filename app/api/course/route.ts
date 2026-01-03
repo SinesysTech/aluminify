@@ -62,6 +62,7 @@ async function postHandler(request: AuthenticatedRequest) {
     // Resolver empresaId:
     // - Professor: sempre deriva da tabela `professores` (fonte de verdade)
     // - Superadmin: pode passar empresaId no body (ou via query param `empresa_id` se quiser)
+    // - API Key: deriva do `createdBy` da API key (que deve ser um professor)
     let empresaId: string | null = null;
 
     if (request.user?.role === 'superadmin') {
@@ -69,6 +70,13 @@ async function postHandler(request: AuthenticatedRequest) {
         body?.empresaId ||
         request.nextUrl?.searchParams?.get('empresa_id') ||
         null;
+
+      if (!empresaId) {
+        return NextResponse.json(
+          { error: 'empresaId is required (informe empresaId ao criar curso como superadmin)' },
+          { status: 400 },
+        );
+      }
     } else if (request.user?.role === 'professor') {
       const adminClient = getDatabaseClient();
       const { data: professor } = await adminClient
@@ -82,6 +90,22 @@ async function postHandler(request: AuthenticatedRequest) {
       if (!empresaId) {
         return NextResponse.json(
           { error: 'empresaId is required (crie/vincule uma empresa antes de cadastrar cursos)' },
+          { status: 400 },
+        );
+      }
+    } else if (request.apiKey?.createdBy) {
+      const adminClient = getDatabaseClient();
+      const { data: professor } = await adminClient
+        .from('professores')
+        .select('empresa_id')
+        .eq('id', request.apiKey.createdBy)
+        .maybeSingle();
+
+      empresaId = professor?.empresa_id ?? null;
+
+      if (!empresaId) {
+        return NextResponse.json(
+          { error: 'empresaId is required (API key não está vinculada a um professor com empresa)' },
           { status: 400 },
         );
       }
