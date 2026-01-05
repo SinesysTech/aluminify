@@ -11,6 +11,7 @@ interface PageProps {
 }
 
 export default async function AgendamentoDetailPage({ params }: PageProps) {
+  // Desempacotar imediatamente para evitar serialização pelo React DevTools
   const { id } = await params
   const supabase = await createClient()
   const {

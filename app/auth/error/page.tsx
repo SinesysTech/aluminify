@@ -6,6 +6,7 @@ export default function Page({
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
+  // Desempacotar imediatamente para evitar serialização pelo React DevTools
   const params = use(searchParams)
 
   return (

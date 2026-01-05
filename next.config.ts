@@ -1,11 +1,39 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   // Otimizações para produção
   reactStrictMode: true,
-  // Configuração para Vercel
-  output: undefined, // Deixa o Next.js decidir (SSR por padrão)
+  
+  // Configuração para Vercel (SSR por padrão)
+  output: undefined,
+  
+  // Otimizações de imagens
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+      },
+    ],
+  },
+  
+  // Compressão e otimizações
+  compress: true,
+  
+  // Configurações de produção
+  poweredByHeader: false,
+  
+  // Otimizações de bundle
+  experimental: {
+    optimizePackageImports: [
+      "@radix-ui/react-accordion",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-select",
+      "lucide-react",
+    ],
+  },
 };
 
 export default nextConfig;
