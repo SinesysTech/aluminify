@@ -1682,10 +1682,336 @@ export type Database = {
           },
         ]
       }
+      tenant_branding: {
+        Row: {
+          id: string
+          empresa_id: string
+          color_palette_id: string | null
+          font_scheme_id: string | null
+          custom_css: string | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          empresa_id: string
+          color_palette_id?: string | null
+          font_scheme_id?: string | null
+          custom_css?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          update null
+        }
+        Update: {
+          id?: string
+       tring
+          color_palette_id?: string | null
+          font_scheme_id?: stringull
+          custom_css?: str null
+       
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: strull
+        }
+        Relationships: [
+          {
+            foreigd_fkey"
+            columns: ["emprea_id"]
+           
+       "
+            referencedColumns
+          },
+          {
+            foreignKeyName
+           
+       alse
+            referencedRelation: "color_palettes"
+            referencedColumns: []
+          },
+          {
+            foreignKeyName: "ty"
+            columns: ["font_sche]
+            isOneToOne: false
+            referencedRelation: "fo"
+            r
+          },
+        ]
+      }
+      tenant_lo
+        Row
+          i
+          tenant_br
+          logo_type: Database[]
+          logo_url: string
+          file_name: string | null
+          filll
+          mime_type: string | 
+          cg
+          updated_at: sng
+        }
+        Ins: {
+          id?: string
+          tenant_branding_iding
+          l]
+          logo_url: string
+          file_name?: string | null
+          file_size?: nu null
+       | null
+     ing
+          uptring
+        }
+        Update: {
+          id?: stg
+          tenant_tring
+          logo_type"]
+          logo_url?: string
+          file_name?: string | null
+          file_size?: number | null
+          mime_type?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreign
+            columns: ["td"]
+            isOneToOne:e
+            referencedRelation: branding"
+            referencedColumns: 
+          },
+        ]
+      }
+      color_palettes: {
+        Row: {
+          id: string
+          name: string
+          empresa_id: stri
+          primary_cing
+          primary_foreground: string
+          secondary_colorstring
+          secondary_ring
+          accent_color: string
+          accent_foregrostring
+          muted_co
+          muted_fore
+          backgrou
+          foreground_color: string
+     ing
+          card_foregrstring
+          destructive_col
+     string
+   ing
+ g
+
+          sidebar_primary_foreground: string
+ean
+          created_at: string
+tring
+          created_b
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+   
+          primary_color: string
+          primary_foreground: string
+          secondary_r: string
+          secondary_foreground: string
+          accent_color: string
+ 
+          muted_color: string
+          muted_foreground: string
+          backgrou
+     ng
+       g
+          cstring
+          destructive_color: string
+          destructive_foregrounng
+          sidebar_background: st
+          sidebar_foreground: string
+          sidebar_pry: string
+       ng
+         an
+          cre: string
+          u
+ null
+          updated_by?: st
+        }
+        Update: {
+          id?: string
+          name?: string
+          empresa_id?: string
+   ng
+          primary_foreground?: string
+          secondary_ing
+          secondary_foreground?: string
+          accent_color?: string
+ tring
+          muted_color?: string
+          muted_foregstring
+     ring
+       ring
+          c
+          card_foreground?: string
+          destructive_color?: string
+          destructive_fing
+       ng
+         ring
+          sidng
+          sd?: string
+an
+          created_at?: string
+          updated_at?: string
+          created_by?: string | nul
+          updated_by?: string | null
+        }
+        Relationships: [
+   
+            foreignKeyName: "color_palettes_empresa_id_fkey"
+            columns:d"]
+            isOneToOne: false
+            referencedRelation: "empresa
+ d"]
+          },
+        ]
+      }
+      fes: {
+        Row: {
+          id: string
+          name: string
+          empresa_id: s
+       son
+         
+          fonn
+          f
+l
+          is_custon
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          updated_by: string | null
+        }
+   {
+          id?: string
+          name: string
+          empresa_id: string
+          font_sans?: Json
+ o?: Json
+          font_sizes?: Json
+          font_weights?: Json
+          google_fonts?: Json | null
+          ian
+tring
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+   ring
+          empresa_id?: string
+          font_sans? Json
+          font_mono?: Json
+          font_sizes?: Json
+ : Json
+          google_fonts?: Json | null
+          is_custom?: boolean
+          created_at?: string
+          ung
+ll
+          updated_by?: str null
+        }
+        Rela [
+          {
+            foreignKey
+            colu
+            isOnse
+            refere"
+            referencedCo["id"]
+        
+        ]
+      }
+      custom_theme_presets: {
+        Row: {
+          id: string
+          name: st
+          empresa_
+          color_pa | null
+          font_schll
+          radius: number
+          scale: number
+          mode: string
+          preview_colors: Json
+          is_default: boolean
+          created_at:
+          updated_ string
+        
+          updated_by: st | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          empresa_ing
+        
+          font_scheme_id?: string | null
+          radius?: number
+          scale?: ner
+          mode?: string
+          preview_colorJson
+          is_defaoolean
+          created_ag
+          updatedring
+        null
+          updated_by?: string | null
+      }
+    pdate: {
+          g
+
+    }evern never]: n  [_ iews: {
+      Vi}
     }
-    Views: {
-      [_ in never]: never
-    }
+    ]
+           ,
+     }     
+ ns: ["id"]rencedColumefe         rmes"
+   cheon: "font_slatireferencedRe        lse
+    One: fa  isOneTo       
+   "]_scheme_id["font   columns:       _fkey"
+   nt_scheme_ide_presets_fotom_theme: "cusgnKeyNam   forei       {
+   
+             },"]
+      dlumns: ["icedCo  referen   "
+       lettes"color_pan: atioedRel   referenc         
+e: falseoOnOneT   is        id"]
+ tte_le_pa"color: [   columns        y"
+ te_id_fker_paletesets_coloprme_ustom_theame: "ceignKeyN        for   {
+    },
+       
+          : ["id"]encedColumns   refer      "
+   : "empresasdRelationrence   refe        
+ One: falseToOne     is   id"]
+    mpresa_mns: ["e   colu        ey"
+ esa_id_fksets_empreme_preth: "custom_NameignKey      fore        {
+   [
+     ips: tionsh  Rela}
+      ll
+         | nungy?: stripdated_b    u       | null
+ stringy?:created_b
+           stringated_at?:upd     
+     grint?: st_areated     c
+     eanult?: booldefa    is_son
+      : J_colors?preview
+          ode?: string         mumber
+ cale?: n        s
+   numberius?:       rad| null
+   g inme_id?: strt_sche fon         ull
+| n: string d?tte_i_pale    colorring
+       st_id?:resa    empng
+       name?: stri         d?: strini    U   string | reated_by?:  cst_at?: trint?: sult?: b: s?umbulling | ne_id?: strolor_palett  cid: strringring | null_by: statedcre  t:atring s string | nu_id:emed: stringlette_iingid: stringr  },lumns: "empresasn: Relationced faleToOne:presa_id"]mns: ["emid_fkey"esa_mpres_echemfont_sName: "nships:tioing |string | nu?: ed_by    creat      : striated_at?pdont_weights?         f:  name?: st     at?: s    created_       booletom?:s_cusnt_mon         fo    Insert:   booleam:son | nulfonts: Jogle_   go       nJsont_weights: o_sizes: Jsot: Jsonono font_mont_sans: J   fringtont_schems: ["imnrencedColu   refe        s"mpresa_i"e [ {      lstom?: boole       is_cu   oregrounar_primary_fidebimary?: striebar_preground?: stordebar_f siound?: striebar_backgr   sidd?: stroregrounlor?: stringrd_coad_color?: stgroun   forecolor?: stkground_     bacd?: rounnd?: st_foregrouccen      a   color?: strlor?: striry_coprima       llring | nung |tri: sby? created_          stringd_at?:pdateated_at?lestom?: boo is_cu striound:oregry_fimar  sidebar_pr imaringrd: strireground: _foard strinor:   card_col_color: strindouoregr    f tringor: snd_colstringforeground: nt_cce         acoloid: stringa_      empres  nullring |y: sted_at: s    updat      boolstom:      is_cu     ng: striar_primary  sideb        und: strinegro_forar   sideb      ground: strbar_back       sideeground: ructive_for dest    tringr: soound: lor: str_coard     cstringolor: nd_cingtrund: sgro: stringorld: unground: stfore:  strolor:ngid"][""tenant_ falsing_iant_brandeney"_fknding_ids_tenant_bratenant_logoyName: "Ketype_logo_]["enumums"blic"]["Enatabase["pu D?:id?: sbranding_rin?: sdated_at_at?: str   created  e?: string type_   mimmber |ogo_type"]["enum_l"]["Enums"["public Databaseogo_type:: strerttri_at: strinreatednull| nunumber e_size: go_type"["enum_lonums"]ic"]["E"publgg_id: strinandind: string: {gos: { ["id"]s:dColumneferencees_schemntme_id"d_fkee_ifont_schemt_branding_enan"id"ne: f    isOneToO "]lette_id"color_pans: [ colum_id_fkey"ette_paling_colorndnt_bra: "tena: ["id"]resas "empn:cedRelatioen    refer e: trueOneToOn issmpresa_i_erandingnt_btena: "KeyNamen | ning: stringat? created_  ng |i | n sa_id?: empres   |_by?: stringd
     Functions: {
       aluno_matriculado_empresa: {
         Args: { empresa_id_param: string }
@@ -1782,6 +2108,7 @@ export type Database = {
         | "Gabarito"
         | "Outros"
       enum_tipo_servico_agendamento: "plantao" | "mentoria"
+      enum_logo_type: "login" | "sidebar" | "favicon"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1950,6 +2277,7 @@ export const Constants = {
         "Outros",
       ],
       enum_tipo_servico_agendamento: ["plantao", "mentoria"],
+      enum_logo_type: ["login", "sidebar", "favicon"],
     },
   },
 } as const

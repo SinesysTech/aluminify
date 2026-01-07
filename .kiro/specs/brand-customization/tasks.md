@@ -6,28 +6,28 @@ Este plano implementa o sistema de personalização de marca para aplicações m
 
 ## Tasks
 
-- [-] 1. Setup database schema and core types
+- [x] 1. Setup database schema and core types
   - Create database migration for tenant branding tables
   - Define TypeScript interfaces for all data models
   - Set up Supabase RLS policies for multi-tenant isolation
   - _Requirements: 4.2, 4.4, 7.1_
 
-- [ ] 1.1 Write property test for multi-tenant isolation
+- [x] 1.1 Write property test for multi-tenant isolation
   - **Property 9: Multi-Tenant Isolation and Consistency**
   - **Validates: Requirements 4.2, 4.3, 4.4**
 
-- [ ] 2. Implement Brand Customization Manager
-  - [ ] 2.1 Create core BrandCustomizationManager service
+- [x] 2. Implement Brand Customization Manager
+  - [x] 2.1 Create core BrandCustomizationManager service
     - Implement loadTenantBranding and applyTenantBranding methods
     - Add saveTenantBranding and resetToDefault functionality
     - Integrate with existing theme system
     - _Requirements: 4.1, 4.5, 6.4_
 
-  - [ ] 2.2 Write property test for tenant-specific customization loading
+  - [x] 2.2 Write property test for tenant-specific customization loading
     - **Property 8: Tenant-Specific Customization Loading**
     - **Validates: Requirements 4.1**
 
-  - [ ] 2.3 Write property test for default branding fallback
+  - [x] 2.3 Write property test for default branding fallback
     - **Property 10: Default Branding Fallback**
     - **Validates: Requirements 4.5**
 
