@@ -69,32 +69,32 @@ Este plano implementa o sistema de personalização de marca para aplicações m
     - **Property 5: Accessibility Compliance Validation**
     - **Validates: Requirements 2.5**
 
-- [-] 5. Implement Font Scheme Manager
-  - [-] 5.1 Create FontSchemeManager service
+- [x] 5. Implement Font Scheme Manager
+  - [x] 5.1 Create FontSchemeManager service
     - Implement createFontScheme and updateFontScheme methods
     - Add applyFontScheme functionality with CSS custom properties
     - Integrate Google Fonts loading with fallback configuration
     - _Requirements: 3.1, 3.2, 3.3, 3.5_
 
-  - [ ] 5.2 Write property test for font scheme application
+  - [x] 5.2 Write property test for font scheme application
     - **Property 6: Font Scheme Application**
     - **Validates: Requirements 3.1, 3.5**
 
-  - [ ] 5.3 Write property test for font support and fallbacks
+  - [x] 5.3 Write property test for font support and fallbacks
     - **Property 7: Font Support and Fallbacks**
     - **Validates: Requirements 3.2, 3.3**
 
-- [ ] 6. Checkpoint - Ensure core services are working
+- [x] 6. Checkpoint - Ensure core services are working
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Extend existing Theme Customizer
-  - [ ] 7.1 Modify theme customizer components to support tenant branding
+- [-] 7. Extend existing Theme Customizer
+  - [x] 7.1 Modify theme customizer components to support tenant branding
     - Extend PresetSelector to include custom tenant presets
     - Add brand customization options to theme customizer panel
     - Maintain compatibility with existing theme functionality
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 7.2 Write property test for theme customizer integration
+  - [-] 7.2 Write property test for theme customizer integration
     - **Property 14: Theme Customizer Integration**
     - **Validates: Requirements 6.1, 6.2**
 

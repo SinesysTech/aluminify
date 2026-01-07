@@ -10,13 +10,38 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export function PresetSelector() {
   const { theme, setTheme } = useThemeConfig();
 
   const handlePreset = (value: string) => {
-    setTheme({ ...theme, ...DEFAULT_THEME, preset: value as any });
+    // Check if it's a custom tenant preset
+    const customPreset = theme.customPresets?.find(p => p.id === value);
+    if (customPreset) {
+      setTheme({
+        ...theme,
+        preset: value,
+        radius: customPreset.radius,
+        scale: customPreset.scale,
+        mode: customPreset.mode,
+      });
+    } else {
+      // Standard preset
+      setTheme({ ...theme, ...DEFAULT_THEME, preset: value });
+    }
   };
+
+  // Combine standard themes with custom tenant presets
+  const allPresets = [
+    ...THEMES,
+    ...(theme.customPresets?.map(preset => ({
+      name: preset.name,
+      value: preset.id,
+      colors: preset.previewColors,
+      isCustom: true,
+    })) || [])
+  ];
 
   return (
     <div className="flex flex-col gap-4">
@@ -26,19 +51,47 @@ export function PresetSelector() {
           <SelectValue placeholder="Select a theme" />
         </SelectTrigger>
         <SelectContent align="end">
-          {THEMES.map((theme) => (
-            <SelectItem key={theme.name} value={theme.value}>
-              <div className="flex shrink-0 gap-1">
-                {theme.colors.map((color, key) => (
-                  <span
-                    key={key}
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: color }}></span>
-                ))}
+          {/* Standard presets */}
+          {THEMES.map((themePreset) => (
+            <SelectItem key={themePreset.name} value={themePreset.value}>
+              <div className="flex items-center gap-2">
+                <div className="flex shrink-0 gap-1">
+                  {themePreset.colors.map((color, key) => (
+                    <span
+                      key={key}
+                      className="size-2 rounded-full"
+                      style={{ backgroundColor: color }}></span>
+                  ))}
+                </div>
+                {themePreset.name}
               </div>
-              {theme.name}
             </SelectItem>
           ))}
+          
+          {/* Custom tenant presets */}
+          {theme.customPresets && theme.customPresets.length > 0 && (
+            <>
+              <Separator className="my-2" />
+              {theme.customPresets.map((preset) => (
+                <SelectItem key={preset.id} value={preset.id}>
+                  <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 gap-1">
+                      {preset.previewColors.map((color, key) => (
+                        <span
+                          key={key}
+                          className="size-2 rounded-full"
+                          style={{ backgroundColor: color }}></span>
+                      ))}
+                    </div>
+                    <span>{preset.name}</span>
+                    {preset.isDefault && (
+                      <span className="text-xs text-muted-foreground">(Default)</span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </>
+          )}
         </SelectContent>
       </Select>
     </div>

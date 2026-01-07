@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useTheme } from '@/hooks/use-theme'
+import { ThemeConfigProvider } from '@/components/active-theme'
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -20,7 +21,13 @@ const ThemeContext = React.createContext<
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = useTheme()
 
-  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={theme}>
+      <ThemeConfigProvider>
+        {children}
+      </ThemeConfigProvider>
+    </ThemeContext.Provider>
+  )
 }
 
 export function useThemeContext() {
