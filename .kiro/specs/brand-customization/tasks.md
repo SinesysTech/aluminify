@@ -31,46 +31,46 @@ Este plano implementa o sistema de personalização de marca para aplicações m
     - **Property 10: Default Branding Fallback**
     - **Validates: Requirements 4.5**
 
-- [ ] 3. Implement Logo Manager
-  - [ ] 3.1 Create LogoManager service with upload functionality
+- [x] 3. Implement Logo Manager
+  - [x] 3.1 Create LogoManager service with upload functionality
     - Implement file upload with validation (size, format, security)
     - Add logo storage using Supabase Storage
     - Create logo application logic for login and sidebar
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 7.2, 7.3_
 
-  - [ ] 3.2 Write property test for logo application consistency
+  - [x] 3.2 Write property test for logo application consistency
     - **Property 1: Logo Application Consistency**
     - **Validates: Requirements 1.1, 1.2, 1.5**
 
-  - [ ] 3.3 Write property test for logo upload validation
+  - [x] 3.3 Write property test for logo upload validation
     - **Property 2: Logo Upload Validation**
     - **Validates: Requirements 1.3, 1.4**
 
-  - [ ] 3.4 Write property test for secure file processing
+  - [x] 3.4 Write property test for secure file processing
     - **Property 18: Secure File Processing**
     - **Validates: Requirements 7.2, 7.3**
 
-- [ ] 4. Implement Color Palette Manager
-  - [ ] 4.1 Create ColorPaletteManager service
+- [x] 4. Implement Color Palette Manager
+  - [x] 4.1 Create ColorPaletteManager service
     - Implement createPalette and updatePalette methods
     - Add applyPalette functionality with CSS custom properties
     - Implement color contrast validation for accessibility
     - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 4.2 Write property test for color palette real-time application
+  - [x] 4.2 Write property test for color palette real-time application
     - **Property 3: Color Palette Real-time Application**
     - **Validates: Requirements 2.3, 2.4**
 
-  - [ ] 4.3 Write property test for color palette editing capability
+  - [x] 4.3 Write property test for color palette editing capability
     - **Property 4: Color Palette Editing Capability**
     - **Validates: Requirements 2.2**
 
-  - [ ] 4.4 Write property test for accessibility compliance validation
+  - [x] 4.4 Write property test for accessibility compliance validation
     - **Property 5: Accessibility Compliance Validation**
     - **Validates: Requirements 2.5**
 
-- [ ] 5. Implement Font Scheme Manager
-  - [ ] 5.1 Create FontSchemeManager service
+- [-] 5. Implement Font Scheme Manager
+  - [-] 5.1 Create FontSchemeManager service
     - Implement createFontScheme and updateFontScheme methods
     - Add applyFontScheme functionality with CSS custom properties
     - Integrate Google Fonts loading with fallback configuration
