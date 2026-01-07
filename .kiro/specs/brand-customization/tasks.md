@@ -150,11 +150,11 @@ Este plano implementa o sistema de personalização de marca para aplicações m
     - Create graceful error handling for unauthorized access
     - _Requirements: 7.1, 7.4, 7.5_
 
-  - [-] 9.2 Write property test for access control validation
+  - [ ] 9.2 Write property test for access control validation
     - **Property 17: Access Control Validation**
     - **Validates: Requirements 7.1, 7.5**
 
-  - [ ] 9.3 Write property test for upload rate limiting
+  - [-] 9.3 Write property test for upload rate limiting
     - **Property 19: Upload Rate Limiting**
     - **Validates: Requirements 7.4**
 
