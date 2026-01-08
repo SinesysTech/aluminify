@@ -10,4 +10,4 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { NextRequest, NextResponse } from 'next/server'
 import fc from 'fast-check'
-import { wit
+import { withRateLimit } from '../../backend/middleware/file-security'

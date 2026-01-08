@@ -143,8 +143,8 @@ Este plano implementa o sistema de personalização de marca para aplicações m
     - **Property 13: Validation Feedback**
     - **Validates: Requirements 5.4**
 
-- [ ] 9. Implement access control and security
-  - [ ] 9.1 Add access control middleware
+- [-] 9. Implement access control and security
+  - [x] 9.1 Add access control middleware
     - Implement empresa admin privilege verification
     - Add rate limiting for file uploads
     - Create graceful error handling for unauthorized access
@@ -158,25 +158,25 @@ Este plano implementa o sistema de personalização de marca para aplicações m
     - **Property 19: Upload Rate Limiting**
     - **Validates: Requirements 7.4**
 
-- [ ] 10. Integrate with login and sidebar components
-  - [ ] 10.1 Modify login pages to use tenant logos
+- [x] 10. Integrate with login and sidebar components
+  - [x] 10.1 Modify login pages to use tenant logos
     - Update all login page variants to load tenant-specific logos
     - Implement fallback to default logo when no custom logo exists
     - _Requirements: 1.1, 4.5_
 
-  - [ ] 10.2 Modify sidebar header to use tenant logos
+  - [x] 10.2 Modify sidebar header to use tenant logos
     - Update sidebar header component to display tenant logo
     - Ensure consistent display across all authenticated pages
     - _Requirements: 1.2, 4.3_
 
-- [ ] 11. Implement CSS custom properties system
-  - [ ] 11.1 Create CSS custom properties management
+- [x] 11. Implement CSS custom properties system
+  - [x] 11.1 Create CSS custom properties management
     - Extend existing CSS custom properties for tenant branding
     - Implement dynamic CSS variable injection
     - Ensure compatibility with existing theme system
     - _Requirements: 2.4, 3.5, 6.4_
 
-  - [ ] 11.2 Add tenant context provider
+  - [x] 11.2 Add tenant context provider
     - Create React context for tenant branding state
     - Implement automatic loading on user authentication
     - Add real-time updates across user sessions
@@ -185,8 +185,8 @@ Este plano implementa o sistema de personalização de marca para aplicações m
 - [ ] 12. Checkpoint - Ensure integration is working
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Add database API endpoints
-  - [ ] 13.1 Create tenant branding API routes
+- [-] 13. Add database API endpoints
+  - [-] 13.1 Create tenant branding API routes
     - Implement GET /api/tenant-branding/[empresaId] endpoint
     - Add POST /api/tenant-branding/[empresaId] for saving customizations
     - Create DELETE /api/tenant-branding/[empresaId] for reset functionality

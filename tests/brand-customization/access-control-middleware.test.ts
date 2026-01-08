@@ -10,21 +10,20 @@ import { validateUploadedFile, sanitizeFilename } from '@/backend/middleware/fil
 
 // Mock the database client
 jest.mock('@/backend/clients/database', () => ({
-  getDatabaseClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            maybeSingle: jest.fn(),
-          })),
-          maybeSingle: jest.fn(),
-        })),
-      })),
-    })),
-    auth: {
-      getUser: jest.fn(),
-    },
-  })),
+  getDatabaseClient: jest.fn(() => {
+    const mockMaybeSingle = jest.fn();
+    const mockEq2 = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
+    const mockEq1 = jest.fn(() => ({ eq: mockEq2 }));
+    const mockSelect = jest.fn(() => ({ eq: mockEq1 }));
+    const mockFrom = jest.fn(() => ({ select: mockSelect }));
+    
+    return {
+      from: mockFrom,
+      auth: {
+        getUser: jest.fn(),
+      },
+    };
+  }),
 }));
 
 // Mock the auth middleware
@@ -98,7 +97,8 @@ describe('Brand Customization Access Control Middleware', () => {
   describe('verifyEmpresaAdminAccess', () => {
     it('should return true for valid admin user', async () => {
       const mockClient = require('@/backend/clients/database').getDatabaseClient();
-      mockClient.from().select().eq().eq().maybeSingle.mockResolvedValue({
+      const mockMaybeSingle = mockClient.from().select().eq().eq().maybeSingle;
+      mockMaybeSingle.mockResolvedValue({
         data: { id: 'user1', empresa_id: 'empresa1', is_admin: true },
         error: null,
       });
@@ -110,7 +110,8 @@ describe('Brand Customization Access Control Middleware', () => {
 
     it('should return false for non-admin user', async () => {
       const mockClient = require('@/backend/clients/database').getDatabaseClient();
-      mockClient.from().select().eq().eq().maybeSingle.mockResolvedValue({
+      const mockMaybeSingle = mockClient.from().select().eq().eq().maybeSingle;
+      mockMaybeSingle.mockResolvedValue({
         data: { id: 'user1', empresa_id: 'empresa1', is_admin: false },
         error: null,
       });
@@ -122,7 +123,8 @@ describe('Brand Customization Access Control Middleware', () => {
 
     it('should return false for user not in empresa', async () => {
       const mockClient = require('@/backend/clients/database').getDatabaseClient();
-      mockClient.from().select().eq().eq().maybeSingle.mockResolvedValue({
+      const mockMaybeSingle = mockClient.from().select().eq().eq().maybeSingle;
+      mockMaybeSingle.mockResolvedValue({
         data: null,
         error: null,
       });

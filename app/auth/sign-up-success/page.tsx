@@ -5,12 +5,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { TenantLogo } from '@/components/shared/tenant-logo';
 
 export default function Page() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
+          {/* Tenant Logo */}
+          <div className="flex justify-center">
+            <TenantLogo 
+              logoType="login"
+              fallbackText="Sistema de Gestão"
+              width={160}
+              height={50}
+            />
+          </div>
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Thank you for signing up!</CardTitle>

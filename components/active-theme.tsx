@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { CustomThemePreset, CompleteBrandingConfig } from '@/types/brand-customization';
+import { getCSSPropertiesManager } from '@/lib/services/css-properties-manager';
 
 // Extended theme configuration that includes brand customization
 export interface ExtendedThemeConfig {
@@ -51,6 +52,7 @@ interface ThemeConfigContextType {
   setTheme: (theme: ExtendedThemeConfig) => void;
   loadTenantBranding: (empresaId: string) => Promise<void>;
   applyBrandingToTheme: (branding: CompleteBrandingConfig) => void;
+  resetBrandingToDefaults: () => void;
 }
 
 const ThemeConfigContext = createContext<ThemeConfigContextType | undefined>(undefined);
@@ -98,6 +100,19 @@ export function ThemeConfigProvider({ children }: { children: React.ReactNode })
     setTheme(updatedTheme);
   };
 
+  const resetBrandingToDefaults = () => {
+    const cssManager = getCSSPropertiesManager();
+    cssManager.resetToDefaults();
+    
+    const resetTheme: ExtendedThemeConfig = {
+      ...DEFAULT_THEME,
+      activeBranding: undefined,
+      customPresets: undefined,
+    };
+    
+    setTheme(resetTheme);
+  };
+
   // Load theme from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('theme-config');
@@ -113,7 +128,7 @@ export function ThemeConfigProvider({ children }: { children: React.ReactNode })
   }, []);
 
   return (
-    <ThemeConfigContext.Provider value={{ theme, setTheme, loadTenantBranding, applyBrandingToTheme }}>
+    <ThemeConfigContext.Provider value={{ theme, setTheme, loadTenantBranding, applyBrandingToTheme, resetBrandingToDefaults }}>
       {children}
     </ThemeConfigContext.Provider>
   );
@@ -129,69 +144,17 @@ export function useThemeConfig() {
 
 // Apply theme configuration to CSS custom properties
 function applyThemeToCSS(theme: ExtendedThemeConfig) {
-  const root = document.documentElement;
+  const cssManager = getCSSPropertiesManager();
 
-  // Apply basic theme properties
-  root.style.setProperty('--radius', `${theme.radius}rem`);
-  root.style.setProperty('--scale', theme.scale.toString());
+  // Apply basic theme properties (radius, scale)
+  cssManager.applyThemeCustomizerProperties(theme.radius, theme.scale);
 
   // Apply dark/light mode
-  if (theme.mode === 'dark') {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
-  }
+  cssManager.applyThemeMode(theme.mode);
 
   // Apply brand customization if available
-  if (theme.activeBranding?.colorPalette) {
-    const palette = theme.activeBranding.colorPalette;
-    
-    // Apply color palette to CSS custom properties
-    root.style.setProperty('--primary', palette.primaryColor);
-    root.style.setProperty('--primary-foreground', palette.primaryForeground);
-    root.style.setProperty('--secondary', palette.secondaryColor);
-    root.style.setProperty('--secondary-foreground', palette.secondaryForeground);
-    root.style.setProperty('--accent', palette.accentColor);
-    root.style.setProperty('--accent-foreground', palette.accentForeground);
-    root.style.setProperty('--muted', palette.mutedColor);
-    root.style.setProperty('--muted-foreground', palette.mutedForeground);
-    root.style.setProperty('--background', palette.backgroundColor);
-    root.style.setProperty('--foreground', palette.foregroundColor);
-    root.style.setProperty('--card', palette.cardColor);
-    root.style.setProperty('--card-foreground', palette.cardForeground);
-    root.style.setProperty('--destructive', palette.destructiveColor);
-    root.style.setProperty('--destructive-foreground', palette.destructiveForeground);
-    root.style.setProperty('--sidebar-background', palette.sidebarBackground);
-    root.style.setProperty('--sidebar-foreground', palette.sidebarForeground);
-    root.style.setProperty('--sidebar-primary', palette.sidebarPrimary);
-    root.style.setProperty('--sidebar-primary-foreground', palette.sidebarPrimaryForeground);
-  }
-
-  // Apply font scheme if available
-  if (theme.activeBranding?.fontScheme) {
-    const fontScheme = theme.activeBranding.fontScheme;
-    
-    root.style.setProperty('--font-sans', fontScheme.fontSans.join(', '));
-    root.style.setProperty('--font-mono', fontScheme.fontMono.join(', '));
-    
-    // Load Google Fonts if needed
-    if (fontScheme.googleFonts.length > 0) {
-      loadGoogleFonts(fontScheme.googleFonts);
-    }
+  if (theme.activeBranding) {
+    cssManager.applyBrandingConfiguration(theme.activeBranding);
   }
 }
 
-// Load Google Fonts dynamically
-function loadGoogleFonts(fonts: string[]) {
-  const existingLink = document.querySelector('link[data-google-fonts]');
-  if (existingLink) {
-    existingLink.remove();
-  }
-
-  const fontFamilies = fonts.map(font => font.replace(' ', '+')).join('|');
-  const link = document.createElement('link');
-  link.href = `https://fonts.googleapis.com/css2?family=${fontFamilies}:wght@300;400;500;600;700&display=swap`;
-  link.rel = 'stylesheet';
-  link.setAttribute('data-google-fonts', 'true');
-  document.head.appendChild(link);
-}

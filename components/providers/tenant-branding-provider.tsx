@@ -1,21 +1,33 @@
 "use client";
 
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 import { useThemeConfig } from '@/components/active-theme';
+import { getCSSPropertiesManager } from '@/lib/services/css-properties-manager';
+import { getBrandingSyncManager } from '@/lib/services/branding-sync-manager';
+import type { CompleteBrandingConfig } from '@/types/brand-customization';
 
 interface User {
   empresaId?: string;
+  id?: string;
   // Add other user properties as needed
 }
 
 interface TenantBrandingContextType {
   loadingBranding: boolean;
   error: string | null;
+  currentBranding: CompleteBrandingConfig | null;
+  refreshBranding: () => Promise<void>;
+  clearError: () => void;
+  triggerCrossTabUpdate: () => void;
 }
 
 const TenantBrandingContext = createContext<TenantBrandingContextType>({
   loadingBranding: false,
   error: null,
+  currentBranding: null,
+  refreshBranding: async () => {},
+  clearError: () => {},
+  triggerCrossTabUpdate: () => {},
 });
 
 interface TenantBrandingProviderProps {
@@ -24,28 +36,217 @@ interface TenantBrandingProviderProps {
 }
 
 export function TenantBrandingProvider({ children, user }: TenantBrandingProviderProps) {
-  const { loadTenantBranding } = useThemeConfig();
+  const { loadTenantBranding, applyBrandingToTheme, resetBrandingToDefaults } = useThemeConfig();
   const [loadingBranding, setLoadingBranding] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [currentBranding, setCurrentBranding] = React.useState<CompleteBrandingConfig | null>(null);
+  
+  // Keep track of current empresa ID to detect changes
+  const currentEmpresaId = useRef<string | undefined>(undefined);
+  
+  // Keep track of polling interval for real-time updates
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  
+  // Sync manager for cross-tab communication
+  const syncManager = getBrandingSyncManager();
 
-  useEffect(() => {
-    if (user?.empresaId) {
-      setLoadingBranding(true);
-      setError(null);
-      
-      loadTenantBranding(user.empresaId)
-        .catch((err) => {
-          console.error('Failed to load tenant branding:', err);
-          setError('Failed to load brand customization');
-        })
-        .finally(() => {
-          setLoadingBranding(false);
-        });
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const loadBrandingData = useCallback(async (empresaId: string): Promise<CompleteBrandingConfig | null> => {
+    try {
+      const response = await fetch(`/api/tenant-branding/${empresaId}`);
+      if (response.ok) {
+        const branding: CompleteBrandingConfig = await response.json();
+        return branding;
+      } else if (response.status === 404) {
+        // No custom branding found - this is not an error
+        return null;
+      } else {
+        throw new Error(`Failed to load branding: ${response.statusText}`);
+      }
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Unknown error loading branding');
     }
-  }, [user?.empresaId, loadTenantBranding]);
+  }, []);
+
+  const refreshBranding = useCallback(async () => {
+    if (!user?.empresaId) return;
+
+    setLoadingBranding(true);
+    setError(null);
+
+    try {
+      const branding = await loadBrandingData(user.empresaId);
+      
+      if (branding) {
+        setCurrentBranding(branding);
+        applyBrandingToTheme(branding);
+        
+        // Broadcast update to other tabs
+        if (user?.empresaId) {
+          syncManager.broadcastBrandingUpdate(user.empresaId, branding);
+          syncManager.setLastSyncTimestamp(user.empresaId, Date.now());
+        }
+      } else {
+        // No custom branding - reset to defaults
+        setCurrentBranding(null);
+        resetBrandingToDefaults();
+        
+        // Broadcast reset to other tabs
+        if (user?.empresaId) {
+          syncManager.broadcastBrandingReset(user.empresaId);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load tenant branding:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load brand customization';
+      setError(errorMessage);
+      
+      // Broadcast error to other tabs
+      if (user?.empresaId) {
+        syncManager.broadcastBrandingError(user.empresaId, errorMessage);
+      }
+      
+      // Reset to defaults on error
+      setCurrentBranding(null);
+      resetBrandingToDefaults();
+    } finally {
+      setLoadingBranding(false);
+    }
+  }, [user?.empresaId, loadBrandingData, applyBrandingToTheme, resetBrandingToDefaults]);
+
+  // Setup real-time updates polling
+  const setupRealTimeUpdates = useCallback((empresaId: string) => {
+    // Clear existing interval
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+    }
+
+    // Setup new polling interval (every 30 seconds)
+    pollingInterval.current = setInterval(async () => {
+      try {
+        const branding = await loadBrandingData(empresaId);
+        
+        // Only update if branding has changed
+        if (JSON.stringify(branding) !== JSON.stringify(currentBranding)) {
+          if (branding) {
+            setCurrentBranding(branding);
+            applyBrandingToTheme(branding);
+          } else {
+            setCurrentBranding(null);
+            resetBrandingToDefaults();
+          }
+        }
+      } catch (err) {
+        // Silently handle polling errors to avoid spamming the user
+        console.warn('Failed to poll for branding updates:', err);
+      }
+    }, 30000); // 30 seconds
+  }, [loadBrandingData, currentBranding, applyBrandingToTheme, resetBrandingToDefaults]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+      }
+    };
+  }, []);
+
+  // Handle user changes and initial load
+  useEffect(() => {
+    const empresaId = user?.empresaId;
+
+    // If empresa ID changed or user logged out
+    if (currentEmpresaId.current !== empresaId) {
+      currentEmpresaId.current = empresaId;
+
+      // Update sync manager
+      syncManager.setCurrentEmpresa(empresaId || null);
+
+      // Clear existing polling
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+        pollingInterval.current = null;
+      }
+
+      if (empresaId) {
+        // Load branding for new empresa
+        refreshBranding();
+        
+        // Setup real-time updates
+        setupRealTimeUpdates(empresaId);
+      } else {
+        // User logged out - reset to defaults
+        setCurrentBranding(null);
+        setError(null);
+        setLoadingBranding(false);
+        resetBrandingToDefaults();
+      }
+    }
+  }, [user?.empresaId, refreshBranding, setupRealTimeUpdates, resetBrandingToDefaults, syncManager]);
+
+  // Listen for sync manager events
+  useEffect(() => {
+    const unsubscribe = syncManager.addListener((event) => {
+      if (event.empresaId === user?.empresaId) {
+        switch (event.type) {
+          case 'branding-updated':
+            if (event.data) {
+              setCurrentBranding(event.data);
+              applyBrandingToTheme(event.data);
+            }
+            break;
+          case 'branding-reset':
+            setCurrentBranding(null);
+            resetBrandingToDefaults();
+            break;
+          case 'branding-error':
+            if (event.error) {
+              setError(event.error);
+            }
+            break;
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [user?.empresaId, applyBrandingToTheme, resetBrandingToDefaults, syncManager]);
+
+  // Listen for storage events to sync across tabs (fallback)
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'tenant-branding-update' && user?.empresaId) {
+        // Another tab updated the branding - refresh
+        refreshBranding();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshBranding, user?.empresaId]);
+
+  // Provide method to trigger cross-tab updates
+  const triggerCrossTabUpdate = useCallback(() => {
+    if (user?.empresaId && currentBranding) {
+      syncManager.broadcastBrandingUpdate(user.empresaId, currentBranding);
+    }
+  }, [user?.empresaId, currentBranding, syncManager]);
+
+  // Add the trigger to the context (for use by brand customization components)
+  const contextValue = React.useMemo(() => ({
+    loadingBranding,
+    error,
+    currentBranding,
+    refreshBranding,
+    clearError,
+    triggerCrossTabUpdate,
+  }), [loadingBranding, error, currentBranding, refreshBranding, clearError, triggerCrossTabUpdate]);
 
   return (
-    <TenantBrandingContext.Provider value={{ loadingBranding, error }}>
+    <TenantBrandingContext.Provider value={contextValue}>
       {children}
     </TenantBrandingContext.Provider>
   );

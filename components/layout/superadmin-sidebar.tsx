@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation"
 import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
 import { useCurrentUser } from "@/components/providers/user-provider"
+import { TenantLogo } from "@/components/shared/tenant-logo"
 import {
   Sidebar,
   SidebarContent,
@@ -96,12 +97,19 @@ export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Side
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href={getDefaultRouteForRole(user.role)}>
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Shield className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Super Admin</span>
-                  <span className="truncate text-xs">Sistema de Gestão</span>
+                <div className="flex items-center gap-3">
+                  <TenantLogo 
+                    logoType="sidebar"
+                    empresaId={user.empresaId}
+                    fallbackText="Sistema"
+                    width={32}
+                    height={32}
+                    className="shrink-0"
+                  />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">Super Admin</span>
+                    <span className="truncate text-xs">Sistema de Gestão</span>
+                  </div>
                 </div>
               </a>
             </SidebarMenuButton>

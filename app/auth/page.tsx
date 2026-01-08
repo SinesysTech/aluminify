@@ -2,12 +2,22 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap, Users } from 'lucide-react';
+import { TenantLogo } from '@/components/shared/tenant-logo';
 
 export default function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-background to-muted p-4">
       <div className="w-full max-w-4xl space-y-8">
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-4">
+          {/* Tenant Logo */}
+          <div className="flex justify-center">
+            <TenantLogo 
+              logoType="login"
+              fallbackText="Sistema de Gestão"
+              width={200}
+              height={60}
+            />
+          </div>
           <h1 className="text-4xl font-bold tracking-tight">Bem-vindo!</h1>
           <p className="text-lg text-muted-foreground">
             Selecione como deseja acessar o sistema
