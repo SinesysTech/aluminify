@@ -91,16 +91,20 @@ function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden px-4 py-24 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[14px_24px]" />
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#E5E7EB_1px,transparent_1px),linear-gradient(to_bottom,#E5E7EB_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent,10%,white,90%,transparent)] dark:bg-[linear-gradient(to_right,#374151_1px,transparent_1px),linear-gradient(to_bottom,#374151_1px,transparent_1px)]" />
+        </div>
         <div className="mx-auto max-w-4xl text-center">
-          <Badge variant="secondary" className="mb-6">
-            <Sparkles className="mr-1 h-3 w-3" />
-            v1.0.0 — Open Source
+          <Badge variant="secondary" className="mb-6 inline-flex items-center gap-2">
+            <span className="flex h-2 w-2 animate-pulse rounded-full bg-green-500" />
+            <span className="text-xs font-medium">
+              Public Beta • 100% Open Source
+            </span>
           </Badge>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            A infraestrutura invisivel
-            <br />
-            <span className="text-primary">da educacao</span>
+          <h1 className="mb-6 bg-gradient-to-b from-gray-900 to-gray-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl lg:text-6xl dark:from-white dark:to-gray-400">
+            A infraestrutura invisivel{" "}
+            <br className="hidden md:block" />
+            da educacao.
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
             Plataforma open source e white-label para escolas que buscam
@@ -123,6 +127,115 @@ function LandingPage() {
                 Star on GitHub
               </Link>
             </Button>
+          </div>
+
+          {/* Hero Browser Mockup */}
+          <div className="relative mx-auto mt-16 max-w-5xl">
+            {/* Glow effect */}
+            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 opacity-30 blur dark:from-gray-700 dark:via-gray-600 dark:to-gray-700" />
+
+            {/* Browser frame */}
+            <div className="relative overflow-hidden rounded-xl border bg-card shadow-2xl">
+              {/* Top bar */}
+              <div className="flex items-center gap-4 border-b bg-muted/50 p-3">
+                <div className="flex gap-2">
+                  <div className="h-3 w-3 rounded-full bg-red-400" />
+                  <div className="h-3 w-3 rounded-full bg-yellow-400" />
+                  <div className="h-3 w-3 rounded-full bg-green-400" />
+                </div>
+                <div className="flex flex-1 justify-center">
+                  <div className="flex h-6 w-64 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
+                    app.suaescola.com.br/aluno
+                  </div>
+                </div>
+              </div>
+
+              {/* Content mockup */}
+              <div className="flex h-[350px] md:h-[400px]">
+                {/* Sidebar */}
+                <div className="hidden w-56 border-r bg-muted/30 p-4 md:block">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 rounded-md bg-primary/10 p-2 text-sm font-medium">
+                      <Layers className="h-4 w-4" /> Meu Progresso
+                    </div>
+                    <div className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" /> Cronograma
+                    </div>
+                    <div className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
+                      <Sparkles className="h-4 w-4" /> Flashcards
+                    </div>
+                    <div className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
+                      <Brain className="h-4 w-4" /> Simulados
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main area */}
+                <div className="flex-1 bg-background p-4 md:p-6">
+                  {/* Header */}
+                  <div className="mb-4 flex items-center justify-between md:mb-6">
+                    <div>
+                      <div className="text-base font-semibold md:text-lg">
+                        Bom dia, Maria!
+                      </div>
+                      <div className="text-xs text-muted-foreground md:text-sm">
+                        Faltam 45 dias para o ENEM
+                      </div>
+                    </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 font-semibold md:h-10 md:w-10">
+                      M
+                    </div>
+                  </div>
+
+                  {/* Stats cards */}
+                  <div className="mb-4 grid grid-cols-3 gap-2 md:mb-6 md:gap-4">
+                    <div className="rounded-lg border bg-card p-2 md:p-4">
+                      <div className="text-lg font-bold md:text-2xl">847</div>
+                      <div className="text-[10px] text-muted-foreground md:text-xs">
+                        Questoes resolvidas
+                      </div>
+                    </div>
+                    <div className="rounded-lg border bg-card p-2 md:p-4">
+                      <div className="text-lg font-bold text-green-600 md:text-2xl">
+                        76%
+                      </div>
+                      <div className="text-[10px] text-muted-foreground md:text-xs">
+                        Taxa de acerto
+                      </div>
+                    </div>
+                    <div className="rounded-lg border bg-card p-2 md:p-4">
+                      <div className="text-lg font-bold md:text-2xl">12h</div>
+                      <div className="text-[10px] text-muted-foreground md:text-xs">
+                        Estudo esta semana
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress area */}
+                  <div className="rounded-lg border bg-card p-3 md:p-4">
+                    <div className="mb-2 text-sm font-medium md:mb-3">
+                      Proximas atividades
+                    </div>
+                    <div className="space-y-2 text-xs md:text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-blue-500" />
+                        <span>Matematica - Geometria Espacial</span>
+                        <span className="ml-auto text-muted-foreground">
+                          14:00
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                        <span>Biologia - Revisao de flashcards</span>
+                        <span className="ml-auto text-muted-foreground">
+                          16:30
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -224,10 +337,16 @@ function LandingPage() {
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Large Card - Area do Aluno Zen */}
-            <Card className="md:col-span-2 lg:col-span-2 lg:row-span-2">
+            <Card className="group relative overflow-hidden transition-all md:col-span-2 lg:col-span-2 lg:row-span-2">
+              {/* Focus Mode Badge */}
+              <div className="absolute right-4 top-4 z-10">
+                <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                  Focus Mode
+                </Badge>
+              </div>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
+                  <Users className="h-5 w-5 text-primary transition-transform duration-300 group-hover:scale-110" />
                   Area do Aluno Zen
                 </CardTitle>
                 <CardDescription>
@@ -272,10 +391,10 @@ function LandingPage() {
             </Card>
 
             {/* Flashcards Card */}
-            <Card>
+            <Card className="group transition-all hover:border-blue-200 dark:hover:border-blue-900">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-primary" />
+                  <Layers className="h-5 w-5 text-primary transition-transform duration-300 group-hover:scale-110" />
                   Flashcards Algoritmicos
                 </CardTitle>
                 <CardDescription>
@@ -304,10 +423,10 @@ function LandingPage() {
             </Card>
 
             {/* Schedule Card */}
-            <Card>
+            <Card className="group transition-all hover:border-purple-200 dark:hover:border-purple-900">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
+                  <Calendar className="h-5 w-5 text-primary transition-transform duration-300 group-hover:scale-110" />
                   Cronograma Inteligente
                 </CardTitle>
                 <CardDescription>
@@ -317,21 +436,21 @@ function LandingPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 transition-transform group-hover:translate-x-1">
                     <div className="h-3 w-3 rounded-full bg-primary" />
                     <span className="text-sm">Matematica</span>
                     <div className="ml-auto h-2 w-20 rounded-full bg-muted">
                       <div className="h-2 w-16 rounded-full bg-primary" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 transition-transform delay-75 group-hover:translate-x-1">
                     <div className="h-3 w-3 rounded-full bg-blue-500" />
                     <span className="text-sm">Fisica</span>
                     <div className="ml-auto h-2 w-20 rounded-full bg-muted">
                       <div className="h-2 w-12 rounded-full bg-blue-500" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 transition-transform delay-150 group-hover:translate-x-1">
                     <div className="h-3 w-3 rounded-full bg-green-500" />
                     <span className="text-sm">Quimica</span>
                     <div className="ml-auto h-2 w-20 rounded-full bg-muted">
@@ -401,47 +520,57 @@ function LandingPage() {
             </Card>
 
             {/* Cloud */}
-            <Card className="relative overflow-hidden border-2 border-primary">
-              <div className="absolute right-4 top-4">
-                <Badge>Recomendado</Badge>
+            <Card className="relative overflow-hidden bg-primary text-primary-foreground shadow-2xl">
+              {/* Badge Popular */}
+              <div className="absolute right-0 top-0 rounded-bl-lg bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+                Popular
               </div>
-              <CardHeader className="pt-12">
-                <CardTitle className="text-2xl">Aluminify Cloud</CardTitle>
-                <CardDescription>Gerenciado por nos</CardDescription>
+              <CardHeader className="relative z-10 pt-12">
+                <CardTitle className="text-2xl text-primary-foreground">
+                  Aluminify Cloud
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Gerenciado por nos
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="relative z-10 space-y-6">
                 <div>
-                  <span className="text-4xl font-bold">R$ 500</span>
-                  <span className="text-muted-foreground">/mes</span>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    A partir de (ate 300 alunos)
+                  <span className="text-4xl font-bold">Escala</span>
+                  <span className="text-gray-400"> com voce</span>
+                  <p className="mt-1 text-sm text-gray-400">
+                    A partir de R$ 500/mes (ate 300 alunos)
                   </p>
                 </div>
-                <ul className="space-y-3">
+                <ul className="space-y-3 text-gray-200">
                   <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-500" />
-                    <span>Setup em 24h</span>
+                    <Check className="h-5 w-5 text-green-400" />
+                    <span>Setup instantaneo</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-500" />
+                    <Check className="h-5 w-5 text-green-400" />
+                    <span>CDN Global otimizado</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-400" />
                     <span>Backups automaticos</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-500" />
-                    <span>SSL e dominio incluso</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-500" />
-                    <span>Suporte prioritario</span>
+                    <Check className="h-5 w-5 text-green-400" />
+                    <span>Suporte dedicado</span>
                   </li>
                 </ul>
-                <Button className="w-full" asChild>
+                <Button
+                  className="w-full bg-white text-primary hover:bg-gray-100"
+                  asChild
+                >
                   <Link href="/auth/sign-up">
-                    Comecar Agora
+                    Comecar Trial
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </CardContent>
+              {/* Glow decorativo */}
+              <div className="pointer-events-none absolute -bottom-10 -right-10 h-48 w-48 rounded-full bg-gray-800 opacity-50 blur-3xl" />
             </Card>
           </div>
         </div>
@@ -493,9 +622,14 @@ function LandingPage() {
                         </Button>
                       </td>
                     </tr>
-                    <tr className="border-b">
+                    <tr className="border-b bg-card shadow-sm">
                       <td className="px-6 py-4">
-                        <div className="font-medium">Growth</div>
+                        <div className="flex items-center gap-2 font-medium text-primary">
+                          Growth
+                          <Badge className="bg-blue-100 text-[10px] text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                            Recomendado
+                          </Badge>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         301 - 500

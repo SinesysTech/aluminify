@@ -42,6 +42,23 @@ const nextConfig: NextConfig = {
       '@aws-sdk/client-s3': '@/lib/stubs/empty.js',
     },
   },
+
+  // Configuração do Webpack para produção
+  webpack: (config, { isServer }) => {
+    // Ignorar dependências opcionais do unzipper
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@aws-sdk/client-s3': false,
+    };
+
+    // Ignorar módulos opcionais
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      { module: /node_modules\/unzipper/ },
+    ];
+
+    return config;
+  },
 };
 
 export default nextConfig;
