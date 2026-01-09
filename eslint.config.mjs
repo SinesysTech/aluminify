@@ -16,6 +16,19 @@ const eslintConfig = defineConfig([
     "lib/database.types.ts",
   ]),
   {
+    rules: {
+      // Allow unused variables that start with underscore
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_"
+        }
+      ],
+    },
+  },
+  {
     files: ["tests/**/*"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",

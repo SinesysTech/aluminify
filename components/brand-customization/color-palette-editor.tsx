@@ -14,7 +14,8 @@ import {
   CheckCircle, 
   Loader2,
   Copy,
-  Check
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import type {
   ColorPaletteEditorProps,

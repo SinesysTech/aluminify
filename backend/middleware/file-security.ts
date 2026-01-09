@@ -152,7 +152,7 @@ async function validateSvgContent(file: File): Promise<{ isValid: boolean; warni
     const isValid = warnings.length === 0;
     
     return { isValid, warnings };
-  } catch (error) {
+  } catch (_error) {
     return { isValid: false, warnings: ['Failed to read SVG content'] };
   }
 }

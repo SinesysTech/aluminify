@@ -55,12 +55,12 @@ export function BrandCustomizationPanel({
   onReset,
   onCancel
 }: BrandCustomizationPanelProps) {
-  const { theme, applyBrandingToTheme } = useThemeConfig();
+  const { applyBrandingToTheme } = useThemeConfig();
   
   // State management
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -84,8 +84,8 @@ export function BrandCustomizationPanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Available options (would be loaded from API in real implementation)
-  const [availableColorPalettes, setAvailableColorPalettes] = useState<ColorPalette[]>([]);
-  const [availableFontSchemes, setAvailableFontSchemes] = useState<FontScheme[]>([]);
+  const [availableColorPalettes] = useState<ColorPalette[]>([]);
+  const [availableFontSchemes] = useState<FontScheme[]>([]);
 
   // Initialize state when currentBranding changes
   useEffect(() => {

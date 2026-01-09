@@ -4,10 +4,8 @@ import { getBrandingCacheManager } from '@/lib/services/branding-cache-manager';
 import { getBrandingPerformanceMonitor } from '@/lib/services/branding-performance-monitor';
 import type {
   CompleteBrandingConfig,
-  SaveTenantBrandingRequest,
   CSSCustomProperties,
   TenantBrandingInsert,
-  BrandCustomizationError,
   ColorPalette,
   FontScheme,
 } from '@/types/brand-customization';
@@ -133,7 +131,7 @@ export class BrandCustomizationManager implements BrandCustomizationService {
     const componentsApplied: string[] = [];
     
     try {
-      const { branding, target = 'document', element, immediate = true } = options;
+      const { branding, target = 'document', element } = options;
       const appliedProperties: Partial<CSSCustomProperties> = {};
       const errors: string[] = [];
 
@@ -256,7 +254,7 @@ export class BrandCustomizationManager implements BrandCustomizationService {
 
       if (existingBranding) {
         // Update existing branding
-        const updatedBranding = await this.repository.updateTenantBranding(existingBranding.id, {
+        await this.repository.updateTenantBranding(existingBranding.id, {
           colorPaletteId: branding.colorPaletteId,
           fontSchemeId: branding.fontSchemeId,
           customCss: branding.customCss,
@@ -287,7 +285,7 @@ export class BrandCustomizationManager implements BrandCustomizationService {
           updatedBy: userId,
         };
 
-        const createdBranding = await this.repository.createTenantBranding(newBrandingData);
+        await this.repository.createTenantBranding(newBrandingData);
 
         // Load complete configuration
         const completeConfig = await this.repository.getCompleteBrandingConfig(empresaId);

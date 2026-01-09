@@ -12,7 +12,6 @@ import { createClient } from '@supabase/supabase-js'
 import fc from 'fast-check'
 import { LogoManagerImpl } from '@/backend/services/brand-customization'
 import { getDatabaseClient } from '@/backend/clients/database'
-import type { LogoType } from '@/types/brand-customization'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -53,9 +52,6 @@ class MockFile implements File {
     return Promise.resolve('')
   }
 }
-
-// Test data generators
-const logoTypeGenerator = fc.constantFrom('login', 'sidebar', 'favicon') as fc.Arbitrary<LogoType>
 
 // Valid file generators
 const validFileNameGenerator = fc.string({ minLength: 3, maxLength: 30 })

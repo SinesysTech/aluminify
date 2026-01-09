@@ -434,7 +434,7 @@ export class FontSchemeManagerImpl implements FontSchemeManager {
       // In a production environment, you might want to make an actual API call
       // to Google Fonts API to verify the font exists
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -477,7 +477,7 @@ export class FontSchemeManagerImpl implements FontSchemeManager {
       );
 
       return sansHasSystemFallback && monoHasSystemFallback;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

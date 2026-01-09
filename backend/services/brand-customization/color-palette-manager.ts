@@ -468,7 +468,7 @@ export class ColorPaletteManagerImpl implements ColorPaletteManager {
       const darker = Math.min(luminance1, luminance2);
       
       return (lighter + 0.05) / (darker + 0.05);
-    } catch (error) {
+    } catch (_error) {
       // Return minimum contrast ratio if calculation fails
       return 1;
     }

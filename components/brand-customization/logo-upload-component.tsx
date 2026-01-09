@@ -420,6 +420,7 @@ export function LogoUploadComponent({
               </div>
             </div>
             <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
                 alt={`${LOGO_TYPE_LABELS[logoType]} preview`}

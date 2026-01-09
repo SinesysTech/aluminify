@@ -93,7 +93,7 @@ describe('Brand Customization Default Branding Fallback', () => {
         console.warn('Skipping test: empresas table does not exist')
         return
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Skipping test: Could not access empresas table')
       return
     }

@@ -232,7 +232,7 @@ describe('Property 14: Theme Customizer Integration', () => {
       fc.property(
         fc.array(customThemePresetArb, { minLength: 1, maxLength: 5 }),
         brandingConfigArb,
-        (customPresets, brandingConfig) => {
+        (customPresets, _brandingConfig) => {
           // Test: Get all available presets including custom ones
           const allPresets = getAllAvailablePresets(customPresets);
 

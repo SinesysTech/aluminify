@@ -107,7 +107,7 @@ describe('Property 13: Validation Feedback', () => {
           )
         }),
         fc.constantFrom('login' as LogoType, 'sidebar' as LogoType, 'favicon' as LogoType),
-        async (fileSpec, logoType) => {
+        async (fileSpec, _logoType) => {
           const file = new MockFile(fileSpec.name, fileSpec.size, fileSpec.type)
           
           try {
@@ -209,7 +209,7 @@ describe('Property 13: Validation Feedback', () => {
           )
         }),
         fc.string({ minLength: 1, maxLength: 50 }), // empresaId
-        async (paletteSpec, empresaId) => {
+        async (paletteSpec, _empresaId) => {
           try {
             // Create a partial color palette for validation
             const palette: Partial<ColorPalette> = {

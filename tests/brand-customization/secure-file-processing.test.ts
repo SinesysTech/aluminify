@@ -351,7 +351,7 @@ describe('Secure File Processing', () => {
       fc.asyncProperty(
         executableContentGenerator,
         logoTypeGenerator,
-        async (executableFile, logoType) => {
+        async (executableFile, _logoType) => {
           // Validate the file with executable content
           const validation = await logoManager!.validateLogo(executableFile)
 
@@ -383,7 +383,7 @@ describe('Secure File Processing', () => {
       fc.asyncProperty(
         polyglotFileGenerator,
         logoTypeGenerator,
-        async (polyglotFile, logoType) => {
+        async (polyglotFile, _logoType) => {
           // Validate the polyglot file
           const validation = await logoManager!.validateLogo(polyglotFile)
 
@@ -527,7 +527,7 @@ describe('Secure File Processing', () => {
       fc.asyncProperty(
         zipBombContentGenerator,
         logoTypeGenerator,
-        async (zipBombFile, logoType) => {
+        async (zipBombFile, _logoType) => {
           // Validate the file with ZIP signature
           const validation = await logoManager!.validateLogo(zipBombFile)
 

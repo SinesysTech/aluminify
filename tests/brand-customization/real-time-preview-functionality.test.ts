@@ -337,7 +337,7 @@ describe('Real-time Preview Functionality', () => {
 
           const applyPreviewWithErrorHandling = (
             state: MockBrandingState,
-            original: CompleteBrandingConfig
+            _original: CompleteBrandingConfig
           ) => {
             try {
               const previewBranding: CompleteBrandingConfig = {

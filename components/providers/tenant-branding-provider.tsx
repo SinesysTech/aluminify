@@ -35,7 +35,7 @@ interface TenantBrandingProviderProps {
 }
 
 export function TenantBrandingProvider({ children, user }: TenantBrandingProviderProps) {
-  const { loadTenantBranding, applyBrandingToTheme, resetBrandingToDefaults } = useThemeConfig();
+  const { applyBrandingToTheme, resetBrandingToDefaults } = useThemeConfig();
   const [loadingBranding, setLoadingBranding] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [currentBranding, setCurrentBranding] = React.useState<CompleteBrandingConfig | null>(null);
@@ -114,7 +114,7 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
     } finally {
       setLoadingBranding(false);
     }
-  }, [user?.empresaId, loadBrandingData, applyBrandingToTheme, resetBrandingToDefaults]);
+  }, [user?.empresaId, loadBrandingData, applyBrandingToTheme, resetBrandingToDefaults, syncManager]);
 
   // Setup real-time updates polling
   const setupRealTimeUpdates = useCallback((empresaId: string) => {

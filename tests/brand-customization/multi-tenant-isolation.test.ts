@@ -148,7 +148,7 @@ describe('Brand Customization Multi-Tenant Isolation', () => {
         console.warn('Skipping test: color_palettes table does not exist')
         return
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Skipping test: Could not access color_palettes table')
       return
     }
@@ -265,7 +265,7 @@ describe('Brand Customization Multi-Tenant Isolation', () => {
         console.warn('Skipping test: font_schemes table does not exist')
         return
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Skipping test: Could not access font_schemes table')
       return
     }
@@ -365,7 +365,7 @@ describe('Brand Customization Multi-Tenant Isolation', () => {
         console.warn('Skipping test: tenant_branding table does not exist')
         return
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Skipping test: Could not access tenant_branding table')
       return
     }

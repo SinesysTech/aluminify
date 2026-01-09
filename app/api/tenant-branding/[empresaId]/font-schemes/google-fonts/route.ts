@@ -1,9 +1,8 @@
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { FontSchemeManagerImpl } from '@/backend/services/brand-customization';
 import { requireBrandCustomizationAccess, BrandCustomizationRequest } from '@/backend/middleware/brand-customization-access';
 import { getPublicSupabaseConfig } from '@/lib/supabase-public-env';
-
-interface RouteContext {}
 
 /**
  * POST /api/tenant-branding/[empresaId]/font-schemes/google-fonts - Validate Google Font
@@ -11,10 +10,9 @@ interface RouteContext {}
  */
 async function postHandler(
   request: BrandCustomizationRequest,
-  { params }: { params: Promise<{ empresaId: string }> }
+  { params: _params }: { params: Promise<{ empresaId: string }> }
 ) {
   try {
-    const { empresaId } = await params;
     const body = await request.json();
 
     // Validate request body
@@ -76,8 +74,8 @@ async function postHandler(
  * Provides a curated list of popular Google Fonts for the UI
  */
 async function getHandler(
-  request: BrandCustomizationRequest,
-  { params }: { params: Promise<{ empresaId: string }> }
+  _request: BrandCustomizationRequest,
+  { params: _params }: { params: Promise<{ empresaId: string }> }
 ) {
   try {
     // Return a curated list of popular Google Fonts

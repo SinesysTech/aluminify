@@ -10,8 +10,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import fc from 'fast-check';
-import { ExtendedThemeConfig, DEFAULT_THEME } from '@/components/active-theme';
-import { CompleteBrandingConfig, CustomThemePreset, ColorPalette, FontScheme } from '@/types/brand-customization';
+import { ExtendedThemeConfig } from '@/components/active-theme';
+import { CustomThemePreset, ColorPalette, FontScheme } from '@/types/brand-customization';
 
 // Mock localStorage for theme configuration
 const localStorageMock = {

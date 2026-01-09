@@ -11,7 +11,7 @@ import type { CreateColorPaletteRequest } from '@/types/brand-customization';
  */
 async function postHandler(
   request: BrandCustomizationRequest,
-  { params }: { params: Promise<{ empresaId: string }> }
+  { params: _params }: { params: Promise<{ empresaId: string }> }
 ) {
   try {
     const body = await request.json() as CreateColorPaletteRequest;
