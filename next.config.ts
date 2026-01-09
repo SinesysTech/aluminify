@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
       "lucide-react",
     ],
   },
+
+  // Configuração do Turbopack para tratar dependências opcionais
+  turbopack: {
+    resolveAlias: {
+      '@aws-sdk/client-s3': false,
+    },
+  },
 };
 
 export default nextConfig;
