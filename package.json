@@ -115,6 +115,12 @@
     "typescript": "^5"
   },
   "overrides": {
+    "glob": "^10.4.5",
+    "rimraf": "^6.0.0",
+    "node-domexception": "^2.0.2",
+    "z-schema": "^6.0.2",
+    "unzipper": "^0.12.3",
+    "fast-csv": "^5.0.5",
     "swagger-ui-react": {
       "js-yaml": "^4.1.1",
       "react-copy-to-clipboard": {
