@@ -92,7 +92,7 @@ function LandingPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden px-4 py-24 sm:px-6 lg:px-8">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#E5E7EB_1px,transparent_1px),linear-gradient(to_bottom,#E5E7EB_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 [mask-image:linear-gradient(to_bottom,transparent,10%,white,90%,transparent)] dark:bg-[linear-gradient(to_right,#374151_1px,transparent_1px),linear-gradient(to_bottom,#374151_1px,transparent_1px)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#E5E7EB_1px,transparent_1px),linear-gradient(to_bottom,#E5E7EB_1px,transparent_1px)] bg-size-[40px_40px] opacity-30 mask-[linear-gradient(to_bottom,transparent,10%,white,90%,transparent)] dark:bg-[linear-gradient(to_right,#374151_1px,transparent_1px),linear-gradient(to_bottom,#374151_1px,transparent_1px)]" />
         </div>
         <div className="mx-auto max-w-4xl text-center">
           <Badge variant="secondary" className="mb-6 inline-flex items-center gap-2">
@@ -101,7 +101,7 @@ function LandingPage() {
               Public Beta • 100% Open Source
             </span>
           </Badge>
-          <h1 className="mb-6 bg-gradient-to-b from-gray-900 to-gray-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl lg:text-6xl dark:from-white dark:to-gray-400">
+          <h1 className="mb-6 bg-linear-to-b from-gray-900 to-gray-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl lg:text-6xl dark:from-white dark:to-gray-400">
             A infraestrutura invisivel{" "}
             <br className="hidden md:block" />
             da educacao.
@@ -132,7 +132,7 @@ function LandingPage() {
           {/* Hero Browser Mockup */}
           <div className="relative mx-auto mt-16 max-w-5xl">
             {/* Glow effect */}
-            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 opacity-30 blur dark:from-gray-700 dark:via-gray-600 dark:to-gray-700" />
+            <div className="absolute -inset-1 rounded-xl bg-linear-to-r from-gray-200 via-gray-100 to-gray-200 opacity-30 blur dark:from-gray-700 dark:via-gray-600 dark:to-gray-700" />
 
             {/* Browser frame */}
             <div className="relative overflow-hidden rounded-xl border bg-card shadow-2xl">
@@ -151,7 +151,7 @@ function LandingPage() {
               </div>
 
               {/* Content mockup */}
-              <div className="flex h-[350px] md:h-[400px]">
+              <div className="flex h-87.5 md:h-100">
                 {/* Sidebar */}
                 <div className="hidden w-56 border-r bg-muted/30 p-4 md:block">
                   <div className="space-y-1">
