@@ -10,7 +10,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx tsc --noEmit)",
       "Bash(npx eslint . --ext .ts,.tsx --format stylish)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(timeout 15 npm run dev:*)"
     ],
     "deny": [],
     "ask": []

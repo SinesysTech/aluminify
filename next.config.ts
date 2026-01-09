@@ -38,7 +38,8 @@ const nextConfig: NextConfig = {
   // Configuração do Turbopack para tratar dependências opcionais
   turbopack: {
     resolveAlias: {
-      '@aws-sdk/client-s3': false,
+      // Stub vazio para dependências opcionais não utilizadas
+      '@aws-sdk/client-s3': '@/lib/stubs/empty.js',
     },
   },
 };
