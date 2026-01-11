@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Rocket, School } from 'lucide-react'
 import { AuthPageLayout } from '@/components/auth/auth-page-layout'
 import { SignupDecorativeTerminal } from '@/components/auth/signup-decorative-terminal'
@@ -10,8 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SignUpPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [organization, setOrganization] = useState('')
@@ -22,11 +27,85 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!firstName || !lastName || !organization || !email || !password || !acceptTerms)
+    if (isLoading) return
+
+    if (!firstName || !lastName || !organization || !email || !password) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha nome, sobrenome, organização, email e senha.',
+        variant: 'destructive',
+      })
       return
+    }
+
+    if (!acceptTerms) {
+      toast({
+        title: 'Termos de Serviço',
+        description: 'Você precisa aceitar os termos para continuar.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (password.length < 8) {
+      toast({
+        title: 'Senha fraca',
+        description: 'A senha precisa ter pelo menos 8 caracteres.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
-    // TODO: Implement signup
-    setTimeout(() => setIsLoading(false), 2000)
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
+
+      const response = await fetch('/api/auth/signup-with-empresa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          fullName,
+          empresaNome: organization.trim(),
+        }),
+      })
+
+      const data = (await response.json().catch(() => null)) as
+        | { error?: string; message?: string }
+        | null
+
+      if (!response.ok) {
+        const message = data?.error || 'Erro ao inicializar instância'
+        toast({
+          title: 'Não foi possível criar sua conta',
+          description: message,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      toast({
+        title: 'Instância criada!',
+        description:
+          data?.message ||
+          'Sua conta e empresa foram criadas. Você já pode fazer login.',
+      })
+
+      router.push('/auth/sign-up-success')
+    } catch (error) {
+      console.error('[sign-up] Erro ao fazer signup:', error)
+      toast({
+        title: 'Erro inesperado',
+        description:
+          error instanceof Error ? error.message : 'Tente novamente em instantes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isFormValid =
@@ -154,7 +233,7 @@ export default function SignUpPage() {
             <Checkbox
               id="terms"
               checked={acceptTerms}
-              onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+              onCheckedChange={(checked) => setAcceptTerms(checked === true)}
               disabled={isLoading}
               className="mt-0.5"
             />

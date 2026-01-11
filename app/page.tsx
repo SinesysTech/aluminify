@@ -14,5 +14,5 @@ export default async function Home() {
     redirect(getDefaultRouteForRole(user.role));
   }
 
-  redirect('/landing/index.html');
+  redirect('/index.html');
 }

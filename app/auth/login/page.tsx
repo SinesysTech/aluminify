@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { AuthPageLayout } from '@/components/auth/auth-page-layout'
 import { LoginDecorativeCard } from '@/components/auth/login-decorative-card'
 import { MagicLinkButton } from '@/components/auth/magic-link-button'
@@ -11,26 +12,111 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
+import { createClient } from '@/lib/client'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberDevice, setRememberDevice] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleMagicLink = async () => {
-    if (!email) return
+    if (isLoading) return
+    if (!email) {
+      toast({
+        title: 'Email obrigatório',
+        description: 'Informe seu email para receber o magic link.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
-    // TODO: Implement magic link
-    setTimeout(() => setIsLoading(false), 2000)
+    try {
+      const supabase = createClient()
+
+      const emailRedirectTo = `${window.location.origin}/auth/confirm?next=/protected`
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo,
+        },
+      })
+
+      if (error) {
+        toast({
+          title: 'Não foi possível enviar o link',
+          description: error.message,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      toast({
+        title: 'Magic link enviado',
+        description: 'Verifique sua caixa de entrada para continuar o login.',
+      })
+    } catch (error) {
+      console.error('[login] Erro ao enviar magic link:', error)
+      toast({
+        title: 'Erro inesperado',
+        description:
+          error instanceof Error ? error.message : 'Tente novamente em instantes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) return
+    if (isLoading) return
+    if (!email || !password) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Informe email e senha para entrar.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
-    // TODO: Implement login
-    setTimeout(() => setIsLoading(false), 2000)
+    try {
+      const supabase = createClient()
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+
+      if (error) {
+        toast({
+          title: 'Não foi possível entrar',
+          description: error.message,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // TODO: respeitar rememberDevice (hoje o client usa persistência padrão)
+      router.push('/protected')
+      router.refresh()
+    } catch (error) {
+      console.error('[login] Erro ao fazer login:', error)
+      toast({
+        title: 'Erro inesperado',
+        description:
+          error instanceof Error ? error.message : 'Tente novamente em instantes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -106,9 +192,7 @@ export default function LoginPage() {
               <Checkbox
                 id="remember"
                 checked={rememberDevice}
-                onCheckedChange={(checked) =>
-                  setRememberDevice(checked as boolean)
-                }
+                onCheckedChange={(checked) => setRememberDevice(checked === true)}
                 disabled={isLoading}
               />
               <Label
