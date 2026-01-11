@@ -96,7 +96,7 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
 
         const mapped =
           data
-            ?.map((row: { disciplina: { id: string; nome: string }[] | null }) => row.disciplina?.[0] ?? null)
+            ?.map((row: { disciplina: { id: string; nome: string } | null }) => row.disciplina ?? null)
             .filter((d): d is { id: string; nome: string } => Boolean(d))
             .map((d) => ({ id: d.id, nome: d.nome })) ?? []
 

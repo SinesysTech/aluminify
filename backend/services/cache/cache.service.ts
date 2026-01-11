@@ -10,12 +10,72 @@ import { Redis } from '@upstash/redis';
 class CacheService {
   private redis: Redis | null = null;
   private enabled: boolean = false;
+  private disabledUntilMs: number | null = null;
+  private lastErrorLogMs: number = 0;
+  private readonly networkFailureCooldownMs: number = 60_000;
+  private readonly errorLogCooldownMs: number = 30_000;
 
   constructor() {
     this.initialize();
   }
 
+  private isExplicitlyDisabled(): boolean {
+    const value = process.env.CACHE_DISABLED;
+    return value === '1' || value === 'true' || value === 'yes';
+  }
+
+  private shouldAttemptRedis(): boolean {
+    if (!this.enabled || !this.redis) return false;
+    if (this.disabledUntilMs === null) return true;
+    if (Date.now() >= this.disabledUntilMs) {
+      this.disabledUntilMs = null;
+      return true;
+    }
+    return false;
+  }
+
+  private isNetworkLikeError(error: unknown): boolean {
+    // Upstash client uses fetch under the hood; failures often come as TypeError('fetch failed')
+    // with a nested `cause` containing Node.js network codes like ENOTFOUND.
+    if (error instanceof TypeError && /fetch failed/i.test(error.message)) {
+      return true;
+    }
+
+    const maybeCause = (error as { cause?: unknown } | null)?.cause as
+      | { code?: string; errno?: number; syscall?: string; hostname?: string }
+      | undefined;
+
+    const code = maybeCause?.code;
+    if (!code) return false;
+
+    return ['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET'].includes(code);
+  }
+
+  private temporarilyDisableRedis(error: unknown) {
+    // Fail-open: cache becomes a no-op temporarily, system keeps working.
+    this.disabledUntilMs = Date.now() + this.networkFailureCooldownMs;
+
+    const now = Date.now();
+    if (now - this.lastErrorLogMs >= this.errorLogCooldownMs) {
+      this.lastErrorLogMs = now;
+      console.warn(
+        `[Cache Service] ⚠️ Redis indisponível (desabilitando cache por ${Math.round(
+          this.networkFailureCooldownMs / 1000,
+        )}s):`,
+        error,
+      );
+    }
+  }
+
   private initialize() {
+    if (this.isExplicitlyDisabled()) {
+      this.enabled = false;
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('[Cache Service] ⚠️ CACHE_DISABLED ativo - cache desabilitado');
+      }
+      return;
+    }
+
     const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
     const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -46,12 +106,12 @@ class CacheService {
    * Obter valor do cache
    */
   async get<T>(key: string): Promise<T | null> {
-    if (!this.enabled || !this.redis) {
+    if (!this.shouldAttemptRedis()) {
       return null;
     }
 
     try {
-      const data = await this.redis.get<T>(key);
+      const data = await this.redis!.get<T>(key);
       if (data !== null) {
         console.log(`[Cache] ✅ Hit: ${key}`);
         // Registrar hit no monitor
@@ -69,6 +129,15 @@ class CacheService {
       }
       return data;
     } catch (error) {
+      if (this.isNetworkLikeError(error)) {
+        if (typeof window === 'undefined') {
+          const { cacheMonitorService } = await import('./cache-monitor.service');
+          cacheMonitorService.recordError();
+        }
+        this.temporarilyDisableRedis(error);
+        return null;
+      }
+
       console.error(`[Cache] ❌ Erro ao ler chave ${key}:`, error);
       // Registrar erro no monitor
       if (typeof window === 'undefined') {
@@ -86,12 +155,12 @@ class CacheService {
    * @param ttlSeconds - Tempo de vida em segundos (padrão: 3600)
    */
   async set(key: string, value: unknown, ttlSeconds: number = 3600): Promise<void> {
-    if (!this.enabled || !this.redis) {
+    if (!this.shouldAttemptRedis()) {
       return;
     }
 
     try {
-      await this.redis.setex(key, ttlSeconds, value);
+      await this.redis!.setex(key, ttlSeconds, value);
       console.log(`[Cache] 💾 Set: ${key} (TTL: ${ttlSeconds}s)`);
       // Registrar set no monitor
       if (typeof window === 'undefined') {
@@ -99,6 +168,15 @@ class CacheService {
         cacheMonitorService.recordSet();
       }
     } catch (error) {
+      if (this.isNetworkLikeError(error)) {
+        if (typeof window === 'undefined') {
+          const { cacheMonitorService } = await import('./cache-monitor.service');
+          cacheMonitorService.recordError();
+        }
+        this.temporarilyDisableRedis(error);
+        return;
+      }
+
       console.error(`[Cache] ❌ Erro ao escrever chave ${key}:`, error);
       // Registrar erro no monitor
       if (typeof window === 'undefined') {
@@ -112,12 +190,12 @@ class CacheService {
    * Deletar chave do cache
    */
   async del(key: string): Promise<void> {
-    if (!this.enabled || !this.redis) {
+    if (!this.shouldAttemptRedis()) {
       return;
     }
 
     try {
-      await this.redis.del(key);
+      await this.redis!.del(key);
       console.log(`[Cache] 🗑️ Del: ${key}`);
       // Registrar delete no monitor
       if (typeof window === 'undefined') {
@@ -125,6 +203,15 @@ class CacheService {
         cacheMonitorService.recordDel();
       }
     } catch (error) {
+      if (this.isNetworkLikeError(error)) {
+        if (typeof window === 'undefined') {
+          const { cacheMonitorService } = await import('./cache-monitor.service');
+          cacheMonitorService.recordError();
+        }
+        this.temporarilyDisableRedis(error);
+        return;
+      }
+
       console.error(`[Cache] ❌ Erro ao deletar chave ${key}:`, error);
       // Registrar erro no monitor
       if (typeof window === 'undefined') {
@@ -138,7 +225,7 @@ class CacheService {
    * Deletar múltiplas chaves
    */
   async delMany(keys: string[]): Promise<void> {
-    if (!this.enabled || !this.redis || keys.length === 0) {
+    if (!this.shouldAttemptRedis() || keys.length === 0) {
       return;
     }
 
@@ -147,6 +234,15 @@ class CacheService {
       await Promise.all(keys.map(key => this.redis!.del(key)));
       console.log(`[Cache] 🗑️ Del Many: ${keys.length} chaves`);
     } catch (error) {
+      if (this.isNetworkLikeError(error)) {
+        if (typeof window === 'undefined') {
+          const { cacheMonitorService } = await import('./cache-monitor.service');
+          cacheMonitorService.recordError();
+        }
+        this.temporarilyDisableRedis(error);
+        return;
+      }
+
       console.error(`[Cache] ❌ Erro ao deletar múltiplas chaves:`, error);
     }
   }
