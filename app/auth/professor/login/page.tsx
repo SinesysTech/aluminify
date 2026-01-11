@@ -1,4 +1,5 @@
 import { ProfessorLoginForm } from '@/components/auth/professor-login-form';
+import { AuthRoleSwitch } from '@/components/auth/auth-role-switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TenantLogo } from '@/components/shared/tenant-logo';
 
@@ -17,6 +18,7 @@ export default function ProfessorLoginPage() {
               height={50}
             />
           </div>
+          <AuthRoleSwitch />
           <CardTitle className="text-2xl font-bold">Login - Professor</CardTitle>
           <CardDescription>
             Entre com suas credenciais para acessar sua área de trabalho

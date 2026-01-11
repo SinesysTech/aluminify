@@ -20,14 +20,14 @@ import { useEffect } from 'react'
  * - Para professores: /auth/professor/login (componente ProfessorLoginForm)
  * - Para cadastro de professores: /auth/professor/cadastro (componente ProfessorSignUpForm)
  * 
- * Este componente redireciona automaticamente para a tela de seleção de tipo de usuário.
+ * Este componente redireciona automaticamente para o login de aluno.
  */
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const router = useRouter()
 
-  // Redirecionar automaticamente para a tela de seleção de tipo de usuário
+  // Redirecionar automaticamente para o login de aluno
   useEffect(() => {
-    router.push('/auth')
+    router.push('/auth/aluno/login')
   }, [router])
 
   return (
@@ -36,7 +36,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <CardHeader>
           <CardTitle className="text-2xl">Componente Obsoleto</CardTitle>
           <CardDescription>
-            Este fluxo de login foi substituído. Redirecionando para a tela de seleção...
+            Este fluxo de login foi substituído. Redirecionando para o login...
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -44,9 +44,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             <p className="text-sm text-muted-foreground">
               Se não for redirecionado automaticamente, clique no botão abaixo:
             </p>
-            <Link href="/auth">
+            <Link href="/auth/aluno/login">
               <Button className="w-full">
-                Ir para tela de seleção
+                Ir para login
               </Button>
             </Link>
           </div>

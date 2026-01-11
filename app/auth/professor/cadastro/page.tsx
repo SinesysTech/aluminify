@@ -1,4 +1,5 @@
 import { ProfessorSignUpForm } from '@/components/auth/professor-sign-up-form';
+import { AuthRoleSwitch } from '@/components/auth/auth-role-switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TenantLogo } from '@/components/shared/tenant-logo';
 import { Suspense } from 'react';
@@ -18,6 +19,7 @@ function ProfessorCadastroContent() {
               height={50}
             />
           </div>
+          <AuthRoleSwitch />
           <CardTitle className="text-2xl font-bold">Cadastro - Professor</CardTitle>
           <CardDescription>
             Crie sua conta para começar a ensinar
