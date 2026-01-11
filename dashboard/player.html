@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Aula 04 - Física Extensivo - Aluminify</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#111827", 
+              "background-body": "#F9FAFB", // Fundo geral mais claro para contraste com o player
+              "surface-paper": "#FFFFFF",
+              border: "#E5E7EB",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Plus Jakarta Sans", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            }
+          },
+        },
+      };
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none;  scrollbar-width: none; }
+        
+        /* Custom Scrollbar for inner content */
+        .thin-scrollbar::-webkit-scrollbar { width: 4px; }
+        .thin-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 2px; }
+        .thin-scrollbar:hover::-webkit-scrollbar-thumb { background: #D1D5DB; }
+
+        /* Focus Mode Toggle Animation */
+        .focus-switch { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-background-body text-gray-900 font-sans antialiased h-screen flex flex-col overflow-hidden">
+
+    <header class="h-14 bg-surface-paper border-b border-border flex items-center justify-between px-4 z-20 shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="course.html" class="p-2 -ml-2 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors">
+                <span class="material-icons-outlined">arrow_back</span>
+            </a>
+            <div class="hidden md:flex items-center text-xs font-medium text-gray-500">
+                <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 mr-2">Física</span>
+                <span>Módulo 02: Dinâmica</span>
+                <span class="material-icons-outlined text-sm mx-1 text-gray-300">chevron_right</span>
+                <span class="text-gray-900 font-bold">04. Leis de Newton Aplicadas</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider hidden sm:block">Focus Mode</span>
+            <button class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-gray-200 hover:bg-gray-300">
+                <span class="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
+                    <span class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity opacity-100 duration-200 ease-in">
+                        <span class="material-icons-outlined text-[10px] text-gray-400">center_focus_weak</span>
+                    </span>
+                </span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button class="p-2 text-gray-400 hover:text-yellow-500 transition-colors tooltip" title="Favoritar Aula">
+                <span class="material-icons-outlined text-xl">star_border</span>
+            </button>
+            <div class="h-4 w-px bg-gray-200 mx-1"></div>
+            <button class="flex items-center gap-2 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-colors shadow-sm">
+                <span class="material-icons-outlined text-sm">check_circle</span>
+                <span class="hidden sm:inline">Marcar como Visto</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+        
+        <aside class="w-80 bg-surface-paper border-r border-border flex flex-col lg:flex z-10">
+            <div class="p-4 border-b border-border bg-gray-50/50">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Neste Módulo</h3>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-bold text-gray-900">12 Aulas</span>
+                    <span class="text-xs font-mono text-gray-500">2h 40m</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1 mt-3">
+                    <div class="bg-green-500 h-1 rounded-full" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto thin-scrollbar">
+                <div class="divide-y divide-border">
+                    <button class="w-full p-4 flex gap-3 text-left hover:bg-gray-50 transition-colors group opacity-60">
+                        <span class="material-icons-outlined text-green-500 mt-0.5 text-lg">check_circle</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 line-through decoration-gray-400">Conceito de Força</p>
+                            <span class="text-xs text-gray-400">12:00</span>
+                        </div>
+                    </button>
+                    <button class="w-full p-4 flex gap-3 text-left hover:bg-gray-50 transition-colors group opacity-60">
+                        <span class="material-icons-outlined text-green-500 mt-0.5 text-lg">check_circle</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 line-through decoration-gray-400">Inércia e Referenciais</p>
+                            <span class="text-xs text-gray-400">18:45</span>
+                        </div>
+                    </button>
+                    <button class="w-full p-4 flex gap-3 text-left bg-blue-50/40 border-l-4 border-blue-500">
+                        <span class="material-icons-outlined text-blue-600 mt-0.5 text-lg animate-pulse">play_circle_filled</span>
+                        <div>
+                            <p class="text-sm font-bold text-blue-700">Leis de Newton Aplicadas</p>
+                            <span class="text-xs text-blue-500 font-medium">45:00 • Assistindo</span>
+                        </div>
+                    </button>
+                    <button class="w-full p-4 flex gap-3 text-left hover:bg-gray-50 transition-colors group">
+                        <span class="material-icons-outlined text-gray-300 mt-0.5 text-lg group-hover:text-gray-500">radio_button_unchecked</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700 group-hover:text-gray-900">Plano Inclinado</p>
+                            <span class="text-xs text-gray-400">22:10</span>
+                        </div>
+                    </button>
+                    <button class="w-full p-4 flex gap-3 text-left hover:bg-gray-50 transition-colors group">
+                        <span class="material-icons-outlined text-gray-300 mt-0.5 text-lg">lock</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-400">Força de Atrito Estático</p>
+                            <span class="text-xs text-gray-300">30:00</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col bg-black overflow-y-auto no-scrollbar relative">
+            
+            <div class="w-full bg-black flex items-center justify-center relative group shrink-0" style="height: 65vh; max-height: 720px;">
+                <div class="absolute inset-0 bg-linear-to-b from-gray-900 to-black opacity-50"></div>
+                
+                <button class="z-10 w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all cursor-pointer">
+                    <span class="material-icons-outlined text-white text-5xl ml-2">play_arrow</span>
+                </button>
+
+                <div class="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div class="w-full h-1 bg-white/20 rounded-full mb-4 cursor-pointer hover:h-2 transition-all group/progress">
+                        <div class="h-full bg-blue-500 rounded-full relative w-[32%]">
+                            <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full scale-0 group-hover/progress:scale-100 transition-transform"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-white">
+                        <div class="flex items-center gap-4">
+                            <button><span class="material-icons-outlined">play_arrow</span></button>
+                            <button><span class="material-icons-outlined">replay_10</span></button>
+                            <span class="text-xs font-medium font-mono">14:20 / 45:00</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button class="text-xs font-bold border border-white/30 rounded px-1.5 hover:bg-white/10">1x</button>
+                            <button><span class="material-icons-outlined">closed_caption</span></button>
+                            <button><span class="material-icons-outlined">settings</span></button>
+                            <button><span class="material-icons-outlined">fullscreen</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-surface-paper flex-1 p-6 sm:p-8">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex items-start justify-between gap-4 mb-6">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2">04. Leis de Newton: Aplicações em Blocos e Tração</h1>
+                            <p class="text-gray-500 text-sm leading-relaxed">
+                                Nesta aula fundamental, vamos dissecar o DCL (Diagrama de Corpo Livre) para múltiplos blocos conectados por fios ideais. Entenderemos como a tração se propaga e como montar o sistema de equações.
+                            </p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                             <a href="#" class="flex flex-col items-center gap-1 p-2 rounded hover:bg-gray-50 text-gray-500 hover:text-blue-600 transition-colors">
+                                <span class="material-icons-outlined">download</span>
+                                <span class="text-[10px] font-bold uppercase">Material</span>
+                             </a>
+                             <a href="#" class="flex flex-col items-center gap-1 p-2 rounded hover:bg-gray-50 text-gray-500 hover:text-red-600 transition-colors">
+                                <span class="material-icons-outlined">report</span>
+                                <span class="text-[10px] font-bold uppercase">Reportar</span>
+                             </a>
+                        </div>
+                    </div>
+
+                    <div class="border-b border-border mb-6">
+                        <nav class="-mb-px flex space-x-8">
+                            <a href="#" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm">
+                                Resumo da Aula
+                            </a>
+                            <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                Transcrição
+                            </a>
+                            <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                Comentários (12)
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="prose prose-sm prose-blue text-gray-600 max-w-none">
+                        <h3>Pontos Chave</h3>
+                        <ul>
+                            <li><strong>3ª Lei de Newton:</strong> Ação e Reação atuam em corpos diferentes, por isso nunca se anulam.</li>
+                            <li><strong>Fios Ideais:</strong> Massa desprezível e inextensíveis. A tração é a mesma em todo o fio.</li>
+                            <li><strong>Dica de Ouro:</strong> Sempre adote o sentido do movimento como positivo na hora de montar a equação da 2ª Lei (Fr = m.a).</li>
+                        </ul>
+                        <h3>Exercício Resolvido #1</h3>
+                        <p>No vídeo (minuto 18:30), resolvemos o clássico problema do "Elevador". Lembre-se que se o elevador sobe acelerado, a Normal é maior que o Peso (N > P).</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+
+        <aside class="w-96 bg-surface-paper border-l border-border flex flex-col xl:flex z-10">
+            
+            <div class="flex p-2 gap-2 border-b border-border bg-gray-50/50">
+                <button class="flex-1 py-1.5 px-3 rounded-md bg-white border border-gray-200 shadow-sm text-xs font-bold text-gray-800 flex items-center justify-center gap-2">
+                    <span class="material-icons-outlined text-sm text-purple-500">auto_awesome</span>
+                    Tutor IA
+                </button>
+                <button class="flex-1 py-1.5 px-3 rounded-md hover:bg-white hover:shadow-sm text-xs font-bold text-gray-500 hover:text-gray-800 flex items-center justify-center gap-2 transition-all">
+                    <span class="material-icons-outlined text-sm">edit_note</span>
+                    Notas
+                </button>
+                <button class="flex-1 py-1.5 px-3 rounded-md hover:bg-white hover:shadow-sm text-xs font-bold text-gray-500 hover:text-gray-800 flex items-center justify-center gap-2 transition-all">
+                    <span class="material-icons-outlined text-sm">style</span>
+                    Cards
+                </button>
+            </div>
+
+            <div class="flex-1 flex flex-col overflow-hidden bg-white">
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-4 thin-scrollbar">
+                    
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 mt-1">
+                            <span class="material-icons-outlined text-purple-600 text-sm">smart_toy</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-2xl rounded-tl-none p-3 text-sm text-gray-700">
+                            <p>Olá, Lucas! Estou acompanhando a aula de <strong>Leis de Newton</strong> com você.</p>
+                            <p class="mt-2">Se tiver dúvida sobre como montar o DCL dos blocos, é só perguntar. Posso criar um exemplo prático também.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 flex-row-reverse">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 mt-1">
+                            <span class="text-xs font-bold text-gray-600">LS</span>
+                        </div>
+                        <div class="bg-primary text-white rounded-2xl rounded-tr-none p-3 text-sm">
+                            <p>Não entendi por que a tração T cancela na soma das equações.</p>
+                        </div>
+                    </div>
+
+                     <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 mt-1">
+                            <span class="material-icons-outlined text-purple-600 text-sm">smart_toy</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-2xl rounded-tl-none p-3 text-sm text-gray-700">
+                            <p>Boa pergunta! Isso é chamado de <strong>Força Interna</strong>.</p>
+                            <p class="mt-2">Imagine o bloco A puxando B, e B puxando A. Pela 3ª Lei (Ação e Reação), essas forças são iguais e opostas.</p>
+                            <div class="my-2 p-2 bg-white rounded border border-gray-200 font-mono text-xs">
+                                Eq 1: T = mA.a<br>
+                                Eq 2: F - T = mB.a<br>
+                                -------------<br>
+                                Soma: F = (mA + mB).a
+                            </div>
+                            <p>Quando somamos as equações do sistema, o +T e o -T se anulam matematicamente, sobrando apenas as forças externas (F).</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="p-4 border-t border-border bg-gray-50">
+                    <div class="relative">
+                        <textarea rows="1" class="w-full pl-4 pr-10 py-3 rounded-xl border-gray-300 focus:border-purple-500 focus:ring-purple-500 resize-none text-sm shadow-sm" placeholder="Faça uma pergunta sobre o vídeo..."></textarea>
+                        <button class="absolute right-2 top-2 p-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm">
+                            <span class="material-icons-outlined text-sm block">arrow_upward</span>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-center text-gray-400 mt-2">A IA responde baseada na transcrição exata desta aula.</p>
+                </div>
+            </div>
+
+        </aside>
+
+    </div>
+
+</body>
+</html>
