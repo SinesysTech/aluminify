@@ -85,6 +85,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 2.1 Criar registro em `professores` (fonte de verdade para empresa_id)
+    // Não depender apenas de trigger, pois fluxos via admin client podem variar.
+    const { error: insertProfessorError } = await adminClient.from('professores').insert({
+      id: newUser.user.id,
+      email: newUser.user.email,
+      nome_completo: fullName,
+      empresa_id: empresa.id,
+      is_admin: true,
+      cpf: null,
+      telefone: null,
+      biografia: null,
+      foto_url: null,
+      especialidade: null,
+    });
+
+    if (insertProfessorError) {
+      console.error('Error creating professor record:', insertProfessorError);
+      // rollback best-effort: remover user e empresa para não deixar tenant órfão
+      try {
+        await adminClient.auth.admin.deleteUser(newUser.user.id);
+      } catch (deleteUserError) {
+        console.error('Error deleting user after professor insert failure:', deleteUserError);
+      }
+      try {
+        await service.delete(empresa.id);
+      } catch (deleteEmpresaError) {
+        console.error('Error deleting empresa after professor insert failure:', deleteEmpresaError);
+      }
+      return NextResponse.json(
+        { error: `Erro ao criar registro de professor: ${insertProfessorError.message}` },
+        { status: 500 }
+      );
+    }
+
     // 3. Inserir em empresa_admins como owner
     const { error: adminError } = await adminClient
       .from('empresa_admins')

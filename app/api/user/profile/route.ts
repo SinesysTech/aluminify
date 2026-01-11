@@ -33,9 +33,17 @@ export async function GET() {
         .eq('id', user.id)
         .maybeSingle();
 
-      empresaId = professor?.empresa_id ?? null;
-      isEmpresaAdmin = professor?.is_admin ?? null;
-      fullName = professor?.nome_completo ?? (user.user_metadata?.full_name as string | undefined) ?? null;
+      // `professores` é fonte de verdade, mas em cadastros recentes pode haver atraso/fluxo sem trigger.
+      // Fallback para metadata evita UX quebrada (ex.: admin/empresa exibindo "Empresa não encontrada").
+      empresaId =
+        professor?.empresa_id ??
+        ((user.user_metadata?.empresa_id as string | undefined) ?? null);
+      isEmpresaAdmin =
+        professor?.is_admin ??
+        ((user.user_metadata?.is_admin as boolean | undefined) ?? null);
+      fullName =
+        professor?.nome_completo ??
+        ((user.user_metadata?.full_name as string | undefined) ?? null);
     } else {
       const { data: aluno } = await supabase
         .from('alunos')
