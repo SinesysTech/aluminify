@@ -94,3 +94,4 @@ create policy "Apenas admins podem deletar matrículas"
         public.is_superadmin()
     );
 
+

@@ -5,6 +5,10 @@ import { requireBrandCustomizationAccess, BrandCustomizationRequest } from '@/ba
 import { getPublicSupabaseConfig } from '@/lib/supabase-public-env';
 import type { CreateColorPaletteRequest } from '@/types/brand-customization';
 
+interface RouteContext {
+  params: Promise<{ empresaId: string }>;
+}
+
 /**
  * POST /api/tenant-branding/[empresaId]/color-palettes/validate - Validate color palette for accessibility
  * Validates Requirements 2.5: Validate color contrast ratios to ensure accessibility compliance
@@ -69,6 +73,5 @@ async function postHandler(
 
 // Apply access control middleware and export handlers
 export const POST = requireBrandCustomizationAccess(
-  async (request: BrandCustomizationRequest, context: RouteContext) => 
-    postHandler(request, context)
+  async (request: BrandCustomizationRequest, context: RouteContext) => postHandler(request, context)
 );

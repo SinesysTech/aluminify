@@ -63,30 +63,34 @@ export function ImpersonationBanner() {
   }
 
   return (
-    <Alert variant="default" className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-      <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-      <AlertTitle className="text-yellow-800 dark:text-yellow-200">
-        Modo Visualização Ativo
-      </AlertTitle>
-      <AlertDescription className="text-yellow-700 dark:text-yellow-300">
-        <div className="flex items-center justify-between">
-          <span>
-            Você está visualizando como <strong>{user.fullName || user.email}</strong>.
-            Esta é uma visualização somente leitura.
+    <div className="container mx-auto max-w-full px-2 md:px-4">
+      <Alert
+        variant="default"
+        className="max-w-full border-status-warning-border bg-status-warning px-3 py-2 text-xs text-status-warning-foreground md:px-4 md:py-2.5"
+      >
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle className="text-status-warning-foreground leading-tight">
+          Modo Visualização Ativo
+        </AlertTitle>
+        <AlertDescription className="flex w-full flex-col gap-2 text-status-warning-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span className="min-w-0 text-center leading-snug sm:text-left">
+            Você está visualizando como{" "}
+            <strong className="font-semibold wrap-break-word">{user.fullName || user.email}</strong>. Esta
+            é uma visualização somente leitura.
           </span>
           <Button
             variant="outline"
             size="sm"
             onClick={handleStopImpersonation}
             disabled={isStopping}
-            className="ml-4 border-yellow-600 text-yellow-800 hover:bg-yellow-100 dark:border-yellow-400 dark:text-yellow-200 dark:hover:bg-yellow-900"
+            className="h-7 w-full shrink-0 border-white/80 px-2.5 text-xs text-white hover:bg-white/15 hover:text-white sm:w-auto"
           >
-            <X className="mr-2 h-4 w-4" />
+            <X className="mr-2 h-3.5 w-3.5" />
             {isStopping ? 'Saindo...' : 'Sair do Modo Visualização'}
           </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
+        </AlertDescription>
+      </Alert>
+    </div>
   )
 }
 

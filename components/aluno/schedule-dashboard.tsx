@@ -432,14 +432,17 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         }
 
         // Converter periodos_ferias de Json para o tipo esperado
-        const periodosFeriasConvertidos = cronogramaData.periodos_ferias 
-          ? (Array.isArray(cronogramaData.periodos_ferias) 
-              ? cronogramaData.periodos_ferias.map((p: unknown) => {
-                  if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
-                    return { inicio: String(p.inicio), fim: String(p.fim) }
-                  }
-                  return null
-                }).filter((p): p is { inicio: string; fim: string } => p !== null)
+        const periodosFeriasConvertidos = cronogramaData.periodos_ferias
+          ? (Array.isArray(cronogramaData.periodos_ferias)
+              ? (cronogramaData.periodos_ferias as unknown[])
+                  .map((p: unknown): { inicio: string; fim: string } | null => {
+                    if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
+                      const obj = p as { inicio: unknown; fim: unknown }
+                      return { inicio: String(obj.inicio), fim: String(obj.fim) }
+                    }
+                    return null
+                  })
+                  .filter((p): p is { inicio: string; fim: string } => p !== null)
               : [])
           : undefined
 

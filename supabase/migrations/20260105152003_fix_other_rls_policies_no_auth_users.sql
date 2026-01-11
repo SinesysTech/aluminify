@@ -133,3 +133,4 @@ create policy "Admins podem ver alunos de sua empresa"
         public.is_superadmin()
     );
 
+

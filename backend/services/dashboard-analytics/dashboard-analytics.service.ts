@@ -1,6 +1,11 @@
 import { getDatabaseClient } from '@/backend/clients/database'
 import { getServiceRoleClient } from '@/backend/clients/database-auth'
-import type { DashboardData } from '@/types/dashboard'
+import type {
+  DashboardData,
+  ModuloImportancia,
+  StrategicDomain,
+  StrategicDomainRecommendation,
+} from '@/types/dashboard'
 
 export class DashboardAnalyticsService {
   /**
@@ -788,15 +793,331 @@ export class DashboardAnalyticsService {
    * Calcula domínio estratégico
    */
   private async getStrategicDomain(
-     
-    _alunoId: string,
-     
-    _client: ReturnType<typeof getDatabaseClient>
-  ) {
-    // Por enquanto, valores mockados - pode ser melhorado com lógica real
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>
+  ): Promise<StrategicDomain> {
+    const empty: StrategicDomain = {
+      baseModules: { flashcardsScore: null, questionsScore: null },
+      highRecurrence: { flashcardsScore: null, questionsScore: null },
+      recommendations: [],
+    }
+
+    const chunk = <T,>(arr: T[], size: number): T[][] => {
+      if (arr.length === 0) return []
+      const out: T[][] = []
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+      return out
+    }
+
+    const roundPercentFromAvgFeedback = (sum: number, count: number) => {
+      if (count <= 0) return null
+      // avg(feedback) é 1..4 → converter para 0..100
+      return Math.round((sum / count / 4) * 100)
+    }
+
+    const roundPercentFromRatio = (num: number, den: number) => {
+      if (den <= 0) return null
+      return Math.round((num / den) * 100)
+    }
+
+    // 1) Resolver cursos do usuário (mesma lógica de getSubjectPerformance)
+    const { data: professorData } = await client
+      .from('professores')
+      .select('id')
+      .eq('id', alunoId)
+      .maybeSingle()
+
+    const isProfessor = !!professorData
+    let cursoIds: string[] = []
+
+    if (isProfessor) {
+      const { data: todosCursos } = await client.from('cursos').select('id')
+      cursoIds = (todosCursos ?? []).map((c: { id: string }) => c.id)
+    } else {
+      const { data: alunosCursos } = await client
+        .from('alunos_cursos')
+        .select('curso_id')
+        .eq('aluno_id', alunoId)
+      cursoIds = (alunosCursos ?? []).map((ac: { curso_id: string }) => ac.curso_id)
+    }
+
+    if (cursoIds.length === 0) return empty
+
+    // 2) Disciplinas dos cursos
+    const { data: cursosDisciplinas } = await client
+      .from('cursos_disciplinas')
+      .select('disciplina_id, curso_id')
+      .in('curso_id', cursoIds)
+
+    if (!cursosDisciplinas || cursosDisciplinas.length === 0) return empty
+
+    const disciplinaIds = [
+      ...new Set(cursosDisciplinas.map((cd: { disciplina_id: string }) => cd.disciplina_id)),
+    ]
+
+    // 3) Frentes das disciplinas (curso_id do curso ou null)
+    const { data: todasFrentes } = await client
+      .from('frentes')
+      .select('id, disciplina_id, curso_id')
+      .in('disciplina_id', disciplinaIds)
+      .or(
+        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+          (cursoIds.length > 0 ? ',' : '') +
+          'curso_id.is.null',
+      )
+
+    const frentesFiltradas = (todasFrentes ?? []).filter(
+      (f: { curso_id: string | null }) => !f.curso_id || cursoIds.includes(f.curso_id),
+    )
+
+    if (frentesFiltradas.length === 0) return empty
+
+    const frenteIds = frentesFiltradas.map((f: { id: string }) => f.id)
+
+    // 4) Módulos das frentes (curso_id do curso ou null)
+    const { data: todosModulos } = await client
+      .from('modulos')
+      .select('id, nome, importancia, frente_id, curso_id')
+      .in('frente_id', frenteIds)
+      .or(
+        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+          (cursoIds.length > 0 ? ',' : '') +
+          'curso_id.is.null',
+      )
+
+    const modulosFiltrados = (todosModulos ?? []).filter(
+      (m: { curso_id: string | null }) => !m.curso_id || cursoIds.includes(m.curso_id),
+    )
+
+    if (modulosFiltrados.length === 0) return empty
+
+    const modulosById = new Map(
+      modulosFiltrados.map((m: { id: string; nome: string; importancia: ModuloImportancia | null }) => [
+        m.id,
+        {
+          id: m.id,
+          nome: m.nome,
+          importancia: (m.importancia ?? 'Media') as ModuloImportancia,
+        },
+      ]),
+    )
+
+    const baseModuleIds = modulosFiltrados
+      .filter((m: { importancia: ModuloImportancia | null }) => m.importancia === 'Base')
+      .map((m: { id: string }) => m.id)
+
+    const highRecurrenceModuleIds = modulosFiltrados
+      .filter((m: { importancia: ModuloImportancia | null }) => m.importancia === 'Alta')
+      .map((m: { id: string }) => m.id)
+
+    const strategicModuleIds = [...new Set([...baseModuleIds, ...highRecurrenceModuleIds])]
+    if (strategicModuleIds.length === 0) return empty
+
+    // 5) Flashcards (memória): mapear flashcard_id -> modulo_id e agregar feedback
+    const flashcardIdToModuloId = new Map<string, string>()
+    const flashAggByModulo = new Map<string, { sum: number; count: number }>()
+
+    const { data: flashcardsRows } = await client
+      .from('flashcards')
+      .select('id, modulo_id')
+      .in('modulo_id', strategicModuleIds)
+
+    const flashcardIds = (flashcardsRows ?? [])
+      .map((f: { id: string; modulo_id: string | null }) => {
+        if (f.modulo_id) flashcardIdToModuloId.set(f.id, f.modulo_id)
+        return f.id
+      })
+      .filter(Boolean)
+
+    if (flashcardIds.length > 0) {
+      const progressosFlashcards: Array<{ flashcard_id: string; ultimo_feedback: number | null }> = []
+
+      for (const idsChunk of chunk(flashcardIds, 900)) {
+        const { data: progChunk, error: progErr } = await client
+          .from('progresso_flashcards')
+          .select('flashcard_id, ultimo_feedback')
+          .eq('aluno_id', alunoId)
+          .in('flashcard_id', idsChunk)
+          .not('ultimo_feedback', 'is', null)
+
+        if (progErr) {
+          console.error('[dashboard-analytics] Erro ao buscar progresso_flashcards:', progErr)
+          continue
+        }
+
+        progressosFlashcards.push(...((progChunk as Array<{ flashcard_id: string; ultimo_feedback: number | null }>) ?? []))
+      }
+
+      for (const p of progressosFlashcards) {
+        const moduloId = flashcardIdToModuloId.get(p.flashcard_id)
+        const feedback = p.ultimo_feedback
+        if (!moduloId || feedback == null) continue
+        if (feedback < 1 || feedback > 4) continue
+
+        const curr = flashAggByModulo.get(moduloId) || { sum: 0, count: 0 }
+        curr.sum += feedback
+        curr.count += 1
+        flashAggByModulo.set(moduloId, curr)
+      }
+    }
+
+    // 6) Questões (aplicação): progresso_atividades -> atividades(modulo_id)
+    const questionsAggByModulo = new Map<string, { acertos: number; totais: number }>()
+
+    const { data: progressosAtividades, error: progAtvError } = await client
+      .from('progresso_atividades')
+      .select('atividade_id, questoes_totais, questoes_acertos')
+      .eq('aluno_id', alunoId)
+      .eq('status', 'Concluido')
+      .not('questoes_totais', 'is', null)
+      .gt('questoes_totais', 0)
+
+    if (progAtvError) {
+      console.error('[dashboard-analytics] Erro ao buscar progresso_atividades:', progAtvError)
+    }
+
+    const atividadeIds = [...new Set((progressosAtividades ?? []).map((p: { atividade_id: string }) => p.atividade_id))]
+    const atividadeIdToModuloId = new Map<string, string>()
+
+    for (const idsChunk of chunk(atividadeIds, 900)) {
+      const { data: atividadesChunk, error: atvErr } = await client
+        .from('atividades')
+        .select('id, modulo_id')
+        .in('id', idsChunk)
+
+      if (atvErr) {
+        console.error('[dashboard-analytics] Erro ao buscar atividades:', atvErr)
+        continue
+      }
+
+      for (const a of (atividadesChunk ?? []) as Array<{ id: string; modulo_id: string | null }>) {
+        if (a.modulo_id) atividadeIdToModuloId.set(a.id, a.modulo_id)
+      }
+    }
+
+    for (const p of (progressosAtividades ?? []) as Array<{
+      atividade_id: string
+      questoes_totais: number | null
+      questoes_acertos: number | null
+    }>) {
+      const moduloId = atividadeIdToModuloId.get(p.atividade_id)
+      if (!moduloId) continue
+      if (!strategicModuleIds.includes(moduloId)) continue
+
+      const totais = p.questoes_totais ?? 0
+      const acertos = p.questoes_acertos ?? 0
+      if (totais <= 0) continue
+
+      const curr = questionsAggByModulo.get(moduloId) || { acertos: 0, totais: 0 }
+      curr.acertos += acertos
+      curr.totais += totais
+      questionsAggByModulo.set(moduloId, curr)
+    }
+
+    const axisFlashcardsScore = (moduleIds: string[]) => {
+      let sum = 0
+      let count = 0
+      for (const id of moduleIds) {
+        const agg = flashAggByModulo.get(id)
+        if (!agg) continue
+        sum += agg.sum
+        count += agg.count
+      }
+      return roundPercentFromAvgFeedback(sum, count)
+    }
+
+    const axisQuestionsScore = (moduleIds: string[]) => {
+      let acertos = 0
+      let totais = 0
+      for (const id of moduleIds) {
+        const agg = questionsAggByModulo.get(id)
+        if (!agg) continue
+        acertos += agg.acertos
+        totais += agg.totais
+      }
+      return roundPercentFromRatio(acertos, totais)
+    }
+
+    const moduleFlashcardsScore = (moduleId: string) => {
+      const agg = flashAggByModulo.get(moduleId)
+      if (!agg) return null
+      return roundPercentFromAvgFeedback(agg.sum, agg.count)
+    }
+
+    const moduleQuestionsScore = (moduleId: string) => {
+      const agg = questionsAggByModulo.get(moduleId)
+      if (!agg) return null
+      return roundPercentFromRatio(agg.acertos, agg.totais)
+    }
+
+    const buildReason = (flash: number | null, questions: number | null) => {
+      if (flash != null && questions != null && Math.abs(flash - questions) >= 25) {
+        return 'Gap entre memória e aplicação'
+      }
+
+      const threshold = 70
+      if (questions == null || (flash != null && flash <= (questions ?? 999))) {
+        return flash != null && flash < threshold
+          ? 'Flashcards baixos (recall fraco)'
+          : 'Flashcards com inconsistência'
+      }
+
+      return questions < threshold ? 'Acurácia baixa em questões' : 'Questões com inconsistência'
+    }
+
+    const importanceOrder: Record<ModuloImportancia, number> = {
+      Alta: 0,
+      Base: 1,
+      Media: 2,
+      Baixa: 3,
+    }
+
+    type RecommendationWithRisk = StrategicDomainRecommendation & { risk: number }
+
+    const recommendationsWithRisk: RecommendationWithRisk[] = []
+
+    for (const moduloId of strategicModuleIds) {
+      const modulo = modulosById.get(moduloId)
+      if (!modulo) continue
+
+      const flash = moduleFlashcardsScore(moduloId)
+      const questions = moduleQuestionsScore(moduloId)
+      const risk =
+        flash != null && questions != null ? Math.min(flash, questions) : (flash ?? questions)
+
+      if (risk == null) continue
+
+      recommendationsWithRisk.push({
+        moduloId,
+        moduloNome: modulo.nome,
+        importancia: modulo.importancia,
+        flashcardsScore: flash,
+        questionsScore: questions,
+        reason: buildReason(flash, questions),
+        risk,
+      })
+    }
+
+    const recommendations: StrategicDomainRecommendation[] = recommendationsWithRisk
+      .sort((a, b) => {
+        if (a.risk !== b.risk) return a.risk - b.risk
+        const ia = importanceOrder[a.importancia] ?? 99
+        const ib = importanceOrder[b.importancia] ?? 99
+        return ia - ib
+      })
+      .slice(0, 3)
+      .map(({ risk: _risk, ...r }) => r)
+
     return {
-      baseModules: 90,
-      highRecurrence: 60,
+      baseModules: {
+        flashcardsScore: axisFlashcardsScore(baseModuleIds),
+        questionsScore: axisQuestionsScore(baseModuleIds),
+      },
+      highRecurrence: {
+        flashcardsScore: axisFlashcardsScore(highRecurrenceModuleIds),
+        questionsScore: axisQuestionsScore(highRecurrenceModuleIds),
+      },
+      recommendations,
     }
   }
 

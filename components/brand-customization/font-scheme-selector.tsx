@@ -45,6 +45,12 @@ interface PresetFontScheme {
   category: 'default' | 'modern' | 'classic' | 'custom';
 }
 
+type FontSchemeFormData = Omit<CreateFontSchemeRequest, 'fontSizes' | 'fontWeights' | 'googleFonts'> & {
+  fontSizes: NonNullable<CreateFontSchemeRequest['fontSizes']>;
+  fontWeights: NonNullable<CreateFontSchemeRequest['fontWeights']>;
+  googleFonts: string[];
+};
+
 // Font input component for managing font stacks
 function FontInput({ label, value, onChange, description, placeholder, disabled = false }: FontInputProps) {
   const [inputValue, setInputValue] = useState(value.join(', '));
@@ -214,7 +220,10 @@ export function FontSchemeSelector({
   onLoadGoogleFont
 }: FontSchemeSelectorProps) {
   // State management
-  const [schemeData, setSchemeData] = useState<CreateFontSchemeRequest>({
+  const fontSizeKeys = ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl'] as const
+  const fontWeightKeys = ['light', 'normal', 'medium', 'semibold', 'bold'] as const
+
+  const [schemeData, setSchemeData] = useState<FontSchemeFormData>({
     name: currentScheme?.name || '',
     fontSans: currentScheme?.fontSans || ['system-ui', '-apple-system', 'sans-serif'],
     fontMono: currentScheme?.fontMono || ['ui-monospace', 'SFMono-Regular', 'monospace'],
@@ -374,9 +383,9 @@ export function FontSchemeSelector({
   }, [schemeData]);
 
   // Handle scheme data updates
-  const updateSchemeData = useCallback(<K extends keyof CreateFontSchemeRequest>(
+  const updateSchemeData = useCallback(<K extends keyof FontSchemeFormData>(
     field: K,
-    value: CreateFontSchemeRequest[K]
+    value: FontSchemeFormData[K]
   ) => {
     setSchemeData(prev => ({
       ...prev,
@@ -402,8 +411,8 @@ export function FontSchemeSelector({
       await onLoadGoogleFont(selectedGoogleFont);
       
       // Add to Google Fonts list if not already present
-      if (!schemeData.googleFonts?.includes(selectedGoogleFont)) {
-        updateSchemeData('googleFonts', [...(schemeData.googleFonts || []), selectedGoogleFont]);
+      if (!schemeData.googleFonts.includes(selectedGoogleFont)) {
+        updateSchemeData('googleFonts', [...schemeData.googleFonts, selectedGoogleFont]);
       }
       
       setSelectedGoogleFont('');
@@ -574,14 +583,14 @@ export function FontSchemeSelector({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(schemeData.fontSizes || {}).map(([size, value]) => (
+                {fontSizeKeys.map((size) => (
                   <div key={size}>
                     <Label htmlFor={`size-${size}`} className="text-sm">
                       {size.toUpperCase()}
                     </Label>
                     <Input
                       id={`size-${size}`}
-                      value={value}
+                      value={schemeData.fontSizes[size]}
                       onChange={(e) => updateSchemeData('fontSizes', {
                         ...schemeData.fontSizes,
                         [size]: e.target.value
@@ -605,7 +614,7 @@ export function FontSchemeSelector({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Object.entries(schemeData.fontWeights || {}).map(([weight, value]) => (
+                {fontWeightKeys.map((weight) => (
                   <div key={weight}>
                     <Label htmlFor={`weight-${weight}`} className="text-sm">
                       {weight.charAt(0).toUpperCase() + weight.slice(1)}
@@ -616,7 +625,7 @@ export function FontSchemeSelector({
                       min="100"
                       max="900"
                       step="100"
-                      value={value}
+                      value={schemeData.fontWeights[weight]}
                       onChange={(e) => updateSchemeData('fontWeights', {
                         ...schemeData.fontWeights,
                         [weight]: parseInt(e.target.value)

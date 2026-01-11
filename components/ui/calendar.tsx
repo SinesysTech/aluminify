@@ -216,13 +216,12 @@ function CalendarDayButton({
       data-range-middle={modifiers.range_middle}
       data-outside={modifiers.outside}
       className={cn(
-        "relative isolate flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[2px] group-data-[focused=true]/day:ring-offset-1 group-data-[focused=true]/day:ring-offset-background dark:hover:text-accent-foreground",
-        // Texto para seleção única - preto em ambos os modos
-        "data-[selected-single=true]:text-black data-[selected-single=true]:font-semibold dark:data-[selected-single=true]:text-black",
-        // Texto para range - preto em ambos os modos
-        "data-[range-middle=true]:text-black data-[range-middle=true]:font-semibold dark:data-[range-middle=true]:text-black",
-        "data-[range-start=true]:text-black data-[range-start=true]:font-semibold dark:data-[range-start=true]:text-black",
-        "data-[range-end=true]:text-black data-[range-end=true]:font-semibold dark:data-[range-end=true]:text-black",
+        "relative isolate flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal text-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-2 group-data-[focused=true]/day:ring-offset-1 group-data-[focused=true]/day:ring-offset-background dark:hover:text-accent-foreground",
+        // Seleção única / range: manter legível no claro e no escuro (usa tokens do tema)
+        "data-[selected-single=true]:text-foreground data-[selected-single=true]:font-semibold",
+        "data-[range-middle=true]:text-foreground data-[range-middle=true]:font-semibold",
+        "data-[range-start=true]:text-foreground data-[range-start=true]:font-semibold",
+        "data-[range-end=true]:text-foreground data-[range-end=true]:font-semibold",
         // Background transparente para permitir o pseudo-elemento after
         "data-[selected-single=true]:bg-transparent data-[range-middle=true]:bg-transparent data-[range-start=true]:bg-transparent data-[range-end=true]:bg-transparent",
         // Pseudo-elemento after para o background destacado
@@ -237,11 +236,11 @@ function CalendarDayButton({
         "data-[range-end=true]:after:bg-primary/10 dark:data-[range-end=true]:after:bg-primary/10",
         "data-[selected-single=true]:after:z-0 data-[range-middle=true]:after:z-0 data-[range-start=true]:after:z-0 data-[range-end=true]:after:z-0",
         "data-[selected-single=true]:after:pointer-events-none data-[range-middle=true]:after:pointer-events-none data-[range-start=true]:after:pointer-events-none data-[range-end=true]:after:pointer-events-none",
-        // Estilos para o span interno (número do dia) - preto em ambos os modos
-        "data-[selected-single=true]:[&>span]:text-black data-[selected-single=true]:[&>span]:font-semibold dark:data-[selected-single=true]:[&>span]:text-black",
-        "data-[range-middle=true]:[&>span]:text-black data-[range-middle=true]:[&>span]:font-semibold dark:data-[range-middle=true]:[&>span]:text-black",
-        "data-[range-start=true]:[&>span]:text-black data-[range-start=true]:[&>span]:font-semibold dark:data-[range-start=true]:[&>span]:text-black",
-        "data-[range-end=true]:[&>span]:text-black data-[range-end=true]:[&>span]:font-semibold dark:data-[range-end=true]:[&>span]:text-black",
+        // Estilos para o span interno (número do dia) - usa tokens do tema (visível no dark)
+        "data-[selected-single=true]:[&>span]:text-foreground data-[selected-single=true]:[&>span]:font-semibold",
+        "data-[range-middle=true]:[&>span]:text-foreground data-[range-middle=true]:[&>span]:font-semibold",
+        "data-[range-start=true]:[&>span]:text-foreground data-[range-start=true]:[&>span]:font-semibold",
+        "data-[range-end=true]:[&>span]:text-foreground data-[range-end=true]:[&>span]:font-semibold",
         "[&>span]:text-xs [&>span]:relative [&>span]:z-10",
         modifiers.outside && "opacity-40 text-muted-foreground",
         defaultClassNames.day,

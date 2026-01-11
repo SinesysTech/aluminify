@@ -25,11 +25,11 @@ export interface TenantBranding {
   empresaId: string
   
   // References to active color palette and font scheme
-  colorPaletteId?: string
-  fontSchemeId?: string
+  colorPaletteId?: string | null
+  fontSchemeId?: string | null
   
   // Custom CSS for advanced customizations
-  customCss?: string
+  customCss?: string | null
   
   // Metadata
   createdAt: Date
@@ -231,9 +231,9 @@ export interface CompleteBrandingConfig {
  * Request to create or update tenant branding
  */
 export interface SaveTenantBrandingRequest {
-  colorPaletteId?: string
-  fontSchemeId?: string
-  customCss?: string
+  colorPaletteId?: string | null
+  fontSchemeId?: string | null
+  customCss?: string | null
 }
 
 /**

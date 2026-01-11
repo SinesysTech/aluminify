@@ -99,7 +99,10 @@ export function sanitizeFilename(filename: string): string {
 /**
  * Validates file extension against allowed formats
  */
-function validateFileExtension(filename: string, allowedFormats: Record<string, string[]>): boolean {
+function validateFileExtension(
+  filename: string,
+  allowedFormats: Readonly<Record<string, readonly string[]>>
+): boolean {
   const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'));
   const allowedExtensions = Object.values(allowedFormats).flat();
   return allowedExtensions.includes(ext);
@@ -108,7 +111,10 @@ function validateFileExtension(filename: string, allowedFormats: Record<string, 
 /**
  * Validates MIME type against allowed formats
  */
-function validateMimeType(mimeType: string, allowedFormats: Record<string, string[]>): boolean {
+function validateMimeType(
+  mimeType: string,
+  allowedFormats: Readonly<Record<string, readonly string[]>>
+): boolean {
   return Object.keys(allowedFormats).includes(mimeType);
 }
 

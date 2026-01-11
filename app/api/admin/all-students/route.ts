@@ -55,28 +55,29 @@ export async function GET(request: NextRequest) {
       updated_at: string
       alunos_cursos?: Array<{
         curso_id: string
-        cursos?: {
+        cursos?: Array<{
           id: string
           nome: string
           empresa_id: string | null
-          empresas?: {
+          empresas?: Array<{
             nome: string
-          } | null
-        } | null
+          }> | null
+        }> | null
       }>
     }
 
     const alunosFormatados = (alunos || []).map((aluno: AlunoComCursos) => {
       const empresas = new Set<string>();
       const cursos = (aluno.alunos_cursos || []).map((ac) => {
-        if (ac.cursos?.empresas?.nome) {
-          empresas.add(ac.cursos.empresas.nome);
-        }
+        const curso = Array.isArray(ac.cursos) ? (ac.cursos[0] ?? null) : ac.cursos
+        const empresaNome = Array.isArray(curso?.empresas) ? (curso.empresas[0]?.nome ?? undefined) : undefined
+
+        if (empresaNome) empresas.add(empresaNome)
         return {
-          id: ac.cursos?.id,
-          nome: ac.cursos?.nome,
-          empresaId: ac.cursos?.empresa_id,
-          empresaNome: ac.cursos?.empresas?.nome,
+          id: curso?.id,
+          nome: curso?.nome,
+          empresaId: curso?.empresa_id,
+          empresaNome,
         };
       });
 

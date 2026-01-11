@@ -412,14 +412,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         }
 
         // Converter periodos_ferias de Json para o tipo esperado
-        const periodosFeriasConvertidos = cronogramaData.periodos_ferias 
-          ? (Array.isArray(cronogramaData.periodos_ferias) 
-              ? cronogramaData.periodos_ferias.map((p: unknown) => {
-                  if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
-                    return { inicio: String(p.inicio), fim: String(p.fim) }
-                  }
-                  return null
-                }).filter((p): p is { inicio: string; fim: string } => p !== null)
+        const periodosFeriasConvertidos = cronogramaData.periodos_ferias
+          ? (Array.isArray(cronogramaData.periodos_ferias)
+              ? (cronogramaData.periodos_ferias as unknown[])
+                  .map((p: unknown): { inicio: string; fim: string } | null => {
+                    if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
+                      const obj = p as { inicio: unknown; fim: unknown }
+                      return { inicio: String(obj.inicio), fim: String(obj.fim) }
+                    }
+                    return null
+                  })
+                  .filter((p): p is { inicio: string; fim: string } => p !== null)
               : [])
           : undefined
 
@@ -1381,14 +1384,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
       }
 
       // Converter periodos_ferias de Json para o tipo esperado
-      const periodosFeriasConvertidos = cronogramaData.periodos_ferias 
-        ? (Array.isArray(cronogramaData.periodos_ferias) 
-            ? cronogramaData.periodos_ferias.map((p: unknown) => {
-                if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
-                  return { inicio: String(p.inicio), fim: String(p.fim) }
-                }
-                return null
-              }).filter((p): p is { inicio: string; fim: string } => p !== null)
+      const periodosFeriasConvertidos = cronogramaData.periodos_ferias
+        ? (Array.isArray(cronogramaData.periodos_ferias)
+            ? (cronogramaData.periodos_ferias as unknown[])
+                .map((p: unknown): { inicio: string; fim: string } | null => {
+                  if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
+                    const obj = p as { inicio: unknown; fim: unknown }
+                    return { inicio: String(obj.inicio), fim: String(obj.fim) }
+                  }
+                  return null
+                })
+                .filter((p): p is { inicio: string; fim: string } => p !== null)
             : [])
         : undefined
 
@@ -3114,10 +3120,13 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                             <p className="text-xs text-muted-foreground mt-0.5">{frenteNome}</p>
 
                                             {/* Informações agregadas do grupo */}
-                                            <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
-                                              <span>
-                                                <span className="font-medium">Número de aulas:</span> {itensGrupo.length}
-                                              </span>
+                                            <div className="mt-2 flex flex-col items-start gap-1.5">
+                                              <Badge
+                                                variant="secondary"
+                                                className="text-xs w-fit max-w-full whitespace-normal leading-tight"
+                                              >
+                                                Número de aulas: {itensGrupo.length}
+                                              </Badge>
                                               {(() => {
                                                 const velocidadeReproducao = cronograma?.velocidade_reproducao ?? 1.0
 
@@ -3135,14 +3144,20 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                                 return (
                                                   <>
                                                     {tempoAulasAjustado > 0 && (
-                                                      <span>
-                                                        <span className="font-medium">Tempo estimado de aula:</span> {formatTempo(tempoAulasAjustado)}
-                                                      </span>
+                                                      <Badge
+                                                        variant="outline"
+                                                        className="text-xs w-fit max-w-full whitespace-normal leading-tight text-muted-foreground"
+                                                      >
+                                                        Tempo estimado de aula: {formatTempo(tempoAulasAjustado)}
+                                                      </Badge>
                                                     )}
                                                     {tempoAnotacoesExercicios > 0 && (
-                                                      <span>
-                                                        <span className="font-medium">Tempo estimado de Anotações/Exercícios:</span> {formatTempo(tempoAnotacoesExercicios)}
-                                                      </span>
+                                                      <Badge
+                                                        variant="outline"
+                                                        className="text-xs w-fit max-w-full whitespace-normal leading-tight text-muted-foreground"
+                                                      >
+                                                        Tempo estimado de Anotações/Exercícios: {formatTempo(tempoAnotacoesExercicios)}
+                                                      </Badge>
                                                     )}
                                                   </>
                                                 )

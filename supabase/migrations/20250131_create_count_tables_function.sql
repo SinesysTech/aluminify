@@ -38,3 +38,4 @@ COMMENT ON FUNCTION public.count_tables_records() IS 'Retorna a contagem de regi
 
 
 
+

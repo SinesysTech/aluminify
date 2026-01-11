@@ -369,7 +369,13 @@ export function ScheduleWizard() {
         }
 
         if (alunosCursos) {
-          cursosData = alunosCursos.map((ac: { cursos: CursoData | null }) => ac.cursos).filter(Boolean) as CursoData[]
+          cursosData = alunosCursos
+            .map((ac: { cursos: CursoData[] | CursoData | null }) => {
+              const cursos = ac.cursos
+              if (Array.isArray(cursos)) return cursos[0] ?? null
+              return cursos
+            })
+            .filter((c): c is CursoData => Boolean(c)) as CursoData[]
           console.log(`Aluno ${user.id} encontrou ${cursosData.length} curso(s):`, cursosData.map((c) => c?.nome))
         }
       }

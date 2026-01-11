@@ -17,3 +17,4 @@ CREATE POLICY "Users can update their own aluno data"
 COMMENT ON POLICY "Users can update their own aluno data" ON public.alunos IS 
 'Permite que alunos atualizem seus próprios dados, incluindo must_change_password e senha_temporaria';
 
+

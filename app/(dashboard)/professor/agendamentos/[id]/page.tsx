@@ -5,24 +5,25 @@ import { AgendamentoDetails } from "@/components/professor/agendamento-details"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import * as React from "react"
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function AgendamentoDetailPage({ params }: PageProps) {
+export default function AgendamentoDetailPage({ params }: PageProps) {
   // Desempacotar imediatamente para evitar serialização pelo React DevTools
-  const { id } = await params
-  const supabase = await createClient()
+  const { id } = React.use(params)
+  const supabase = React.use(createClient())
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = React.use(supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/professor/login")
   }
 
-  const agendamento = await getAgendamentoById(id)
+  const agendamento = React.use(getAgendamentoById(id))
 
   if (!agendamento || agendamento.professor_id !== user.id) {
     notFound()

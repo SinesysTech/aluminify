@@ -4,6 +4,10 @@ import { FontSchemeManagerImpl } from '@/backend/services/brand-customization';
 import { requireBrandCustomizationAccess, BrandCustomizationRequest } from '@/backend/middleware/brand-customization-access';
 import { getPublicSupabaseConfig } from '@/lib/supabase-public-env';
 
+interface RouteContext {
+  params: Promise<{ empresaId: string }>;
+}
+
 /**
  * POST /api/tenant-branding/[empresaId]/font-schemes/google-fonts - Validate Google Font
  * Validates Requirements 3.2: Support Google Fonts integration
@@ -176,11 +180,9 @@ async function getHandler(
 
 // Apply access control middleware and export handlers
 export const POST = requireBrandCustomizationAccess(
-  async (request: BrandCustomizationRequest, context: RouteContext) => 
-    postHandler(request, context)
+  async (request: BrandCustomizationRequest, context: RouteContext) => postHandler(request, context)
 );
 
 export const GET = requireBrandCustomizationAccess(
-  async (request: BrandCustomizationRequest, context: RouteContext) => 
-    getHandler(request, context)
+  async (request: BrandCustomizationRequest, context: RouteContext) => getHandler(request, context)
 );

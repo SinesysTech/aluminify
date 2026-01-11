@@ -78,6 +78,33 @@ export interface BrandCustomizationRequest extends AuthenticatedRequest {
   isEmpresaAdmin?: boolean;
 }
 
+function getRequestIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const ipFromForwardedFor = forwardedFor?.split(',')[0]?.trim();
+  return ipFromForwardedFor || request.headers.get('x-real-ip') || 'unknown';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  if (!isRecord(value)) return false
+  return Object.values(value).every((v) => typeof v === 'string')
+}
+
+async function unwrapNextParamsContext<Ctx>(context: Ctx): Promise<Ctx> {
+  if (!isRecord(context) || !('params' in context)) return context
+
+  const paramsValue = (context as Record<string, unknown>).params
+  if (paramsValue instanceof Promise) {
+    const params = await paramsValue
+    return { ...(context as Record<string, unknown>), params } as Ctx
+  }
+
+  return context;
+}
+
 /**
  * Logs unauthorized access attempts
  */
@@ -94,7 +121,7 @@ function logUnauthorizedAccess(
     empresaId: empresaId || 'unknown',
     action,
     reason,
-    ip: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+    ip: getRequestIp(request),
     userAgent: request.headers.get('user-agent') || 'unknown',
     url: request.url,
   };
@@ -146,13 +173,10 @@ export async function verifyEmpresaAdminAccess(
 /**
  * Middleware to require empresa admin access for brand customization
  */
-export function requireEmpresaAdmin(
-  handler: (request: BrandCustomizationRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+export function requireEmpresaAdmin<Ctx>(
+  handler: (request: BrandCustomizationRequest, context: Ctx) => Promise<NextResponse>,
 ) {
-  return async (
-    request: NextRequest,
-    context?: Record<string, unknown> | { params?: Promise<Record<string, string>> }
-  ) => {
+  return async (request: NextRequest, context: Ctx): Promise<NextResponse> => {
     // Get authenticated user
     const user = await getAuthUser(request);
     
@@ -165,15 +189,13 @@ export function requireEmpresaAdmin(
     }
 
     // Unwrap params if it's a Promise (Next.js 16+)
-    let unwrappedContext = context;
-    if (context && 'params' in context && context.params instanceof Promise) {
-      const params = await context.params;
-      unwrappedContext = { ...context, params };
-    }
+    const unwrappedContext = await unwrapNextParamsContext(context);
 
     // Extract empresaId from params or query
-    const params = unwrappedContext?.params as Record<string, string> | undefined;
-    const empresaId = params?.empresaId || request.nextUrl.searchParams.get('empresa_id');
+    const params = isRecord(unwrappedContext) ? (unwrappedContext as Record<string, unknown>).params : undefined
+    const empresaIdFromParams =
+      params instanceof Promise ? null : (isStringRecord(params) ? params.empresaId : null)
+    const empresaId = empresaIdFromParams || request.nextUrl.searchParams.get('empresa_id');
 
     if (!empresaId) {
       logUnauthorizedAccess(user.id, undefined, 'brand_customization_access', 'No empresa ID provided', request);
@@ -242,13 +264,10 @@ export function requireEmpresaAdmin(
 /**
  * Middleware to apply rate limiting for file uploads
  */
-export function withUploadRateLimit(
-  handler: (request: BrandCustomizationRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+export function withUploadRateLimit<Ctx>(
+  handler: (request: BrandCustomizationRequest, context: Ctx) => Promise<NextResponse>,
 ) {
-  return async (
-    request: BrandCustomizationRequest,
-    context?: Record<string, unknown>
-  ) => {
+  return async (request: BrandCustomizationRequest, context: Ctx) => {
     // Only apply rate limiting to file upload requests
     const isFileUpload = request.method === 'POST' && 
       (request.headers.get('content-type')?.includes('multipart/form-data') ||
@@ -261,7 +280,7 @@ export function withUploadRateLimit(
 
     // Create rate limiting key based on user ID and IP
     const userId = request.user?.id || 'anonymous';
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = getRequestIp(request);
     const rateLimitKey = `upload:${userId}:${ip}`;
 
     // Check rate limit
@@ -311,8 +330,8 @@ export function withUploadRateLimit(
 /**
  * Combined middleware for brand customization access control and rate limiting
  */
-export function requireBrandCustomizationAccess(
-  handler: (request: BrandCustomizationRequest, context?: Record<string, unknown>) => Promise<NextResponse>,
+export function requireBrandCustomizationAccess<Ctx>(
+  handler: (request: BrandCustomizationRequest, context: Ctx) => Promise<NextResponse>,
 ) {
   return requireEmpresaAdmin(
     withUploadRateLimit(handler)

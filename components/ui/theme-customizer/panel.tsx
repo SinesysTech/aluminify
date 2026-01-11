@@ -8,15 +8,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import {
-  PresetSelector,
-  SidebarModeSelector,
-  ThemeScaleSelector,
-  ColorModeSelector,
-  ContentLayoutSelector,
-  ThemeRadiusSelector,
-  ResetThemeButton
-} from "@/components/theme-customizer/index";
+import { PresetSelector } from "./preset-selector";
+import { SidebarModeSelector } from "./sidebar-mode-selector";
+import { ThemeScaleSelector } from "./scale-selector";
+import { ColorModeSelector } from "./color-mode-selector";
+import { ContentLayoutSelector } from "./content-layout-selector";
+import { ThemeRadiusSelector } from "./radius-selector";
+import { ResetThemeButton } from "./reset-theme";
 import { BrandCustomizationPanel } from "@/components/brand-customization";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useThemeConfig } from "@/components/active-theme";
@@ -58,7 +56,7 @@ export function ThemeCustomizerPanel() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="icon-sm" variant="ghost">
+        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Abrir customização do tema">
           <Palette />
         </Button>
       </DropdownMenuTrigger>

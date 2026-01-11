@@ -23,7 +23,7 @@ import { FileText, Upload, Loader2, AlertCircle, CheckCircle2 } from 'lucide-rea
 import Papa from 'papaparse'
 
 async function loadExcelJS() {
-  const mod: any = await import('exceljs/dist/exceljs.min.js')
+  const mod = await import('exceljs/dist/exceljs.min.js')
   return mod?.default ?? mod
 }
 
@@ -96,8 +96,8 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
 
         const mapped =
           data
-            ?.map((row: { disciplina: { id: string; nome: string } | null }) => row.disciplina)
-            .filter((d): d is { id: string; nome: string } => d !== null)
+            ?.map((row: { disciplina: { id: string; nome: string }[] | null }) => row.disciplina?.[0] ?? null)
+            .filter((d): d is { id: string; nome: string } => Boolean(d))
             .map((d) => ({ id: d.id, nome: d.nome })) ?? []
 
         const unique = Array.from(new Map(mapped.map((d) => [d.id, d])).values())

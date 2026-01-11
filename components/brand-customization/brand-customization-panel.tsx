@@ -27,19 +27,19 @@ import type {
   FontScheme,
   LogoType,
   LogoUploadResult,
-  BrandCustomizationError,
   CreateColorPaletteRequest,
   CreateFontSchemeRequest,
   AccessibilityReport
 } from '@/types/brand-customization';
+import { BrandCustomizationError } from '@/types/brand-customization';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';
 
 interface BrandCustomizationState {
-  colorPaletteId?: string;
-  fontSchemeId?: string;
-  customCss?: string;
+  colorPaletteId?: string | null;
+  fontSchemeId?: string | null;
+  customCss?: string | null;
   logos: Record<LogoType, string | null>;
 }
 

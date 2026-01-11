@@ -20,7 +20,7 @@ import type {
 
 export class CSSPropertiesManager {
   private static instance: CSSPropertiesManager;
-  private root: HTMLElement;
+  private root!: HTMLElement;
   private appliedProperties: Set<string> = new Set();
   private propertyCache: Map<string, string> = new Map();
   private pendingUpdates: Map<string, string> = new Map();

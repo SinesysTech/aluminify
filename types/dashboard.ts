@@ -38,9 +38,26 @@ export interface FocusEfficiencyDay {
   netTime: number // Tempo líquido em minutos
 }
 
+export type ModuloImportancia = 'Base' | 'Alta' | 'Media' | 'Baixa'
+
+export interface StrategicDomainAxis {
+  flashcardsScore: number | null // Percentual (0-100) ou null (sem evidência)
+  questionsScore: number | null // Percentual (0-100) ou null (sem evidência)
+}
+
+export interface StrategicDomainRecommendation {
+  moduloId: string
+  moduloNome: string
+  importancia: ModuloImportancia
+  flashcardsScore: number | null // Percentual (0-100) ou null (sem evidência)
+  questionsScore: number | null // Percentual (0-100) ou null (sem evidência)
+  reason: string
+}
+
 export interface StrategicDomain {
-  baseModules: number // Percentual (0-100)
-  highRecurrence: number // Percentual (0-100)
+  baseModules: StrategicDomainAxis
+  highRecurrence: StrategicDomainAxis
+  recommendations: StrategicDomainRecommendation[]
 }
 
 export interface SubjectDistributionItem {

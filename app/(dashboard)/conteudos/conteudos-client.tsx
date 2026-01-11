@@ -51,7 +51,7 @@ import InlineEditableTitle from '@/components/shared/inline-editable-title'
 import { formatTipoAtividade } from '@/lib/utils'
 
 async function loadExcelJS() {
-  const mod: any = await import('exceljs/dist/exceljs.min.js')
+  const mod = await import('exceljs/dist/exceljs.min.js')
   return mod?.default ?? mod
 }
 
@@ -659,16 +659,16 @@ export default function ConteudosClientPage() {
       const headers: string[] = []
       const rows: CSVRow[] = []
 
-      worksheet.eachRow((row: any, rowNumber: number) => {
+      worksheet.eachRow((row, rowNumber: number) => {
         if (rowNumber === 1) {
           // First row = headers (normalize to lowercase)
-          row.eachCell({ includeEmpty: false }, (cell: any) => {
+          row.eachCell({ includeEmpty: false }, (cell) => {
             headers.push(String(cell.value ?? '').trim().toLowerCase())
           })
         } else {
           // Data rows
           const rowObj: CSVRow = {} as CSVRow
-          row.eachCell({ includeEmpty: false }, (cell: any, colNumber: number) => {
+          row.eachCell({ includeEmpty: false }, (cell, colNumber: number) => {
             const header = headers[colNumber - 1]
             if (header) {
               const value = cell.value

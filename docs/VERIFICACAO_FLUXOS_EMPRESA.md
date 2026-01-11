@@ -146,3 +146,4 @@ Se o auto-cadastro não estiver funcionando, verificar se está usando `SUPABASE
 
 
 
+
