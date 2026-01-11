@@ -15,7 +15,8 @@
       "Bash(npx next build:*)",
       "Bash(curl:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(move \"e:\\\\Development\\\\areadoaluno\\\\landing\\\\*\" \"e:\\\\Development\\\\areadoaluno\\\\public\\\\landing\"\")"
     ],
     "deny": [],
     "ask": []
