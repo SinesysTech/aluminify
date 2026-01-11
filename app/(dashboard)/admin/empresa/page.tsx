@@ -276,6 +276,25 @@ export default function EmpresaPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Brand Customization Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Personalização da Marca</CardTitle>
+          <CardDescription>
+            Personalize a identidade visual da sua empresa: logos, cores e fontes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BrandCustomizationPanel
+            empresaId={empresa.id}
+            currentBranding={currentBranding}
+            onSave={handleBrandingSave}
+            onReset={handleBrandingReset}
+            onCancel={handleBrandingCancel}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   User,
+  Palette,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -43,6 +44,11 @@ const empresaNavItems: NavItem[] = [
     title: "Configurações da Empresa",
     url: "/admin/empresa",
     icon: Settings,
+  },
+  {
+    title: "Personalização da Marca",
+    url: "/admin/empresa/branding",
+    icon: Palette,
   },
   {
     title: "Administradores",
