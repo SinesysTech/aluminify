@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated files that should not be linted
     "lib/database.types.ts",
+    // SQL migrations/seeds are not linted by ESLint in this repo
+    "**/*.sql",
   ]),
   {
     rules: {
