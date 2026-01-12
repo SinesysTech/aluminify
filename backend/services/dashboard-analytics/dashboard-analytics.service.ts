@@ -827,7 +827,22 @@ export class DashboardAnalyticsService {
       .eq('id', alunoId)
       .maybeSingle()
 
-    const isProfessor = !!professorData
+    // Fallback: alguns usuários (ex.: superadmin) podem não ter registro em `professores`,
+    // mas ainda assim devem ter acesso “tipo professor” (todos os cursos).
+    let isProfessor = !!professorData
+    if (!isProfessor) {
+      try {
+        const { data: authUser } = await client.auth.admin.getUserById(alunoId)
+        const role = (authUser?.user?.user_metadata?.role as string | undefined) ?? undefined
+        if (role === 'professor' || role === 'superadmin') {
+          isProfessor = true
+        }
+      } catch (e) {
+        // Se falhar, mantém o comportamento atual (aluno).
+        console.warn('[dashboard-analytics] Não foi possível ler role do usuário via auth.admin:', e)
+      }
+    }
+
     let cursoIds: string[] = []
 
     if (isProfessor) {
@@ -841,6 +856,14 @@ export class DashboardAnalyticsService {
       cursoIds = (alunosCursos ?? []).map((ac: { curso_id: string }) => ac.curso_id)
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dashboard-analytics] strategicDomain: scope', {
+        alunoId,
+        isProfessor,
+        cursoIdsCount: cursoIds.length,
+      })
+    }
+
     if (cursoIds.length === 0) return empty
 
     // 2) Disciplinas dos cursos
@@ -848,6 +871,12 @@ export class DashboardAnalyticsService {
       .from('cursos_disciplinas')
       .select('disciplina_id, curso_id')
       .in('curso_id', cursoIds)
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dashboard-analytics] strategicDomain: cursos_disciplinas', {
+        rows: cursosDisciplinas?.length ?? 0,
+      })
+    }
 
     if (!cursosDisciplinas || cursosDisciplinas.length === 0) return empty
 
@@ -870,6 +899,12 @@ export class DashboardAnalyticsService {
       (f: { curso_id: string | null }) => !f.curso_id || cursoIds.includes(f.curso_id),
     )
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dashboard-analytics] strategicDomain: frentes', {
+        frentes: frentesFiltradas.length,
+      })
+    }
+
     if (frentesFiltradas.length === 0) return empty
 
     const frenteIds = frentesFiltradas.map((f: { id: string }) => f.id)
@@ -888,6 +923,16 @@ export class DashboardAnalyticsService {
     const modulosFiltrados = (todosModulos ?? []).filter(
       (m: { curso_id: string | null }) => !m.curso_id || cursoIds.includes(m.curso_id),
     )
+
+    if (process.env.NODE_ENV === 'development') {
+      const baseCount = modulosFiltrados.filter((m: { importancia: ModuloImportancia | null }) => m.importancia === 'Base').length
+      const altaCount = modulosFiltrados.filter((m: { importancia: ModuloImportancia | null }) => m.importancia === 'Alta').length
+      console.log('[dashboard-analytics] strategicDomain: modulos', {
+        modulos: modulosFiltrados.length,
+        baseCount,
+        altaCount,
+      })
+    }
 
     if (modulosFiltrados.length === 0) return empty
 
@@ -911,6 +956,14 @@ export class DashboardAnalyticsService {
       .map((m: { id: string }) => m.id)
 
     const strategicModuleIds = [...new Set([...baseModuleIds, ...highRecurrenceModuleIds])]
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dashboard-analytics] strategicDomain: strategicModuleIds', {
+        baseModuleIds: baseModuleIds.length,
+        highRecurrenceModuleIds: highRecurrenceModuleIds.length,
+        total: strategicModuleIds.length,
+      })
+    }
+
     if (strategicModuleIds.length === 0) return empty
 
     // 5) Flashcards (memória): mapear flashcard_id -> modulo_id e agregar feedback
@@ -928,6 +981,12 @@ export class DashboardAnalyticsService {
         return f.id
       })
       .filter(Boolean)
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dashboard-analytics] strategicDomain: flashcards', {
+        flashcardsInStrategicModules: flashcardIds.length,
+      })
+    }
 
     if (flashcardIds.length > 0) {
       const progressosFlashcards: Array<{ flashcard_id: string; ultimo_feedback: number | null }> = []
@@ -959,6 +1018,16 @@ export class DashboardAnalyticsService {
         curr.count += 1
         flashAggByModulo.set(moduloId, curr)
       }
+
+      if (process.env.NODE_ENV === 'development') {
+        let totalCount = 0
+        for (const v of flashAggByModulo.values()) totalCount += v.count
+        console.log('[dashboard-analytics] strategicDomain: progresso_flashcards', {
+          rows: progressosFlashcards.length,
+          aggregatedCount: totalCount,
+          modulesWithEvidence: flashAggByModulo.size,
+        })
+      }
     }
 
     // 6) Questões (aplicação): progresso_atividades -> atividades(modulo_id)
@@ -974,6 +1043,12 @@ export class DashboardAnalyticsService {
 
     if (progAtvError) {
       console.error('[dashboard-analytics] Erro ao buscar progresso_atividades:', progAtvError)
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[dashboard-analytics] strategicDomain: progresso_atividades', {
+        rows: progressosAtividades?.length ?? 0,
+      })
     }
 
     const atividadeIds = [...new Set((progressosAtividades ?? []).map((p: { atividade_id: string }) => p.atividade_id))]
@@ -1012,6 +1087,15 @@ export class DashboardAnalyticsService {
       curr.acertos += acertos
       curr.totais += totais
       questionsAggByModulo.set(moduloId, curr)
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      let totais = 0
+      for (const v of questionsAggByModulo.values()) totais += v.totais
+      console.log('[dashboard-analytics] strategicDomain: questionsAggByModulo', {
+        modulesWithEvidence: questionsAggByModulo.size,
+        summedTotais: totais,
+      })
     }
 
     const axisFlashcardsScore = (moduleIds: string[]) => {

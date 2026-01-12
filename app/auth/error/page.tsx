@@ -1,13 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import * as React from 'react'
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  // Desempacotar imediatamente para evitar serialização pelo React DevTools
-  const params = React.use(searchParams)
+  const params = await searchParams
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
