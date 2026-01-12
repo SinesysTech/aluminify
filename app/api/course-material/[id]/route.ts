@@ -3,8 +3,14 @@ import {
   courseMaterialService,
   CourseMaterialNotFoundError,
   CourseMaterialValidationError,
+  createCourseMaterialService,
 } from '@/backend/services/course-material';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import {
+  requireAuth,
+  requireUserAuth,
+  AuthenticatedRequest,
+} from '@/backend/auth/middleware';
+import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database';
 
 const serializeCourseMaterial = (
   material: Awaited<ReturnType<typeof courseMaterialService.getById>>,
@@ -37,11 +43,23 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-// GET - RLS filtra automaticamente (alunos veem apenas materiais de cursos matriculados)
-export async function GET(_request: NextRequest, context: RouteContext) {
+function getBearerToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  return authHeader.substring(7).trim() || null;
+}
+
+// GET - exige JWT para aplicar RLS (alunos veem apenas materiais de cursos matriculados)
+async function getHandler(request: AuthenticatedRequest, params: { id: string }) {
   try {
-    const params = await context.params;
-    const material = await courseMaterialService.getById(params.id);
+    const token = getBearerToken(request);
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userClient = getDatabaseClientAsUser(token);
+    const userScopedService = createCourseMaterialService(userClient);
+    const material = await userScopedService.getById(params.id);
     return NextResponse.json({ data: serializeCourseMaterial(material) });
   } catch (error) {
     return handleError(error);
@@ -56,14 +74,64 @@ async function putHandler(request: AuthenticatedRequest, params: { id: string })
 
   try {
     const body = await request.json();
-    const material = await courseMaterialService.update(params.id, {
-      title: body?.title,
-      description: body?.description,
-      type: body?.type,
-      fileUrl: body?.fileUrl,
-      order: body?.order,
-    });
-    return NextResponse.json({ data: serializeCourseMaterial(material) });
+
+    const token = getBearerToken(request);
+
+    // JWT: usar client user-scoped (RLS faz a validação)
+    if (request.user && token) {
+      const userClient = getDatabaseClientAsUser(token);
+      const userScopedService = createCourseMaterialService(userClient);
+      const material = await userScopedService.update(params.id, {
+        title: body?.title,
+        description: body?.description,
+        type: body?.type,
+        fileUrl: body?.fileUrl,
+        order: body?.order,
+      });
+      return NextResponse.json({ data: serializeCourseMaterial(material) });
+    }
+
+    // API Key: validar tenant manualmente (service role bypassa RLS)
+    if (request.apiKey) {
+      const db = getDatabaseClient();
+
+      const { data: professor, error: profError } = await db
+        .from('professores')
+        .select('empresa_id')
+        .eq('id', request.apiKey.createdBy)
+        .maybeSingle();
+
+      if (profError) throw new Error(`Falha ao validar professor da API key: ${profError.message}`);
+
+      const empresaId = (professor as { empresa_id?: string | null } | null)?.empresa_id ?? null;
+      if (!empresaId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      // Garantir que o material pertence à empresa do criador da chave
+      const { data: scopedMaterial, error: scopedErr } = await db
+        .from('materiais_curso')
+        .select('id')
+        .eq('id', params.id)
+        .eq('empresa_id', empresaId)
+        .maybeSingle();
+
+      if (scopedErr) throw new Error(`Falha ao validar material: ${scopedErr.message}`);
+      if (!scopedMaterial) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+
+      const material = await courseMaterialService.update(params.id, {
+        title: body?.title,
+        description: body?.description,
+        type: body?.type,
+        fileUrl: body?.fileUrl,
+        order: body?.order,
+      });
+      return NextResponse.json({ data: serializeCourseMaterial(material) });
+    }
+
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   } catch (error) {
     return handleError(error);
   }
@@ -76,8 +144,51 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
   }
 
   try {
-    await courseMaterialService.delete(params.id);
-    return NextResponse.json({ success: true });
+    const token = getBearerToken(request);
+
+    // JWT: usar client user-scoped (RLS faz a validação)
+    if (request.user && token) {
+      const userClient = getDatabaseClientAsUser(token);
+      const userScopedService = createCourseMaterialService(userClient);
+      await userScopedService.delete(params.id);
+      return NextResponse.json({ success: true });
+    }
+
+    // API Key: validar tenant manualmente (service role bypassa RLS)
+    if (request.apiKey) {
+      const db = getDatabaseClient();
+
+      const { data: professor, error: profError } = await db
+        .from('professores')
+        .select('empresa_id')
+        .eq('id', request.apiKey.createdBy)
+        .maybeSingle();
+
+      if (profError) throw new Error(`Falha ao validar professor da API key: ${profError.message}`);
+
+      const empresaId = (professor as { empresa_id?: string | null } | null)?.empresa_id ?? null;
+      if (!empresaId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      // Garantir que o material pertence à empresa do criador da chave
+      const { data: scopedMaterial, error: scopedErr } = await db
+        .from('materiais_curso')
+        .select('id')
+        .eq('id', params.id)
+        .eq('empresa_id', empresaId)
+        .maybeSingle();
+
+      if (scopedErr) throw new Error(`Falha ao validar material: ${scopedErr.message}`);
+      if (!scopedMaterial) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+
+      await courseMaterialService.delete(params.id);
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   } catch (error) {
     return handleError(error);
   }
@@ -91,5 +202,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   return requireAuth((req) => deleteHandler(req, params))(request);
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return requireUserAuth((req) => getHandler(req, params))(request);
 }
 

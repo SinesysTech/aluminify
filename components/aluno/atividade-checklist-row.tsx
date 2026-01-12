@@ -33,15 +33,20 @@ interface AtividadeChecklistRowProps {
 function getDificuldadeColor(dificuldade: DificuldadePercebida): string {
   switch (dificuldade) {
     case 'Muito Facil':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      // Muito fácil: roxo (referência: paleta "status" do app, mantendo harmonia)
+      return 'border-transparent bg-violet-200 text-black dark:bg-violet-600 dark:text-white'
     case 'Facil':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      // Fácil: azul (próximo do status-info dos Flashcards)
+      return 'border-transparent bg-blue-200 text-black dark:bg-blue-600 dark:text-white'
     case 'Medio':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+      // Médio: amarelo (próximo do status-warning dos Flashcards)
+      return 'border-transparent bg-yellow-300 text-black dark:bg-yellow-700 dark:text-white'
     case 'Dificil':
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+      // Difícil: laranja
+      return 'border-transparent bg-orange-300 text-black dark:bg-orange-700 dark:text-white'
     case 'Muito Dificil':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      // Muito difícil: vermelho bem intenso
+      return 'border-transparent bg-red-300 text-black dark:bg-red-700 dark:text-white'
     default:
       return ''
   }
@@ -57,6 +62,8 @@ export function AtividadeChecklistRow({
   const [error, setError] = React.useState<string | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
   const [pdfModalOpen, setPdfModalOpen] = React.useState(false)
+
+  const isReadOnly = !onStatusChange && !onStatusChangeWithDesempenho
 
   const status = atividade.progressoStatus || 'Pendente'
   const precisaModal = atividadeRequerDesempenho(atividade.tipo)
@@ -78,6 +85,7 @@ export function AtividadeChecklistRow({
   }
 
   const handleCheckboxChange = async (checked: boolean) => {
+    if (isReadOnly) return
     if (isUpdating) return
 
     if (!checked) {
@@ -121,6 +129,7 @@ export function AtividadeChecklistRow({
   }
 
   const handleIniciar = async () => {
+    if (isReadOnly) return
     await handleStatusChange('Iniciado')
   }
 
@@ -144,10 +153,10 @@ export function AtividadeChecklistRow({
 
   const statusBadgeColor =
     isConcluido
-      ? 'bg-green-500/10 text-green-700 dark:text-green-400'
+      ? 'border-transparent bg-green-200 text-black dark:bg-green-600 dark:text-white'
       : isIniciado
-        ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
-        : 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
+        ? 'border-transparent bg-blue-200 text-black dark:bg-blue-600 dark:text-white'
+        : 'border-transparent bg-slate-200 text-black dark:bg-slate-600 dark:text-white'
 
   return (
     <>
@@ -157,7 +166,7 @@ export function AtividadeChecklistRow({
             <Checkbox
               checked={isConcluido}
               onCheckedChange={handleCheckboxChange}
-              disabled={isUpdating}
+              disabled={isUpdating || isReadOnly}
               className="h-5 w-5"
             />
           </div>
@@ -257,7 +266,7 @@ export function AtividadeChecklistRow({
                 variant="outline"
                 size="sm"
                 onClick={handleIniciar}
-                disabled={isUpdating}
+                disabled={isUpdating || isReadOnly}
               >
                 {isUpdating ? (
                   <>

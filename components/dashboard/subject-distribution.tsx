@@ -28,7 +28,7 @@ export function SubjectDistribution({
     <Card>
       <CardContent className="px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center gap-2 mb-4 md:mb-6">
-          <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
+          <h2 className="text-foreground text-base md:text-lg font-semibold">
             Distribuição por Disciplina
           </h2>
           <TooltipProvider delayDuration={200}>
@@ -36,7 +36,7 @@ export function SubjectDistribution({
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                  className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                   aria-label="Informações sobre distribuição por disciplina"
                 >
                   <Info className="h-4 w-4" />
@@ -76,9 +76,9 @@ export function SubjectDistribution({
                 cy="18"
                 r={radius}
                 fill="none"
-                stroke="#e6e6e6"
+                stroke="currentColor"
                 strokeWidth="4"
-                className="dark:stroke-slate-700"
+                className="text-muted"
               />
               {/* Segmentos do gráfico */}
               {itemsWithOffsets.map(({ item, offset }, index) => {
@@ -102,10 +102,10 @@ export function SubjectDistribution({
             </svg>
             {/* Texto central */}
             <div className="absolute flex flex-col items-center">
-              <span className="text-slate-500 dark:text-slate-400 text-sm">
+              <span className="text-muted-foreground text-sm">
                 Total
               </span>
-              <span className="text-slate-900 dark:text-slate-50 text-xl font-bold">
+              <span className="text-foreground text-xl font-bold">
                 {totalHours}h
               </span>
             </div>
@@ -119,7 +119,7 @@ export function SubjectDistribution({
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="text-sm text-slate-600 dark:text-slate-400">
+              <span className="text-sm text-muted-foreground">
                 {item.name} - {item.percentage}%
               </span>
             </div>

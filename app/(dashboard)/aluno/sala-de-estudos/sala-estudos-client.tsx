@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SalaEstudosFilters } from '@/components/aluno/sala-estudos-filters'
 import { ModuloActivitiesAccordion } from '@/components/aluno/modulo-activities-accordion'
 import { ProgressoStatsCard } from '@/components/aluno/progresso-stats-card'
+import { useCurrentUser } from '@/components/providers/user-provider'
 import {
   AtividadeComProgresso,
   ModuloComAtividades,
@@ -52,6 +53,7 @@ export default function SalaEstudosClientPage({
   title = 'Sala de Estudos',
   description = 'Checklist e acompanhamento do seu progresso nas atividades',
 }: SalaEstudosClientProps) {
+  const currentUser = useCurrentUser()
   const supabase = createClient()
 
   const [atividades, setAtividades] = React.useState<AtividadeComProgresso[]>([])
@@ -69,48 +71,24 @@ export default function SalaEstudosClientPage({
   // Estrutura hierárquica agrupada
   const [estruturaHierarquica, setEstruturaHierarquica] = React.useState<CursoComDisciplinas[]>([])
 
-  // Buscar usuário autenticado e detectar role
+  // Usar o usuário do layout (respeita impersonação)
   React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        
-        if (userError) {
-          console.error('Erro ao buscar usuário:', userError)
-          const errorMsg = formatSupabaseError(userError)
-          setError(`Erro de autenticação: ${errorMsg}`)
-          return
-        }
+    // `currentUser` já vem autenticado pelo layout.
+    // Em modo impersonação, `currentUser.id` já é o aluno impersonado.
+    setUserRole(currentUser.role)
+    setAlunoId(currentUser.id)
+  }, [currentUser.id, currentUser.role])
 
-        if (!user) {
-          setError('Usuário não autenticado')
-          return
-        }
-
-        // Detectar role do usuário
-        const role = (user.user_metadata?.role as string) || 'aluno'
-        setUserRole(role)
-
-        // Usar o ID do usuário como aluno_id (mesmo para professores, para buscar progresso se necessário)
-        setAlunoId(user.id)
-      } catch (err) {
-        console.error('Erro ao buscar usuário:', err)
-        const errorMessage = formatSupabaseError(err)
-        setError(`Erro ao carregar dados do usuário: ${errorMessage}`)
-      }
-    }
-
-    fetchUser()
-  }, [supabase])
+  // Em modo impersonação, a UI deve ser somente leitura
+  // (evita gravar progresso no usuário real por engano)
+  const isReadOnlyImpersonation = React.useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return Boolean((currentUser as any)?._impersonationContext)
+  }, [currentUser])
 
   // Extrair cursos, disciplinas e frentes da estrutura hierárquica
   React.useEffect(() => {
-    if (estruturaHierarquica.length === 0) {
-      setCursos([])
-      setDisciplinas([])
-      setFrentes([])
-      return
-    }
+    if (estruturaHierarquica.length === 0) return
 
     // Extrair cursos únicos
     const cursosUnicos = estruturaHierarquica.map((curso) => ({
@@ -173,6 +151,14 @@ export default function SalaEstudosClientPage({
       try {
         setIsLoadingAtividades(true)
         setError(null)
+        setAtividades([])
+        setEstruturaHierarquica([])
+        setCursos([])
+        setDisciplinas([])
+        setFrentes([])
+        setCursoSelecionado('')
+        setDisciplinaSelecionada('')
+        setFrenteSelecionada('')
 
         // Verificar se há sessão ativa
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -185,6 +171,136 @@ export default function SalaEstudosClientPage({
 
         if (!session) {
           throw new Error('Sessão não encontrada. Faça login novamente.')
+        }
+
+        // ======================================================
+        // ALUNO: buscar via backend (mesmo padrão do cronograma)
+        // ======================================================
+        if (userRole !== 'professor' && userRole !== 'superadmin') {
+          const response = await fetch(`/api/atividade/aluno/${alunoId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(errorData?.error || 'Erro ao carregar atividades do aluno')
+          }
+
+          const payload = (await response.json()) as { data?: AtividadeComProgresso[] }
+          const atividadesComProgresso = (payload.data || []).slice()
+
+          // Se não houver atividades, ainda assim listar cursos do aluno (para o filtro não ficar vazio)
+          if (atividadesComProgresso.length === 0) {
+            const cursosResp = await fetch(`/api/aluno/cursos/${alunoId}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+            })
+
+            if (cursosResp.ok) {
+              const cursosPayload = (await cursosResp.json()) as { data?: Array<{ id: string; nome: string }> }
+              setCursos(cursosPayload.data || [])
+              // Mantém estrutura vazia: sem atividades ainda não há disciplinas/frentes/módulos para exibir
+              return
+            }
+          }
+
+          // Ordenar (mesmo critério da UI atual)
+          atividadesComProgresso.sort((a, b) => {
+            if (a.cursoNome !== b.cursoNome) {
+              return a.cursoNome.localeCompare(b.cursoNome)
+            }
+            if (a.disciplinaNome !== b.disciplinaNome) {
+              return a.disciplinaNome.localeCompare(b.disciplinaNome)
+            }
+            if (a.frenteNome !== b.frenteNome) {
+              return a.frenteNome.localeCompare(b.frenteNome)
+            }
+            const numA = a.moduloNumero ?? 0
+            const numB = b.moduloNumero ?? 0
+            if (numA !== numB) {
+              return numA - numB
+            }
+            return (a.ordemExibicao ?? 0) - (b.ordemExibicao ?? 0)
+          })
+
+          setAtividades(atividadesComProgresso)
+
+          // Agrupar em estrutura hierárquica (reaproveita mesma lógica)
+          const estrutura: CursoComDisciplinas[] = []
+          const cursosMapEstrutura = new Map<string, CursoComDisciplinas>()
+          const disciplinasMapEstrutura = new Map<string, DisciplinaComFrentes>()
+          const frentesMapEstrutura = new Map<string, FrenteComModulos>()
+          const modulosMapEstrutura = new Map<string, ModuloComAtividades>()
+
+          atividadesComProgresso.forEach((atividade) => {
+            // Curso
+            if (!cursosMapEstrutura.has(atividade.cursoId)) {
+              const curso: CursoComDisciplinas = {
+                id: atividade.cursoId,
+                nome: atividade.cursoNome,
+                disciplinas: [],
+              }
+              cursosMapEstrutura.set(atividade.cursoId, curso)
+              estrutura.push(curso)
+            }
+
+            const curso = cursosMapEstrutura.get(atividade.cursoId)!
+
+            // Disciplina
+            const discKey = `${atividade.cursoId}-${atividade.disciplinaId}`
+            if (!disciplinasMapEstrutura.has(discKey)) {
+              const disciplina: DisciplinaComFrentes = {
+                id: atividade.disciplinaId,
+                nome: atividade.disciplinaNome,
+                frentes: [],
+              }
+              disciplinasMapEstrutura.set(discKey, disciplina)
+              curso.disciplinas.push(disciplina)
+            }
+
+            const disciplina = disciplinasMapEstrutura.get(discKey)!
+
+            // Frente
+            const frenteKey = `${atividade.disciplinaId}-${atividade.frenteId}`
+            if (!frentesMapEstrutura.has(frenteKey)) {
+              const frente: FrenteComModulos = {
+                id: atividade.frenteId,
+                nome: atividade.frenteNome,
+                disciplinaId: atividade.disciplinaId,
+                modulos: [],
+              }
+              frentesMapEstrutura.set(frenteKey, frente)
+              disciplina.frentes.push(frente)
+            }
+
+            const frente = frentesMapEstrutura.get(frenteKey)!
+
+            // Módulo
+            if (!modulosMapEstrutura.has(atividade.moduloId)) {
+              const modulo: ModuloComAtividades = {
+                id: atividade.moduloId,
+                nome: atividade.moduloNome,
+                numeroModulo: atividade.moduloNumero,
+                frenteId: atividade.frenteId,
+                atividades: [],
+              }
+              modulosMapEstrutura.set(atividade.moduloId, modulo)
+              frente.modulos.push(modulo)
+            }
+
+            const modulo = modulosMapEstrutura.get(atividade.moduloId)!
+            modulo.atividades.push(atividade)
+          })
+
+          setEstruturaHierarquica(estrutura)
+          return
         }
 
         let cursoIds: string[] = []
@@ -953,8 +1069,8 @@ export default function SalaEstudosClientPage({
                         <ModuloActivitiesAccordion
                           key={modulo.id}
                           modulo={modulo}
-                          onStatusChange={handleStatusChange}
-                          onStatusChangeWithDesempenho={handleStatusChangeWithDesempenho}
+                          onStatusChange={isReadOnlyImpersonation ? undefined : handleStatusChange}
+                          onStatusChangeWithDesempenho={isReadOnlyImpersonation ? undefined : handleStatusChangeWithDesempenho}
                         />
                       ))}
                     </div>

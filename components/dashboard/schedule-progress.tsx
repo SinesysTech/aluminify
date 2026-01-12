@@ -37,7 +37,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
         <div className="flex flex-col gap-3 md:gap-4">
           <div className="flex justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
+              <h2 className="text-foreground text-base md:text-lg font-semibold">
                 Progresso do Cronograma
               </h2>
             <TooltipProvider delayDuration={200}>
@@ -45,7 +45,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                     aria-label="Informações sobre o progresso do cronograma"
                   >
                     <Info className="h-4 w-4" />
@@ -77,10 +77,10 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
               {value}%
             </span>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">
+          <p className="text-muted-foreground text-sm md:text-base">
             Você completou {value}% do cronograma previsto.
           </p>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+          <div className="w-full bg-muted rounded-full h-2.5">
             <div
               className={cn('h-2.5 rounded-full transition-all', getColorClass())}
               style={{ width: `${value}%` }}

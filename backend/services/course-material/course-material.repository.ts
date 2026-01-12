@@ -88,8 +88,24 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
   }
 
   async create(payload: CreateCourseMaterialInput): Promise<CourseMaterial> {
+    const { data: course, error: courseError } = await this.client
+      .from(COURSE_TABLE)
+      .select('empresa_id')
+      .eq('id', payload.courseId)
+      .maybeSingle();
+
+    if (courseError) {
+      throw new Error(`Failed to fetch course empresa_id: ${courseError.message}`);
+    }
+
+    const empresaId = (course as { empresa_id?: string | null } | null)?.empresa_id ?? null;
+    if (!empresaId) {
+      throw new Error(`Course "${payload.courseId}" does not have empresa_id (inconsistent data)`);
+    }
+
     const insertData: Record<string, unknown> = {
       curso_id: payload.courseId,
+      empresa_id: empresaId,
       titulo: payload.title,
       descricao_opcional: payload.description ?? null,
       tipo: payload.type || 'Apostila',

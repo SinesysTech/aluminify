@@ -20,12 +20,12 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-slate-900 dark:text-slate-50 text-3xl font-bold leading-tight">
+        <h1 className="text-foreground text-3xl font-bold leading-tight">
           {getGreeting()}, {user.name}!
         </h1>
         <div className="flex items-center gap-2">
           <Flame className="text-orange-500 fill-orange-500" size={20} />
-          <p className="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">
+          <p className="text-muted-foreground text-base font-normal leading-normal">
             {user.streakDays} {user.streakDays === 1 ? 'Dia seguido' : 'Dias seguidos'}
           </p>
         </div>

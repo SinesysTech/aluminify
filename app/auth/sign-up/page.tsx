@@ -121,7 +121,7 @@ export default function SignUpPage() {
         <p>
           Já tem uma conta?{' '}
           <Link
-            href="/auth/login"
+            href="/auth"
             className="font-medium text-primary hover:underline"
           >
             Fazer login

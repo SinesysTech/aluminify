@@ -13,6 +13,7 @@ function serializeAtividadeComProgresso(atividade: Awaited<ReturnType<typeof ati
     linkExterno: atividade.linkExterno,
     obrigatorio: atividade.obrigatorio,
     ordemExibicao: atividade.ordemExibicao,
+    createdBy: atividade.createdBy,
     createdAt: atividade.createdAt.toISOString(),
     updatedAt: atividade.updatedAt.toISOString(),
     moduloNome: atividade.moduloNome,
@@ -26,6 +27,10 @@ function serializeAtividadeComProgresso(atividade: Awaited<ReturnType<typeof ati
     progressoStatus: atividade.progressoStatus,
     progressoDataInicio: atividade.progressoDataInicio?.toISOString() || null,
     progressoDataConclusao: atividade.progressoDataConclusao?.toISOString() || null,
+    questoesTotais: atividade.questoesTotais,
+    questoesAcertos: atividade.questoesAcertos,
+    dificuldadePercebida: atividade.dificuldadePercebida,
+    anotacoesPessoais: atividade.anotacoesPessoais,
   };
 }
 

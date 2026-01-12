@@ -38,7 +38,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
     <Card>
       <CardContent className="px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center gap-2 mb-4 md:mb-6">
-          <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
+          <h2 className="text-foreground text-base md:text-lg font-semibold">
             Eficiência de Foco
           </h2>
           <TooltipProvider delayDuration={200}>
@@ -46,7 +46,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                  className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                   aria-label="Informações sobre eficiência de foco"
                 >
                   <Info className="h-4 w-4" />
@@ -95,7 +95,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                   <div className="relative flex h-full w-full items-end gap-1 justify-center">
                     {/* Barra de Tempo Bruto (Cinza) */}
                     <div
-                      className="relative w-4 rounded-t bg-slate-300 dark:bg-slate-700"
+                      className="relative w-4 rounded-t bg-muted-foreground/20"
                       style={{ height: `${grossHeight}%` }}
                       title={`${day.day}: Tempo Bruto ${formatTime(day.grossTime)}`}
                     >
@@ -109,7 +109,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                       />
                     </div>
                   </div>
-                  <span className="text-xs text-slate-500">{day.day}</span>
+                  <span className="text-xs text-muted-foreground">{day.day}</span>
                 </div>
               )
             })}
@@ -117,16 +117,42 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
         </div>
         <div className="flex items-center justify-center gap-6 pt-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700" />
-            <span className="text-sm text-slate-600 dark:text-slate-400">
-              Tempo Bruto
-            </span>
+            <div className="w-3 h-3 rounded-full bg-muted-foreground/20" />
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-sm text-muted-foreground underline decoration-dotted underline-offset-2"
+                    aria-label="O que é tempo bruto?"
+                  >
+                    Tempo Bruto
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="center" className="max-w-xs">
+                  Tempo total da sessão (inclui pausas e tempo sem foco).
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-sm text-slate-600 dark:text-slate-400">
-              Tempo Líquido
-            </span>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-sm text-muted-foreground underline decoration-dotted underline-offset-2"
+                    aria-label="O que é tempo líquido?"
+                  >
+                    Tempo Líquido
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="center" className="max-w-xs">
+                  Tempo efetivamente estudado (tempo bruto menos pausas).
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </CardContent>

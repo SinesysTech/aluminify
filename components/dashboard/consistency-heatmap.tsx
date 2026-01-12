@@ -35,7 +35,7 @@ export function ConsistencyHeatmap({
   const getIntensityClass = (intensity: number) => {
     switch (intensity) {
       case 0:
-        return 'bg-slate-200 dark:bg-slate-800'
+        return 'bg-muted'
       case 1:
         return 'bg-green-100 dark:bg-green-900/30'
       case 2:
@@ -45,7 +45,7 @@ export function ConsistencyHeatmap({
       case 4:
         return 'bg-green-600 dark:bg-green-600'
       default:
-        return 'bg-slate-200 dark:bg-slate-800'
+        return 'bg-muted'
     }
   }
 
@@ -68,7 +68,7 @@ export function ConsistencyHeatmap({
       <CardContent className="px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
+            <h2 className="text-foreground text-base md:text-lg font-semibold">
               Constância de Estudo
             </h2>
             <TooltipProvider delayDuration={200}>
@@ -76,7 +76,7 @@ export function ConsistencyHeatmap({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                     aria-label="Informações sobre constância de estudo"
                   >
                     <Info className="h-4 w-4" />

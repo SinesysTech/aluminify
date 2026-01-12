@@ -77,7 +77,12 @@ async function patchHandler(request: AuthenticatedRequest, params: { atividadeId
       if (atividadeRequerDesempenho(atividade.tipo)) {
         // Validar dados de desempenho
         const desempenho = body.desempenho;
-        if (!desempenho.questoesTotais || !desempenho.questoesAcertos || !desempenho.dificuldadePercebida) {
+        // Importante: questoesAcertos pode ser 0, então não podemos validar com "falsy"
+        if (
+          desempenho.questoesTotais == null ||
+          desempenho.questoesAcertos == null ||
+          desempenho.dificuldadePercebida == null
+        ) {
           return NextResponse.json(
             { error: 'Este tipo de atividade requer registro completo de desempenho (questões totais, acertos e dificuldade)' },
             { status: 400 }

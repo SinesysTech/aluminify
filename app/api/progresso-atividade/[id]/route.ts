@@ -47,14 +47,26 @@ interface RouteContext {
 }
 
 // GET: Buscar progresso por ID
-export async function GET(_request: NextRequest, context: RouteContext) {
+async function getHandler(request: AuthenticatedRequest, params: { id: string }) {
   try {
-    const params = await context.params;
     const progresso = await progressoAtividadeService.getProgressoById(params.id);
+
+    // Verificar permissão: aluno só pode ver seu próprio progresso
+    if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+      if (request.user.id !== progresso.alunoId) {
+        return NextResponse.json({ error: 'Forbidden: You can only access your own progress' }, { status: 403 });
+      }
+    }
+
     return NextResponse.json({ data: serializeProgresso(progresso) });
   } catch (error) {
     return handleError(error);
   }
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return requireAuth((req) => getHandler(req, params))(request);
 }
 
 // PATCH: Atualizar progresso

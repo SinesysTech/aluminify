@@ -56,10 +56,24 @@ export class ProgressoAtividadeService {
     };
 
     // Definir datas conforme o status
-    if (status === 'Iniciado') {
+    if (status === 'Pendente') {
+      // Resetar progresso (mantém consistência para estatísticas/relatórios)
+      updateData.dataInicio = null;
+      updateData.dataConclusao = null;
+      updateData.questoesTotais = 0;
+      updateData.questoesAcertos = 0;
+      updateData.dificuldadePercebida = null;
+      updateData.anotacoesPessoais = null;
+    } else if (status === 'Iniciado') {
       if (!progresso.dataInicio) {
         updateData.dataInicio = new Date();
       }
+      // Se estava concluído e voltou para iniciado, remover conclusão e desempenho
+      updateData.dataConclusao = null;
+      updateData.questoesTotais = 0;
+      updateData.questoesAcertos = 0;
+      updateData.dificuldadePercebida = null;
+      updateData.anotacoesPessoais = null;
     } else if (status === 'Concluido') {
       if (!progresso.dataInicio) {
         updateData.dataInicio = new Date();

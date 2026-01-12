@@ -60,10 +60,42 @@ type Modulo = {
 }
 
 const MODOS = [
-  { id: 'mais_cobrados', title: '🔥 Mais Cobrados', desc: 'Foco no que cai na prova' },
-  { id: 'revisao_geral', title: '🧠 Revisão Geral', desc: 'Conteúdo misto' },
-  { id: 'mais_errados', title: '🚑 UTI dos Erros', desc: 'Foco nas dificuldades' },
-  { id: 'personalizado', title: '🎯 Personalizado', desc: 'Escolha curso, frente e módulo' },
+  {
+    id: 'mais_cobrados',
+    title: '🔥 Mais Cobrados',
+    desc: 'Foco no que cai na prova',
+    tooltip: [
+      'Gera flashcards a partir dos conteúdos/tópicos com maior recorrência em provas.',
+      'Ideal para priorizar estudo com maior retorno.',
+    ],
+  },
+  {
+    id: 'revisao_geral',
+    title: '🧠 Revisão Geral',
+    desc: 'Conteúdo misto',
+    tooltip: [
+      'Gera flashcards variados para uma revisão ampla.',
+      'Bom para manter o conteúdo “em dia” e reforçar memória de longo prazo.',
+    ],
+  },
+  {
+    id: 'mais_errados',
+    title: '🚑 UTI dos Erros',
+    desc: 'Foco nas dificuldades',
+    tooltip: [
+      'Gera flashcards priorizando os pontos onde você costuma ter mais dificuldade (ex.: erros e baixo desempenho).',
+      'Ideal para corrigir fraquezas.',
+    ],
+  },
+  {
+    id: 'personalizado',
+    title: '🎯 Personalizado',
+    desc: 'Escolha curso, frente e módulo',
+    tooltip: [
+      'Você escolhe exatamente o recorte (curso, disciplina, frente e módulo).',
+      'Assim você revisa flashcards específicos daquele conteúdo.',
+    ],
+  },
 ]
 
 export default function FlashcardsClient() {
@@ -522,18 +554,45 @@ export default function FlashcardsClient() {
 
       {/* Modo de seleção */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {MODOS.map((m) => (
-          <Card
-            key={m.id}
-            className={`cursor-pointer transition hover:border-primary ${modo === m.id ? 'border-primary shadow-md' : ''}`}
-            onClick={() => handleSelectModo(m.id)}
-          >
-            <CardHeader>
-              <CardTitle>{m.title}</CardTitle>
-              <CardDescription>{m.desc}</CardDescription>
-            </CardHeader>
-          </Card>
-        ))}
+        <TooltipProvider delayDuration={200}>
+          {MODOS.map((m) => (
+            <Tooltip key={m.id}>
+              <TooltipTrigger asChild>
+                <Card
+                  role="button"
+                  tabIndex={0}
+                  className={`cursor-pointer transition hover:border-primary ${
+                    modo === m.id ? 'border-primary shadow-md' : ''
+                  }`}
+                  onClick={() => handleSelectModo(m.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleSelectModo(m.id)
+                    }
+                  }}
+                >
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between gap-3">
+                      <span>{m.title}</span>
+                      <span className="text-muted-foreground">
+                        <Info className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                    </CardTitle>
+                    <CardDescription>{m.desc}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="start" className="max-w-xs">
+                <div className="space-y-2 text-sm">
+                  {m.tooltip.map((t) => (
+                    <p key={t}>{t}</p>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </TooltipProvider>
       </div>
 
       {/* Filtros para modo personalizado */}
@@ -832,28 +891,28 @@ export default function FlashcardsClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
               <Button 
                 onClick={() => handleFeedback(1)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-error text-status-error-foreground shadow-lg hover:shadow-xl transition hover:brightness-110"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-error text-status-error-foreground shadow-lg transition hover:bg-status-error/90 hover:shadow-xl active:bg-status-error/80 active:shadow-md"
               >
                 <XCircle className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Errei o item</span>
               </Button>
               <Button 
                 onClick={() => handleFeedback(2)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-warning text-status-warning-foreground shadow-lg hover:shadow-xl transition hover:brightness-110"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-warning text-status-warning-foreground shadow-lg transition hover:bg-status-warning/90 hover:shadow-xl active:bg-status-warning/80 active:shadow-md"
               >
                 <AlertTriangle className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei parcialmente</span>
               </Button>
               <Button 
                 onClick={() => handleFeedback(3)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-info text-status-info-foreground shadow-lg hover:shadow-xl transition hover:brightness-110"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-info text-status-info-foreground shadow-lg transition hover:bg-status-info/90 hover:shadow-xl active:bg-status-info/80 active:shadow-md"
               >
                 <Lightbulb className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei com dificuldade</span>
               </Button>
               <Button 
                 onClick={() => handleFeedback(4)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-success text-status-success-foreground shadow-lg hover:shadow-xl transition hover:brightness-110"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-success text-status-success-foreground shadow-lg transition hover:bg-status-success/90 hover:shadow-xl active:bg-status-success/80 active:shadow-md"
               >
                 <CheckCircle2 className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei com facilidade</span>

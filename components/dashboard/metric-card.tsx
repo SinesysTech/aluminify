@@ -40,7 +40,7 @@ function ProgressCircle({ value }: { value: number }) {
           fill="none"
           stroke="currentColor"
           strokeWidth="3"
-          className="text-slate-200 dark:text-slate-700"
+          className="text-border"
         />
         {/* Círculo de progresso */}
         <circle
@@ -76,7 +76,7 @@ export function MetricCard({
       <CardContent className="px-2.5 sm:px-3 md:px-4 lg:px-6 py-3 md:py-4">
         <div className="flex flex-col gap-1.5 sm:gap-2 md:gap-3 min-w-0">
           <div className="flex items-center justify-between gap-1 sm:gap-1.5 md:gap-2 min-w-0">
-            <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 text-slate-600 dark:text-slate-400 min-w-0 flex-1 overflow-hidden">
+            <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 text-muted-foreground min-w-0 flex-1 overflow-hidden">
               {showProgressCircle ? (
                 <div className="shrink-0">
                   <ProgressCircle value={progressValue} />
@@ -85,7 +85,7 @@ export function MetricCard({
                 <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-[18px] lg:w-[18px] shrink-0" />
               ) : null}
               <div className="flex items-center gap-1 min-w-0 flex-1">
-                <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base font-medium break-words leading-tight hyphens-auto">
+                <p className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm lg:text-base font-medium wrap-break-word leading-tight hyphens-auto">
                   {label}
                 </p>
                 {tooltip && (
@@ -94,7 +94,7 @@ export function MetricCard({
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                           aria-label={`Informações sobre ${label}`}
                         >
                           <Info className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
@@ -122,13 +122,13 @@ export function MetricCard({
               </div>
             </div>
           </div>
-          <p className="text-slate-900 dark:text-slate-50 tracking-tight text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold break-words leading-none">
+          <p className="text-foreground tracking-tight text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold wrap-break-word leading-none">
             {value}
           </p>
           {trend ? (
             <p
               className={cn(
-                'text-[10px] sm:text-xs md:text-sm font-medium break-words leading-tight',
+                'text-[10px] sm:text-xs md:text-sm font-medium wrap-break-word leading-tight',
                 trend.isPositive
                   ? 'text-green-600 dark:text-green-500'
                   : 'text-red-600 dark:text-red-500'
@@ -138,11 +138,11 @@ export function MetricCard({
               {trend.value}
             </p>
           ) : subtext ? (
-            <p className="text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs md:text-sm font-medium break-words leading-tight">
+            <p className="text-muted-foreground text-[10px] sm:text-xs md:text-sm font-medium wrap-break-word leading-tight">
               {subtext}
             </p>
           ) : (
-            <p className="text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs md:text-sm font-medium invisible">
+            <p className="text-muted-foreground text-[10px] sm:text-xs md:text-sm font-medium invisible">
               Placeholder
             </p>
           )}

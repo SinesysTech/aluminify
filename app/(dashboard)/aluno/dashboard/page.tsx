@@ -191,7 +191,7 @@ export default function StudentDashboardPage() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-100">
-        <p className="text-slate-500 dark:text-slate-400">
+        <p className="text-muted-foreground">
           Nenhum dado disponível
         </p>
       </div>

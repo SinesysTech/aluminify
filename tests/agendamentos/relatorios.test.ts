@@ -11,13 +11,20 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  throw new Error('Variáveis de ambiente SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são necessárias')
+const hasSupabase = !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY
+const describeIfSupabase = hasSupabase ? describe : describe.skip
+
+if (!hasSupabase) {
+  console.warn(
+    'Supabase environment variables not found. Skipping agendamentos relatorios integration tests.',
+  )
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+const supabase = hasSupabase
+  ? createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+  : (null as unknown as ReturnType<typeof createClient>)
 
-describe('Sistema de Relatórios de Agendamentos', () => {
+describeIfSupabase('Sistema de Relatórios de Agendamentos', () => {
   let testEmpresaId: string
   let testProfessorId: string
   let testAgendamentosIds: string[] = []

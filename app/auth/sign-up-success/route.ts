@@ -91,7 +91,7 @@ export function GET() {
             </div>
 
             <div class="space-y-3">
-                <a href="/auth/login" class="block w-full py-3.5 bg-primary text-white font-bold rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 items-center justify-center gap-2">
+                <a href="/auth" class="block w-full py-3.5 bg-primary text-white font-bold rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 items-center justify-center gap-2">
                     Acessar Console Admin
                     <span class="material-icons-outlined text-sm">arrow_forward</span>
                 </a>

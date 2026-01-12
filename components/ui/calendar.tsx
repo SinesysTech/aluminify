@@ -229,11 +229,11 @@ function CalendarDayButton({
         "data-[selected-single=true]:after:absolute data-[range-middle=true]:after:absolute data-[range-start=true]:after:absolute data-[range-end=true]:after:absolute",
         "data-[selected-single=true]:after:inset-1 data-[range-middle=true]:after:inset-1 data-[range-start=true]:after:inset-1 data-[range-end=true]:after:inset-1",
         "data-[selected-single=true]:after:rounded-md data-[range-middle=true]:after:rounded-none data-[range-start=true]:after:rounded-l-md data-[range-end=true]:after:rounded-r-md",
-        // Background com opacidade ajustada para melhor contraste (10% em ambos os modos)
-        "data-[selected-single=true]:after:bg-primary/10 dark:data-[selected-single=true]:after:bg-primary/10",
-        "data-[range-middle=true]:after:bg-primary/10 dark:data-[range-middle=true]:after:bg-primary/10",
-        "data-[range-start=true]:after:bg-primary/10 dark:data-[range-start=true]:after:bg-primary/10",
-        "data-[range-end=true]:after:bg-primary/10 dark:data-[range-end=true]:after:bg-primary/10",
+        // Destaque mais sutil no modo claro; mantém 10% no dark para não “sumir”
+        "data-[selected-single=true]:after:bg-primary/5 dark:data-[selected-single=true]:after:bg-primary/10",
+        "data-[range-middle=true]:after:bg-primary/5 dark:data-[range-middle=true]:after:bg-primary/10",
+        "data-[range-start=true]:after:bg-primary/5 dark:data-[range-start=true]:after:bg-primary/10",
+        "data-[range-end=true]:after:bg-primary/5 dark:data-[range-end=true]:after:bg-primary/10",
         "data-[selected-single=true]:after:z-0 data-[range-middle=true]:after:z-0 data-[range-start=true]:after:z-0 data-[range-end=true]:after:z-0",
         "data-[selected-single=true]:after:pointer-events-none data-[range-middle=true]:after:pointer-events-none data-[range-start=true]:after:pointer-events-none data-[range-end=true]:after:pointer-events-none",
         // Estilos para o span interno (número do dia) - usa tokens do tema (visível no dark)

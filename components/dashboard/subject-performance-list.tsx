@@ -60,7 +60,7 @@ export function SubjectPerformanceList({
       <CardContent className="px-4 md:px-6 py-3 md:py-4">
         <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-slate-900 dark:text-slate-50 text-base md:text-lg font-semibold">
+            <h2 className="text-foreground text-base md:text-lg font-semibold">
               Performance por Disciplina (Frente)
             </h2>
             <TooltipProvider delayDuration={200}>
@@ -68,7 +68,7 @@ export function SubjectPerformanceList({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                     aria-label="Informações sobre as classificações de performance"
                   >
                     <Info className="h-4 w-4" />
@@ -120,12 +120,12 @@ export function SubjectPerformanceList({
           {sortedSubjects.map((subject) => (
             <div key={subject.id} className="flex flex-col gap-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
+                <span className="font-medium text-foreground">
                   {subject.name} ({subject.front})
                 </span>
-                <span className="font-medium text-slate-500 dark:text-slate-400">
+                <span className="font-medium text-muted-foreground">
                   {subject.isNotStarted ? (
-                    <span className="text-slate-400 dark:text-slate-500 italic">
+                    <span className="text-muted-foreground italic">
                       Não iniciada
                     </span>
                   ) : (
@@ -133,9 +133,9 @@ export function SubjectPerformanceList({
                   )}
                 </span>
               </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+              <div className="w-full bg-muted rounded-full h-2.5">
                 {subject.isNotStarted ? (
-                  <div className="h-2.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                  <div className="h-2.5 rounded-full bg-muted-foreground/25" />
                 ) : (
                   <div
                     className={cn(

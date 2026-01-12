@@ -2193,24 +2193,24 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                 modifiersClassNames={{
                   // hasConcluidas: verde (prioridade máxima - todas as aulas concluídas)
                   hasConcluidas:
-                    'bg-green-50 dark:bg-green-950 border-2 border-green-200 dark:border-green-700 ' +
-                    'text-slate-900 dark:text-foreground [&>button]:text-slate-900 dark:[&>button]:text-foreground [&>button>span]:text-slate-900 dark:[&>button>span]:text-foreground',
+                    'bg-emerald-100/70 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/60 ' +
+                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasPendentes: laranja (prioridade média - algumas aulas concluídas mas não todas)
                   hasPendentes:
-                    'bg-orange-50 dark:bg-orange-950 border-2 border-orange-200 dark:border-orange-700 ' +
-                    'text-slate-900 dark:text-foreground [&>button]:text-slate-900 dark:[&>button]:text-foreground [&>button>span]:text-slate-900 dark:[&>button>span]:text-foreground',
+                    'bg-amber-100/70 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/60 ' +
+                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasAulas: azul (prioridade baixa - tem aulas mas nenhuma concluída)
                   hasAulas:
-                    'bg-blue-50 dark:bg-blue-950 border-2 border-blue-200 dark:border-blue-700 ' +
-                    'text-slate-900 dark:text-foreground [&>button]:text-slate-900 dark:[&>button]:text-foreground [&>button>span]:text-slate-900 dark:[&>button>span]:text-foreground',
+                    'bg-sky-100/70 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-700/60 ' +
+                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasDiasSelecionados: amarelo (prioridade baixa - dia selecionado sem aulas ainda)
                   hasDiasSelecionados:
-                    'bg-yellow-50/50 dark:bg-yellow-950/50 border border-yellow-200 dark:border-yellow-800 ' +
-                    'text-slate-900 dark:text-foreground [&>button]:text-slate-900 dark:[&>button]:text-foreground [&>button>span]:text-slate-900 dark:[&>button>span]:text-foreground',
+                    'bg-yellow-100/60 dark:bg-yellow-900/25 border border-yellow-200 dark:border-yellow-700/60 ' +
+                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasFerias: rosa (períodos de férias e recesso)
                   hasFerias:
-                    'bg-pink-50 dark:bg-pink-950 border-2 border-pink-200 dark:border-pink-700 ' +
-                    'text-slate-900 dark:text-foreground [&>button]:text-slate-900 dark:[&>button]:text-foreground [&>button>span]:text-slate-900 dark:[&>button>span]:text-foreground',
+                    'bg-pink-100/70 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700/60 ' +
+                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasSemanaSobrecarregada: vermelho (semana acima de 100% de capacidade)
                   hasSemanaSobrecarregada: 'ring-2 ring-red-500 dark:ring-red-400',
                   // hasSemanaCompleta: laranja (semana entre 95-100% de capacidade)
@@ -2284,23 +2284,23 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     <CardContent className="px-3 pb-1.5 pt-0">
                       <div className="flex flex-col gap-1.5 text-sm">
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-yellow-100/60 dark:bg-yellow-900/25 border border-yellow-200 dark:border-yellow-700/60 shrink-0" />
                           <span className="text-xs">Dias selecionados para estudo</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-sky-100/70 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-700/60 shrink-0" />
                           <span className="text-xs">Dia com aulas</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-emerald-100/70 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/60 shrink-0" />
                           <span className="text-xs">Dia com aulas concluídas</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-amber-100/70 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/60 shrink-0" />
                           <span className="text-xs">Dia com aulas pendentes</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-pink-50 dark:bg-pink-950 border border-pink-200 dark:border-pink-800 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-pink-100/70 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700/60 shrink-0" />
                           <span className="text-xs">Períodos de férias e recesso</span>
                         </div>
                       </div>
@@ -2723,7 +2723,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   if (diasSemItens.length > 0 && diasSelecionados.length < 7) {
                     const nomesDiasSemItens = diasSemItens.map(d => ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][d])
                     return (
-                      <div className="mt-1.5 p-1.5 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-200 leading-tight">
+                      <div className="mt-1.5 p-1.5 bg-white dark:bg-white border border-red-200 dark:border-red-300 rounded text-xs text-red-700 dark:text-red-700 leading-tight">
                         <p className="font-medium">Atenção:</p>
                         <p>Os dias {nomesDiasSemItens.join(', ')} estão selecionados mas não têm aulas ainda. Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas.</p>
                       </div>

@@ -1,5 +1,10 @@
-import { redirect } from 'next/navigation'
+import { LoginPageClient } from '@/components/auth/login-page-client'
+import { Suspense } from 'react'
 
 export default function ProfessorLoginPage() {
-  redirect('/auth/login')
+  return (
+    <Suspense fallback={null}>
+      <LoginPageClient variant="professor" />
+    </Suspense>
+  )
 }

@@ -79,8 +79,14 @@ export class BrandingCacheManager {
    */
   public set(empresaId: string, branding: CompleteBrandingConfig, ttl?: number): void {
     // Ensure we don't exceed max size
-    if (this.cache.size >= this.maxSize && !this.cache.has(empresaId)) {
-      this.evictLRU();
+    if (!this.cache.has(empresaId)) {
+      // Pode existir empate de timestamps (mesmo ms); evict em loop garante que o limite seja respeitado.
+      while (this.cache.size >= this.maxSize) {
+        const before = this.cache.size;
+        this.evictLRU();
+        // Segurança contra loop infinito caso algo inesperado impeça a remoção
+        if (this.cache.size === before) break;
+      }
     }
 
     const entry: CacheEntry<CompleteBrandingConfig> = {
@@ -241,7 +247,8 @@ export class BrandingCacheManager {
    */
   private evictLRU(): void {
     let oldestKey: string | null = null;
-    let oldestTime = Date.now();
+    // Use infinito para evitar "empate" com Date.now() no mesmo ms.
+    let oldestTime = Number.POSITIVE_INFINITY;
 
     for (const [key, entry] of this.cache.entries()) {
       if (entry.lastAccessed < oldestTime) {

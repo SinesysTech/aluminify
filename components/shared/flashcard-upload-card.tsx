@@ -420,14 +420,12 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
         return
       }
 
-      // Buscar módulos da frente selecionada
-      // Nota: Alguns módulos podem ter curso_id NULL (dados legados)
-      // Se a frente pertence ao curso, aceitamos módulos com curso_id NULL ou igual ao curso
+      // Buscar módulos da frente selecionada (curso_id obrigatório após migração de consistência)
       const { data: modulosData, error: modulosError } = await supabase
         .from('modulos')
         .select('id, nome, numero_modulo, frente_id, curso_id')
         .eq('frente_id', frenteSelecionada)
-        .or(`curso_id.eq.${cursoSelecionado},curso_id.is.null`) // Aceitar módulos com curso_id null ou igual ao curso
+        .eq('curso_id', cursoSelecionado)
         .order('numero_modulo', { ascending: true })
 
       if (modulosError) {
@@ -440,7 +438,6 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
       }
 
       // Validar que todos os módulos pertencem à frente correta
-      // (curso_id pode ser null para compatibilidade com dados legados)
       const modulosInvalidos = modulosData.filter(
         m => m.frente_id !== frenteSelecionada
       )
@@ -449,10 +446,9 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
       }
 
       // Criar mapa de números de módulos para IDs
-      // Aceitamos módulos mesmo se curso_id for null (compatibilidade com dados legados)
       const moduloMap = new Map<number, { id: string; nome: string; numero: number | null }>()
       modulosData.forEach(modulo => {
-        // Validar apenas que pertence à frente (curso_id pode ser null)
+        // Validar apenas que pertence à frente
         if (modulo.frente_id === frenteSelecionada && modulo.numero_modulo !== null) {
           moduloMap.set(modulo.numero_modulo, {
             id: modulo.id,
@@ -703,10 +699,6 @@ export function FlashcardUploadCard({ cursos, onUploadSuccess }: FlashcardUpload
           <p className="text-xs text-muted-foreground">
             Formatos aceitos: CSV (padrão ; e UTF-8) ou XLSX. O arquivo deve conter colunas: 
             <strong> Módulo</strong> (número do módulo), <strong>Pergunta</strong>, <strong>Resposta</strong>.
-            <br />
-            <span className="text-muted-foreground/80">
-              Exemplo: <code>1;Qual é a fórmula de Bhaskara?;x = (-b ± √(b²-4ac)) / 2a</code>
-            </span>
           </p>
         </div>
 

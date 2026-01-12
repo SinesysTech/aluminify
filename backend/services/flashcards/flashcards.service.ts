@@ -196,7 +196,7 @@ export class FlashcardsService {
         // Validar se o módulo existe antes de inserir
         const { data: moduloExists, error: moduloCheckError } = await this.client
           .from('modulos')
-          .select('id, importancia')
+          .select('id, empresa_id')
           .eq('id', row.moduloId)
           .maybeSingle();
 
@@ -216,8 +216,18 @@ export class FlashcardsService {
           continue;
         }
 
+        const moduloEmpresaId = (moduloExists as { empresa_id?: string | null }).empresa_id ?? null;
+        if (!moduloEmpresaId) {
+          errors.push({
+            line: row._index,
+            message: `Módulo sem empresa_id (dados inconsistentes): ${row.moduloId}`,
+          });
+          continue;
+        }
+
         const { error: insertError } = await this.client.from('flashcards').insert({
           modulo_id: row.moduloId,
+          empresa_id: moduloEmpresaId,
           pergunta: row.pergunta,
           resposta: row.resposta,
         });
@@ -294,7 +304,7 @@ export class FlashcardsService {
 
       const { data: modulo, error: moduloError } = await this.client
         .from('modulos')
-        .select('id')
+        .select('id, empresa_id')
         .eq('frente_id', frente.id)
         .eq('numero_modulo', row.moduloNumero)
         .maybeSingle();
@@ -315,8 +325,18 @@ export class FlashcardsService {
         continue;
       }
 
+      const moduloEmpresaId = (modulo as { empresa_id?: string | null }).empresa_id ?? null;
+      if (!moduloEmpresaId) {
+        errors.push({
+          line: row._index,
+          message: `Módulo sem empresa_id (dados inconsistentes): ${modulo.id}`,
+        });
+        continue;
+      }
+
       const { error: insertError } = await this.client.from('flashcards').insert({
         modulo_id: modulo.id,
+        empresa_id: moduloEmpresaId,
         pergunta: row.pergunta,
         resposta: row.resposta,
       });
@@ -1376,7 +1396,7 @@ export class FlashcardsService {
     // Verificar se módulo existe
     const { data: moduloCheck, error: moduloCheckError } = await this.client
       .from('modulos')
-      .select('id')
+      .select('id, empresa_id')
       .eq('id', input.moduloId)
       .maybeSingle();
 
@@ -1384,10 +1404,16 @@ export class FlashcardsService {
       throw new Error('Módulo não encontrado.');
     }
 
+    const moduloEmpresaId = (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;
+    if (!moduloEmpresaId) {
+      throw new Error('Módulo sem empresa_id (dados inconsistentes).');
+    }
+
     const { data: flashcard, error } = await this.client
       .from('flashcards')
       .insert({
         modulo_id: input.moduloId,
+        empresa_id: moduloEmpresaId,
         pergunta: input.pergunta.trim(),
         resposta: input.resposta.trim(),
       })
@@ -1463,19 +1489,25 @@ export class FlashcardsService {
       throw new Error('Flashcard não encontrado.');
     }
 
-    const updateData: { modulo_id?: string; pergunta?: string; resposta?: string } = {};
+    const updateData: { modulo_id?: string; empresa_id?: string; pergunta?: string; resposta?: string } = {};
     if (input.moduloId !== undefined) {
       // Verificar se novo módulo existe
       const { data: moduloCheck, error: moduloCheckError } = await this.client
         .from('modulos')
-        .select('id')
+        .select('id, empresa_id')
         .eq('id', input.moduloId)
         .maybeSingle();
 
       if (moduloCheckError || !moduloCheck) {
         throw new Error('Módulo não encontrado.');
       }
+      const moduloEmpresaId = (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;
+      if (!moduloEmpresaId) {
+        throw new Error('Módulo sem empresa_id (dados inconsistentes).');
+      }
       updateData.modulo_id = input.moduloId;
+      // Manter empresa_id do flashcard alinhado ao módulo
+      updateData.empresa_id = moduloEmpresaId;
     }
     if (input.pergunta !== undefined) {
       if (!input.pergunta.trim()) {

@@ -45,9 +45,11 @@ export class BrandingPerformanceMonitor {
   private isEnabled: boolean = true;
 
   private constructor() {
-    // Enable performance monitoring only in development or when explicitly enabled
-    this.isEnabled = process.env.NODE_ENV === 'development' || 
-                     process.env.ENABLE_BRANDING_PERFORMANCE_MONITORING === 'true';
+    // Habilitar monitoramento fora de produção (dev/test) ou quando explicitamente ativado.
+    // Em Jest (NODE_ENV=test) queremos registrar métricas para validar comportamento.
+    this.isEnabled =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.ENABLE_BRANDING_PERFORMANCE_MONITORING === 'true';
   }
 
   public static getInstance(): BrandingPerformanceMonitor {

@@ -7,21 +7,20 @@ import {
 import { validateUploadedFile, sanitizeFilename } from '@/backend/middleware/file-security';
 
 // Mock the database client
+const mockMaybeSingle = jest.fn();
+const mockEq2 = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
+const mockEq1 = jest.fn(() => ({ eq: mockEq2 }));
+const mockSelect = jest.fn(() => ({ eq: mockEq1 }));
+const mockFrom = jest.fn(() => ({ select: mockSelect }));
+const mockDbClient = {
+  from: mockFrom,
+  auth: {
+    getUser: jest.fn(),
+  },
+};
+
 jest.mock('@/backend/clients/database', () => ({
-  getDatabaseClient: jest.fn(() => {
-    const mockMaybeSingle = jest.fn();
-    const mockEq2 = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
-    const mockEq1 = jest.fn(() => ({ eq: mockEq2 }));
-    const mockSelect = jest.fn(() => ({ eq: mockEq1 }));
-    const mockFrom = jest.fn(() => ({ select: mockSelect }));
-    
-    return {
-      from: mockFrom,
-      auth: {
-        getUser: jest.fn(),
-      },
-    };
-  }),
+  getDatabaseClient: jest.fn(() => mockDbClient),
 }));
 
 // Mock the auth middleware
@@ -38,6 +37,7 @@ jest.mock('@/backend/middleware/empresa-context', () => ({
 describe('Brand Customization Access Control Middleware', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMaybeSingle.mockReset();
   });
 
   describe('sanitizeFilename', () => {
@@ -184,6 +184,11 @@ describe('Brand Customization Access Control Middleware', () => {
         data: { id: 'user1', empresa_id: 'empresa1', is_admin: true },
         error: null,
       });
+
+      // Mock empresa context access as allowed
+      const { getEmpresaContext, validateEmpresaAccess } = require('@/backend/middleware/empresa-context');
+      getEmpresaContext.mockResolvedValue({ empresaId: 'empresa1' });
+      validateEmpresaAccess.mockReturnValue(true);
 
       const mockHandler = jest.fn().mockResolvedValue(NextResponse.json({ success: true }));
       const protectedHandler = requireEmpresaAdmin(mockHandler);
