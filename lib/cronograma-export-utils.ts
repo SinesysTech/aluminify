@@ -1,4 +1,5 @@
 import { getDatabaseClient } from '@/backend/clients/database'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface CronogramaData {
   id: string;
@@ -41,8 +42,11 @@ export interface CronogramaCompleto {
   }>
 }
 
-export async function fetchCronogramaCompleto(cronogramaId: string): Promise<CronogramaCompleto> {
-  const client = getDatabaseClient()
+export async function fetchCronogramaCompleto(
+  cronogramaId: string,
+  clientOverride?: SupabaseClient,
+): Promise<CronogramaCompleto> {
+  const client = clientOverride ?? getDatabaseClient()
   const { data: cronograma, error: cronogramaError } = await client
     .from('cronogramas')
     .select('*')
