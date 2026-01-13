@@ -67,6 +67,8 @@ export type FlashcardReviewItem = {
   dataProximaRevisao?: string | null;
 };
 
+export type FlashcardsReviewScope = 'all' | 'completed';
+
 export type FlashcardAdmin = {
   id: string;
   modulo_id: string;
@@ -113,6 +115,17 @@ export type ListFlashcardsFilters = {
 
 export class FlashcardsService {
   private client = getDatabaseClient();
+  /**
+   * Pool máximo de flashcards buscados do banco para montar uma sessão de revisão.
+   *
+   * Por padrão a sessão retorna 10 cards, mas precisamos buscar um conjunto maior
+   * para que os filtros de SRS ("due"), exclusão (`excludeIds`) e distribuição da UTI
+   * tenham material suficiente — especialmente quando há muitos cards por módulo.
+   *
+   * Observação: hoje o total do projeto é baixo (~centenas/1k), então um pool maior
+   * é seguro e evita o "efeito amostra" do antigo limit(50).
+   */
+  private readonly REVIEW_CANDIDATE_POOL = 2000;
 
   private normalizeName(value?: string | null): string {
     return (value ?? '').trim().toLowerCase();
@@ -378,11 +391,43 @@ export class FlashcardsService {
     return new Map((data ?? []).map((p) => [p.flashcard_id as string, p as ProgressoFlashcard]));
   }
 
+  /**
+   * Retorna os IDs dos módulos que o aluno já tem como concluídos.
+   *
+   * Definição adotada: um módulo é considerado concluído se existir ao menos 1 atividade do módulo
+   * com progresso (`progresso_atividades`) em status 'Concluido' para o aluno.
+   */
+  private async fetchCompletedModuloIds(alunoId: string): Promise<Set<string>> {
+    const { data, error } = await this.client
+      .from('progresso_atividades')
+      .select('atividade_id, atividades(modulo_id)')
+      .eq('aluno_id', alunoId)
+      .eq('status', 'Concluido');
+
+    if (error) {
+      console.warn('[flashcards] erro ao buscar módulos concluídos', error);
+      return new Set<string>();
+    }
+
+    const moduloIds = new Set<string>();
+    for (const row of data ?? []) {
+      const atividades = (row as { atividades?: unknown }).atividades;
+      const atividade = Array.isArray(atividades) ? (atividades[0] as { modulo_id?: unknown } | undefined) : (atividades as { modulo_id?: unknown } | undefined);
+      const moduloId = atividade?.modulo_id;
+      if (moduloId) {
+        moduloIds.add(String(moduloId));
+      }
+    }
+
+    return moduloIds;
+  }
+
   async listForReview(
     alunoId: string,
     modo: string,
     filters?: { cursoId?: string; frenteId?: string; moduloId?: string },
-    excludeIds?: string[]
+    excludeIds?: string[],
+    scope: FlashcardsReviewScope = 'all',
   ): Promise<FlashcardReviewItem[]> {
     const now = new Date();
     
@@ -453,8 +498,7 @@ export class FlashcardsService {
         // Verificar se o módulo pertence a um curso do aluno (via frente ou módulo)
         cursoValido = 
           (frente?.curso_id && cursoIds.includes(frente.curso_id)) ||
-          (moduloData.curso_id && cursoIds.includes(moduloData.curso_id)) ||
-          (!frente?.curso_id && !moduloData.curso_id); // Aceitar módulos globais
+          (moduloData.curso_id && cursoIds.includes(moduloData.curso_id));
       }
 
       if (!cursoValido) {
@@ -466,7 +510,7 @@ export class FlashcardsService {
         .from('flashcards')
         .select('id, modulo_id, pergunta, resposta, modulos(importancia)')
         .eq('modulo_id', filters.moduloId)
-        .limit(50);
+        .limit(this.REVIEW_CANDIDATE_POOL);
 
       if (cardsError) {
         throw new Error(`Erro ao buscar flashcards: ${cardsError.message}`);
@@ -579,14 +623,19 @@ export class FlashcardsService {
     const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: { disciplina_id: string }) => cd.disciplina_id))];
     
     // 3. Buscar frentes das disciplinas (que pertencem aos cursos)
+    // Regra importante:
+    // - Alunos: SOMENTE frentes vinculadas aos cursos em que estão matriculados (curso_id != null e pertence ao aluno)
+    // - Professores/superadmin: podem ver também frentes "globais" (curso_id is null)
     const { data: frentesData, error: frentesError } = await this.client
       .from('frentes')
       .select('id')
       .in('disciplina_id', disciplinaIds)
       .or(
-        cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
-        (cursoIds.length > 0 ? ',' : '') +
-        'curso_id.is.null',
+        isProfessor
+          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+              (cursoIds.length > 0 ? ',' : '') +
+              'curso_id.is.null'
+          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(','),
       );
     
     if (frentesError) {
@@ -621,9 +670,11 @@ export class FlashcardsService {
         throw new Error(`Erro ao buscar módulos prioritários: ${todosModulosError.message}`);
       }
       
-      // Filtrar módulos que pertencem aos cursos do aluno ou são globais (curso_id null)
+      // Filtrar módulos que pertencem aos cursos do usuário.
+      // - Alunos: curso_id DEVE pertencer aos cursos do aluno (sem globais)
+      // - Professores: permitir também módulos globais (curso_id null)
       const modulosFiltrados = (todosModulos ?? []).filter((m: { id: string; curso_id: string | null; importancia: string }) => {
-        if (!m.curso_id) return true; // Módulos globais
+        if (!m.curso_id) return isProfessor; // Módulos globais apenas para professor
         return cursoIds.includes(m.curso_id);
       });
       
@@ -639,6 +690,38 @@ export class FlashcardsService {
         console.warn(`[flashcards] Curso IDs usados: ${cursoIds.join(', ')}`);
         console.warn(`[flashcards] Total de módulos encontrados (antes do filtro): ${todosModulos?.length ?? 0}`);
       }
+    } else if (modo === 'conteudos_basicos') {
+      // Para "conteudos_basicos", buscar módulos com importancia = 'Base'
+      console.log(`[flashcards] Modo "conteudos_basicos": buscando módulos com importancia = 'Base'`);
+      console.log(`[flashcards] Frente IDs: ${frenteIds.length}, Curso IDs: ${cursoIds.length}`);
+
+      const { data: todosModulos, error: todosModulosError } = await this.client
+        .from('modulos')
+        .select('id, importancia, frente_id, curso_id')
+        .in('frente_id', frenteIds)
+        .eq('importancia', 'Base');
+
+      if (todosModulosError) {
+        console.error('[flashcards] Erro ao buscar módulos básicos:', todosModulosError);
+        console.error('[flashcards] Detalhes do erro:', JSON.stringify(todosModulosError, null, 2));
+        throw new Error(`Erro ao buscar módulos básicos: ${todosModulosError.message}`);
+      }
+
+      const modulosFiltrados = (todosModulos ?? []).filter((m: { id: string; curso_id: string | null }) => {
+        // Alunos: sem globais. Professores: globais ok.
+        if (!m.curso_id) return isProfessor;
+        return cursoIds.includes(m.curso_id);
+      });
+
+      console.log(
+        `[flashcards] Modo "conteudos_basicos": encontrados ${modulosFiltrados.length} módulos com importancia = 'Base' (de ${todosModulos?.length ?? 0} total)`,
+      );
+
+      moduloIds = modulosFiltrados.map((m: { id: string }) => m.id);
+
+      if (moduloIds.length === 0) {
+        console.warn('[flashcards] Nenhum módulo com importancia = "Base" encontrado para os cursos do usuário');
+      }
     } else if (modo === 'mais_errados') {
       console.log(`[flashcards] Modo "mais_errados": buscando flashcards com feedback baixo`);
       
@@ -649,9 +732,11 @@ export class FlashcardsService {
         .select('id, importancia, frente_id, curso_id')
         .in('frente_id', frenteIds);
       
-      // Aceitar módulos com curso_id null ou igual aos cursos
+      // Alunos: apenas módulos dos cursos do aluno (sem globais). Professores: incluir globais.
       if (cursoIds.length > 0) {
-        const orCondition = cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null';
+        const orCondition = isProfessor
+          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null'
+          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',');
         modulosQuery = modulosQuery.or(orCondition);
       }
       
@@ -716,9 +801,11 @@ export class FlashcardsService {
         .select('id, importancia, frente_id, curso_id')
         .in('frente_id', frenteIds);
       
-      // Aceitar módulos com curso_id null ou igual aos cursos do aluno
+      // Alunos: apenas módulos dos cursos do aluno (sem globais). Professores: incluir globais.
       if (cursoIds.length > 0) {
-        const orCondition = cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null';
+        const orCondition = isProfessor
+          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null'
+          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',');
         modulosQuery = modulosQuery.or(orCondition);
       }
       
@@ -796,12 +883,27 @@ export class FlashcardsService {
       return [];
     }
 
+    // Aplicar filtro por escopo (apenas para alunos; professor não tem noção de "módulo concluído")
+    if (scope === 'completed' && !isProfessor && modo !== 'personalizado') {
+      const completed = await this.fetchCompletedModuloIds(alunoId);
+      if (completed.size === 0) {
+        console.log('[flashcards] scope=completed: aluno sem módulos concluídos');
+        return [];
+      }
+      const before = moduloIds.length;
+      moduloIds = moduloIds.filter((id) => completed.has(id));
+      console.log(`[flashcards] scope=completed: módulos filtrados ${before} -> ${moduloIds.length}`);
+      if (moduloIds.length === 0) {
+        return [];
+      }
+    }
+
     console.log(`[flashcards] Buscando flashcards para ${moduloIds.length} módulos (modo: ${modo})`);
     const { data: flashcards, error: cardsError } = await this.client
       .from('flashcards')
       .select('id, modulo_id, pergunta, resposta, modulos(importancia)')
       .in('modulo_id', moduloIds)
-      .limit(50);
+      .limit(this.REVIEW_CANDIDATE_POOL);
 
     if (cardsError) {
       console.error('[flashcards] Erro ao buscar flashcards:', cardsError);

@@ -77,12 +77,6 @@ function formatDateBR(dateString?: string | null) {
   }
 }
 
-function chunkArray<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = []
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
-  return out
-}
-
 const MODALIDADES_LABEL: Record<number, string> = {
   1: 'Super Extensivo',
   2: 'Extensivo',
@@ -538,7 +532,7 @@ async function getHandler(
         })
       } else {
         const ids = (recentes ?? []).map((r) => r.id)
-        let itensPorCronograma: Array<{ id: string; itens: number | null }> = []
+        const itensPorCronograma: Array<{ id: string; itens: number | null }> = []
         for (const id of ids) {
           const { count: c } = await admin
             .from('cronograma_itens')
