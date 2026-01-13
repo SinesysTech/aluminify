@@ -18,7 +18,9 @@
       "Bash(npx eslint:*)",
       "Bash(move \"e:\\\\Development\\\\areadoaluno\\\\landing\\\\*\" \"e:\\\\Development\\\\areadoaluno\\\\public\\\\landing\"\")",
       "Bash(ls:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(dir /b \"e:\\\\Development\\\\aluminify\\\\middleware*\")",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
