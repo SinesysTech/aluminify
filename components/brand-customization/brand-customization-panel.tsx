@@ -363,17 +363,17 @@ export function BrandCustomizationPanel({
                       <div className="flex gap-2">
                         <div
                           className="w-8 h-8 rounded-full border shadow-sm"
-                          style={{ backgroundColor: brandingState.colorPalette.colors.primaryColor }}
+                          style={{ backgroundColor: brandingState.colorPalette.primaryColor }}
                           title="Primária"
                         />
                         <div
                           className="w-8 h-8 rounded-full border shadow-sm"
-                          style={{ backgroundColor: brandingState.colorPalette.colors.secondaryColor }}
+                          style={{ backgroundColor: brandingState.colorPalette.secondaryColor }}
                           title="Secundária"
                         />
                         <div
                           className="w-8 h-8 rounded-full border shadow-sm"
-                          style={{ backgroundColor: brandingState.colorPalette.colors.accentColor }}
+                          style={{ backgroundColor: brandingState.colorPalette.accentColor }}
                           title="Destaque"
                         />
                       </div>
@@ -398,7 +398,7 @@ export function BrandCustomizationPanel({
                       <div className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
                         <div className="font-medium mb-1">Aa Bb Cc</div>
                         <div className="text-xs">
-                          {brandingState.fontScheme.headingFont.split(',')[0]}
+                          {brandingState.fontScheme.fontSans[0]}
                         </div>
                       </div>
                       <Badge variant="secondary">Personalizado</Badge>
