@@ -1,10 +1,7 @@
-import { LoginPageClient } from '@/components/auth/login-page-client'
-import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 
+// Esta rota será reativada quando o sistema de multi-tenant baseado em domínio for implementado
+// Por enquanto, redireciona para a rota de login genérica
 export default function ProfessorLoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginPageClient variant="professor" />
-    </Suspense>
-  )
+  redirect('/auth/login')
 }

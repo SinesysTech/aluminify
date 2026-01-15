@@ -1,6 +1,5 @@
 import { UpdatePasswordForm } from '@/components/auth/update-password-form'
 import { TenantLogo } from '@/components/shared/tenant-logo';
-import { AuthRoleSwitch } from '@/components/auth/auth-role-switch';
 
 export default function Page() {
   return (
@@ -8,14 +7,13 @@ export default function Page() {
       <div className="w-full max-w-sm space-y-6">
         {/* Tenant Logo */}
         <div className="flex justify-center">
-          <TenantLogo 
+          <TenantLogo
             logoType="login"
             fallbackText="Sistema de Gestão"
             width={160}
             height={50}
           />
         </div>
-        <AuthRoleSwitch />
         <UpdatePasswordForm />
       </div>
     </div>

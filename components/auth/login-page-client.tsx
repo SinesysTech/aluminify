@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
 import { AuthPageLayout } from '@/components/auth/auth-page-layout'
-import { AuthRoleSwitch } from '@/components/auth/auth-role-switch'
 import { AuthDivider } from '@/components/auth/auth-divider'
 import { LoginDecorativeCard } from '@/components/auth/login-decorative-card'
 import { MagicLinkButton } from '@/components/auth/magic-link-button'
@@ -17,62 +16,12 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/client'
 
-export type LoginPageVariant = 'generic' | 'aluno' | 'professor'
-
 function safeNextPath(next: string | null | undefined) {
   if (!next) return null
   return next.startsWith('/') ? next : null
 }
 
-function getCopy(variant: LoginPageVariant) {
-  if (variant === 'professor') {
-    return {
-      title: 'Entrar como professor(a)',
-      subtitle: 'Acesse o painel da sua empresa e gerencie sua instituição.',
-      emailLabel: 'Email corporativo',
-      footer: (
-        <p>
-          Vai entrar como aluno?{' '}
-          <Link href="/auth/aluno/login" className="font-medium text-primary hover:underline">
-            Acessar área do aluno
-          </Link>
-        </p>
-      ),
-    }
-  }
-
-  if (variant === 'aluno') {
-    return {
-      title: 'Entrar como aluno',
-      subtitle: 'Acesse sua área de estudos e acompanhe seu progresso.',
-      emailLabel: 'Email',
-      footer: (
-        <p>
-          Vai entrar como professor(a)?{' '}
-          <Link href="/auth/professor/login" className="font-medium text-primary hover:underline">
-            Acessar painel do professor
-          </Link>
-        </p>
-      ),
-    }
-  }
-
-  return {
-    title: 'Bem-vindo de volta',
-    subtitle: 'Escolha como deseja entrar e informe seus dados.',
-    emailLabel: 'Email',
-    footer: (
-      <p>
-        Não tem uma conta?{' '}
-        <Link href="/auth/sign-up" className="font-medium text-primary hover:underline">
-          Criar infraestrutura
-        </Link>
-      </p>
-    ),
-  }
-}
-
-export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVariant }) {
+export function LoginPageClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -80,8 +29,6 @@ export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVa
   const next = useMemo(() => {
     return safeNextPath(searchParams?.get('next')) ?? '/protected'
   }, [searchParams])
-
-  const copy = useMemo(() => getCopy(variant), [variant])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -136,9 +83,15 @@ export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isLoading) return
+    console.log('[DEBUG] handleSubmit iniciado', { email, hasPassword: !!password, passwordLength: password.length })
+
+    if (isLoading) {
+      console.log('[DEBUG] handleSubmit cancelado: já está carregando')
+      return
+    }
 
     if (!email || !password) {
+      console.log('[DEBUG] handleSubmit cancelado: campos vazios', { hasEmail: !!email, hasPassword: !!password })
       toast({
         title: 'Campos obrigatórios',
         description: 'Informe email e senha para entrar.',
@@ -149,32 +102,58 @@ export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVa
 
     setIsLoading(true)
     try {
+      console.log('[DEBUG] Criando cliente Supabase...')
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('[DEBUG] Cliente Supabase criado, chamando signInWithPassword...')
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       })
 
+      console.log('[DEBUG] Resultado signInWithPassword:', {
+        hasError: !!error,
+        errorMessage: error?.message,
+        errorStatus: error?.status,
+        hasSession: !!data?.session,
+        hasUser: !!data?.user
+      })
+
       if (error) {
+        // Tratamento de erros específicos do Supabase
+        let errorTitle = 'Não foi possível entrar'
+        let errorDescription = error.message
+
+        if (error.message.includes('Invalid login credentials')) {
+          errorDescription = 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorDescription = 'Seu email ainda não foi confirmado. Verifique sua caixa de entrada.'
+        } else if (error.message.includes('Too many requests')) {
+          errorDescription = 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.'
+        }
+
         toast({
-          title: 'Não foi possível entrar',
-          description: error.message,
+          title: errorTitle,
+          description: errorDescription,
           variant: 'destructive',
         })
         return
       }
 
+      console.log('[DEBUG] Login bem-sucedido, redirecionando para:', next)
       // TODO: respeitar rememberDevice (hoje o client usa persistência padrão)
       router.push(next)
       router.refresh()
     } catch (error) {
-      console.error('[login] Erro ao fazer login:', error)
+      console.error('[DEBUG] Erro inesperado no login:', error)
+      console.error('[DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A')
       toast({
         title: 'Erro inesperado',
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
         variant: 'destructive',
       })
     } finally {
+      console.log('[DEBUG] handleSubmit finalizado, setIsLoading(false)')
       setIsLoading(false)
     }
   }
@@ -185,20 +164,24 @@ export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVa
       formWidth="480px"
       decorativeBackground="light"
       decorativeContent={<LoginDecorativeCard />}
-      footerContent={copy.footer}
+      footerContent={
+        <p>
+          Não tem uma conta?{' '}
+          <Link href="/auth/sign-up" className="font-medium text-primary hover:underline">
+            Criar infraestrutura
+          </Link>
+        </p>
+      }
     >
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="font-sans text-3xl font-bold text-gray-900">{copy.title}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{copy.subtitle}</p>
-          </div>
-          <AuthRoleSwitch />
+        <div>
+          <h1 className="font-sans text-3xl font-bold text-gray-900">Bem-vindo de volta</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Informe seus dados para acessar o sistema</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">{copy.emailLabel}</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -221,7 +204,11 @@ export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVa
               type="password"
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value
+                console.log('[DEBUG] Senha alterada, novo comprimento:', newValue.length)
+                setPassword(newValue)
+              }}
               disabled={isLoading}
             />
           </div>
@@ -249,8 +236,9 @@ export function LoginPageClient({ variant = 'generic' }: { variant?: LoginPageVa
             variant="outline"
             className="w-full"
             disabled={isLoading || !password}
+            title={!password ? 'Digite sua senha para habilitar o botão' : undefined}
           >
-            {isLoading ? 'Entrando...' : 'Entrar'}
+            {isLoading ? 'Entrando...' : !password ? 'Digite a senha para entrar' : 'Entrar'}
           </Button>
         </form>
 
