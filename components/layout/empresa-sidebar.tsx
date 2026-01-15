@@ -1,13 +1,10 @@
 "use client"
 
 import {
-  Settings,
-  UserCog,
   Users,
   GraduationCap,
   LayoutDashboard,
   FileText,
-  Palette,
   BookOpen,
   Calendar,
   CalendarCheck,
@@ -46,19 +43,9 @@ const empresaNavItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Configurações da Empresa",
-    url: "/admin/empresa",
-    icon: Settings,
-  },
-  {
-    title: "Personalização da Marca",
-    url: "/admin/empresa/branding",
-    icon: Palette,
-  },
-  {
-    title: "Administradores",
-    url: "/admin/empresa/admins",
-    icon: UserCog,
+    title: "Usuários",
+    url: "/admin/empresa/usuarios",
+    icon: Users,
   },
   {
     title: "Professores",
@@ -66,7 +53,7 @@ const empresaNavItems: NavItem[] = [
     icon: GraduationCap,
   },
   {
-    title: "Alunos da Empresa",
+    title: "Alunos",
     url: "/admin/empresa/alunos",
     icon: Users,
   },

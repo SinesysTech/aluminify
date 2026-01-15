@@ -71,8 +71,11 @@ export default function BrandingPage() {
       });
 
       if (response.ok) {
-        const brandingData = await response.json();
-        setCurrentBranding(brandingData);
+        const brandingResponse = await response.json();
+        // Extract the data from the API response structure
+        if (brandingResponse.success && brandingResponse.data) {
+          setCurrentBranding(brandingResponse.data);
+        }
       }
     } catch (error) {
       console.error('Error fetching branding:', error);
@@ -98,7 +101,7 @@ export default function BrandingPage() {
       }
 
       const response = await fetch(`/api/tenant-branding/${empresaId}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
@@ -111,8 +114,11 @@ export default function BrandingPage() {
         throw new Error(errorData.error || 'Erro ao salvar branding');
       }
 
-      const updatedBranding = await response.json();
-      setCurrentBranding(updatedBranding);
+      const saveResponse = await response.json();
+      // Extract the data from the API response structure
+      if (saveResponse.success && saveResponse.data) {
+        setCurrentBranding(saveResponse.data);
+      }
 
       toast({
         title: 'Sucesso',

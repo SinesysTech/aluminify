@@ -4,7 +4,6 @@ import type {
   LogoUploadResult,
   ValidationResult,
   TenantLogo,
-  TenantLogoInsert,
 } from '@/types/brand-customization';
 import { LogoUploadError } from '@/types/brand-customization';
 
@@ -117,19 +116,17 @@ export class LogoManagerImpl implements LogoManager {
       // Remove existing logo of the same type
       await this.removeExistingLogo(tenantBrandingId, type);
 
-      // Save logo metadata to database
-      const logoData: TenantLogoInsert = {
-        tenantBrandingId,
-        logoType: type,
-        logoUrl,
-        fileName: sanitizedFileName,
-        fileSize: file.size,
-        mimeType: file.type,
-      };
-
+      // Save logo metadata to database (using snake_case for DB columns)
       const { error: saveError } = await this.client
         .from('tenant_logos')
-        .insert(logoData)
+        .insert({
+          tenant_branding_id: tenantBrandingId,
+          logo_type: type,
+          logo_url: logoUrl,
+          file_name: sanitizedFileName,
+          file_size: file.size,
+          mime_type: file.type,
+        })
         .select()
         .single();
 
@@ -413,20 +410,20 @@ export class LogoManagerImpl implements LogoManager {
     const { data: existing } = await this.client
       .from('tenant_branding')
       .select('id')
-      .eq('empresaId', empresaId)
+      .eq('empresa_id', empresaId)
       .maybeSingle();
 
     if (existing) {
       return existing.id;
     }
 
-    // Create new tenant branding
+    // Create new tenant branding (using snake_case for DB columns)
     const { data: created, error } = await this.client
       .from('tenant_branding')
       .insert({
-        empresaId,
-        createdBy: 'system', // TODO: Get from context
-        updatedBy: 'system',
+        empresa_id: empresaId,
+        created_by: 'system', // TODO: Get from context
+        updated_by: 'system',
       })
       .select('id')
       .single();
@@ -439,17 +436,17 @@ export class LogoManagerImpl implements LogoManager {
   }
 
   private async removeExistingLogo(tenantBrandingId: string, type: LogoType): Promise<void> {
-    // Find existing logo
+    // Find existing logo (using snake_case for DB columns)
     const { data: existingLogo } = await this.client
       .from('tenant_logos')
       .select('*')
-      .eq('tenantBrandingId', tenantBrandingId)
-      .eq('logoType', type)
+      .eq('tenant_branding_id', tenantBrandingId)
+      .eq('logo_type', type)
       .maybeSingle();
 
     if (existingLogo) {
       // Extract file path and remove from storage
-      const filePath = this.extractFilePathFromUrl(existingLogo.logoUrl);
+      const filePath = this.extractFilePathFromUrl(existingLogo.logo_url);
       if (filePath) {
         await this.client.storage
           .from(this.STORAGE_BUCKET)

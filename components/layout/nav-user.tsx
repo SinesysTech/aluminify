@@ -8,6 +8,7 @@ import {
   Bell,
   ChevronsUpDown,
   LogOut,
+  Settings,
 } from "lucide-react"
 
 import {
@@ -222,6 +223,12 @@ export function NavUser() {
                 <Link href="/perfil">
                   <BadgeCheck />
                   Meu Perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/empresa/configuracoes">
+                  <Settings />
+                  Configurações
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>

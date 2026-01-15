@@ -48,11 +48,25 @@ export function BrandCustomizationPanel({
   // Initialize state from props
   useEffect(() => {
     if (currentBranding) {
+      // Map TenantLogo objects to URL strings
+      const logosUrlMap: Partial<Record<LogoType, string | null>> = {};
+      if (currentBranding.logos) {
+        if (currentBranding.logos.login) {
+          logosUrlMap.login = currentBranding.logos.login.logoUrl;
+        }
+        if (currentBranding.logos.sidebar) {
+          logosUrlMap.sidebar = currentBranding.logos.sidebar.logoUrl;
+        }
+        if (currentBranding.logos.favicon) {
+          logosUrlMap.favicon = currentBranding.logos.favicon.logoUrl;
+        }
+      }
+
       setBrandingState({
-        logos: currentBranding.logos || {},
+        logos: logosUrlMap,
         colorPalette: currentBranding.colorPalette,
         fontScheme: currentBranding.fontScheme,
-        customCss: currentBranding.tenantBranding.customCss
+        customCss: currentBranding.tenantBranding?.customCss
       });
     }
   }, [currentBranding]);

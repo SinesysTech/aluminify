@@ -66,7 +66,7 @@ export function AlunosClientPage({ students, meta, courses }: AlunosClientPagePr
 
             {/* SECTION 2: EMPTY STATE (Only if truly empty) */}
             {!hasStudents && (
-                <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px] border border-dashed border-zinc-300 rounded-lg bg-zinc-50/50">
+                <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
 
                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
                         <UserPlus className="w-8 h-8 text-zinc-400" strokeWidth={1} />
