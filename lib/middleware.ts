@@ -1,23 +1,24 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
-import { getPublicSupabaseConfig } from './supabase-public-env'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { getPublicSupabaseConfig } from "./supabase-public-env";
 
 // Configuration for tenant resolution
-const PRIMARY_DOMAIN = process.env.NEXT_PUBLIC_PRIMARY_DOMAIN || 'alumnify.com.br';
-const DEV_DOMAINS = ['localhost', '127.0.0.1'];
+const PRIMARY_DOMAIN =
+  process.env.NEXT_PUBLIC_PRIMARY_DOMAIN || "alumnify.com.br";
+const DEV_DOMAINS = ["localhost", "127.0.0.1"];
 
 /**
  * Extract subdomain from host
  */
 function extractSubdomain(host: string): string | null {
   // Normalize host (remove port if present)
-  const normalizedHost = host.split(':')[0].toLowerCase();
+  const normalizedHost = host.split(":")[0].toLowerCase();
 
   // For primary domain subdomains (e.g., escola.alumnify.com.br)
   if (normalizedHost.endsWith(`.${PRIMARY_DOMAIN}`)) {
-    const subdomain = normalizedHost.replace(`.${PRIMARY_DOMAIN}`, '');
+    const subdomain = normalizedHost.replace(`.${PRIMARY_DOMAIN}`, "");
     // Ignore www or empty subdomain
-    if (subdomain && subdomain !== 'www') {
+    if (subdomain && subdomain !== "www") {
       return subdomain;
     }
   }
@@ -29,10 +30,13 @@ function extractSubdomain(host: string): string | null {
  * Check if host is a custom domain (not primary or dev domain)
  */
 function isCustomDomain(host: string): boolean {
-  const normalizedHost = host.split(':')[0].toLowerCase();
+  const normalizedHost = host.split(":")[0].toLowerCase();
 
   // Check if it's the primary domain or subdomain
-  if (normalizedHost === PRIMARY_DOMAIN || normalizedHost.endsWith(`.${PRIMARY_DOMAIN}`)) {
+  if (
+    normalizedHost === PRIMARY_DOMAIN ||
+    normalizedHost.endsWith(`.${PRIMARY_DOMAIN}`)
+  ) {
     return false;
   }
 
@@ -52,16 +56,16 @@ function isCustomDomain(host: string): boolean {
 function isTenantPath(pathname: string): boolean {
   // Match paths like /tenant-slug/... but not paths that start with known routes
   const knownRoutes = [
-    '/api',
-    '/auth',
-    '/_next',
-    '/dashboard',
-    '/admin',
-    '/superadmin',
-    '/aluno',
-    '/professor',
-    '/static',
-    '/favicon',
+    "/api",
+    "/auth",
+    "/_next",
+    "/dashboard",
+    "/admin",
+    "/superadmin",
+    "/aluno",
+    "/professor",
+    "/static",
+    "/favicon",
   ];
 
   for (const route of knownRoutes) {
@@ -71,7 +75,7 @@ function isTenantPath(pathname: string): boolean {
   }
 
   // Check if first segment looks like a tenant slug
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
   if (segments.length > 0) {
     // Tenant slugs are alphanumeric with hyphens
     const firstSegment = segments[0];
@@ -86,7 +90,7 @@ function isTenantPath(pathname: string): boolean {
  */
 function extractTenantFromPath(pathname: string): string | null {
   if (isTenantPath(pathname)) {
-    const segments = pathname.split('/').filter(Boolean);
+    const segments = pathname.split("/").filter(Boolean);
     if (segments.length > 0) {
       return segments[0];
     }
@@ -97,42 +101,52 @@ function extractTenantFromPath(pathname: string): string | null {
 export interface TenantContext {
   empresaId?: string;
   empresaSlug?: string;
-  resolutionType?: 'subdomain' | 'custom-domain' | 'slug';
+  resolutionType?: "subdomain" | "custom-domain" | "slug";
 }
 
 export async function updateSession(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
-  const host = request.headers.get('host') || ''
+  const pathname = request.nextUrl.pathname;
+  const host = request.headers.get("host") || "";
 
-  console.log('[DEBUG] Middleware - processando requisição:', pathname, 'host:', host)
+  console.log(
+    "[DEBUG] Middleware - processando requisição:",
+    pathname,
+    "host:",
+    host
+  );
+  console.log(
+    "[DEBUG] Middleware - Cookies:",
+    request.cookies
+      .getAll()
+      .map((c) => c.name)
+      .join(", ")
+  );
 
   let supabaseResponse = NextResponse.next({
     request,
-  })
+  });
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
-  const { url, anonKey } = getPublicSupabaseConfig()
-  const supabase = createServerClient(
-    url,
-    anonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
+  const { url, anonKey } = getPublicSupabaseConfig();
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  )
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        );
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
 
   // Resolve tenant context
   let tenantContext: TenantContext = {};
@@ -145,19 +159,22 @@ export async function updateSession(request: NextRequest) {
   if (isCustomDomain(host)) {
     // Lookup empresa by custom domain
     const { data: empresa } = await supabase
-      .from('empresas')
-      .select('id, slug')
-      .eq('dominio_customizado', host.split(':')[0].toLowerCase())
-      .eq('ativo', true)
+      .from("empresas")
+      .select("id, slug")
+      .eq("dominio_customizado", host.split(":")[0].toLowerCase())
+      .eq("ativo", true)
       .maybeSingle();
 
     if (empresa) {
       tenantContext = {
         empresaId: empresa.id,
         empresaSlug: empresa.slug,
-        resolutionType: 'custom-domain',
+        resolutionType: "custom-domain",
       };
-      console.log('[DEBUG] Middleware - tenant resolved from custom domain:', tenantContext);
+      console.log(
+        "[DEBUG] Middleware - tenant resolved from custom domain:",
+        tenantContext
+      );
     }
   }
 
@@ -166,19 +183,22 @@ export async function updateSession(request: NextRequest) {
     if (subdomain) {
       // Lookup empresa by subdomain or slug
       const { data: empresa } = await supabase
-        .from('empresas')
-        .select('id, slug')
+        .from("empresas")
+        .select("id, slug")
         .or(`subdomain.eq.${subdomain},slug.eq.${subdomain}`)
-        .eq('ativo', true)
+        .eq("ativo", true)
         .maybeSingle();
 
       if (empresa) {
         tenantContext = {
           empresaId: empresa.id,
           empresaSlug: empresa.slug,
-          resolutionType: 'subdomain',
+          resolutionType: "subdomain",
         };
-        console.log('[DEBUG] Middleware - tenant resolved from subdomain:', tenantContext);
+        console.log(
+          "[DEBUG] Middleware - tenant resolved from subdomain:",
+          tenantContext
+        );
       }
     }
   }
@@ -188,19 +208,22 @@ export async function updateSession(request: NextRequest) {
     if (tenantSlug) {
       // Lookup empresa by slug
       const { data: empresa } = await supabase
-        .from('empresas')
-        .select('id, slug')
-        .eq('slug', tenantSlug)
-        .eq('ativo', true)
+        .from("empresas")
+        .select("id, slug")
+        .eq("slug", tenantSlug)
+        .eq("ativo", true)
         .maybeSingle();
 
       if (empresa) {
         tenantContext = {
           empresaId: empresa.id,
           empresaSlug: empresa.slug,
-          resolutionType: 'slug',
+          resolutionType: "slug",
         };
-        console.log('[DEBUG] Middleware - tenant resolved from path:', tenantContext);
+        console.log(
+          "[DEBUG] Middleware - tenant resolved from path:",
+          tenantContext
+        );
       }
     }
   }
@@ -210,13 +233,13 @@ export async function updateSession(request: NextRequest) {
   // existem para compatibilidade futura com o sistema de multi-tenant baseado em domínio.
   // Atualmente, elas redirecionam para /auth/login.
   const publicPaths = [
-    '/login',
-    '/auth',
-    '/auth/aluno/login',
-    '/auth/professor/login',
-    '/auth/professor/cadastro',
-    '/api/chat/attachments', // Anexos usam token na URL, não precisam de autenticação de sessão
-  ]
+    "/login",
+    "/auth",
+    "/auth/aluno/login",
+    "/auth/professor/login",
+    "/auth/professor/cadastro",
+    "/api/chat/attachments", // Anexos usam token na URL, não precisam de autenticação de sessão
+  ];
 
   // Also allow tenant-specific auth routes
   if (tenantContext.empresaSlug) {
@@ -225,37 +248,50 @@ export async function updateSession(request: NextRequest) {
     publicPaths.push(`/${tenantContext.empresaSlug}/auth/sign-up`);
   }
 
-  const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(`${path}/`))
-  console.log('[DEBUG] Middleware - isPublicPath:', isPublicPath, 'pathname:', pathname)
+  const isPublicPath = publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+  console.log(
+    "[DEBUG] Middleware - isPublicPath:",
+    isPublicPath,
+    "pathname:",
+    pathname
+  );
 
   // Tentar obter o usuário autenticado
   // getUser() renova automaticamente a sessão se necessário usando o refresh token
   // Se o refresh token estiver inválido ou não encontrado, retornará um erro
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  console.log('[DEBUG] Middleware - getUser result:', {
+  console.log("[DEBUG] Middleware - getUser result:", {
     hasUser: !!user,
     userId: user?.id,
     userEmail: user?.email,
     hasError: !!error,
-    errorMessage: error?.message
-  })
+    errorMessage: error?.message,
+  });
 
   // Handle tenant-specific login redirects when tenant is identified via domain/subdomain
-  if (tenantContext.empresaId && tenantContext.resolutionType !== 'slug') {
+  if (tenantContext.empresaId && tenantContext.resolutionType !== "slug") {
     // If accessing /auth or /auth/login, rewrite to tenant-specific login
-    if (pathname === '/auth' || pathname === '/auth/login') {
+    if (pathname === "/auth" || pathname === "/auth/login") {
       const url = request.nextUrl.clone();
       url.pathname = `/${tenantContext.empresaSlug}/auth/login`;
-      console.log('[DEBUG] Middleware - rewriting to tenant login:', url.pathname);
+      console.log(
+        "[DEBUG] Middleware - rewriting to tenant login:",
+        url.pathname
+      );
 
       // Clone response and add tenant headers
       const response = NextResponse.rewrite(url);
-      response.headers.set('x-tenant-id', tenantContext.empresaId);
-      response.headers.set('x-tenant-slug', tenantContext.empresaSlug!);
+      response.headers.set("x-tenant-id", tenantContext.empresaId);
+      response.headers.set("x-tenant-slug", tenantContext.empresaSlug!);
 
       // Copy cookies
-      supabaseResponse.cookies.getAll().forEach(cookie => {
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
         response.cookies.set(cookie.name, cookie.value);
       });
 
@@ -269,30 +305,37 @@ export async function updateSession(request: NextRequest) {
     // Se não for rota pública, redirecionar para login
     // O cliente Supabase irá limpar os cookies inválidos automaticamente
     if (!isPublicPath) {
-      console.log('[DEBUG] Middleware - redirecionando para /auth (não autenticado em rota protegida)')
-      const url = request.nextUrl.clone()
+      console.log(
+        "[DEBUG] Middleware - redirecionando para /auth (não autenticado em rota protegida)"
+      );
+      const url = request.nextUrl.clone();
 
       // If tenant context exists, redirect to tenant login
       if (tenantContext.empresaSlug) {
         url.pathname = `/${tenantContext.empresaSlug}/auth/login`;
       } else {
-        url.pathname = '/auth';
+        url.pathname = "/auth";
       }
 
-      return NextResponse.redirect(url)
+      return NextResponse.redirect(url);
     }
     // Se for rota pública, continuar normalmente (usuário não autenticado é esperado)
-    console.log('[DEBUG] Middleware - rota pública, continuando sem autenticação')
+    console.log(
+      "[DEBUG] Middleware - rota pública, continuando sem autenticação"
+    );
   } else {
-    console.log('[DEBUG] Middleware - usuário autenticado, continuando')
+    console.log("[DEBUG] Middleware - usuário autenticado, continuando");
   }
 
   // Add tenant context headers to response
   if (tenantContext.empresaId) {
-    supabaseResponse.headers.set('x-tenant-id', tenantContext.empresaId);
-    supabaseResponse.headers.set('x-tenant-slug', tenantContext.empresaSlug!);
+    supabaseResponse.headers.set("x-tenant-id", tenantContext.empresaId);
+    supabaseResponse.headers.set("x-tenant-slug", tenantContext.empresaSlug!);
     if (tenantContext.resolutionType) {
-      supabaseResponse.headers.set('x-tenant-resolution', tenantContext.resolutionType);
+      supabaseResponse.headers.set(
+        "x-tenant-resolution",
+        tenantContext.resolutionType
+      );
     }
   }
 
@@ -309,5 +352,5 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
-  return supabaseResponse
+  return supabaseResponse;
 }

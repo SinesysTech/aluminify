@@ -141,9 +141,9 @@ export function LoginPageClient() {
       }
 
       console.log('[DEBUG] Login bem-sucedido, redirecionando para:', next)
-      // TODO: respeitar rememberDevice (hoje o client usa persistência padrão)
-      router.push(next)
-      router.refresh()
+      // Usar window.location.href para garantir que os cookies sejam enviados corretamente
+      // e o middleware reconheça a sessão
+      window.location.href = next
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error)
       console.error('[DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A')
