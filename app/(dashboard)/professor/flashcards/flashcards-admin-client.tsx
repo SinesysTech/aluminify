@@ -673,10 +673,6 @@ export default function FlashcardsAdminClient() {
 
   const totalPages = Math.ceil(total / limit)
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

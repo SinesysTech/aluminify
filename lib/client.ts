@@ -2,11 +2,18 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from './database.types'
 import { getPublicSupabaseConfig } from './supabase-public-env'
 
+let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null
+
 // Evita flood no console quando o auth-js tenta refresh/retry.
 const SUPABASE_FETCH_LOG_THROTTLE_MS = 5_000
 const supabaseFetchLogLastAt = new Map<string, number>()
 
 export function createClient() {
+  // No browser, reutilize um único client para evitar múltiplos auto-refresh concorrendo.
+  if (typeof window !== 'undefined' && browserClient) {
+    return browserClient
+  }
+
   const { url, anonKey } = getPublicSupabaseConfig()
   console.log('[DEBUG] createClient() - Supabase config:', {
     url,
@@ -91,11 +98,27 @@ export function createClient() {
         }
       }
 
-      throw error
+      // Evitar "TypeError: Failed to fetch" estourando como exceção não tratada.
+      // Em vez de lançar, retornamos uma Response 503 para que o Supabase consiga
+      // tratar como erro HTTP (mais fácil de capturar/mostrar no UI).
+      return new Response(
+        JSON.stringify({
+          error: error instanceof Error ? error.message : String(error),
+          requestUrl: requestUrl ?? null,
+          online: typeof online === 'boolean' ? online : null,
+        }),
+        {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
     }
   }
 
-  return createBrowserClient<Database>(
+  const client = createBrowserClient<Database>(
     url,
     anonKey,
     {
@@ -104,4 +127,10 @@ export function createClient() {
       },
     }
   )
+
+  if (typeof window !== 'undefined') {
+    browserClient = client
+  }
+
+  return client
 }

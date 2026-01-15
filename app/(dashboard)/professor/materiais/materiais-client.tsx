@@ -6,6 +6,7 @@ import { createClient } from '@/lib/client'
 import { MaterialsFilters } from '@/components/conteudos/materials-filters'
 import { ModuleAccordion } from '@/components/conteudos/module-accordion'
 import RulesPanel from '@/components/shared/rules-panel'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { ModuloComAtividades, Atividade } from './types'
 

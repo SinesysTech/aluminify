@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
 import { AuthPageLayout } from '@/components/auth/auth-page-layout'
@@ -22,7 +22,6 @@ function safeNextPath(next: string | null | undefined) {
 }
 
 export function LoginPageClient() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
 

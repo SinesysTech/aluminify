@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Palette,
   Upload,
@@ -12,13 +12,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// Note: Card is still used internally for overview section
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';
-import { createClient } from '@/lib/client';
 import type {
   BrandCustomizationState,
   BrandCustomizationPanelProps,
@@ -47,18 +45,6 @@ export function BrandCustomizationPanel({
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-
-  // Helper function to get auth token
-  const getAuthToken = useCallback(async (): Promise<string | null> => {
-    try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      return session?.access_token || null;
-    } catch (error) {
-      console.error('Failed to get auth token:', error);
-      return null;
-    }
-  }, []);
 
   // Initialize state from props
   useEffect(() => {
@@ -90,20 +76,12 @@ export function BrandCustomizationPanel({
     try {
       console.log('Uploading logo for empresa:', empresaId);
 
-      const token = await getAuthToken();
-      if (!token) {
-        throw new Error('Sessão expirada. Faça login novamente.');
-      }
-
       const formData = new FormData();
       formData.append('file', file);
       formData.append('logoType', type);
 
       const response = await fetch(`/api/tenant-branding/${empresaId}/logos`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -123,7 +101,7 @@ export function BrandCustomizationPanel({
       }));
 
       // Logos are saved instantly, so we don't set hasUnsavedChanges
-      // setHasUnsavedChanges(true);
+      // setHasUnsavedChanges(true); 
 
       return { success: true, logoUrl: data.logoUrl };
     } catch (error) {
@@ -137,16 +115,8 @@ export function BrandCustomizationPanel({
 
   const handleLogoRemove = async (type: LogoType): Promise<void> => {
     try {
-      const token = await getAuthToken();
-      if (!token) {
-        throw new Error('Sessão expirada. Faça login novamente.');
-      }
-
       const response = await fetch(`/api/tenant-branding/${empresaId}/logos/${type}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
       });
 
       if (!response.ok) {
@@ -164,22 +134,16 @@ export function BrandCustomizationPanel({
       // setHasUnsavedChanges(true);
     } catch (error) {
       console.error('Removal failed:', error);
-      throw error; // Re-throw to let child component handle if needed
+      throw error; // Re-throw to let child component handle if needed, though handleLogoRemove signature returns Promise<void>
     }
   };
 
   const handleColorPaletteSave = async (paletteRequest: CreateColorPaletteRequest): Promise<void> => {
     try {
-      const token = await getAuthToken();
-      if (!token) {
-        throw new Error('Sessão expirada. Faça login novamente.');
-      }
-
       const response = await fetch(`/api/tenant-branding/${empresaId}/color-palettes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(paletteRequest),
       });
@@ -209,16 +173,10 @@ export function BrandCustomizationPanel({
 
   const handleFontSchemeSave = async (schemeRequest: CreateFontSchemeRequest): Promise<void> => {
     try {
-      const token = await getAuthToken();
-      if (!token) {
-        throw new Error('Sessão expirada. Faça login novamente.');
-      }
-
       const response = await fetch(`/api/tenant-branding/${empresaId}/font-schemes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(schemeRequest),
       });
@@ -243,7 +201,7 @@ export function BrandCustomizationPanel({
   };
 
   const handleFontSchemePreview = () => setPreviewMode(!previewMode);
-  const handleLoadGoogleFont = async (fontFamily: string): Promise<void> => {
+  const handleLoadGoogleFont = async (fontFamily: string) => {
     const link = document.createElement('link');
     link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/\s+/g, '+')}:wght@300;400;500;700&display=swap`;
     link.rel = 'stylesheet';
@@ -282,247 +240,253 @@ export function BrandCustomizationPanel({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-end">
-        <Button
-          onClick={handleReset}
-          variant="outline"
-          className="h-9"
-          disabled={isSaving || isResetting}
-        >
-          {isResetting ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <RotateCcw className="h-4 w-4 mr-2" />
-          )}
-          Restaurar Padrão
-        </Button>
-      </div>
+    <Card className="w-full border-none shadow-none">
+      <CardContent className="p-0">
+        <div className="flex flex-col space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Palette className="h-6 w-6" />
+                Personalização da Marca
+              </h2>
+              <p className="text-muted-foreground mt-1">
+                Personalize a identidade visual da sua empresa, incluindo logos, cores e fontes.
+              </p>
+            </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="logos">Logos</TabsTrigger>
-          <TabsTrigger value="colors">Cores</TabsTrigger>
-          <TabsTrigger value="fonts">Fontes</TabsTrigger>
-        </TabsList>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleReset}
+                variant="outline"
+                disabled={isSaving || isResetting}
+              >
+                {isResetting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                )}
+                Restaurar Padrão
+              </Button>
 
-        <TabsContent value="overview" className="mt-6 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuração Atual da Marca</CardTitle>
-              <CardDescription>
-                Visão geral das configurações de personalização atuais
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Logos Summary */}
-                <div className="space-y-4">
-                  <div className="font-medium flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4" />
-                    Logos
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                      <span>Login</span>
-                      {brandingState.logos.login ? (
-                        <Badge variant="default" className="bg-green-600">Personalizado</Badge>
-                      ) : (
-                        <Badge variant="outline">Padrão</Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                      <span>Sidebar</span>
-                      {brandingState.logos.sidebar ? (
-                        <Badge variant="default" className="bg-green-600">Personalizado</Badge>
-                      ) : (
-                        <Badge variant="outline">Padrão</Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                      <span>Favicon</span>
-                      {brandingState.logos.favicon ? (
-                        <Badge variant="default" className="bg-green-600">Personalizado</Badge>
-                      ) : (
-                        <Badge variant="outline">Padrão</Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
+              <Button
+                onClick={handleSave}
+                disabled={!hasUnsavedChanges || isSaving || isResetting}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Salvar Alterações
+              </Button>
+            </div>
+          </div>
 
-                {/* Colors Summary */}
-                <div className="space-y-4">
-                  <div className="font-medium flex items-center gap-2">
-                    <Palette className="h-4 w-4" />
-                    Cores
-                  </div>
-                  {brandingState.colorPalette ? (
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium">{brandingState.colorPalette.name}</div>
-                      <div className="flex gap-2">
-                        <div
-                          className="w-8 h-8 rounded-full border shadow-sm"
-                          style={{ backgroundColor: brandingState.colorPalette.primaryColor }}
-                          title="Primária"
-                        />
-                        <div
-                          className="w-8 h-8 rounded-full border shadow-sm"
-                          style={{ backgroundColor: brandingState.colorPalette.secondaryColor }}
-                          title="Secundária"
-                        />
-                        <div
-                          className="w-8 h-8 rounded-full border shadow-sm"
-                          style={{ backgroundColor: brandingState.colorPalette.accentColor }}
-                          title="Destaque"
-                        />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="logos">Logos</TabsTrigger>
+              <TabsTrigger value="colors">Cores</TabsTrigger>
+              <TabsTrigger value="fonts">Fontes</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuração Atual da Marca</CardTitle>
+                  <CardDescription>
+                    Visão geral das configurações de personalização atuais
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Logos Summary */}
+                    <div className="space-y-4">
+                      <div className="font-medium flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4" />
+                        Logos
                       </div>
-                      <Badge variant="secondary">Personalizado</Badge>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      Nenhuma paleta personalizada ativa. Usando cores padrão do sistema.
-                    </div>
-                  )}
-                </div>
-
-                {/* Fonts Summary */}
-                <div className="space-y-4">
-                  <div className="font-medium flex items-center gap-2">
-                    <Type className="h-4 w-4" />
-                    Fontes
-                  </div>
-                  {brandingState.fontScheme ? (
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium">{brandingState.fontScheme.name}</div>
-                      <div className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
-                        <div className="font-medium mb-1">Aa Bb Cc</div>
-                        <div className="text-xs">
-                          {brandingState.fontScheme.fontSans[0]}
+                      <div className="grid gap-2">
+                        <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
+                          <span>Login</span>
+                          {brandingState.logos.login ? (
+                            <Badge variant="default" className="bg-green-600">Personalizado</Badge>
+                          ) : (
+                            <Badge variant="outline">Padrão</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
+                          <span>Sidebar</span>
+                          {brandingState.logos.sidebar ? (
+                            <Badge variant="default" className="bg-green-600">Personalizado</Badge>
+                          ) : (
+                            <Badge variant="outline">Padrão</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
+                          <span>Favicon</span>
+                          {brandingState.logos.favicon ? (
+                            <Badge variant="default" className="bg-green-600">Personalizado</Badge>
+                          ) : (
+                            <Badge variant="outline">Padrão</Badge>
+                          )}
                         </div>
                       </div>
-                      <Badge variant="secondary">Personalizado</Badge>
                     </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      Nenhum esquema de fonte personalizado ativo. Usando fontes padrão do sistema.
+
+                    {/* Colors Summary */}
+                    <div className="space-y-4">
+                      <div className="font-medium flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Cores
+                      </div>
+                      {brandingState.colorPalette ? (
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium">{brandingState.colorPalette.name}</div>
+                          <div className="flex gap-2">
+                            <div
+                              className="w-8 h-8 rounded-full border shadow-sm"
+                              style={{ backgroundColor: brandingState.colorPalette.primaryColor }}
+                              title="Primária"
+                            />
+                            <div
+                              className="w-8 h-8 rounded-full border shadow-sm"
+                              style={{ backgroundColor: brandingState.colorPalette.secondaryColor }}
+                              title="Secundária"
+                            />
+                            <div
+                              className="w-8 h-8 rounded-full border shadow-sm"
+                              style={{ backgroundColor: brandingState.colorPalette.accentColor }}
+                              title="Destaque"
+                            />
+                          </div>
+                          <Badge variant="secondary">Personalizado</Badge>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Nenhuma paleta personalizada ativa. Usando cores padrão do sistema.
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+
+                    {/* Fonts Summary */}
+                    <div className="space-y-4">
+                      <div className="font-medium flex items-center gap-2">
+                        <Type className="h-4 w-4" />
+                        Fontes
+                      </div>
+                      {brandingState.fontScheme ? (
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium">{brandingState.fontScheme.name}</div>
+                          <div className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
+                            <div className="font-medium mb-1">Aa Bb Cc</div>
+                            <div className="text-xs">
+                              {brandingState.fontScheme.fontSans[0] ?? brandingState.fontScheme.name}
+                            </div>
+                          </div>
+                          <Badge variant="secondary">Personalizado</Badge>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Nenhum esquema de fonte personalizado ativo. Usando fontes padrão do sistema.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => setActiveTab('logos')}
+                >
+                  <Upload className="h-6 w-6 mb-1" />
+                  <span>Enviar Logos</span>
+                  <span className="text-xs text-muted-foreground font-normal">Faça upload da identidade da sua marca</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => setActiveTab('colors')}
+                >
+                  <Palette className="h-6 w-6 mb-1" />
+                  <span>Configurar Cores</span>
+                  <span className="text-xs text-muted-foreground font-normal">Defina sua paleta de cores</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => setActiveTab('fonts')}
+                >
+                  <Type className="h-6 w-6 mb-1" />
+                  <span>Escolher Fontes</span>
+                  <span className="text-xs text-muted-foreground font-normal">Selecione sua tipografia</span>
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => setActiveTab('logos')}
-            >
-              <Upload className="h-6 w-6 mb-1" />
-              <span>Enviar Logos</span>
-              <span className="text-xs text-muted-foreground font-normal">Faça upload da identidade da sua marca</span>
-            </Button>
+            <TabsContent value="logos" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <LogoUploadComponent
+                  logoType="login"
+                  currentLogoUrl={brandingState.logos.login || undefined}
+                  onUpload={handleLogoUpload}
+                  onRemove={handleLogoRemove}
+                  maxFileSize={5 * 1024 * 1024} // 5MB
+                  acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
+                />
 
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => setActiveTab('colors')}
-            >
-              <Palette className="h-6 w-6 mb-1" />
-              <span>Configurar Cores</span>
-              <span className="text-xs text-muted-foreground font-normal">Defina sua paleta de cores</span>
-            </Button>
+                <LogoUploadComponent
+                  logoType="sidebar"
+                  currentLogoUrl={brandingState.logos.sidebar || undefined}
+                  onUpload={handleLogoUpload}
+                  onRemove={handleLogoRemove}
+                  maxFileSize={5 * 1024 * 1024} // 5MB
+                  acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
+                />
 
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => setActiveTab('fonts')}
-            >
-              <Type className="h-6 w-6 mb-1" />
-              <span>Escolher Fontes</span>
-              <span className="text-xs text-muted-foreground font-normal">Selecione sua tipografia</span>
-            </Button>
-          </div>
-        </TabsContent>
+                <LogoUploadComponent
+                  logoType="favicon"
+                  currentLogoUrl={brandingState.logos.favicon || undefined}
+                  onUpload={handleLogoUpload}
+                  onRemove={handleLogoRemove}
+                  maxFileSize={1 * 1024 * 1024} // 1MB for favicon
+                  acceptedFormats={['image/png', 'image/x-icon', 'image/svg+xml']}
+                />
+              </div>
+            </TabsContent>
 
-        <TabsContent value="logos" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <LogoUploadComponent
-              logoType="login"
-              currentLogoUrl={brandingState.logos.login || undefined}
-              onUpload={handleLogoUpload}
-              onRemove={handleLogoRemove}
-              maxFileSize={5 * 1024 * 1024} // 5MB
-              acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
-            />
+            <TabsContent value="colors" className="space-y-6 mt-6">
+              <ColorPaletteEditor
+                currentPalette={currentBranding?.colorPalette}
+                onSave={handleColorPaletteSave}
+                onPreview={handleColorPalettePreview}
+                onValidate={handleColorPaletteValidate}
+              />
+            </TabsContent>
 
-            <LogoUploadComponent
-              logoType="sidebar"
-              currentLogoUrl={brandingState.logos.sidebar || undefined}
-              onUpload={handleLogoUpload}
-              onRemove={handleLogoRemove}
-              maxFileSize={5 * 1024 * 1024} // 5MB
-              acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
-            />
-
-            <LogoUploadComponent
-              logoType="favicon"
-              currentLogoUrl={brandingState.logos.favicon || undefined}
-              onUpload={handleLogoUpload}
-              onRemove={handleLogoRemove}
-              maxFileSize={1 * 1024 * 1024} // 1MB for favicon
-              acceptedFormats={['image/png', 'image/x-icon', 'image/svg+xml']}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="colors" className="space-y-6 mt-6">
-          <ColorPaletteEditor
-            currentPalette={currentBranding?.colorPalette}
-            onSave={handleColorPaletteSave}
-            onPreview={handleColorPalettePreview}
-            onValidate={handleColorPaletteValidate}
-          />
-        </TabsContent>
-
-        <TabsContent value="fonts" className="space-y-6 mt-6">
-          <FontSchemeSelector
-            currentScheme={currentBranding?.fontScheme}
-            availableGoogleFonts={[
-              'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
-              'Poppins', 'Nunito', 'Raleway', 'Ubuntu', 'Fira Code', 'Source Code Pro',
-              'JetBrains Mono', 'Inconsolata', 'Fira Sans', 'Work Sans', 'Playfair Display',
-              'Merriweather', 'PT Sans', 'Oswald'
-            ]}
-            onSave={handleFontSchemeSave}
-            onPreview={handleFontSchemePreview}
-            onLoadGoogleFont={handleLoadGoogleFont}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <footer className="flex justify-end items-center pt-4 border-t border-[#E4E4E7]">
-        {hasUnsavedChanges ? (
-          <Button
-            onClick={handleSave}
-            className="h-10"
-            disabled={isSaving || isResetting}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Salvar Alterações
-          </Button>
-        ) : (
-          <span className="text-sm text-[#71717A]">
-            Todas as alterações foram salvas automaticamente
-          </span>
-        )}
-      </footer>
-    </div>
+            <TabsContent value="fonts" className="space-y-6 mt-6">
+              <FontSchemeSelector
+                currentScheme={currentBranding?.fontScheme}
+                availableGoogleFonts={[
+                  'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
+                  'Poppins', 'Nunito', 'Raleway', 'Ubuntu', 'Fira Code', 'Source Code Pro',
+                  'JetBrains Mono', 'Inconsolata', 'Fira Sans', 'Work Sans', 'Playfair Display',
+                  'Merriweather', 'PT Sans', 'Oswald'
+                ]}
+                onSave={handleFontSchemeSave}
+                onPreview={handleFontSchemePreview}
+                onLoadGoogleFont={handleLoadGoogleFont}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -2150,7 +2150,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           <div className="flex flex-col lg:flex-row gap-3 lg:items-stretch w-full">
             {/* Calendário */}
             <div
-              className="flex flex-col w-full lg:flex-1"
+              className="flex flex-col w-full lg:flex-1 min-w-0"
               {...swipeHandlers}
             >
               {/* Navegação de mês em mobile */}
@@ -2356,37 +2356,33 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                       </div>
                     </CardHeader>
                     <CardContent className="px-3 pb-1.5 pt-0">
-                      <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium shrink-0">•</span>
-                          <span>Selecione os dias da semana em que deseja estudar no painel lateral</span>
-                        </div>
-                        <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium shrink-0">•</span>
-                          <span>Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas das aulas</span>
-                        </div>
-                        <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium shrink-0">•</span>
-                          <span>Use o botão de data para selecionar um período e ver as aulas agendadas</span>
-                        </div>
-                        <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium shrink-0">•</span>
-                          <span>Marque as aulas como concluídas usando os checkboxes na lista</span>
-                        </div>
-                        <div className="flex items-center gap-2 whitespace-nowrap h-5">
-                          <span className="font-medium shrink-0">•</span>
-                          <span>Dê um duplo clique em qualquer data do calendário para alterar o período selecionado</span>
-                        </div>
-                      </div>
+                      <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground wrap-break-word">
+                        <li className="leading-snug">
+                          Selecione os dias da semana em que deseja estudar no painel lateral
+                        </li>
+                        <li className="leading-snug">
+                          Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas das aulas
+                        </li>
+                        <li className="leading-snug">
+                          Use o botão de data para selecionar um período e ver as aulas agendadas
+                        </li>
+                        <li className="leading-snug">
+                          Marque as aulas como concluídas usando os checkboxes na lista
+                        </li>
+                        <li className="leading-snug">
+                          Dê um duplo clique em qualquer data do calendário para alterar o período selecionado
+                        </li>
+                      </ul>
                     </CardContent>
                   </div>
                 </div>
               </Card>
             </div>
 
+            <div className="w-full lg:w-80 shrink-0 flex flex-col gap-3">
             {/* Painel de Resumo Semanal - Colapsável */}
             {estatisticasSemanas && (
-              <Card className="w-full lg:w-80 shrink-0">
+              <Card className="w-full">
                 <Collapsible defaultOpen={false}>
                   <CollapsibleTrigger asChild>
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -2664,7 +2660,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             )}
 
             {/* Painel de Filtros - Lado Direito - Alinhado com o calendário */}
-            <Card className="w-full lg:w-80 shrink-0 flex flex-col border rounded-md shadow-sm py-2 mt-0 md:mt-0">
+            <Card className="w-full flex flex-col border rounded-md shadow-sm py-2 mt-0 md:mt-0">
               <CardHeader className="pb-1 pt-2 px-3">
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-base font-bold leading-tight">Selecionar dias para ver a aula</CardTitle>
@@ -2725,7 +2721,9 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     return (
                       <div className="mt-1.5 p-1.5 bg-white dark:bg-white border border-red-200 dark:border-red-300 rounded text-xs text-red-700 dark:text-red-700 leading-tight">
                         <p className="font-medium">Atenção:</p>
-                        <p>Os dias {nomesDiasSemItens.join(', ')} estão selecionados mas não têm aulas ainda. Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas.</p>
+                        <p className="wrap-break-word">
+                          Os dias {nomesDiasSemItens.join(', ')} estão selecionados mas não têm aulas ainda. Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas.
+                        </p>
                       </div>
                     )
                   }
@@ -2852,6 +2850,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
 
           {/* Lista de itens por data (quando uma data é selecionada) */}
