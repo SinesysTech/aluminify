@@ -58,7 +58,8 @@ function ProgressBar({
 }
 
 export function StrategicDomain({ data }: StrategicDomainProps) {
-  const [scope, setScope] = useState<DashboardScopeLevel>('curso')
+  // Domínio Estratégico não tem escopo por módulo (evita redundância com "Performance por Módulo")
+  const [scope, setScope] = useState<Extract<DashboardScopeLevel, 'curso' | 'disciplina' | 'frente'>>('curso')
   const [courses, setCourses] = useState<Array<{ id: string; nome: string }>>([])
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [disciplineOptions, setDisciplineOptions] = useState<PerformanceItem[]>([])
@@ -66,7 +67,6 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
 
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<string | null>(null)
   const [selectedFrontId, setSelectedFrontId] = useState<string | null>(null)
-  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null)
 
   const [focusedData, setFocusedData] = useState<StrategicDomain | null>(null)
   const [modulesRanking, setModulesRanking] = useState<StrategicDomainModuleItem[]>([])
@@ -75,9 +75,8 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
   const effectiveScopeId = useMemo(() => {
     if (scope === 'curso') return undefined
     if (scope === 'disciplina') return selectedDisciplineId ?? undefined
-    if (scope === 'frente') return selectedFrontId ?? undefined
-    return selectedModuleId ?? undefined
-  }, [scope, selectedDisciplineId, selectedFrontId, selectedModuleId])
+    return selectedFrontId ?? undefined
+  }, [scope, selectedDisciplineId, selectedFrontId])
 
   // Carregar cursos
   useEffect(() => {
@@ -104,19 +103,14 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
     if (scope === 'curso') {
       setSelectedDisciplineId(null)
       setSelectedFrontId(null)
-      setSelectedModuleId(null)
       setDisciplineOptions([])
       setFrontOptions([])
       return
     }
     if (scope === 'disciplina') {
       setSelectedFrontId(null)
-      setSelectedModuleId(null)
       setFrontOptions([])
       return
-    }
-    if (scope === 'frente') {
-      setSelectedModuleId(null)
     }
   }, [scope])
 
@@ -151,7 +145,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
   useEffect(() => {
     let cancelled = false
     async function ensureFront() {
-      if (scope !== 'frente' && scope !== 'modulo') return
+      if (scope !== 'frente') return
       if (!selectedDisciplineId) return
       if (selectedFrontId) return
       setIsLoading(true)
@@ -181,32 +175,9 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
     async function load() {
       // Em níveis que dependem de seleção, não fetchar sem id
       if ((scope === 'disciplina' && !selectedDisciplineId) || (scope === 'frente' && !selectedFrontId)) return
-      if (scope === 'modulo' && (!selectedFrontId && !selectedModuleId)) return
 
       setIsLoading(true)
       try {
-        if (scope === 'modulo') {
-          // 1) Ranking por frente (escopo do ranking)
-          if (selectedFrontId) {
-            const frontScope = await fetchStrategicDomain({ scope: 'frente', scopeId: selectedFrontId })
-            if (cancelled) return
-            setModulesRanking(frontScope.modules)
-            // Selecionar módulo padrão
-            if (!selectedModuleId) {
-              const first = frontScope.modules.find((m) => m.moduloId)?.moduloId ?? null
-              setSelectedModuleId(first)
-            }
-          }
-
-          // 2) Dados focados no módulo selecionado
-          if (selectedModuleId) {
-            const moduleScope = await fetchStrategicDomain({ scope: 'modulo', scopeId: selectedModuleId })
-            if (cancelled) return
-            setFocusedData(moduleScope.data)
-          }
-          return
-        }
-
         const res = await fetchStrategicDomain({ scope, scopeId: effectiveScopeId })
         if (cancelled) return
         setFocusedData(res.data)
@@ -219,7 +190,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
     return () => {
       cancelled = true
     }
-  }, [scope, effectiveScopeId, selectedDisciplineId, selectedFrontId, selectedModuleId])
+  }, [scope, effectiveScopeId, selectedDisciplineId, selectedFrontId])
 
   const display = focusedData ?? data
 
@@ -268,28 +239,28 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
             </TooltipProvider>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="w-full">
             <ToggleGroup
               type="single"
               value={scope}
               onValueChange={(v) => {
                 if (!v) return
-                setScope(v as DashboardScopeLevel)
+                setScope(v as Extract<DashboardScopeLevel, 'curso' | 'disciplina' | 'frente'>)
               }}
-              variant="outline"
+              variant="segmented"
               size="sm"
+              className="w-full"
             >
-              <ToggleGroupItem value="curso">Curso</ToggleGroupItem>
-              <ToggleGroupItem value="disciplina">Disciplina</ToggleGroupItem>
-              <ToggleGroupItem value="frente">Frente</ToggleGroupItem>
-              <ToggleGroupItem value="modulo">Módulo</ToggleGroupItem>
+              <ToggleGroupItem value="curso" variant="segmented" size="sm">Curso</ToggleGroupItem>
+              <ToggleGroupItem value="disciplina" variant="segmented" size="sm">Disciplina</ToggleGroupItem>
+              <ToggleGroupItem value="frente" variant="segmented" size="sm">Frente</ToggleGroupItem>
             </ToggleGroup>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {scope !== 'curso' && courses.length > 1 && (
               <Select value={selectedCourseId ?? ''} onValueChange={(v) => setSelectedCourseId(v || null)}>
-                <SelectTrigger className="h-8 w-[220px]">
+                <SelectTrigger size="sm" className="w-[220px]">
                   <SelectValue placeholder="Filtrar por curso" />
                 </SelectTrigger>
                 <SelectContent>
@@ -302,7 +273,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
 
             {scope !== 'curso' && (
               <Select value={selectedDisciplineId ?? ''} onValueChange={(v) => setSelectedDisciplineId(v || null)}>
-                <SelectTrigger className="h-8 w-[220px]">
+                <SelectTrigger size="sm" className="w-[220px]">
                   <SelectValue placeholder="Disciplina" />
                 </SelectTrigger>
                 <SelectContent>
@@ -313,27 +284,14 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
               </Select>
             )}
 
-            {(scope === 'frente' || scope === 'modulo') && (
+            {scope === 'frente' && (
               <Select value={selectedFrontId ?? ''} onValueChange={(v) => setSelectedFrontId(v || null)}>
-                <SelectTrigger className="h-8 w-[220px]">
+                <SelectTrigger size="sm" className="w-[220px]">
                   <SelectValue placeholder="Frente" />
                 </SelectTrigger>
                 <SelectContent>
                   {frontOptions.map((f) => (
                     <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {scope === 'modulo' && (
-              <Select value={selectedModuleId ?? ''} onValueChange={(v) => setSelectedModuleId(v || null)}>
-                <SelectTrigger className="h-8 w-[260px]">
-                  <SelectValue placeholder="Módulo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {modulesRanking.map((m) => (
-                    <SelectItem key={m.moduloId} value={m.moduloId}>{m.moduloNome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

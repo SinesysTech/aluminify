@@ -482,7 +482,7 @@ export class DashboardAnalyticsService {
     // 3) Módulos das frentes
     const { data: todosModulos } = await client
       .from('modulos')
-      .select('id, nome, frente_id, curso_id')
+      .select('id, nome, numero_modulo, importancia, frente_id, curso_id')
       .in('frente_id', frentesFiltradas.map((f) => f.id))
       .or(
         effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
@@ -490,7 +490,14 @@ export class DashboardAnalyticsService {
           'curso_id.is.null',
       )
 
-    let modulosFiltrados = ((todosModulos ?? []) as Array<{ id: string; nome: string; frente_id: string; curso_id: string | null }>).filter(
+    let modulosFiltrados = ((todosModulos ?? []) as Array<{
+      id: string
+      nome: string
+      numero_modulo: number | null
+      importancia: ModuloImportancia | null
+      frente_id: string
+      curso_id: string | null
+    }>).filter(
       (m) => !m.curso_id || effectiveCursoIds.includes(m.curso_id),
     )
     if (opts.scope === 'modulo' && opts.scopeId) {
@@ -637,7 +644,15 @@ export class DashboardAnalyticsService {
         const frente = frenteMap.get(m.frente_id)
         const disciplinaNome = frente ? (disciplinaMap.get(frente.disciplina_id) ?? null) : null
         const subLabel = frente ? [disciplinaNome, frente.nome].filter(Boolean).join(' • ') : disciplinaNome
-        return { id: m.id, name: m.nome, subLabel: subLabel ?? null, score, isNotStarted: totais <= 0 }
+        return {
+          id: m.id,
+          name: m.nome,
+          subLabel: subLabel ?? null,
+          score,
+          isNotStarted: totais <= 0,
+          moduloNumero: m.numero_modulo ?? null,
+          importancia: (m.importancia ?? null) as ModuloImportancia | null,
+        }
       })
     }
 

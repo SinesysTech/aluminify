@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DashboardGroupBy, DashboardPeriod, DashboardScopeLevel, PerformanceItem, SubjectPerformance } from '@/types/dashboard'
 import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -195,10 +196,20 @@ export function SubjectPerformanceList({
     return 'bg-red-500'
   }
 
+  const importanciaLabel = (v?: PerformanceItem['importancia']) => {
+    if (!v) return null
+    // garantir capitalização consistente
+    if (v === 'Base') return 'Base'
+    if (v === 'Alta') return 'Alta'
+    if (v === 'Media') return 'Média'
+    if (v === 'Baixa') return 'Baixa'
+    return String(v)
+  }
+
   return (
     <Card className="h-full">
-      <CardContent className="px-4 md:px-6 py-3 md:py-4 h-full flex flex-col">
-        <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4 mb-4 md:mb-6">
+      <CardContent className="px-4 md:px-6 py-3 md:py-4 h-full flex flex-col min-h-0">
+        <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-foreground text-base md:text-lg font-semibold">
               Performance por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'Módulo'}
@@ -245,39 +256,43 @@ export function SubjectPerformanceList({
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ToggleGroup
-              type="single"
-              value={groupBy}
-              onValueChange={(v) => {
-                if (!v) return
-                setGroupBy(v as DashboardGroupBy)
-              }}
-              variant="outline"
-              size="sm"
-            >
-              <ToggleGroupItem value="curso">Curso</ToggleGroupItem>
-              <ToggleGroupItem value="disciplina">Disciplina</ToggleGroupItem>
-              <ToggleGroupItem value="frente">Frente</ToggleGroupItem>
-              <ToggleGroupItem value="modulo">Módulo</ToggleGroupItem>
-            </ToggleGroup>
-            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-              <SelectTrigger className="w-[180px] h-8">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="worst-best">Pior para Melhor</SelectItem>
-                <SelectItem value="best-worst">Melhor para Pior</SelectItem>
-                <SelectItem value="alphabetical">Ordem Alfabética</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        </div>
+
+        {/* Controles (ocupam o card inteiro como no Domínio Estratégico) */}
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-2 items-center mb-4 md:mb-6">
+          <ToggleGroup
+            type="single"
+            value={groupBy}
+            onValueChange={(v) => {
+              if (!v) return
+              setGroupBy(v as DashboardGroupBy)
+            }}
+            variant="segmented"
+            size="sm"
+            className="w-full"
+          >
+            <ToggleGroupItem value="curso" variant="segmented" size="sm">Curso</ToggleGroupItem>
+            <ToggleGroupItem value="disciplina" variant="segmented" size="sm">Disciplina</ToggleGroupItem>
+            <ToggleGroupItem value="frente" variant="segmented" size="sm">Frente</ToggleGroupItem>
+            <ToggleGroupItem value="modulo" variant="segmented" size="sm">Módulo</ToggleGroupItem>
+          </ToggleGroup>
+
+          <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+            <SelectTrigger size="sm" className="w-full">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="worst-best">Pior para Melhor</SelectItem>
+              <SelectItem value="best-worst">Melhor para Pior</SelectItem>
+              <SelectItem value="alphabetical">Ordem Alfabética</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-2">
           {groupBy !== 'curso' && courses.length > 1 && (
             <Select value={selectedCourseId ?? ''} onValueChange={(v) => setSelectedCourseId(v || null)}>
-              <SelectTrigger className="h-8 w-[220px]">
+              <SelectTrigger size="sm" className="w-[220px]">
                 <SelectValue placeholder="Filtrar por curso" />
               </SelectTrigger>
               <SelectContent>
@@ -290,7 +305,7 @@ export function SubjectPerformanceList({
 
           {groupBy === 'frente' && (
             <Select value={selectedDisciplineId ?? ''} onValueChange={(v) => setSelectedDisciplineId(v || null)}>
-              <SelectTrigger className="h-8 w-[220px]">
+              <SelectTrigger size="sm" className="w-[220px]">
                 <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
@@ -303,7 +318,7 @@ export function SubjectPerformanceList({
 
           {groupBy === 'modulo' && (
             <Select value={selectedFrontId ?? ''} onValueChange={(v) => setSelectedFrontId(v || null)}>
-              <SelectTrigger className="h-8 w-[220px]">
+              <SelectTrigger size="sm" className="w-[220px]">
                 <SelectValue placeholder="Frente" />
               </SelectTrigger>
               <SelectContent>
@@ -319,50 +334,70 @@ export function SubjectPerformanceList({
           <p className="text-xs text-muted-foreground mb-2">Atualizando…</p>
         )}
 
-        {sortedSubjects.length === 0 ? (
-          <div className="py-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              Sem dados suficientes para calcular performance.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:gap-y-6">
-            {sortedSubjects.map((subject) => (
-              <div key={subject.id} className="flex flex-col gap-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium text-foreground">
-                    {subject.name}
-                    {subject.subLabel ? (
-                      <span className="text-muted-foreground font-normal"> ({subject.subLabel})</span>
-                    ) : null}
-                  </span>
-                  <span className="font-medium text-muted-foreground">
-                    {subject.isNotStarted ? (
-                      <span className="text-muted-foreground italic">
-                        Não iniciada
-                      </span>
-                    ) : (
-                      `${subject.score}%`
-                    )}
-                  </span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  {subject.isNotStarted ? (
-                    <div className="h-2.5 rounded-full bg-muted-foreground/25" />
-                  ) : (
-                    <div
-                      className={cn(
-                        'h-2.5 rounded-full transition-all',
-                        getBarColor(subject.score)
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+          {sortedSubjects.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                Sem dados suficientes para calcular performance.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:gap-y-6">
+              {sortedSubjects.map((subject) => (
+                <div key={subject.id} className="flex flex-col gap-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-foreground">
+                      {groupBy === 'modulo' ? (
+                        <span className="inline-flex items-center gap-2 flex-wrap">
+                          <span>
+                            {subject.moduloNumero != null
+                              ? `Módulo ${subject.moduloNumero} (${subject.name})`
+                              : subject.name}
+                          </span>
+                          {importanciaLabel(subject.importancia) && (
+                            <Badge
+                              variant="outline"
+                              className="text-[11px] px-2 py-0.5 border-border bg-muted text-muted-foreground"
+                            >
+                              {importanciaLabel(subject.importancia)}
+                            </Badge>
+                          )}
+                        </span>
+                      ) : (
+                        subject.name
                       )}
-                      style={{ width: `${subject.score}%` }}
-                    />
-                  )}
+                      {groupBy !== 'modulo' && subject.subLabel ? (
+                        <span className="text-muted-foreground font-normal"> ({subject.subLabel})</span>
+                      ) : null}
+                    </span>
+                    <span className="font-medium text-muted-foreground">
+                      {subject.isNotStarted ? (
+                        <span className="text-muted-foreground italic">
+                          Não iniciada
+                        </span>
+                      ) : (
+                        `${subject.score}%`
+                      )}
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2.5">
+                    {subject.isNotStarted ? (
+                      <div className="h-2.5 rounded-full bg-muted-foreground/25" />
+                    ) : (
+                      <div
+                        className={cn(
+                          'h-2.5 rounded-full transition-all',
+                          getBarColor(subject.score)
+                        )}
+                        style={{ width: `${subject.score}%` }}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

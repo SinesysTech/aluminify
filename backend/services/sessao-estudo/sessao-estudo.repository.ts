@@ -73,19 +73,40 @@ export class SessaoEstudoRepository {
       }
     }
 
-    const { data, error } = await client
-      .from(this.table)
-      .insert({
-        aluno_id: input.alunoId,
-        disciplina_id: input.disciplinaId ?? null,
-        frente_id: input.frenteId ?? null,
-        modulo_id: moduloId,
-        atividade_relacionada_id: input.atividadeRelacionadaId ?? null,
-        metodo_estudo: input.metodoEstudo ?? null,
-        inicio: input.inicioIso ?? new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const baseInsert = {
+      aluno_id: input.alunoId,
+      disciplina_id: input.disciplinaId ?? null,
+      frente_id: input.frenteId ?? null,
+      atividade_relacionada_id: input.atividadeRelacionadaId ?? null,
+      metodo_estudo: input.metodoEstudo ?? null,
+      inicio: input.inicioIso ?? new Date().toISOString(),
+    };
+
+    // Observação: alguns ambientes ainda não aplicaram a migration de `modulo_id`.
+    // Tentamos inserir com `modulo_id` e, se o schema cache não conhecer a coluna, fazemos fallback sem ela.
+    let data: unknown;
+    let error: { message: string } | null = null;
+
+    {
+      const attempt = await client
+        .from(this.table)
+        .insert({ ...baseInsert, modulo_id: moduloId })
+        .select()
+        .single();
+      data = attempt.data;
+      error = attempt.error as { message: string } | null;
+    }
+
+    if (
+      error &&
+      typeof error.message === 'string' &&
+      error.message.includes("modulo_id") &&
+      error.message.includes('schema cache')
+    ) {
+      const attempt = await client.from(this.table).insert(baseInsert).select().single();
+      data = attempt.data;
+      error = attempt.error as { message: string } | null;
+    }
 
     if (error) {
       throw new Error(`Erro ao criar sessão de estudo: ${error.message}`);
@@ -145,6 +166,16 @@ export class SessaoEstudoRepository {
       .update({ updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('aluno_id', alunoId);
+
+    // Fallback para ambientes sem coluna updated_at (migration não aplicada)
+    if (
+      error &&
+      typeof error.message === 'string' &&
+      error.message.includes('updated_at') &&
+      error.message.includes('schema cache')
+    ) {
+      return;
+    }
 
     if (error) {
       throw new Error(`Erro ao registrar heartbeat: ${error.message}`);

@@ -88,6 +88,9 @@ export interface PerformanceItem {
   subLabel?: string | null
   score: number // Percentual (0-100)
   isNotStarted: boolean
+  // Quando groupBy = 'modulo'
+  moduloNumero?: number | null
+  importancia?: ModuloImportancia | null
 }
 
 export interface StrategicDomainModuleItem {

@@ -188,8 +188,8 @@ export function SubjectDistribution({
 
   return (
     <Card className="h-full">
-      <CardContent className="px-4 md:px-6 py-3 md:py-4 h-full flex flex-col">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 md:mb-6">
+      <CardContent className="px-4 md:px-6 py-3 md:py-4 h-full flex flex-col min-h-0">
+        <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-foreground text-base md:text-lg font-semibold">
               Distribuição por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'Módulo'}
@@ -229,23 +229,24 @@ export function SubjectDistribution({
             </Tooltip>
           </TooltipProvider>
           </div>
-          <ToggleGroup
-            type="single"
-            value={groupBy}
-            onValueChange={(v) => {
-              if (!v) return
-              setGroupBy(v as DashboardGroupBy)
-            }}
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-          >
-            <ToggleGroupItem value="curso">Curso</ToggleGroupItem>
-            <ToggleGroupItem value="disciplina">Disciplina</ToggleGroupItem>
-            <ToggleGroupItem value="frente">Frente</ToggleGroupItem>
-            <ToggleGroupItem value="modulo">Módulo</ToggleGroupItem>
-          </ToggleGroup>
         </div>
+
+        <ToggleGroup
+          type="single"
+          value={groupBy}
+          onValueChange={(v) => {
+            if (!v) return
+            setGroupBy(v as DashboardGroupBy)
+          }}
+          variant="segmented"
+          size="sm"
+          className="w-full mb-4 md:mb-6"
+        >
+          <ToggleGroupItem value="curso" variant="segmented" size="sm">Curso</ToggleGroupItem>
+          <ToggleGroupItem value="disciplina" variant="segmented" size="sm">Disciplina</ToggleGroupItem>
+          <ToggleGroupItem value="frente" variant="segmented" size="sm">Frente</ToggleGroupItem>
+          <ToggleGroupItem value="modulo" variant="segmented" size="sm">Módulo</ToggleGroupItem>
+        </ToggleGroup>
 
         {/* Filtros dependentes (mantém UI simples: só aparece quando necessário) */}
         <div className="flex flex-wrap gap-2 mb-2">
@@ -254,7 +255,7 @@ export function SubjectDistribution({
               value={selectedCourseId ?? ''}
               onValueChange={(v) => setSelectedCourseId(v || null)}
             >
-              <SelectTrigger className="h-8 w-[220px]">
+              <SelectTrigger size="sm" className="w-[220px]">
                 <SelectValue placeholder="Filtrar por curso" />
               </SelectTrigger>
               <SelectContent>
@@ -270,7 +271,7 @@ export function SubjectDistribution({
               value={selectedDisciplineId ?? ''}
               onValueChange={(v) => setSelectedDisciplineId(v || null)}
             >
-              <SelectTrigger className="h-8 w-[220px]">
+              <SelectTrigger size="sm" className="w-[220px]">
                 <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
@@ -288,7 +289,7 @@ export function SubjectDistribution({
               value={selectedFrontId ?? ''}
               onValueChange={(v) => setSelectedFrontId(v || null)}
             >
-              <SelectTrigger className="h-8 w-[220px]">
+              <SelectTrigger size="sm" className="w-[220px]">
                 <SelectValue placeholder="Frente" />
               </SelectTrigger>
               <SelectContent>
