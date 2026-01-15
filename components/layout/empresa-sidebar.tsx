@@ -75,7 +75,52 @@ const empresaNavItems: NavItem[] = [
     url: "/empresa/relatorios",
     icon: FileText,
   },
-
+  // Funcionalidades do Professor (Superset)
+  {
+    title: "Visualizar como Aluno",
+    url: "/professor/view-as-student",
+    icon: Eye,
+  },
+  {
+    title: "Cursos",
+    url: "/curso",
+    icon: BookOpen,
+  },
+  {
+    title: "Disciplinas",
+    url: "/disciplina",
+    icon: FileText,
+  },
+  {
+    title: "Segmentos",
+    url: "/segmento",
+    icon: Layers,
+  },
+  {
+    title: "Conteúdo Programático",
+    url: "/conteudos",
+    icon: Calendar,
+  },
+  {
+    title: "Materiais",
+    url: "/professor/materiais",
+    icon: FolderOpen,
+  },
+  {
+    title: "Flashcards",
+    url: "/professor/flashcards",
+    icon: FolderOpen,
+  },
+  {
+    title: "Disponibilidade",
+    url: "/professor/disponibilidade",
+    icon: CalendarCheck,
+  },
+  {
+    title: "Agendamentos",
+    url: "/professor/agendamentos",
+    icon: Calendar,
+  },
 ]
 
 export function EmpresaSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

@@ -1,84 +1,24 @@
-'use client';
+import { studentService } from '@/backend/services/student'
+import { courseService } from '@/backend/services/course'
+import { AlunosClientPage } from '@/app/(dashboard)/admin/alunos/components/client-page'
+import { requireUser } from '@/lib/auth'
 
-import { useCallback, useEffect, useState } from 'react';
+export default async function EmpresaAlunosPage({ searchParams }: { searchParams: { page?: string, query?: string } }) {
+  // Ensure only empresa admins and superadmins can access
+  await requireUser({ allowedRoles: ['professor', 'empresa', 'superadmin'] })
 
-import { useToast } from '@/hooks/use-toast';
+  const page = Number(searchParams.page) || 1
+  const query = searchParams.query || ''
 
-interface Aluno {
-  id: string;
-  fullName: string | null;
-  email: string;
-  courses: Array<{ id: string; name: string }>;
+  const [studentsResult, coursesResult] = await Promise.all([
+    studentService.list({ page, perPage: 10, query }),
+    courseService.list({ perPage: 100, sortBy: 'name', sortOrder: 'asc' })
+  ])
+
+  const { data: students, meta } = studentsResult
+  const { data: courses } = coursesResult
+
+  const coursesSimple = courses.map(c => ({ id: c.id, name: c.name }))
+
+  return <AlunosClientPage students={students} meta={meta} courses={coursesSimple} />
 }
-
-export default function EmpresaAlunosPage() {
-  const { toast } = useToast();
-  const [alunos, setAlunos] = useState<Aluno[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchAlunos = useCallback(async () => {
-    try {
-      const userResponse = await fetch('/api/user/profile');
-      const userData = await userResponse.json();
-
-      if (userData.empresaId) {
-        const response = await fetch(`/api/empresas/${userData.empresaId}/alunos`);
-        if (response.ok) {
-          const data = await response.json();
-          setAlunos(data);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching alunos:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar alunos',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchAlunos();
-  }, [fetchAlunos]);
-
-  if (loading) {
-    return <div>Carregando...</div>;
-  }
-
-  return (
-    <div className="container mx-auto py-8">
-      <div className="container mx-auto py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Alunos da Empresa</h1>
-          <p className="text-muted-foreground">
-            Alunos matriculados em cursos da sua empresa
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {alunos.map((aluno) => (
-            <div
-              key={aluno.id}
-              className="p-4 border rounded-lg"
-            >
-              <div className="font-medium">{aluno.fullName || 'Sem nome'}</div>
-              <div className="text-sm text-muted-foreground">{aluno.email}</div>
-              <div className="mt-2">
-                <div className="text-sm font-medium">Cursos:</div>
-                <div className="text-sm text-muted-foreground">
-                  {aluno.courses.length > 0
-                    ? aluno.courses.map((c) => c.name).join(', ')
-                    : 'Nenhum curso'}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
