@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import {
   ProgressoAtividade,
   CreateProgressoInput,
@@ -18,20 +19,10 @@ export interface ProgressoAtividadeRepository {
 
 const TABLE = 'progresso_atividades';
 
-type ProgressoRow = {
-  id: string;
-  aluno_id: string;
-  atividade_id: string;
-  status: StatusAtividade;
-  data_inicio: string | null;
-  data_conclusao: string | null;
-  questoes_totais: number;
-  questoes_acertos: number;
-  dificuldade_percebida: DificuldadePercebida | null;
-  anotacoes_pessoais: string | null;
-  created_at: string;
-  updated_at: string;
-};
+// Use generated Database types instead of manual definitions
+type ProgressoRow = Database['public']['Tables']['progresso_atividades']['Row'];
+type ProgressoInsert = Database['public']['Tables']['progresso_atividades']['Insert'];
+type ProgressoUpdate = Database['public']['Tables']['progresso_atividades']['Update'];
 
 function mapRow(row: ProgressoRow): ProgressoAtividade {
   return {
@@ -123,7 +114,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
   }
 
   async update(id: string, payload: UpdateProgressoInput): Promise<ProgressoAtividade> {
-    const updateData: Record<string, unknown> = {};
+    const updateData: ProgressoUpdate = {};
 
     if (payload.status !== undefined) {
       updateData.status = payload.status;

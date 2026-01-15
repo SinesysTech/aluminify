@@ -409,13 +409,19 @@ export class FlashcardsService {
       return new Set<string>();
     }
 
+    // Type assertion needed: Supabase doesn't infer join types automatically
+    // The query joins progresso_atividades with atividades table to get modulo_id
+    type ProgressoWithAtividade = {
+      atividade_id: string
+      atividades: { modulo_id: string } | null
+    }
+
     const moduloIds = new Set<string>();
     for (const row of data ?? []) {
-      const atividades = (row as { atividades?: unknown }).atividades;
-      const atividade = Array.isArray(atividades) ? (atividades[0] as { modulo_id?: unknown } | undefined) : (atividades as { modulo_id?: unknown } | undefined);
-      const moduloId = atividade?.modulo_id;
+      const typedRow = row as unknown as ProgressoWithAtividade;
+      const moduloId = typedRow.atividades?.modulo_id;
       if (moduloId) {
-        moduloIds.add(String(moduloId));
+        moduloIds.add(moduloId);
       }
     }
 
@@ -448,6 +454,16 @@ export class FlashcardsService {
       if (moduloError || !moduloData) {
         throw new Error(`Módulo não encontrado: ${moduloError?.message || 'Módulo inválido'}`);
       }
+
+      // Type assertion needed: Supabase doesn't infer join types automatically
+      // The query joins modulos with frentes table to get frente details
+      type ModuloWithFrente = {
+        id: string
+        frente_id: string
+        curso_id: string
+        frentes: { id: string; disciplina_id: string; curso_id: string } | null
+      }
+      const typedModulo = moduloData as unknown as ModuloWithFrente;
 
       // 2. Verificar se é professor ou aluno
       const { data: professorData } = await this.client

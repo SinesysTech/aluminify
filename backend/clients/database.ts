@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 
-let cachedClient: SupabaseClient | null = null;
+let cachedClient: SupabaseClient<Database> | null = null;
 
 function getDatabaseCredentials() {
   const DATABASE_URL = process.env.SUPABASE_URL;
@@ -42,10 +43,10 @@ function getDatabaseUserCredentials() {
   return { DATABASE_URL, DATABASE_API_KEY };
 }
 
-export function getDatabaseClient(): SupabaseClient {
+export function getDatabaseClient(): SupabaseClient<Database> {
   if (!cachedClient) {
     const { DATABASE_URL, DATABASE_KEY } = getDatabaseCredentials();
-    cachedClient = createClient(DATABASE_URL, DATABASE_KEY, {
+    cachedClient = createClient<Database>(DATABASE_URL, DATABASE_KEY, {
       auth: {
         persistSession: false,
       },
@@ -63,14 +64,14 @@ export function getDatabaseClient(): SupabaseClient {
  *
  * Importante: não cachear este client globalmente (token varia por request).
  */
-export function getDatabaseClientAsUser(accessToken: string): SupabaseClient {
+export function getDatabaseClientAsUser(accessToken: string): SupabaseClient<Database> {
   const token = accessToken?.trim();
   if (!token) {
     throw new Error('accessToken é obrigatório para getDatabaseClientAsUser');
   }
 
   const { DATABASE_URL, DATABASE_API_KEY } = getDatabaseUserCredentials();
-  return createClient(DATABASE_URL, DATABASE_API_KEY, {
+  return createClient<Database>(DATABASE_URL, DATABASE_API_KEY, {
     auth: {
       persistSession: false,
     },

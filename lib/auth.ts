@@ -138,9 +138,17 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     if (!professorError && professorRow) {
       empresaId = professorRow.empresa_id ?? undefined
       isEmpresaAdmin = Boolean(professorRow.is_admin)
-      // Join pode vir como `any` dependendo do `Database` gerado
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      empresaNome = (professorRow as any)?.empresas?.nome ?? undefined
+      
+      // Type assertion needed: Supabase doesn't infer join types automatically
+      // The query joins professores with empresas table to get empresa name
+      type ProfessorWithEmpresa = {
+        empresa_id: string | null
+        is_admin: boolean
+        nome_completo: string
+        empresas: { nome: string } | null
+      }
+      const typedRow = professorRow as unknown as ProfessorWithEmpresa
+      empresaNome = typedRow.empresas?.nome ?? undefined
 
       // Se existir nome_completo, preferir como fullName
       if (professorRow.nome_completo) {

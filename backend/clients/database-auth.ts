@@ -1,8 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { AuthenticatedRequest } from '@/backend/auth/middleware';
+import type { Database } from '@/lib/database.types';
 
-let cachedClient: SupabaseClient | null = null;
-let cachedServiceClient: SupabaseClient | null = null;
+let cachedClient: SupabaseClient<Database> | null = null;
+let cachedServiceClient: SupabaseClient<Database> | null = null;
 
 function getDatabaseCredentials() {
   const DATABASE_URL = process.env.SUPABASE_URL;
@@ -21,10 +22,10 @@ function getServiceRoleKey() {
   return process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
 }
 
-export function getDatabaseClient(): SupabaseClient {
+export function getDatabaseClient(): SupabaseClient<Database> {
   if (!cachedClient) {
     const { DATABASE_URL, DATABASE_KEY } = getDatabaseCredentials();
-    cachedClient = createClient(DATABASE_URL, DATABASE_KEY, {
+    cachedClient = createClient<Database>(DATABASE_URL, DATABASE_KEY, {
       auth: {
         persistSession: false,
       },
@@ -33,7 +34,7 @@ export function getDatabaseClient(): SupabaseClient {
   return cachedClient;
 }
 
-export function getServiceRoleClient(): SupabaseClient {
+export function getServiceRoleClient(): SupabaseClient<Database> {
   const SERVICE_ROLE_KEY = getServiceRoleKey();
   if (!SERVICE_ROLE_KEY) {
     throw new Error('Service role key is required for API key operations');
@@ -41,7 +42,7 @@ export function getServiceRoleClient(): SupabaseClient {
 
   if (!cachedServiceClient) {
     const { DATABASE_URL } = getDatabaseCredentials();
-    cachedServiceClient = createClient(DATABASE_URL, SERVICE_ROLE_KEY, {
+    cachedServiceClient = createClient<Database>(DATABASE_URL, SERVICE_ROLE_KEY, {
       auth: {
         persistSession: false,
       },
@@ -55,7 +56,7 @@ export function getServiceRoleClient(): SupabaseClient {
  * - Se for autenticação via JWT (usuário), usa o cliente normal
  * - Se for autenticação via API Key, usa o service role client (bypass RLS)
  */
-export function getAuthenticatedClient(request: AuthenticatedRequest): SupabaseClient {
+export function getAuthenticatedClient(request: AuthenticatedRequest): SupabaseClient<Database> {
   // Se for autenticação via API Key, usar service role para bypass RLS
   if (request.apiKey) {
     return getServiceRoleClient();

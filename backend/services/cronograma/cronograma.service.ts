@@ -144,9 +144,20 @@ export class CronogramaService {
 
     const { data: todasFrentes, error: frentesError } = await validacaoFrentesQuery;
 
+    // Type assertion needed: Supabase doesn't infer join types automatically
+    // The query joins frentes with disciplinas table to get disciplina name
+    type FrenteWithDisciplina = {
+      id: string
+      nome: string
+      disciplina_id: string
+      curso_id: string
+      disciplinas: { nome: string } | null
+    }
+
     if (!frentesError && todasFrentes && todasFrentes.length > 0) {
+      const typedFrentes = todasFrentes as unknown as FrenteWithDisciplina[];
       const frentesComAulas = new Set(aulas.map(a => a.frente_id));
-      const frentesSemAulas = todasFrentes.filter(f => !frentesComAulas.has(f.id));
+      const frentesSemAulas = typedFrentes.filter(f => !frentesComAulas.has(f.id));
 
       if (frentesSemAulas.length > 0) {
         console.warn('[CronogramaService] ⚠️ Frentes sem aulas no cronograma gerado:', {

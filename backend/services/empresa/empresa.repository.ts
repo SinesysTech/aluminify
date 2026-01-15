@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { Empresa, CreateEmpresaInput, UpdateEmpresaInput } from './empresa.types';
 
 export interface EmpresaRepository {
@@ -14,20 +15,10 @@ export interface EmpresaRepository {
 
 const TABLE = 'empresas';
 
-type EmpresaRow = {
-  id: string;
-  nome: string;
-  slug: string;
-  cnpj: string | null;
-  email_contato: string | null;
-  telefone: string | null;
-  logo_url: string | null;
-  plano: 'basico' | 'profissional' | 'enterprise';
-  ativo: boolean;
-  configuracoes: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-};
+// Use generated Database types instead of manual definitions
+type EmpresaRow = Database['public']['Tables']['empresas']['Row'];
+type EmpresaInsert = Database['public']['Tables']['empresas']['Insert'];
+type EmpresaUpdate = Database['public']['Tables']['empresas']['Update'];
 
 function mapRow(row: EmpresaRow): Empresa {
   return {
@@ -40,7 +31,7 @@ function mapRow(row: EmpresaRow): Empresa {
     logoUrl: row.logo_url,
     plano: row.plano,
     ativo: row.ativo,
-    configuracoes: row.configuracoes || {},
+    configuracoes: (row.configuracoes as Record<string, unknown>) || {},
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -50,7 +41,7 @@ export class EmpresaRepositoryImpl implements EmpresaRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async create(input: CreateEmpresaInput): Promise<Empresa> {
-    const insertData: Record<string, unknown> = {
+    const insertData: EmpresaInsert = {
       nome: input.nome,
       slug: input.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       cnpj: input.cnpj ?? null,
@@ -103,7 +94,7 @@ export class EmpresaRepositoryImpl implements EmpresaRepository {
   }
 
   async update(id: string, input: UpdateEmpresaInput): Promise<Empresa> {
-    const updateData: Record<string, unknown> = {};
+    const updateData: EmpresaUpdate = {};
 
     if (input.nome !== undefined) {
       updateData.nome = input.nome;

@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { Segment, CreateSegmentInput, UpdateSegmentInput } from './segment.types';
 import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
 
@@ -19,13 +20,10 @@ export interface SegmentRepository {
 
 const TABLE = 'segmentos';
 
-type SegmentRow = {
-  id: string;
-  nome: string;
-  slug: string | null;
-  created_at: string;
-  updated_at: string;
-};
+// Use generated Database types instead of manual definitions
+type SegmentRow = Database['public']['Tables']['segmentos']['Row'];
+type SegmentInsert = Database['public']['Tables']['segmentos']['Insert'];
+type SegmentUpdate = Database['public']['Tables']['segmentos']['Update'];
 
 function mapRow(row: SegmentRow): Segment {
   return {
@@ -114,9 +112,14 @@ export class SegmentRepositoryImpl implements SegmentRepository {
   }
 
   async create(payload: CreateSegmentInput): Promise<Segment> {
+    const insertData: SegmentInsert = {
+      nome: payload.name,
+      slug: payload.slug ?? null,
+    };
+
     const { data, error } = await this.client
       .from(TABLE)
-      .insert({ nome: payload.name, slug: payload.slug ?? null })
+      .insert(insertData)
       .select('*')
       .single();
 
@@ -128,7 +131,7 @@ export class SegmentRepositoryImpl implements SegmentRepository {
   }
 
   async update(id: string, payload: UpdateSegmentInput): Promise<Segment> {
-    const updateData: { nome?: string; slug?: string | null } = {};
+    const updateData: SegmentUpdate = {};
     
     if (payload.name !== undefined) {
       updateData.nome = payload.name;

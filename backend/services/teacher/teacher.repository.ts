@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Teacher, CreateTeacherInput, UpdateTeacherInput } from './teacher.types';
 import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
+import type { Database } from '@/lib/database.types';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -21,20 +22,10 @@ export interface TeacherRepository {
 
 const TABLE = 'professores';
 
-type TeacherRow = {
-  id: string;
-  empresa_id: string;
-  is_admin: boolean;
-  nome_completo: string;
-  email: string;
-  cpf: string | null;
-  telefone: string | null;
-  biografia: string | null;
-  foto_url: string | null;
-  especialidade: string | null;
-  created_at: string;
-  updated_at: string;
-};
+// Use generated Database types instead of manual type definition
+type TeacherRow = Database['public']['Tables']['professores']['Row'];
+type TeacherInsert = Database['public']['Tables']['professores']['Insert'];
+type TeacherUpdate = Database['public']['Tables']['professores']['Update'];
 
 function mapRow(row: TeacherRow): Teacher {
   return {
@@ -54,7 +45,7 @@ function mapRow(row: TeacherRow): Teacher {
 }
 
 export class TeacherRepositoryImpl implements TeacherRepository {
-  constructor(private readonly client: SupabaseClient) {}
+  constructor(private readonly client: SupabaseClient<Database>) {}
 
   async list(params?: PaginationParams): Promise<PaginatedResult<Teacher>> {
     const page = params?.page ?? 1;
@@ -134,7 +125,8 @@ export class TeacherRepositoryImpl implements TeacherRepository {
   }
 
   async create(payload: CreateTeacherInput): Promise<Teacher> {
-    const insertData: Record<string, unknown> = {
+    const insertData: TeacherInsert = {
+      id: payload.id, // ID is required (comes from auth.users)
       nome_completo: payload.fullName,
       email: payload.email.toLowerCase(),
       empresa_id: payload.empresaId,
@@ -146,11 +138,10 @@ export class TeacherRepositoryImpl implements TeacherRepository {
       especialidade: payload.specialty ?? null,
     };
 
-    // O ID deve sempre ser fornecido (vem do auth.users criado no service)
-    if (!payload.id) {
+    // Validate ID is provided
+    if (!insertData.id) {
       throw new Error('Teacher ID is required. User must be created in auth.users first.');
     }
-    insertData.id = payload.id;
 
     const { data, error } = await this.client
       .from(TABLE)
@@ -166,7 +157,7 @@ export class TeacherRepositoryImpl implements TeacherRepository {
   }
 
   async update(id: string, payload: UpdateTeacherInput): Promise<Teacher> {
-    const updateData: Record<string, unknown> = {};
+    const updateData: TeacherUpdate = {};
 
     if (payload.fullName !== undefined) {
       updateData.nome_completo = payload.fullName;

@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { Discipline, CreateDisciplineInput, UpdateDisciplineInput } from './discipline.types';
 import type { PaginationParams, PaginationMeta } from '@/types/shared/dtos/api-responses';
 
@@ -18,12 +19,10 @@ export interface DisciplineRepository {
 
 const TABLE = 'disciplinas';
 
-type DisciplineRow = {
-  id: string;
-  nome: string;
-  created_at: string;
-  updated_at: string;
-};
+// Use generated Database types instead of manual definitions
+type DisciplineRow = Database['public']['Tables']['disciplinas']['Row'];
+type DisciplineInsert = Database['public']['Tables']['disciplinas']['Insert'];
+type DisciplineUpdate = Database['public']['Tables']['disciplinas']['Update'];
 
 function mapRow(row: DisciplineRow): Discipline {
   return {
@@ -101,9 +100,13 @@ export class DisciplineRepositoryImpl implements DisciplineRepository {
   }
 
   async create(payload: CreateDisciplineInput): Promise<Discipline> {
+    const insertData: DisciplineInsert = {
+      nome: payload.name,
+    };
+
     const { data, error } = await this.client
       .from(TABLE)
-      .insert({ nome: payload.name })
+      .insert(insertData)
       .select('*')
       .single();
 
@@ -115,9 +118,13 @@ export class DisciplineRepositoryImpl implements DisciplineRepository {
   }
 
   async update(id: string, payload: UpdateDisciplineInput): Promise<Discipline> {
+    const updateData: DisciplineUpdate = {
+      nome: payload.name,
+    };
+
     const { data, error } = await this.client
       .from(TABLE)
-      .update({ nome: payload.name })
+      .update(updateData)
       .eq('id', id)
       .select('*')
       .single();

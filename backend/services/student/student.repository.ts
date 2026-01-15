@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import {
   Student,
   CreateStudentInput,
@@ -32,38 +33,10 @@ const TABLE = "alunos";
 const COURSE_LINK_TABLE = "alunos_cursos";
 const COURSES_TABLE = "cursos";
 
-type StudentRow = {
-  id: string;
-  nome_completo: string | null;
-  email: string;
-  cpf: string | null;
-  telefone: string | null;
-  data_nascimento: string | null;
-  endereco: string | null;
-  cep: string | null;
-  numero_matricula: string | null;
-  instagram: string | null;
-  twitter: string | null;
-  must_change_password: boolean;
-  senha_temporaria: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-// Reserved types for future course-related queries
-type _CourseLinkRow = {
-  aluno_id: string;
-  curso_id: string;
-};
-
-type _CourseRow = {
-  id: string;
-  nome: string;
-};
-
-// Mark as intentionally unused for now
-void (0 as unknown as _CourseLinkRow);
-void (0 as unknown as _CourseRow);
+// Use generated Database types instead of manual definitions
+type StudentRow = Database['public']['Tables']['alunos']['Row'];
+type StudentInsert = Database['public']['Tables']['alunos']['Insert'];
+type StudentUpdate = Database['public']['Tables']['alunos']['Update'];
 
 function mapRow(
   row: StudentRow,
@@ -236,7 +209,15 @@ export class StudentRepositoryImpl implements StudentRepository {
   }
 
   async create(payload: CreateStudentInput): Promise<Student> {
-    const insertData: Record<string, unknown> = {
+    // O ID deve sempre ser fornecido (vem do auth.users criado no service)
+    if (!payload.id) {
+      throw new Error(
+        "Student ID is required. User must be created in auth.users first."
+      );
+    }
+
+    const insertData: StudentInsert = {
+      id: payload.id,
       nome_completo: payload.fullName ?? null,
       email: payload.email.toLowerCase(),
       cpf: payload.cpf ?? null,
@@ -250,14 +231,6 @@ export class StudentRepositoryImpl implements StudentRepository {
       must_change_password: payload.mustChangePassword ?? false,
       senha_temporaria: payload.temporaryPassword ?? null,
     };
-
-    // O ID deve sempre ser fornecido (vem do auth.users criado no service)
-    if (!payload.id) {
-      throw new Error(
-        "Student ID is required. User must be created in auth.users first."
-      );
-    }
-    insertData.id = payload.id;
 
     const { data, error } = await this.client
       .from(TABLE)
@@ -276,7 +249,7 @@ export class StudentRepositoryImpl implements StudentRepository {
   }
 
   async update(id: string, payload: UpdateStudentInput): Promise<Student> {
-    const updateData: Record<string, unknown> = {};
+    const updateData: StudentUpdate = {};
 
     if (payload.fullName !== undefined) {
       updateData.nome_completo = payload.fullName;

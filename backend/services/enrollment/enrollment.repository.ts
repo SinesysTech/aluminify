@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { Enrollment, CreateEnrollmentInput, UpdateEnrollmentInput } from './enrollment.types';
 
 export interface EnrollmentRepository {
@@ -19,17 +20,10 @@ const TABLE = 'matriculas';
 const STUDENT_TABLE = 'alunos';
 const COURSE_TABLE = 'cursos';
 
-type EnrollmentRow = {
-  id: string;
-  aluno_id: string;
-  curso_id: string;
-  data_matricula: string;
-  data_inicio_acesso: string;
-  data_fim_acesso: string;
-  ativo: boolean;
-  created_at: string;
-  updated_at: string;
-};
+// Use generated Database types instead of manual definitions
+type EnrollmentRow = Database['public']['Tables']['matriculas']['Row'];
+type EnrollmentInsert = Database['public']['Tables']['matriculas']['Insert'];
+type EnrollmentUpdate = Database['public']['Tables']['matriculas']['Update'];
 
 function mapRow(row: EnrollmentRow): Enrollment {
   return {
@@ -116,7 +110,7 @@ export class EnrollmentRepositoryImpl implements EnrollmentRepository {
   }
 
   async create(payload: CreateEnrollmentInput): Promise<Enrollment> {
-    const insertData: Record<string, unknown> = {
+    const insertData: EnrollmentInsert = {
       aluno_id: payload.studentId,
       curso_id: payload.courseId,
       data_inicio_acesso: payload.accessStartDate || new Date().toISOString().split('T')[0],
@@ -138,7 +132,7 @@ export class EnrollmentRepositoryImpl implements EnrollmentRepository {
   }
 
   async update(id: string, payload: UpdateEnrollmentInput): Promise<Enrollment> {
-    const updateData: Record<string, unknown> = {};
+    const updateData: EnrollmentUpdate = {};
 
     if (payload.accessStartDate !== undefined) {
       updateData.data_inicio_acesso = payload.accessStartDate.split('T')[0];

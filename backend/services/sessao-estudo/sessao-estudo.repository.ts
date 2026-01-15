@@ -1,4 +1,5 @@
 import { getDatabaseClient } from '@/backend/clients/database';
+import type { Database } from '@/lib/database.types';
 import {
   MetodoEstudo,
   SessaoEstudo,
@@ -6,23 +7,10 @@ import {
   LogPausa,
 } from '@/types/sessao-estudo';
 
-type SessaoEstudoRow = {
-  id: string;
-  aluno_id: string;
-  disciplina_id: string | null;
-  frente_id: string | null;
-  modulo_id: string | null;
-  atividade_relacionada_id: string | null;
-  inicio: string;
-  fim: string | null;
-  tempo_total_bruto_segundos: number | null;
-  tempo_total_liquido_segundos: number | null;
-  log_pausas: LogPausa[] | null;
-  metodo_estudo: MetodoEstudo | null;
-  nivel_foco: number | null;
-  status: SessaoStatus;
-  created_at: string;
-};
+// Use generated Database types instead of manual definitions
+type SessaoEstudoRow = Database['public']['Tables']['sessoes_estudo']['Row'];
+type SessaoEstudoInsert = Database['public']['Tables']['sessoes_estudo']['Insert'];
+type SessaoEstudoUpdate = Database['public']['Tables']['sessoes_estudo']['Update'];
 
 function mapRowToModel(row: SessaoEstudoRow): SessaoEstudo {
   return {
@@ -137,16 +125,19 @@ export class SessaoEstudoRepository {
     },
   ): Promise<SessaoEstudo> {
     const client = getDatabaseClient();
+    
+    const updateData: SessaoEstudoUpdate = {
+      fim: payload.fimIso,
+      log_pausas: payload.logPausas as unknown as Database['public']['Tables']['sessoes_estudo']['Update']['log_pausas'],
+      tempo_total_bruto_segundos: payload.tempoTotalBrutoSegundos,
+      tempo_total_liquido_segundos: payload.tempoTotalLiquidoSegundos,
+      nivel_foco: payload.nivelFoco ?? null,
+      status: payload.status ?? 'concluido',
+    };
+    
     const { data, error } = await client
       .from(this.table)
-      .update({
-        fim: payload.fimIso,
-        log_pausas: payload.logPausas,
-        tempo_total_bruto_segundos: payload.tempoTotalBrutoSegundos,
-        tempo_total_liquido_segundos: payload.tempoTotalLiquidoSegundos,
-        nivel_foco: payload.nivelFoco ?? null,
-        status: payload.status ?? 'concluido',
-      })
+      .update(updateData)
       .eq('id', id)
       .eq('aluno_id', alunoId)
       .select()
