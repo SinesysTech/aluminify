@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/server';
 import { TenantLoginPageClient } from '@/components/auth/tenant-login-page-client';
 
 interface TenantLoginPageProps {

@@ -216,14 +216,21 @@ export class UserRoleIdentifierService {
         id: string;
         empresa_id: string;
         is_admin: boolean;
-        empresas: { id: string; nome: string; slug: string };
-      }) => ({
-        role: "professor" as const,
-        empresaId: row.empresa_id,
-        empresaNome: row.empresas.nome,
-        empresaSlug: row.empresas.slug,
-        isAdmin: row.is_admin,
-      })
+        empresas:
+          | { id: string; nome: string; slug: string }
+          | { id: string; nome: string; slug: string }[];
+      }) => {
+        const empresa = Array.isArray(row.empresas)
+          ? row.empresas[0]
+          : row.empresas;
+        return {
+          role: "professor" as const,
+          empresaId: row.empresa_id,
+          empresaNome: empresa.nome,
+          empresaSlug: empresa.slug,
+          isAdmin: row.is_admin,
+        };
+      }
     );
   }
 
@@ -260,9 +267,20 @@ export class UserRoleIdentifierService {
     const empresaMap = new Map<string, UserRoleDetail>();
 
     for (const row of data || []) {
-      const curso = row.cursos as {
+      const cursoRaw = row.cursos as unknown as {
         empresa_id: string;
-        empresas: { id: string; nome: string; slug: string };
+        empresas:
+          | { id: string; nome: string; slug: string }
+          | { id: string; nome: string; slug: string }[];
+      };
+
+      const empresaRaw = Array.isArray(cursoRaw.empresas)
+        ? cursoRaw.empresas[0]
+        : cursoRaw.empresas;
+
+      const curso = {
+        empresa_id: cursoRaw.empresa_id,
+        empresas: empresaRaw,
       };
 
       // Filter by empresaId if provided
