@@ -11,14 +11,14 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'im
  */
 export async function POST() {
   try {
-    // Verificar se temos service_role key
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
+    // Verificar se temos service_role key (suporta ambos os nomes)
+    const serviceRoleKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+
     if (!serviceRoleKey) {
       return NextResponse.json(
-        { 
+        {
           error: 'Service role key não configurada',
-          message: 'Este endpoint requer SUPABASE_SERVICE_ROLE_KEY nas variáveis de ambiente'
+          message: 'Este endpoint requer SUPABASE_SECRET_KEY ou SUPABASE_SERVICE_ROLE_KEY nas variáveis de ambiente'
         },
         { status: 500 }
       )
