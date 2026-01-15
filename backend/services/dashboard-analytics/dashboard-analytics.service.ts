@@ -7,6 +7,51 @@ import type {
   StrategicDomainRecommendation,
 } from '@/types/dashboard'
 
+type DashboardScopeLevel = 'curso' | 'disciplina' | 'frente' | 'modulo'
+type DashboardGroupBy = 'curso' | 'disciplina' | 'frente' | 'modulo'
+type DashboardPeriod = 'semanal' | 'mensal' | 'anual'
+
+type StudyTimeRow = {
+  seconds: number
+  curso_id: string | null
+  disciplina_id: string | null
+  frente_id: string | null
+  modulo_id: string | null
+}
+
+type SubjectDistributionFilteredResult = {
+  totalSeconds: number
+  totalHours: number
+  items: Array<{
+    id: string | null
+    name: string
+    percentage: number
+    seconds: number
+    prettyTime: string
+    color: string
+  }>
+}
+
+type PerformanceFilteredResult = Array<{
+  id: string
+  name: string
+  subLabel: string | null
+  score: number
+  isNotStarted: boolean
+}>
+
+type StrategicDomainFilteredResult = {
+  data: StrategicDomain
+  modules: Array<{
+    moduloId: string
+    moduloNome: string
+    importancia: ModuloImportancia
+    flashcardsScore: number | null
+    questionsScore: number | null
+    risk: number | null
+  }>
+}
+
 export class DashboardAnalyticsService {
   /**
    * Busca dados agregados do dashboard para um aluno
@@ -29,12 +74,12 @@ export class DashboardAnalyticsService {
       strategicDomain,
       subjectDistribution,
     ] = await Promise.all([
-      this.getMetrics(alunoId, client),
+      this.getMetrics(alunoId, client, period),
       this.getHeatmapData(alunoId, client, period),
-      this.getSubjectPerformance(alunoId, client),
-      this.getFocusEfficiency(alunoId, client),
-      this.getStrategicDomain(alunoId, client),
-      this.getSubjectDistribution(alunoId, client),
+      this.getSubjectPerformance(alunoId, client, period),
+      this.getFocusEfficiency(alunoId, client, period),
+      this.getStrategicDomain(alunoId, client, period),
+      this.getSubjectDistribution(alunoId, client, period),
     ])
 
     return {
@@ -45,6 +90,1013 @@ export class DashboardAnalyticsService {
       focusEfficiency,
       strategicDomain,
       subjectDistribution,
+    }
+  }
+
+  /**
+   * Retorna cursos disponíveis para seleção no dashboard.
+   * - Aluno: cursos matriculados
+   * - Professor/superadmin: todos os cursos
+   */
+  async getAvailableCourses(alunoId: string): Promise<Array<{ id: string; nome: string }>> {
+    const client = getDatabaseClient()
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client)
+    if (cursoIds.length === 0) return []
+    const { data: cursos, error } = await client.from('cursos').select('id, nome').in('id', cursoIds)
+    if (error) throw new Error(`Erro ao buscar cursos: ${error.message}`)
+    return ((cursos ?? []) as Array<{ id: string; nome: string }>).sort((a, b) => a.nome.localeCompare(b.nome))
+  }
+
+  /**
+   * Resolve o escopo de cursos do usuário (aluno vs professor/superadmin).
+   * Reutiliza a mesma lógica do dashboard atual, mas centraliza para endpoints filtráveis.
+   */
+  private async resolveCursoScope(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+  ): Promise<{ isProfessor: boolean; cursoIds: string[] }> {
+    const { data: professorData } = await client
+      .from('professores')
+      .select('id')
+      .eq('id', alunoId)
+      .maybeSingle()
+
+    // Fallback via auth metadata (superadmin/professor sem registro em `professores`)
+    let isProfessor = !!professorData
+    if (!isProfessor) {
+      try {
+        const { data: authUser } = await client.auth.admin.getUserById(alunoId)
+        const role = (authUser?.user?.user_metadata?.role as string | undefined) ?? undefined
+        if (role === 'professor' || role === 'superadmin') {
+          isProfessor = true
+        }
+      } catch (e) {
+        console.warn('[dashboard-analytics] Não foi possível ler role do usuário via auth.admin:', e)
+      }
+    }
+
+    let cursoIds: string[] = []
+    if (isProfessor) {
+      const { data: todosCursos } = await client.from('cursos').select('id')
+      cursoIds = (todosCursos ?? []).map((c: { id: string }) => c.id)
+    } else {
+      const { data: alunosCursos } = await client
+        .from('alunos_cursos')
+        .select('curso_id')
+        .eq('aluno_id', alunoId)
+      cursoIds = (alunosCursos ?? []).map((ac: { curso_id: string }) => ac.curso_id)
+    }
+
+    return { isProfessor, cursoIds }
+  }
+
+  private getPeriodStart(period: DashboardPeriod): Date {
+    const hoje = new Date()
+    const inicio = new Date(hoje)
+    switch (period) {
+      case 'semanal':
+        inicio.setDate(hoje.getDate() - 7)
+        return inicio
+      case 'anual':
+        inicio.setDate(hoje.getDate() - 365)
+        return inicio
+      case 'mensal':
+      default:
+        inicio.setDate(hoje.getDate() - 31)
+        return inicio
+    }
+  }
+
+  private getPeriodDays(period: DashboardPeriod): number {
+    return period === 'semanal' ? 7 : period === 'mensal' ? 31 : 365
+  }
+
+  private formatSeconds(seconds: number): string {
+    const safe = Math.max(0, Math.floor(seconds))
+    const h = Math.floor(safe / 3600)
+    const m = Math.floor((safe % 3600) / 60)
+    if (h <= 0) return `${m}m`
+    if (m <= 0) return `${h}h`
+    return `${h}h ${m}m`
+  }
+
+  private effectiveCourseIds(
+    cursoIds: string[],
+    scope: DashboardScopeLevel,
+    scopeId?: string,
+  ): string[] {
+    if (scope === 'curso' && scopeId) return [scopeId]
+    return cursoIds
+  }
+
+  /**
+   * Endpoint filtrável: Distribuição por disciplina/frente/módulo
+   */
+  async getSubjectDistributionFiltered(
+    alunoId: string,
+    opts: {
+      groupBy: DashboardGroupBy
+      scope: DashboardScopeLevel
+      scopeId?: string
+      period: DashboardPeriod
+    },
+  ): Promise<SubjectDistributionFilteredResult> {
+    const client = getDatabaseClient()
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client)
+    const effectiveCursoIds = this.effectiveCourseIds(cursoIds, opts.scope, opts.scopeId)
+    if (effectiveCursoIds.length === 0) {
+      return { totalSeconds: 0, totalHours: 0, items: [] }
+    }
+
+    const inicioPeriodo = this.getPeriodStart(opts.period)
+
+    // =========================================================
+    // NOVO: distribuição por "tempo de estudo" = aulas assistidas
+    // (cronograma_itens concluído) + listas (sessões vinculadas a atividade)
+    // Evita dupla contagem ao NÃO somar sessões genéricas sem atividade vinculada.
+    // =========================================================
+
+    const [listRows, watchedRows] = await Promise.all([
+      this.getListSessionsRows(alunoId, client, { start: inicioPeriodo }),
+      this.getWatchedClassesRows(alunoId, client, { start: inicioPeriodo }),
+    ])
+
+    const rows: StudyTimeRow[] = [...listRows, ...watchedRows]
+
+    // Aplicar escopo direto quando possível (disciplina/frente/modulo)
+    let scopedRows = rows
+    if (opts.scope === 'disciplina' && opts.scopeId) {
+      scopedRows = scopedRows.filter((r) => r.disciplina_id === opts.scopeId)
+    } else if (opts.scope === 'frente' && opts.scopeId) {
+      scopedRows = scopedRows.filter((r) => r.frente_id === opts.scopeId)
+    } else if (opts.scope === 'modulo' && opts.scopeId) {
+      scopedRows = scopedRows.filter((r) => r.modulo_id === opts.scopeId)
+    }
+
+    // Escopo por curso: como sessoes_estudo não tem curso_id, filtramos por estrutura
+    let filteredRows = scopedRows
+    if (opts.scope === 'curso') {
+      const disciplinaIdsSet = new Set<string>()
+      const { data: cursosDisciplinas } = await client
+        .from('cursos_disciplinas')
+        .select('disciplina_id, curso_id')
+        .in('curso_id', effectiveCursoIds)
+      for (const cd of (cursosDisciplinas ?? []) as Array<{ disciplina_id: string }>) {
+        disciplinaIdsSet.add(cd.disciplina_id)
+      }
+
+      // Frentes e módulos “vinculados” ao(s) curso(s) (inclui globais)
+      const { data: frentes } = await client
+        .from('frentes')
+        .select('id, curso_id, disciplina_id')
+        .in('disciplina_id', Array.from(disciplinaIdsSet))
+        .or(
+          effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+            (effectiveCursoIds.length > 0 ? ',' : '') +
+            'curso_id.is.null',
+        )
+
+      const frontIdsSet = new Set(
+        ((frentes ?? []) as Array<{ id: string; curso_id: string | null }>)
+          .filter((f) => !f.curso_id || effectiveCursoIds.includes(f.curso_id))
+          .map((f) => f.id),
+      )
+
+      const { data: modulos } = await client
+        .from('modulos')
+        .select('id, curso_id, frente_id')
+        .in('frente_id', Array.from(frontIdsSet))
+        .or(
+          effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+            (effectiveCursoIds.length > 0 ? ',' : '') +
+            'curso_id.is.null',
+        )
+
+      const moduleIdsSet = new Set(
+        ((modulos ?? []) as Array<{ id: string; curso_id: string | null }>)
+          .filter((m) => !m.curso_id || effectiveCursoIds.includes(m.curso_id))
+          .map((m) => m.id),
+      )
+
+      filteredRows = rows.filter((r) => {
+        const did = r.disciplina_id
+        const fid = r.frente_id
+        const mid = r.modulo_id
+        const cid = (r as unknown as { curso_id?: string | null }).curso_id ?? null
+        return (
+          (cid != null && effectiveCursoIds.includes(cid)) ||
+          (mid != null && moduleIdsSet.has(mid)) ||
+          (fid != null && frontIdsSet.has(fid)) ||
+          (did != null && disciplinaIdsSet.has(did))
+        )
+      })
+    }
+
+    const secondsByKey = new Map<string, number>()
+    if (opts.groupBy === 'curso') {
+      const moduleIds = [...new Set(filteredRows.map((r) => r.modulo_id).filter(Boolean))] as string[]
+      const frontIds = [...new Set(filteredRows.map((r) => r.frente_id).filter(Boolean))] as string[]
+      const disciplinaIdsUsed = [...new Set(filteredRows.map((r) => r.disciplina_id).filter(Boolean))] as string[]
+
+      const moduleCourseMap = new Map<string, string | null>()
+      const frontCourseMap = new Map<string, string | null>()
+      const disciplinaCourseIdsMap = new Map<string, string[]>()
+
+      if (moduleIds.length > 0) {
+        const { data: modulos } = await client.from('modulos').select('id, curso_id').in('id', moduleIds)
+        for (const m of (modulos ?? []) as Array<{ id: string; curso_id: string | null }>) {
+          moduleCourseMap.set(m.id, m.curso_id)
+        }
+      }
+
+      if (frontIds.length > 0) {
+        const { data: frentes } = await client.from('frentes').select('id, curso_id').in('id', frontIds)
+        for (const f of (frentes ?? []) as Array<{ id: string; curso_id: string | null }>) {
+          frontCourseMap.set(f.id, f.curso_id)
+        }
+      }
+
+      if (disciplinaIdsUsed.length > 0) {
+        const { data: cursosDisciplinas } = await client
+          .from('cursos_disciplinas')
+          .select('curso_id, disciplina_id')
+          .in('curso_id', effectiveCursoIds)
+          .in('disciplina_id', disciplinaIdsUsed)
+
+        for (const row of (cursosDisciplinas ?? []) as Array<{ curso_id: string; disciplina_id: string }>) {
+          const curr = disciplinaCourseIdsMap.get(row.disciplina_id) ?? []
+          curr.push(row.curso_id)
+          disciplinaCourseIdsMap.set(row.disciplina_id, curr)
+        }
+      }
+
+      const onlyCourseId = effectiveCursoIds.length === 1 ? effectiveCursoIds[0] : null
+
+      for (const r of filteredRows) {
+        const seconds = r.seconds ?? 0
+        if (seconds <= 0) continue
+
+        let courseKey: string | null = null
+        if ((r as unknown as { curso_id?: string | null }).curso_id) {
+          courseKey = (r as unknown as { curso_id?: string | null }).curso_id ?? null
+        }
+        if (r.modulo_id) {
+          const cid = moduleCourseMap.get(r.modulo_id) ?? null
+          if (cid) courseKey = cid
+        }
+        if (!courseKey && r.frente_id) {
+          const cid = frontCourseMap.get(r.frente_id) ?? null
+          if (cid) courseKey = cid
+        }
+        if (!courseKey && r.disciplina_id) {
+          const cids = disciplinaCourseIdsMap.get(r.disciplina_id) ?? []
+          if (cids.length === 1) courseKey = cids[0]
+        }
+        if (!courseKey && onlyCourseId) {
+          courseKey = onlyCourseId
+        }
+
+        const k = courseKey ?? '__unknown__'
+        secondsByKey.set(k, (secondsByKey.get(k) ?? 0) + seconds)
+      }
+    } else {
+      const groupKey = (r: { disciplina_id: string | null; frente_id: string | null; modulo_id: string | null }) => {
+        if (opts.groupBy === 'disciplina') return r.disciplina_id ?? '__unknown__'
+        if (opts.groupBy === 'frente') return r.frente_id ?? '__unknown__'
+        return r.modulo_id ?? '__unknown__'
+      }
+
+      for (const r of filteredRows) {
+        const k = groupKey(r)
+        const seconds = r.seconds ?? 0
+        secondsByKey.set(k, (secondsByKey.get(k) ?? 0) + seconds)
+      }
+    }
+
+    const totalSeconds = Array.from(secondsByKey.values()).reduce((acc, v) => acc + v, 0)
+    const totalHours = totalSeconds > 0 ? Math.round(totalSeconds / 3600) : 0
+    if (totalSeconds <= 0) {
+      return { totalSeconds: 0, totalHours: 0, items: [] }
+    }
+
+    const ids = Array.from(secondsByKey.keys()).filter((k) => k !== '__unknown__')
+    const nameById = new Map<string, string>()
+
+    if (opts.groupBy === 'curso' && ids.length > 0) {
+      const { data: cursos } = await client.from('cursos').select('id, nome').in('id', ids)
+      for (const c of (cursos ?? []) as Array<{ id: string; nome: string }>) {
+        nameById.set(c.id, c.nome)
+      }
+    } else if (opts.groupBy === 'disciplina' && ids.length > 0) {
+      const { data: disciplinas } = await client.from('disciplinas').select('id, nome').in('id', ids)
+      for (const d of (disciplinas ?? []) as Array<{ id: string; nome: string }>) {
+        nameById.set(d.id, d.nome)
+      }
+    } else if (opts.groupBy === 'frente' && ids.length > 0) {
+      const { data: frentes } = await client.from('frentes').select('id, nome').in('id', ids)
+      for (const f of (frentes ?? []) as Array<{ id: string; nome: string }>) {
+        nameById.set(f.id, f.nome)
+      }
+    } else if (opts.groupBy === 'modulo' && ids.length > 0) {
+      const { data: modulos } = await client.from('modulos').select('id, nome').in('id', ids)
+      for (const m of (modulos ?? []) as Array<{ id: string; nome: string }>) {
+        nameById.set(m.id, m.nome)
+      }
+    }
+
+    const cores = ['#60a5fa', '#a78bfa', '#facc15', '#9ca3af', '#f87171', '#34d399', '#fb7185']
+    let corIndex = 0
+
+    const items = Array.from(secondsByKey.entries())
+      .map(([id, seconds]) => {
+        const name = id === '__unknown__' ? 'Não identificado' : nameById.get(id) ?? 'Desconhecido'
+        const percentage = Math.round((seconds / totalSeconds) * 100)
+        const color = cores[corIndex++ % cores.length]
+        return {
+          id: id === '__unknown__' ? null : id,
+          name,
+          percentage,
+          seconds,
+          prettyTime: this.formatSeconds(seconds),
+          color,
+        }
+      })
+      .sort((a, b) => b.seconds - a.seconds)
+
+    return { totalSeconds, totalHours, items }
+  }
+
+  /**
+   * Endpoint filtrável: Performance por disciplina/frente/módulo
+   */
+  async getPerformanceFiltered(
+    alunoId: string,
+    opts: {
+      groupBy: DashboardGroupBy
+      scope: DashboardScopeLevel
+      scopeId?: string
+      period: DashboardPeriod
+    },
+  ): Promise<PerformanceFilteredResult> {
+    const client = getDatabaseClient()
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client)
+    const effectiveCursoIds = this.effectiveCourseIds(cursoIds, opts.scope, opts.scopeId)
+    if (effectiveCursoIds.length === 0) return []
+
+    // 1) Disciplinas do(s) curso(s)
+    const { data: cursosDisciplinas } = await client
+      .from('cursos_disciplinas')
+      .select('disciplina_id, curso_id')
+      .in('curso_id', effectiveCursoIds)
+
+    let disciplinaIds = [...new Set(((cursosDisciplinas ?? []) as Array<{ disciplina_id: string }>).map((cd) => cd.disciplina_id))]
+    if (opts.scope === 'disciplina' && opts.scopeId) {
+      disciplinaIds = disciplinaIds.includes(opts.scopeId) ? [opts.scopeId] : []
+    }
+    if (disciplinaIds.length === 0) return []
+
+    const { data: disciplinas } = await client.from('disciplinas').select('id, nome').in('id', disciplinaIds)
+    const disciplinaMap = new Map((disciplinas ?? []).map((d: { id: string; nome: string }) => [d.id, d.nome]))
+
+    // 2) Frentes das disciplinas (curso_id do curso ou null)
+    const { data: todasFrentes } = await client
+      .from('frentes')
+      .select('id, nome, disciplina_id, curso_id')
+      .in('disciplina_id', disciplinaIds)
+      .or(
+        effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+          (effectiveCursoIds.length > 0 ? ',' : '') +
+          'curso_id.is.null',
+      )
+
+    let frentesFiltradas = ((todasFrentes ?? []) as Array<{ id: string; nome: string; disciplina_id: string; curso_id: string | null }>).filter(
+      (f) => !f.curso_id || effectiveCursoIds.includes(f.curso_id),
+    )
+    if (opts.scope === 'frente' && opts.scopeId) {
+      frentesFiltradas = frentesFiltradas.filter((f) => f.id === opts.scopeId)
+    }
+    if (frentesFiltradas.length === 0) return []
+
+    const frenteMap = new Map(frentesFiltradas.map((f) => [f.id, f]))
+
+    // 3) Módulos das frentes
+    const { data: todosModulos } = await client
+      .from('modulos')
+      .select('id, nome, numero_modulo, importancia, frente_id, curso_id')
+      .in('frente_id', frentesFiltradas.map((f) => f.id))
+      .or(
+        effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+          (effectiveCursoIds.length > 0 ? ',' : '') +
+          'curso_id.is.null',
+      )
+
+    let modulosFiltrados = ((todosModulos ?? []) as Array<{
+      id: string
+      nome: string
+      numero_modulo: number | null
+      importancia: ModuloImportancia | null
+      frente_id: string
+      curso_id: string | null
+    }>).filter(
+      (m) => !m.curso_id || effectiveCursoIds.includes(m.curso_id),
+    )
+    if (opts.scope === 'modulo' && opts.scopeId) {
+      modulosFiltrados = modulosFiltrados.filter((m) => m.id === opts.scopeId)
+    }
+    if (modulosFiltrados.length === 0) return []
+
+    const moduloMap = new Map(modulosFiltrados.map((m) => [m.id, m]))
+    const moduloIds = modulosFiltrados.map((m) => m.id)
+
+    const chunk = <T,>(arr: T[], size: number): T[][] => {
+      if (arr.length === 0) return []
+      const out: T[][] = []
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+      return out
+    }
+
+    // 4) Atividades desses módulos
+    const atividades: Array<{ id: string; modulo_id: string }> = []
+    for (const idsChunk of chunk(moduloIds, 900)) {
+      const { data: chunkRows, error: chunkErr } = await client
+        .from('atividades')
+        .select('id, modulo_id')
+        .in('modulo_id', idsChunk)
+      if (chunkErr) {
+        console.error('[dashboard-analytics] Erro ao buscar atividades por modulo_id:', chunkErr)
+        continue
+      }
+      atividades.push(...(((chunkRows ?? []) as Array<{ id: string; modulo_id: string }>) ?? []))
+    }
+
+    const atividadeModuloMap = new Map((atividades ?? []).map((a) => [a.id, a.modulo_id]))
+    const atividadeIds = Array.from(atividadeModuloMap.keys())
+    if (atividadeIds.length === 0) {
+      // Sem atividades: tudo “não iniciado”
+      let courseNameMap: Map<string, string> | undefined
+      if (opts.groupBy === 'curso') {
+        const { data: cursos } = await client.from('cursos').select('id, nome').in('id', effectiveCursoIds)
+        courseNameMap = new Map(((cursos ?? []) as Array<{ id: string; nome: string }>).map((c) => [c.id, c.nome]))
+      }
+      return this.buildPerformanceEmptyList(
+        opts.groupBy,
+        disciplinaIds,
+        disciplinaMap,
+        frentesFiltradas,
+        modulosFiltrados,
+        effectiveCursoIds,
+        courseNameMap,
+      )
+    }
+
+    // 5) Progresso concluído com questões
+    const progressos: Array<{ atividade_id: string; questoes_totais: number | null; questoes_acertos: number | null }> = []
+    const inicioPeriodo = this.getPeriodStart(opts.period)
+    for (const idsChunk of chunk(atividadeIds, 900)) {
+      const { data: chunkRows, error: chunkErr } = await client
+        .from('progresso_atividades')
+        .select('atividade_id, questoes_totais, questoes_acertos')
+        .eq('aluno_id', alunoId)
+        .eq('status', 'Concluido')
+        .not('questoes_totais', 'is', null)
+        .gt('questoes_totais', 0)
+        .gte('data_conclusao', inicioPeriodo.toISOString())
+        .in('atividade_id', idsChunk)
+      if (chunkErr) {
+        console.error('[dashboard-analytics] Erro ao buscar progresso_atividades por atividade_id:', chunkErr)
+        continue
+      }
+      progressos.push(
+        ...(((chunkRows ?? []) as Array<{ atividade_id: string; questoes_totais: number | null; questoes_acertos: number | null }>) ?? []),
+      )
+    }
+
+    const moduleAgg = new Map<string, { totais: number; acertos: number }>()
+    for (const p of progressos) {
+      const moduloId = atividadeModuloMap.get(p.atividade_id)
+      if (!moduloId) continue
+      if (!moduloMap.has(moduloId)) continue
+      const totais = p.questoes_totais ?? 0
+      const acertos = p.questoes_acertos ?? 0
+      if (totais <= 0) continue
+      const curr = moduleAgg.get(moduloId) || { totais: 0, acertos: 0 }
+      curr.totais += totais
+      curr.acertos += acertos
+      moduleAgg.set(moduloId, curr)
+    }
+
+    if (opts.groupBy === 'curso') {
+      const onlyCourseId = effectiveCursoIds.length === 1 ? effectiveCursoIds[0] : null
+      const { data: cursos } = await client.from('cursos').select('id, nome').in('id', effectiveCursoIds)
+      const courseNameMap = new Map(((cursos ?? []) as Array<{ id: string; nome: string }>).map((c) => [c.id, c.nome]))
+
+      const courseAgg = new Map<string, { totais: number; acertos: number }>()
+      let unknown = { totais: 0, acertos: 0 }
+
+      for (const [mid, agg] of moduleAgg.entries()) {
+        const modulo = moduloMap.get(mid)
+        if (!modulo) continue
+        const cid = (modulo as unknown as { curso_id?: string | null }).curso_id ?? null
+        const effectiveCid = cid ?? onlyCourseId
+        if (effectiveCid && effectiveCursoIds.includes(effectiveCid)) {
+          const curr = courseAgg.get(effectiveCid) || { totais: 0, acertos: 0 }
+          curr.totais += agg.totais
+          curr.acertos += agg.acertos
+          courseAgg.set(effectiveCid, curr)
+        } else {
+          unknown = { totais: unknown.totais + agg.totais, acertos: unknown.acertos + agg.acertos }
+        }
+      }
+
+      const out: PerformanceFilteredResult = effectiveCursoIds.map((cid) => {
+        const agg = courseAgg.get(cid)
+        const totais = agg?.totais ?? 0
+        const acertos = agg?.acertos ?? 0
+        const score = totais > 0 ? Math.round((acertos / totais) * 100) : 0
+        return {
+          id: cid,
+          name: courseNameMap.get(cid) ?? 'Curso',
+          subLabel: null,
+          score,
+          isNotStarted: totais <= 0,
+        }
+      })
+
+      if (unknown.totais > 0) {
+        out.push({
+          id: '__unknown__',
+          name: 'Não identificado',
+          subLabel: null,
+          score: Math.round((unknown.acertos / unknown.totais) * 100),
+          isNotStarted: false,
+        })
+      }
+
+      return out
+    }
+
+    if (opts.groupBy === 'modulo') {
+      return modulosFiltrados.map((m) => {
+        const agg = moduleAgg.get(m.id)
+        const totais = agg?.totais ?? 0
+        const acertos = agg?.acertos ?? 0
+        const score = totais > 0 ? Math.round((acertos / totais) * 100) : 0
+        const frente = frenteMap.get(m.frente_id)
+        const disciplinaNome = frente ? (disciplinaMap.get(frente.disciplina_id) ?? null) : null
+        const subLabel = frente ? [disciplinaNome, frente.nome].filter(Boolean).join(' • ') : disciplinaNome
+        return {
+          id: m.id,
+          name: m.nome,
+          subLabel: subLabel ?? null,
+          score,
+          isNotStarted: totais <= 0,
+          moduloNumero: m.numero_modulo ?? null,
+          importancia: (m.importancia ?? null) as ModuloImportancia | null,
+        }
+      })
+    }
+
+    if (opts.groupBy === 'frente') {
+      const frontAgg = new Map<string, { totais: number; acertos: number }>()
+      for (const [mid, agg] of moduleAgg.entries()) {
+        const modulo = moduloMap.get(mid)
+        if (!modulo) continue
+        const fid = modulo.frente_id
+        const curr = frontAgg.get(fid) || { totais: 0, acertos: 0 }
+        curr.totais += agg.totais
+        curr.acertos += agg.acertos
+        frontAgg.set(fid, curr)
+      }
+
+      return frentesFiltradas.map((f) => {
+        const agg = frontAgg.get(f.id)
+        const totais = agg?.totais ?? 0
+        const acertos = agg?.acertos ?? 0
+        const score = totais > 0 ? Math.round((acertos / totais) * 100) : 0
+        const subLabel = disciplinaMap.get(f.disciplina_id) ?? null
+        return { id: f.id, name: f.nome, subLabel, score, isNotStarted: totais <= 0 }
+      })
+    }
+
+    // groupBy disciplina
+    const discAgg = new Map<string, { totais: number; acertos: number }>()
+    for (const [mid, agg] of moduleAgg.entries()) {
+      const modulo = moduloMap.get(mid)
+      if (!modulo) continue
+      const frente = frenteMap.get(modulo.frente_id)
+      if (!frente) continue
+      const did = frente.disciplina_id
+      const curr = discAgg.get(did) || { totais: 0, acertos: 0 }
+      curr.totais += agg.totais
+      curr.acertos += agg.acertos
+      discAgg.set(did, curr)
+    }
+
+    return disciplinaIds.map((did) => {
+      const nome = disciplinaMap.get(did) ?? 'Desconhecida'
+      const agg = discAgg.get(did)
+      const totais = agg?.totais ?? 0
+      const acertos = agg?.acertos ?? 0
+      const score = totais > 0 ? Math.round((acertos / totais) * 100) : 0
+      return { id: did, name: nome, subLabel: null, score, isNotStarted: totais <= 0 }
+    })
+  }
+
+  private buildPerformanceEmptyList(
+    groupBy: DashboardGroupBy,
+    disciplinaIds: string[],
+    disciplinaMap: Map<string, string>,
+    frentes: Array<{ id: string; nome: string; disciplina_id: string }>,
+    modulos: Array<{ id: string; nome: string; frente_id: string }>,
+    courseIds: string[] = [],
+    courseNameMap: Map<string, string> = new Map(),
+  ): PerformanceFilteredResult {
+    if (groupBy === 'curso') {
+      return courseIds.map((id) => ({
+        id,
+        name: courseNameMap.get(id) ?? 'Curso',
+        subLabel: null,
+        score: 0,
+        isNotStarted: true,
+      }))
+    }
+    if (groupBy === 'disciplina') {
+      return disciplinaIds.map((id) => ({
+        id,
+        name: disciplinaMap.get(id) ?? 'Desconhecida',
+        subLabel: null,
+        score: 0,
+        isNotStarted: true,
+      }))
+    }
+    if (groupBy === 'frente') {
+      return frentes.map((f) => ({
+        id: f.id,
+        name: f.nome,
+        subLabel: disciplinaMap.get(f.disciplina_id) ?? null,
+        score: 0,
+        isNotStarted: true,
+      }))
+    }
+    // modulo
+    const frenteMap = new Map(frentes.map((f) => [f.id, f]))
+    return modulos.map((m) => {
+      const frente = frenteMap.get(m.frente_id)
+      const subLabel = frente ? (disciplinaMap.get(frente.disciplina_id) ?? null) : null
+      return { id: m.id, name: m.nome, subLabel, score: 0, isNotStarted: true }
+    })
+  }
+
+  /**
+   * Endpoint filtrável: Domínio Estratégico por escopo (sem filtro por modo).
+   * Retorna também a lista de módulos (para ranking + seletor no nível Módulo).
+   */
+  async getStrategicDomainFiltered(
+    alunoId: string,
+    opts: { scope: DashboardScopeLevel; scopeId?: string; period: DashboardPeriod },
+  ): Promise<StrategicDomainFilteredResult> {
+    const client = getDatabaseClient()
+    const empty: StrategicDomainFilteredResult = {
+      data: {
+        baseModules: { flashcardsScore: null, questionsScore: null },
+        highRecurrence: { flashcardsScore: null, questionsScore: null },
+        recommendations: [],
+      },
+      modules: [],
+    }
+
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client)
+    const effectiveCursoIds = this.effectiveCourseIds(cursoIds, opts.scope, opts.scopeId)
+    if (effectiveCursoIds.length === 0) return empty
+
+    // Disciplinas do(s) curso(s)
+    const { data: cursosDisciplinas } = await client
+      .from('cursos_disciplinas')
+      .select('disciplina_id, curso_id')
+      .in('curso_id', effectiveCursoIds)
+
+    let disciplinaIds = [...new Set(((cursosDisciplinas ?? []) as Array<{ disciplina_id: string }>).map((cd) => cd.disciplina_id))]
+    if (opts.scope === 'disciplina' && opts.scopeId) {
+      disciplinaIds = disciplinaIds.includes(opts.scopeId) ? [opts.scopeId] : []
+    }
+    if (disciplinaIds.length === 0) return empty
+
+    // Frentes
+    const { data: todasFrentes } = await client
+      .from('frentes')
+      .select('id, disciplina_id, curso_id')
+      .in('disciplina_id', disciplinaIds)
+      .or(
+        effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+          (effectiveCursoIds.length > 0 ? ',' : '') +
+          'curso_id.is.null',
+      )
+
+    let frentesFiltradas = ((todasFrentes ?? []) as Array<{ id: string; disciplina_id: string; curso_id: string | null }>).filter(
+      (f) => !f.curso_id || effectiveCursoIds.includes(f.curso_id),
+    )
+    if (opts.scope === 'frente' && opts.scopeId) {
+      frentesFiltradas = frentesFiltradas.filter((f) => f.id === opts.scopeId)
+    }
+    if (frentesFiltradas.length === 0) return empty
+
+    const frenteIds = frentesFiltradas.map((f) => f.id)
+
+    // Módulos
+    const { data: todosModulos } = await client
+      .from('modulos')
+      .select('id, nome, importancia, frente_id, curso_id')
+      .in('frente_id', frenteIds)
+      .or(
+        effectiveCursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
+          (effectiveCursoIds.length > 0 ? ',' : '') +
+          'curso_id.is.null',
+      )
+
+    let modulosFiltrados = ((todosModulos ?? []) as Array<{
+      id: string
+      nome: string
+      importancia: ModuloImportancia | null
+      frente_id: string
+      curso_id: string | null
+    }>).filter((m) => !m.curso_id || effectiveCursoIds.includes(m.curso_id))
+    if (opts.scope === 'modulo' && opts.scopeId) {
+      modulosFiltrados = modulosFiltrados.filter((m) => m.id === opts.scopeId)
+    }
+    if (modulosFiltrados.length === 0) return empty
+
+    const modulosById = new Map(
+      modulosFiltrados.map((m) => [
+        m.id,
+        { id: m.id, nome: m.nome, importancia: (m.importancia ?? 'Media') as ModuloImportancia },
+      ]),
+    )
+
+    // Escopo estratégico: somente Base/Alta (como no card atual)
+    const baseModuleIds = modulosFiltrados.filter((m) => m.importancia === 'Base').map((m) => m.id)
+    const highRecurrenceModuleIds = modulosFiltrados.filter((m) => m.importancia === 'Alta').map((m) => m.id)
+    const strategicModuleIds = [...new Set([...baseModuleIds, ...highRecurrenceModuleIds])]
+    if (strategicModuleIds.length === 0) return empty
+
+    const inicioPeriodo = this.getPeriodStart(opts.period)
+
+    const chunk = <T,>(arr: T[], size: number): T[][] => {
+      if (arr.length === 0) return []
+      const out: T[][] = []
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+      return out
+    }
+
+    const roundPercentFromAvgFeedback = (sum: number, count: number) => {
+      if (count <= 0) return null
+      return Math.round((sum / count / 4) * 100)
+    }
+
+    const roundPercentFromRatio = (num: number, den: number) => {
+      if (den <= 0) return null
+      return Math.round((num / den) * 100)
+    }
+
+    // Flashcards: map flashcard -> modulo, aggregate feedback
+    const flashcardIdToModuloId = new Map<string, string>()
+    const flashAggByModulo = new Map<string, { sum: number; count: number }>()
+
+    const { data: flashcardsRows } = await client
+      .from('flashcards')
+      .select('id, modulo_id')
+      .in('modulo_id', strategicModuleIds)
+
+    const flashcardIds = (flashcardsRows ?? [])
+      .map((f: { id: string; modulo_id: string | null }) => {
+        if (f.modulo_id) flashcardIdToModuloId.set(f.id, f.modulo_id)
+        return f.id
+      })
+      .filter(Boolean)
+
+    if (flashcardIds.length > 0) {
+      const progressosFlashcards: Array<{ flashcard_id: string; ultimo_feedback: number | null }> = []
+
+      for (const idsChunk of chunk(flashcardIds, 900)) {
+        // `ultima_revisao` pode não existir dependendo da migration; se falhar, fazemos fallback para não filtrar por período.
+        const attempt = await client
+          .from('progresso_flashcards')
+          .select('flashcard_id, ultimo_feedback, ultima_revisao')
+          .eq('aluno_id', alunoId)
+          .in('flashcard_id', idsChunk)
+          .not('ultimo_feedback', 'is', null)
+          .gte('ultima_revisao', inicioPeriodo.toISOString())
+
+        let progChunk = attempt.data as unknown
+        let progErr = attempt.error as unknown
+
+        if (attempt.error) {
+          const msg = attempt.error.message || ''
+          const missingUltimaRevisao = msg.includes('ultima_revisao') && msg.toLowerCase().includes('does not exist')
+          if (missingUltimaRevisao) {
+            const fallback = await client
+              .from('progresso_flashcards')
+              .select('flashcard_id, ultimo_feedback')
+              .eq('aluno_id', alunoId)
+              .in('flashcard_id', idsChunk)
+              .not('ultimo_feedback', 'is', null)
+            progChunk = fallback.data as unknown
+            progErr = fallback.error as unknown
+          }
+        }
+
+        if (progErr) {
+          console.error('[dashboard-analytics] Erro ao buscar progresso_flashcards:', progErr)
+          continue
+        }
+
+        progressosFlashcards.push(...((progChunk as Array<{ flashcard_id: string; ultimo_feedback: number | null }>) ?? []))
+      }
+
+      for (const p of progressosFlashcards) {
+        const moduloId = flashcardIdToModuloId.get(p.flashcard_id)
+        const feedback = p.ultimo_feedback
+        if (!moduloId || feedback == null) continue
+        if (feedback < 1 || feedback > 4) continue
+
+        const curr = flashAggByModulo.get(moduloId) || { sum: 0, count: 0 }
+        curr.sum += feedback
+        curr.count += 1
+        flashAggByModulo.set(moduloId, curr)
+      }
+    }
+
+    // Questões: progresso_atividades -> atividades(modulo_id)
+    const questionsAggByModulo = new Map<string, { acertos: number; totais: number }>()
+
+    // Primeiro restringir atividades aos módulos estratégicos para evitar varrer tudo do aluno
+    const { data: atividadesInScope, error: atividadesScopeErr } = await client
+      .from('atividades')
+      .select('id, modulo_id')
+      .in('modulo_id', strategicModuleIds)
+
+    if (atividadesScopeErr) {
+      console.error('[dashboard-analytics] Erro ao buscar atividades do escopo estratégico:', atividadesScopeErr)
+    }
+
+    const atividadeIdToModuloId = new Map(
+      ((atividadesInScope ?? []) as Array<{ id: string; modulo_id: string | null }>)
+        .filter((a) => a.modulo_id != null)
+        .map((a) => [a.id, a.modulo_id as string]),
+    )
+
+    const atividadeIds = Array.from(atividadeIdToModuloId.keys())
+    if (atividadeIds.length > 0) {
+      const progressosAtividades: Array<{ atividade_id: string; questoes_totais: number | null; questoes_acertos: number | null }> = []
+
+      for (const idsChunk of chunk(atividadeIds, 900)) {
+        const { data: progChunk, error: progErr } = await client
+          .from('progresso_atividades')
+          .select('atividade_id, questoes_totais, questoes_acertos')
+          .eq('aluno_id', alunoId)
+          .eq('status', 'Concluido')
+          .not('questoes_totais', 'is', null)
+          .gt('questoes_totais', 0)
+          .gte('data_conclusao', inicioPeriodo.toISOString())
+          .in('atividade_id', idsChunk)
+
+        if (progErr) {
+          console.error('[dashboard-analytics] Erro ao buscar progresso_atividades (escopo estratégico):', progErr)
+          continue
+        }
+
+        progressosAtividades.push(...((progChunk ?? []) as typeof progressosAtividades))
+      }
+
+      for (const p of progressosAtividades) {
+        const moduloId = atividadeIdToModuloId.get(p.atividade_id)
+        if (!moduloId) continue
+        const totais = p.questoes_totais ?? 0
+        const acertos = p.questoes_acertos ?? 0
+        if (totais <= 0) continue
+        const curr = questionsAggByModulo.get(moduloId) || { acertos: 0, totais: 0 }
+        curr.acertos += acertos
+        curr.totais += totais
+        questionsAggByModulo.set(moduloId, curr)
+      }
+    }
+
+    const axisFlashcardsScore = (moduleIds: string[]) => {
+      let sum = 0
+      let count = 0
+      for (const id of moduleIds) {
+        const agg = flashAggByModulo.get(id)
+        if (!agg) continue
+        sum += agg.sum
+        count += agg.count
+      }
+      return roundPercentFromAvgFeedback(sum, count)
+    }
+
+    const axisQuestionsScore = (moduleIds: string[]) => {
+      let acertos = 0
+      let totais = 0
+      for (const id of moduleIds) {
+        const agg = questionsAggByModulo.get(id)
+        if (!agg) continue
+        acertos += agg.acertos
+        totais += agg.totais
+      }
+      return roundPercentFromRatio(acertos, totais)
+    }
+
+    const moduleFlashcardsScore = (moduleId: string) => {
+      const agg = flashAggByModulo.get(moduleId)
+      if (!agg) return null
+      return roundPercentFromAvgFeedback(agg.sum, agg.count)
+    }
+
+    const moduleQuestionsScore = (moduleId: string) => {
+      const agg = questionsAggByModulo.get(moduleId)
+      if (!agg) return null
+      return roundPercentFromRatio(agg.acertos, agg.totais)
+    }
+
+    const buildReason = (flash: number | null, questions: number | null) => {
+      if (flash != null && questions != null && Math.abs(flash - questions) >= 25) {
+        return 'Gap entre memória e aplicação'
+      }
+
+      const threshold = 70
+      if (questions == null || (flash != null && flash <= (questions ?? 999))) {
+        return flash != null && flash < threshold
+          ? 'Flashcards baixos (recall fraco)'
+          : 'Flashcards com inconsistência'
+      }
+
+      return questions < threshold ? 'Acurácia baixa em questões' : 'Questões com inconsistência'
+    }
+
+    const importanceOrder: Record<ModuloImportancia, number> = {
+      Alta: 0,
+      Base: 1,
+      Media: 2,
+      Baixa: 3,
+    }
+
+    type RecommendationWithRisk = StrategicDomainRecommendation & { risk: number }
+    const recommendationsWithRisk: RecommendationWithRisk[] = []
+
+    const modulesList: StrategicDomainFilteredResult['modules'] = []
+
+    for (const moduloId of strategicModuleIds) {
+      const modulo = modulosById.get(moduloId)
+      if (!modulo) continue
+
+      const flash = moduleFlashcardsScore(moduloId)
+      const questions = moduleQuestionsScore(moduloId)
+      const risk =
+        flash != null && questions != null ? Math.min(flash, questions) : (flash ?? questions)
+
+      modulesList.push({
+        moduloId,
+        moduloNome: modulo.nome,
+        importancia: modulo.importancia,
+        flashcardsScore: flash,
+        questionsScore: questions,
+        risk: risk ?? null,
+      })
+
+      if (risk == null) continue
+
+      recommendationsWithRisk.push({
+        moduloId,
+        moduloNome: modulo.nome,
+        importancia: modulo.importancia,
+        flashcardsScore: flash,
+        questionsScore: questions,
+        reason: buildReason(flash, questions),
+        risk,
+      })
+    }
+
+    const recommendations: StrategicDomainRecommendation[] = recommendationsWithRisk
+      .sort((a, b) => {
+        if (a.risk !== b.risk) return a.risk - b.risk
+        const ia = importanceOrder[a.importancia] ?? 99
+        const ib = importanceOrder[b.importancia] ?? 99
+        return ia - ib
+      })
+      .slice(0, 3)
+      .map(({ risk: _risk, ...r }) => r)
+
+    return {
+      data: {
+        baseModules: {
+          flashcardsScore: axisFlashcardsScore(baseModuleIds),
+          questionsScore: axisQuestionsScore(baseModuleIds),
+        },
+        highRecurrence: {
+          flashcardsScore: axisFlashcardsScore(highRecurrenceModuleIds),
+          questionsScore: axisQuestionsScore(highRecurrenceModuleIds),
+        },
+        recommendations,
+      },
+      modules: modulesList.sort((a, b) => (a.risk ?? 999) - (b.risk ?? 999)),
     }
   }
 
@@ -259,32 +1311,34 @@ export class DashboardAnalyticsService {
    */
   private async getMetrics(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ) {
     // Progresso do cronograma (simplificado - pode ser melhorado)
     const scheduleProgress = await this.getScheduleProgress(alunoId, client)
 
-    // Tempo focado (últimos 7 dias)
-    const { focusTime, focusTimeDelta } = await this.getFocusTime(alunoId, client)
+    // Tempo focado (coordenado com o período selecionado)
+    const { focusTime, focusTimeDelta } = await this.getFocusTime(alunoId, client, period)
 
-    // Questões feitas (esta semana)
-    const { questionsAnswered, period } = await this.getQuestionsAnswered(
+    // Questões feitas (coordenado com o período selecionado)
+    const { questionsAnswered, periodLabel } = await this.getQuestionsAnswered(
       alunoId,
-      client
+      client,
+      period,
     )
 
-    // Aproveitamento médio
-    const accuracy = await this.getAccuracy(alunoId, client)
+    // Aproveitamento médio (coordenado com o período selecionado)
+    const accuracy = await this.getAccuracy(alunoId, client, period)
 
-    // Flashcards revisados
-    const flashcardsReviewed = await this.getFlashcardsReviewed(alunoId, client)
+    // Flashcards revisados (coordenado com o período selecionado quando possível)
+    const flashcardsReviewed = await this.getFlashcardsReviewed(alunoId, client, period)
 
     return {
       scheduleProgress,
       focusTime,
       focusTimeDelta,
       questionsAnswered,
-      questionsAnsweredPeriod: period,
+      questionsAnsweredPeriod: periodLabel,
       accuracy,
       flashcardsReviewed,
     }
@@ -336,51 +1390,37 @@ export class DashboardAnalyticsService {
    */
   private async getFocusTime(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ): Promise<{ focusTime: string; focusTimeDelta: string }> {
-    const hoje = new Date()
-    const inicioSemana = new Date(hoje)
-    inicioSemana.setDate(hoje.getDate() - 7)
+    const inicioPeriodo = this.getPeriodStart(period)
+    const fimPeriodo = new Date()
 
-    // Tempo desta semana
-    const { data: sessoesSemana } = await client
-      .from('sessoes_estudo')
-      .select('tempo_total_liquido_segundos')
-      .eq('aluno_id', alunoId)
-      .eq('status', 'concluido')
-      .gte('inicio', inicioSemana.toISOString())
+    // NOVO: Tempo de estudo = aulas assistidas (cronograma) + listas (sessões vinculadas a atividade)
+    const tempoPeriodo = await this.getStudyTimeSecondsForPeriod(alunoId, client, {
+      start: inicioPeriodo,
+      end: fimPeriodo,
+    })
 
-    const tempoSemana =
-      sessoesSemana?.reduce(
-        (acc, s) => acc + (s.tempo_total_liquido_segundos || 0),
-        0
-      ) || 0
+    // Tempo do período anterior (mesma janela imediatamente anterior)
+    const inicioPeriodoAnterior = new Date(inicioPeriodo)
+    const fimPeriodoAnterior = new Date(inicioPeriodo)
 
-    // Tempo da semana anterior
-    const inicioSemanaAnterior = new Date(inicioSemana)
-    inicioSemanaAnterior.setDate(inicioSemanaAnterior.getDate() - 7)
+    const days = this.getPeriodDays(period)
+    inicioPeriodoAnterior.setDate(inicioPeriodoAnterior.getDate() - days)
 
-    const { data: sessoesSemanaAnterior } = await client
-      .from('sessoes_estudo')
-      .select('tempo_total_liquido_segundos')
-      .eq('aluno_id', alunoId)
-      .eq('status', 'concluido')
-      .gte('inicio', inicioSemanaAnterior.toISOString())
-      .lt('inicio', inicioSemana.toISOString())
-
-    const tempoSemanaAnterior =
-      sessoesSemanaAnterior?.reduce(
-        (acc, s) => acc + (s.tempo_total_liquido_segundos || 0),
-        0
-      ) || 0
+    const tempoPeriodoAnterior = await this.getStudyTimeSecondsForPeriod(alunoId, client, {
+      start: inicioPeriodoAnterior,
+      end: fimPeriodoAnterior,
+    })
 
     // Formatar tempo
-    const horas = Math.floor(tempoSemana / 3600)
-    const minutos = Math.floor((tempoSemana % 3600) / 60)
+    const horas = Math.floor(tempoPeriodo / 3600)
+    const minutos = Math.floor((tempoPeriodo % 3600) / 60)
     const focusTime = horas > 0 ? `${horas}h ${minutos}m` : `${minutos}m`
 
     // Calcular delta
-    const delta = tempoSemana - tempoSemanaAnterior
+    const delta = tempoPeriodo - tempoPeriodoAnterior
     const deltaHoras = Math.abs(Math.floor(delta / 3600))
     const deltaMinutos = Math.abs(Math.floor((delta % 3600) / 60))
     const deltaFormatted =
@@ -395,24 +1435,24 @@ export class DashboardAnalyticsService {
    */
   private async getQuestionsAnswered(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
-  ): Promise<{ questionsAnswered: number; period: string }> {
-    const inicioSemana = new Date()
-    inicioSemana.setDate(inicioSemana.getDate() - 7)
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
+  ): Promise<{ questionsAnswered: number; periodLabel: string }> {
+    const inicioPeriodo = this.getPeriodStart(period)
 
     const { data: progressos } = await client
       .from('progresso_atividades')
       .select('questoes_totais')
       .eq('aluno_id', alunoId)
       .eq('status', 'Concluido')
-      .gte('data_conclusao', inicioSemana.toISOString())
+      .gte('data_conclusao', inicioPeriodo.toISOString())
 
     const total =
       progressos?.reduce((acc, p) => acc + (p.questoes_totais || 0), 0) || 0
 
     return {
       questionsAnswered: total,
-      period: 'Essa semana',
+      periodLabel: period === 'semanal' ? 'Essa semana' : period === 'mensal' ? 'Esse mês' : 'Esse ano',
     }
   }
 
@@ -421,13 +1461,16 @@ export class DashboardAnalyticsService {
    */
   private async getAccuracy(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ): Promise<number> {
+    const inicioPeriodo = this.getPeriodStart(period)
     const { data: progressos } = await client
       .from('progresso_atividades')
       .select('questoes_totais, questoes_acertos')
       .eq('aluno_id', alunoId)
       .eq('status', 'Concluido')
+      .gte('data_conclusao', inicioPeriodo.toISOString())
       .not('questoes_totais', 'is', null)
       .gt('questoes_totais', 0)
 
@@ -451,19 +1494,43 @@ export class DashboardAnalyticsService {
    */
   private async getFlashcardsReviewed(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ): Promise<number> {
+    const inicioPeriodo = this.getPeriodStart(period)
     // Buscar flashcards revisados diretamente da tabela progresso_flashcards
     // Cada registro nesta tabela representa um flashcard que foi revisado pelo aluno
     // (mesmo que tenha sido revisado múltiplas vezes, cada flashcard_id único conta como 1)
-    const { data: progressosFlashcards, error } = await client
-      .from('progresso_flashcards')
-      .select('flashcard_id')
-      .eq('aluno_id', alunoId)
+    // `ultima_revisao` pode não existir; fazemos fallback sem filtro por período.
+    let progressosFlashcards: Array<{ flashcard_id: string }> | null = null
 
-    if (error) {
-      console.error('[dashboard-analytics] Erro ao buscar flashcards revisados:', error)
-      return 0
+    const attempt = await client
+      .from('progresso_flashcards')
+      .select('flashcard_id, ultima_revisao')
+      .eq('aluno_id', alunoId)
+      .gte('ultima_revisao', inicioPeriodo.toISOString())
+
+    if (attempt.error) {
+      const msg = attempt.error.message || ''
+      const missingUltimaRevisao = msg.includes('ultima_revisao') && msg.toLowerCase().includes('does not exist')
+      if (!missingUltimaRevisao) {
+        console.error('[dashboard-analytics] Erro ao buscar flashcards revisados:', attempt.error)
+        return 0
+      }
+
+      const fallback = await client
+        .from('progresso_flashcards')
+        .select('flashcard_id')
+        .eq('aluno_id', alunoId)
+
+      if (fallback.error) {
+        console.error('[dashboard-analytics] Erro ao buscar flashcards revisados:', fallback.error)
+        return 0
+      }
+
+      progressosFlashcards = (fallback.data ?? []) as Array<{ flashcard_id: string }>
+    } else {
+      progressosFlashcards = ((attempt.data ?? []) as Array<{ flashcard_id: string }>) ?? []
     }
 
     if (!progressosFlashcards || progressosFlashcards.length === 0) {
@@ -509,23 +1576,30 @@ export class DashboardAnalyticsService {
         break
     }
 
-    // Buscar sessões do período
-    const { data: sessoes } = await client
-      .from('sessoes_estudo')
-      .select('inicio, tempo_total_liquido_segundos')
-      .eq('aluno_id', alunoId)
-      .eq('status', 'concluido')
-      .gte('inicio', inicioPeriodo.toISOString())
+    // NOVO: Heatmap considera o mesmo "tempo de estudo" do card:
+    // - listas (sessões vinculadas a atividade)
+    // - aulas assistidas (cronograma_itens concluído)
+
+    const [sessRows, watchedRows] = await Promise.all([
+      this.getListSessionsHeatmapRows(alunoId, client, { start: inicioPeriodo }),
+      this.getWatchedClassesHeatmapRows(alunoId, client, { start: inicioPeriodo }),
+    ])
 
     // Criar mapa de dias
     const diasMap = new Map<string, number>()
 
-    sessoes?.forEach((sessao) => {
-      const data = new Date(sessao.inicio).toISOString().split('T')[0]
-      const minutos = Math.floor((sessao.tempo_total_liquido_segundos || 0) / 60)
+    for (const row of sessRows) {
+      const data = new Date(row.inicio).toISOString().split('T')[0]
+      const minutos = Math.floor((row.seconds || 0) / 60)
       const atual = diasMap.get(data) || 0
       diasMap.set(data, atual + minutos)
-    })
+    }
+    for (const row of watchedRows) {
+      const data = new Date(row.dataConclusao).toISOString().split('T')[0]
+      const minutos = Math.floor((row.seconds || 0) / 60)
+      const atual = diasMap.get(data) || 0
+      diasMap.set(data, atual + minutos)
+    }
 
     // Gerar array de dias
     const heatmap: Array<{ date: string; intensity: number }> = []
@@ -556,7 +1630,8 @@ export class DashboardAnalyticsService {
    */
   private async getSubjectPerformance(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ) {
     // 1. Buscar cursos do aluno (ou todos se for professor)
     const { data: professorData } = await client
@@ -623,6 +1698,7 @@ export class DashboardAnalyticsService {
     const disciplinaMap = new Map(disciplinas?.map((d) => [d.id, d]) || []);
 
     // 5. Buscar progressos com questões (se houver)
+    const inicioPeriodo = this.getPeriodStart(period)
     const { data: progressos } = await client
       .from('progresso_atividades')
       .select(
@@ -634,6 +1710,7 @@ export class DashboardAnalyticsService {
       )
       .eq('aluno_id', alunoId)
       .eq('status', 'Concluido')
+      .gte('data_conclusao', inicioPeriodo.toISOString())
       .not('questoes_totais', 'is', null)
       .gt('questoes_totais', 0);
 
@@ -741,18 +1818,17 @@ export class DashboardAnalyticsService {
    */
   private async getFocusEfficiency(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ) {
-    const hoje = new Date()
-    const inicioSemana = new Date(hoje)
-    inicioSemana.setDate(hoje.getDate() - 7)
+    const inicioPeriodo = this.getPeriodStart(period)
 
     const { data: sessoes } = await client
       .from('sessoes_estudo')
       .select('inicio, tempo_total_bruto_segundos, tempo_total_liquido_segundos')
       .eq('aluno_id', alunoId)
       .eq('status', 'concluido')
-      .gte('inicio', inicioSemana.toISOString())
+      .gte('inicio', inicioPeriodo.toISOString())
 
     // Agrupar por dia da semana
     const diasMap = new Map<
@@ -794,8 +1870,22 @@ export class DashboardAnalyticsService {
    */
   private async getStrategicDomain(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ): Promise<StrategicDomain> {
+    // Reusar a versão filtrável para manter consistência e respeitar o período selecionado.
+    // (Mantemos a implementação antiga abaixo como fallback/legado.)
+    try {
+      const filtered = await this.getStrategicDomainFiltered(alunoId, {
+        scope: 'curso',
+        scopeId: undefined,
+        period,
+      })
+      return filtered.data
+    } catch (e) {
+      console.warn('[dashboard-analytics] Falha ao calcular strategicDomain filtrado, usando fallback legado:', e)
+    }
+
     const empty: StrategicDomain = {
       baseModules: { flashcardsScore: null, questionsScore: null },
       highRecurrence: { flashcardsScore: null, questionsScore: null },
@@ -1210,99 +2300,274 @@ export class DashboardAnalyticsService {
    */
   private async getSubjectDistribution(
     alunoId: string,
-    client: ReturnType<typeof getDatabaseClient>
+    client: ReturnType<typeof getDatabaseClient>,
+    period: DashboardPeriod,
   ) {
-    const hoje = new Date()
-    const inicioMes = new Date(hoje)
-    inicioMes.setMonth(hoje.getMonth() - 1)
-
-    // Buscar sessões do último mês
-    const { data: sessoes } = await client
-      .from('sessoes_estudo')
-      .select('tempo_total_liquido_segundos, disciplina_id')
-      .eq('aluno_id', alunoId)
-      .eq('status', 'concluido')
-      .gte('inicio', inicioMes.toISOString())
-      .not('disciplina_id', 'is', null)
-
-    if (!sessoes || sessoes.length === 0) {
-      return [
-        { name: 'Física', percentage: 40, color: '#60a5fa' },
-        { name: 'Matemática', percentage: 30, color: '#a78bfa' },
-        { name: 'História', percentage: 20, color: '#facc15' },
-        { name: 'Outros', percentage: 10, color: '#9ca3af' },
-      ]
-    }
-
-    // Agrupar por disciplina
-    const disciplinaMap = new Map<string, number>()
-
-    sessoes.forEach((s) => {
-      if (!s.disciplina_id) return
-
-      const atual = disciplinaMap.get(s.disciplina_id) || 0
-      disciplinaMap.set(
-        s.disciplina_id,
-        atual + (s.tempo_total_liquido_segundos || 0)
-      )
+    const res = await this.getSubjectDistributionFiltered(alunoId, {
+      groupBy: 'disciplina',
+      scope: 'curso',
+      scopeId: undefined,
+      period,
     })
 
-    // Calcular totais e percentuais
-    const total = Array.from(disciplinaMap.values()).reduce(
-      (acc, val) => acc + val,
-      0
+    // Manter contrato legado: apenas name/percentage/color
+    return res.items.map((i) => ({ name: i.name, percentage: i.percentage, color: i.color }))
+  }
+
+  // ============================================================================
+  // Helpers: "tempo de estudo" (aulas assistidas + listas)
+  // ============================================================================
+
+  private async getLatestCronogramaId(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+  ): Promise<string | null> {
+    const { data: cronograma } = await client
+      .from('cronogramas')
+      .select('id')
+      .eq('aluno_id', alunoId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle<{ id: string }>()
+    return cronograma?.id ?? null
+  }
+
+  private async getListSessionsRows(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+    opts: { start: Date; end?: Date },
+  ): Promise<StudyTimeRow[]> {
+    // Obs: `sessoes_estudo.modulo_id` pode não existir em alguns bancos (migração pendente).
+    // Mantemos fallback e inferimos modulo_id via join com `atividades` quando possível.
+    type SessaoRow = {
+      tempo_total_liquido_segundos: number | null
+      disciplina_id: string | null
+      frente_id: string | null
+      modulo_id?: string | null
+      atividade_relacionada_id?: string | null
+      atividades?: { modulo_id?: string | null } | { modulo_id?: string | null }[] | null
+    }
+
+    const buildBaseQuery = (selectCols: string) => {
+      let q = client
+        .from('sessoes_estudo')
+        .select(selectCols)
+        .eq('aluno_id', alunoId)
+        .eq('status', 'concluido')
+        .not('atividade_relacionada_id', 'is', null)
+        .gte('inicio', opts.start.toISOString())
+      if (opts.end) q = q.lt('inicio', opts.end.toISOString())
+      return q.returns<SessaoRow[]>()
+    }
+
+    let sessoes: SessaoRow[] | null = null
+
+    const attempt = await buildBaseQuery(
+      'tempo_total_liquido_segundos, disciplina_id, frente_id, modulo_id, atividade_relacionada_id, atividades(modulo_id)',
     )
 
-    if (total === 0) {
-      return [
-        { name: 'Física', percentage: 40, color: '#60a5fa' },
-        { name: 'Matemática', percentage: 30, color: '#a78bfa' },
-        { name: 'História', percentage: 20, color: '#facc15' },
-        { name: 'Outros', percentage: 10, color: '#9ca3af' },
-      ]
-    }
-
-    // Buscar nomes das disciplinas
-    const disciplinasIds = Array.from(disciplinaMap.keys())
-    const { data: disciplinas } = await client
-      .from('disciplinas')
-      .select('id, nome')
-      .in('id', disciplinasIds)
-
-    const cores = ['#60a5fa', '#a78bfa', '#facc15', '#9ca3af', '#f87171']
-    let corIndex = 0
-
-    const distribution = Array.from(disciplinaMap.entries())
-      .map(([id, segundos]) => {
-        const disciplina = disciplinas?.find((d) => d.id === id)
-        const percentage = Math.round((segundos / total) * 100)
-
-        return {
-          name: disciplina?.nome || 'Desconhecida',
-          percentage,
-          color: cores[corIndex++ % cores.length],
-        }
-      })
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, 4) // Top 4
-
-    // Se houver mais disciplinas, agrupar como "Outros"
-    if (disciplinaMap.size > 4) {
-      const outrosTotal = Array.from(disciplinaMap.entries())
-        .slice(4)
-        .reduce((acc, [, segundos]) => acc + segundos, 0)
-      const outrosPercentage = Math.round((outrosTotal / total) * 100)
-
-      if (outrosPercentage > 0) {
-        distribution.push({
-          name: 'Outros',
-          percentage: outrosPercentage,
-          color: cores[corIndex % cores.length],
-        })
+    if (attempt.error) {
+      const msg = attempt.error.message || ''
+      const isMissingModuloId = msg.includes('sessoes_estudo.modulo_id') && msg.toLowerCase().includes('does not exist')
+      if (!isMissingModuloId) {
+        throw new Error(`Erro ao buscar sessões de listas: ${attempt.error.message}`)
       }
+
+      const fallback = await buildBaseQuery(
+        'tempo_total_liquido_segundos, disciplina_id, frente_id, atividade_relacionada_id, atividades(modulo_id)',
+      )
+      if (fallback.error) {
+        throw new Error(`Erro ao buscar sessões de listas: ${fallback.error.message}`)
+      }
+      sessoes = fallback.data ?? []
+    } else {
+      sessoes = attempt.data ?? []
     }
 
-    return distribution
+    return (sessoes ?? []).map((r) => {
+      const nested = r.atividades
+      const nestedModulo =
+        Array.isArray(nested) ? (nested[0]?.modulo_id ?? null) : (nested?.modulo_id ?? null)
+      return {
+        seconds: r.tempo_total_liquido_segundos ?? 0,
+        curso_id: null,
+        disciplina_id: r.disciplina_id ?? null,
+        frente_id: r.frente_id ?? null,
+        modulo_id: (r.modulo_id ?? nestedModulo) ?? null,
+      }
+    })
+  }
+
+  private async getWatchedClassesRows(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+    opts: { start: Date; end?: Date },
+  ): Promise<StudyTimeRow[]> {
+    const cronogramaId = await this.getLatestCronogramaId(alunoId, client)
+    if (!cronogramaId) return []
+
+    // tempo_estimado_minutos pode ser null; usamos fallback de 10min para não “zerar” o tempo.
+    const TEMPO_PADRAO_MINUTOS = 10
+
+    let q = client
+      .from('cronograma_itens')
+      .select(
+        'data_conclusao, aulas(tempo_estimado_minutos, curso_id, modulo_id, modulos(frente_id, frentes(disciplina_id)))',
+      )
+      .eq('cronograma_id', cronogramaId)
+      .eq('concluido', true)
+      .not('data_conclusao', 'is', null)
+      .gte('data_conclusao', opts.start.toISOString())
+
+    if (opts.end) q = q.lt('data_conclusao', opts.end.toISOString())
+
+    type Row = {
+      data_conclusao: string | null
+      aulas:
+        | {
+            tempo_estimado_minutos: number | null
+            curso_id: string | null
+            modulo_id: string | null
+            modulos:
+              | { frente_id: string | null; frentes: { disciplina_id: string | null } | { disciplina_id: string | null }[] | null }
+              | { frente_id: string | null; frentes: { disciplina_id: string | null } | { disciplina_id: string | null }[] | null }[]
+              | null
+          }
+        | {
+            tempo_estimado_minutos: number | null
+            curso_id: string | null
+            modulo_id: string | null
+            modulos:
+              | { frente_id: string | null; frentes: { disciplina_id: string | null } | { disciplina_id: string | null }[] | null }
+              | { frente_id: string | null; frentes: { disciplina_id: string | null } | { disciplina_id: string | null }[] | null }[]
+              | null
+          }[]
+        | null
+    }
+
+    const { data, error } = await q
+    if (error) {
+      throw new Error(`Erro ao buscar aulas assistidas: ${error.message}`)
+    }
+
+    const safeRows = ((data ?? []) as Row[]) ?? []
+    const out: StudyTimeRow[] = []
+
+    for (const item of safeRows) {
+      const aula = Array.isArray(item.aulas) ? item.aulas[0] : item.aulas
+      if (!aula) continue
+      const mod = Array.isArray(aula.modulos) ? aula.modulos[0] : aula.modulos
+      const frenteId = mod?.frente_id ?? null
+      const fr = mod?.frentes
+      const disciplinaId = Array.isArray(fr) ? (fr[0]?.disciplina_id ?? null) : (fr?.disciplina_id ?? null)
+      const minutos = aula.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS
+      const seconds = Math.max(0, Math.round(minutos * 60))
+
+      out.push({
+        seconds,
+        curso_id: aula.curso_id ?? null,
+        disciplina_id: disciplinaId,
+        frente_id: frenteId,
+        modulo_id: aula.modulo_id ?? null,
+      })
+    }
+
+    return out
+  }
+
+  private async getStudyTimeSecondsForPeriod(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+    opts: { start: Date; end: Date },
+  ): Promise<number> {
+    const [listRows, watchedRows] = await Promise.all([
+      this.getListSessionsRows(alunoId, client, { start: opts.start, end: opts.end }),
+      this.getWatchedClassesRows(alunoId, client, { start: opts.start, end: opts.end }),
+    ])
+    return [...listRows, ...watchedRows].reduce((acc, r) => acc + (r.seconds || 0), 0)
+  }
+
+  private async getListSessionsHeatmapRows(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+    opts: { start: Date },
+  ): Promise<Array<{ inicio: string; seconds: number }>> {
+    // Reutiliza lógica de getListSessionsRows, mas precisamos do timestamp de início
+    const buildBaseQuery = (selectCols: string) =>
+      client
+        .from('sessoes_estudo')
+        .select(selectCols)
+        .eq('aluno_id', alunoId)
+        .eq('status', 'concluido')
+        .not('atividade_relacionada_id', 'is', null)
+        .gte('inicio', opts.start.toISOString())
+        .returns<SessaoRow[]>()
+
+    type SessaoRow = {
+      inicio: string
+      tempo_total_liquido_segundos: number | null
+      modulo_id?: string | null
+      atividades?: { modulo_id?: string | null } | { modulo_id?: string | null }[] | null
+    }
+
+    const attempt = await buildBaseQuery('inicio, tempo_total_liquido_segundos, modulo_id, atividades(modulo_id)')
+    if (!attempt.error) {
+      return (attempt.data ?? []).map((r) => ({
+        inicio: r.inicio,
+        seconds: r.tempo_total_liquido_segundos ?? 0,
+      }))
+    }
+
+    const msg = attempt.error.message || ''
+    const isMissingModuloId = msg.includes('sessoes_estudo.modulo_id') && msg.toLowerCase().includes('does not exist')
+    if (!isMissingModuloId) {
+      console.error('[dashboard-analytics] Erro ao buscar sessões (heatmap):', attempt.error)
+      return []
+    }
+
+    const fallback = await buildBaseQuery('inicio, tempo_total_liquido_segundos, atividades(modulo_id)')
+    if (fallback.error) {
+      console.error('[dashboard-analytics] Erro ao buscar sessões (heatmap fallback):', fallback.error)
+      return []
+    }
+
+    return (fallback.data ?? []).map((r) => ({
+      inicio: r.inicio,
+      seconds: r.tempo_total_liquido_segundos ?? 0,
+    }))
+  }
+
+  private async getWatchedClassesHeatmapRows(
+    alunoId: string,
+    client: ReturnType<typeof getDatabaseClient>,
+    opts: { start: Date },
+  ): Promise<Array<{ dataConclusao: string; seconds: number }>> {
+    const cronogramaId = await this.getLatestCronogramaId(alunoId, client)
+    if (!cronogramaId) return []
+
+    const TEMPO_PADRAO_MINUTOS = 10
+
+    const { data, error } = await client
+      .from('cronograma_itens')
+      .select('data_conclusao, aulas(tempo_estimado_minutos)')
+      .eq('cronograma_id', cronogramaId)
+      .eq('concluido', true)
+      .not('data_conclusao', 'is', null)
+      .gte('data_conclusao', opts.start.toISOString())
+
+    if (error) {
+      console.error('[dashboard-analytics] Erro ao buscar aulas assistidas (heatmap):', error)
+      return []
+    }
+
+    type Row = { data_conclusao: string | null; aulas: { tempo_estimado_minutos: number | null } | { tempo_estimado_minutos: number | null }[] | null }
+    const safe = (((data ?? []) as Row[]) ?? []).filter((r) => !!r.data_conclusao)
+
+    return safe.map((r) => {
+      const aula = Array.isArray(r.aulas) ? r.aulas[0] : r.aulas
+      const minutos = aula?.tempo_estimado_minutos ?? TEMPO_PADRAO_MINUTOS
+      return { dataConclusao: r.data_conclusao as string, seconds: Math.max(0, Math.round(minutos * 60)) }
+    })
   }
 }
 

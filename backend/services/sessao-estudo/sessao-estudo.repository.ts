@@ -11,6 +11,7 @@ type SessaoEstudoRow = {
   aluno_id: string;
   disciplina_id: string | null;
   frente_id: string | null;
+  modulo_id: string | null;
   atividade_relacionada_id: string | null;
   inicio: string;
   fim: string | null;
@@ -29,6 +30,7 @@ function mapRowToModel(row: SessaoEstudoRow): SessaoEstudo {
     alunoId: row.aluno_id,
     disciplinaId: row.disciplina_id,
     frenteId: row.frente_id,
+    moduloId: row.modulo_id,
     atividadeRelacionadaId: row.atividade_relacionada_id,
     inicio: row.inicio,
     fim: row.fim,
@@ -49,23 +51,62 @@ export class SessaoEstudoRepository {
     alunoId: string;
     disciplinaId?: string;
     frenteId?: string;
+    moduloId?: string;
     atividadeRelacionadaId?: string;
     metodoEstudo?: MetodoEstudo;
     inicioIso?: string;
   }): Promise<SessaoEstudo> {
     const client = getDatabaseClient();
-    const { data, error } = await client
-      .from(this.table)
-      .insert({
-        aluno_id: input.alunoId,
-        disciplina_id: input.disciplinaId ?? null,
-        frente_id: input.frenteId ?? null,
-        atividade_relacionada_id: input.atividadeRelacionadaId ?? null,
-        metodo_estudo: input.metodoEstudo ?? null,
-        inicio: input.inicioIso ?? new Date().toISOString(),
-      })
-      .select()
-      .single();
+
+    // Derivar modulo_id quando não vier explicitamente, mas houver atividade relacionada.
+    // Isso melhora a qualidade do analytics por módulo sem exigir mudanças imediatas no front.
+    let moduloId = input.moduloId ?? null;
+    if (!moduloId && input.atividadeRelacionadaId) {
+      const { data: atividade, error: atividadeError } = await client
+        .from('atividades')
+        .select('modulo_id')
+        .eq('id', input.atividadeRelacionadaId)
+        .maybeSingle<{ modulo_id: string | null }>();
+
+      if (!atividadeError && atividade?.modulo_id) {
+        moduloId = atividade.modulo_id;
+      }
+    }
+
+    const baseInsert = {
+      aluno_id: input.alunoId,
+      disciplina_id: input.disciplinaId ?? null,
+      frente_id: input.frenteId ?? null,
+      atividade_relacionada_id: input.atividadeRelacionadaId ?? null,
+      metodo_estudo: input.metodoEstudo ?? null,
+      inicio: input.inicioIso ?? new Date().toISOString(),
+    };
+
+    // Observação: alguns ambientes ainda não aplicaram a migration de `modulo_id`.
+    // Tentamos inserir com `modulo_id` e, se o schema cache não conhecer a coluna, fazemos fallback sem ela.
+    let data: unknown;
+    let error: { message: string } | null = null;
+
+    {
+      const attempt = await client
+        .from(this.table)
+        .insert({ ...baseInsert, modulo_id: moduloId })
+        .select()
+        .single();
+      data = attempt.data;
+      error = attempt.error as { message: string } | null;
+    }
+
+    if (
+      error &&
+      typeof error.message === 'string' &&
+      error.message.includes("modulo_id") &&
+      error.message.includes('schema cache')
+    ) {
+      const attempt = await client.from(this.table).insert(baseInsert).select().single();
+      data = attempt.data;
+      error = attempt.error as { message: string } | null;
+    }
 
     if (error) {
       throw new Error(`Erro ao criar sessão de estudo: ${error.message}`);
@@ -125,6 +166,16 @@ export class SessaoEstudoRepository {
       .update({ updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('aluno_id', alunoId);
+
+    // Fallback para ambientes sem coluna updated_at (migration não aplicada)
+    if (
+      error &&
+      typeof error.message === 'string' &&
+      error.message.includes('updated_at') &&
+      error.message.includes('schema cache')
+    ) {
+      return;
+    }
 
     if (error) {
       throw new Error(`Erro ao registrar heartbeat: ${error.message}`);

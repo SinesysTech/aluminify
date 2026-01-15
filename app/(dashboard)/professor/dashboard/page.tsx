@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/server'
 
@@ -35,6 +36,10 @@ export default async function ProfessorDashboardPage() {
 
   // Por enquanto, redireciona para a página principal do professor
   // TODO: Implementar dashboard específico do professor
+  const alunosHref = user.role === 'superadmin' ? '/superadmin/alunos' : '/admin/empresa/alunos'
+  const cursosHref = '/professor/materiais'
+  const agendamentosHref = '/professor/agendamentos'
+
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-6">
@@ -45,26 +50,35 @@ export default async function ProfessorDashboardPage() {
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg border p-6">
+        <Link
+          href={alunosHref}
+          className="block rounded-lg border p-6 transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+        >
           <h2 className="text-lg font-semibold mb-2">Alunos</h2>
           <p className="text-sm text-muted-foreground">
             Gerencie seus alunos e visualize seu progresso
           </p>
-        </div>
+        </Link>
         
-        <div className="rounded-lg border p-6">
+        <Link
+          href={cursosHref}
+          className="block rounded-lg border p-6 transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+        >
           <h2 className="text-lg font-semibold mb-2">Cursos</h2>
           <p className="text-sm text-muted-foreground">
             Gerencie cursos e conteúdos
           </p>
-        </div>
+        </Link>
         
-        <div className="rounded-lg border p-6">
+        <Link
+          href={agendamentosHref}
+          className="block rounded-lg border p-6 transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+        >
           <h2 className="text-lg font-semibold mb-2">Agendamentos</h2>
           <p className="text-sm text-muted-foreground">
             Visualize e gerencie agendamentos
           </p>
-        </div>
+        </Link>
       </div>
     </div>
   )

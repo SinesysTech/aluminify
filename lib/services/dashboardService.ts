@@ -1,4 +1,12 @@
-import type { DashboardData } from '@/types/dashboard'
+import type {
+  DashboardData,
+  DashboardGroupBy,
+  DashboardPeriod,
+  DashboardScopeLevel,
+  PerformanceItem,
+  StrategicDomainResponse,
+  SubjectDistributionResponse,
+} from '@/types/dashboard'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import type { HeatmapPeriod } from '@/components/dashboard/consistency-heatmap'
 
@@ -57,5 +65,57 @@ export async function fetchDashboardData(period: HeatmapPeriod = 'anual'): Promi
 
     throw new Error('Erro desconhecido ao carregar dados do dashboard')
   }
+}
+
+export async function fetchDashboardCourses(): Promise<Array<{ id: string; nome: string }>> {
+  const response = await apiClient.get<{ data: Array<{ id: string; nome: string }> }>(`/api/dashboard/courses`)
+  return response.data ?? []
+}
+
+export async function fetchSubjectDistribution(params: {
+  groupBy: DashboardGroupBy
+  scope: DashboardScopeLevel
+  scopeId?: string
+  period?: DashboardPeriod
+}): Promise<SubjectDistributionResponse> {
+  const period = params.period ?? 'mensal'
+  const qs = new URLSearchParams({
+    group_by: params.groupBy,
+    scope: params.scope,
+    ...(params.scopeId ? { scope_id: params.scopeId } : {}),
+    period,
+  })
+  const response = await apiClient.get<{ data: SubjectDistributionResponse }>(`/api/dashboard/subject-distribution?${qs.toString()}`)
+  return response.data
+}
+
+export async function fetchPerformance(params: {
+  groupBy: DashboardGroupBy
+  scope: DashboardScopeLevel
+  scopeId?: string
+  period?: DashboardPeriod
+}): Promise<PerformanceItem[]> {
+  const qs = new URLSearchParams({
+    group_by: params.groupBy,
+    scope: params.scope,
+    ...(params.scopeId ? { scope_id: params.scopeId } : {}),
+    ...(params.period ? { period: params.period } : {}),
+  })
+  const response = await apiClient.get<{ data: PerformanceItem[] }>(`/api/dashboard/performance?${qs.toString()}`)
+  return response.data ?? []
+}
+
+export async function fetchStrategicDomain(params: {
+  scope: DashboardScopeLevel
+  scopeId?: string
+  period?: DashboardPeriod
+}): Promise<StrategicDomainResponse> {
+  const qs = new URLSearchParams({
+    scope: params.scope,
+    ...(params.scopeId ? { scope_id: params.scopeId } : {}),
+    ...(params.period ? { period: params.period } : {}),
+  })
+  const response = await apiClient.get<{ data: StrategicDomainResponse }>(`/api/dashboard/strategic-domain?${qs.toString()}`)
+  return response.data
 }
 

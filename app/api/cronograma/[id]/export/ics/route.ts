@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserAuth, type AuthenticatedRequest } from '@/backend/auth/middleware'
-import { getDatabaseClient } from '@/backend/clients/database'
+import { getDatabaseClientAsUser } from '@/backend/clients/database'
 import { fetchCronogramaCompleto } from '@/lib/cronograma-export-utils'
 import ical from 'ical-generator'
 
@@ -145,7 +145,10 @@ async function getHandler(
   const cronogramaId = String(params.id)
   if (!cronogramaId) return NextResponse.json({ error: 'cronograma_id é obrigatório' }, { status: 400 })
 
-  const client = getDatabaseClient()
+  const authHeader = request.headers.get('authorization') || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const client = getDatabaseClientAsUser(token)
   const { data: owner } = await client
     .from('cronogramas')
     .select('aluno_id')
@@ -156,7 +159,7 @@ async function getHandler(
   }
 
   try {
-    const { cronograma, itens } = await fetchCronogramaCompleto(cronogramaId)
+    const { cronograma, itens } = await fetchCronogramaCompleto(cronogramaId, client)
     const icsContent = buildIcs(cronograma, itens)
 
     return new NextResponse(icsContent, {

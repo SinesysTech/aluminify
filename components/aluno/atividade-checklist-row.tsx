@@ -33,20 +33,20 @@ interface AtividadeChecklistRowProps {
 function getDificuldadeColor(dificuldade: DificuldadePercebida): string {
   switch (dificuldade) {
     case 'Muito Facil':
-      // Muito fácil: roxo (referência: paleta "status" do app, mantendo harmonia)
-      return 'border-transparent bg-violet-200 text-black dark:bg-violet-600 dark:text-white'
+      // Roxo: #A78BFA
+      return 'border-transparent bg-[#A78BFA] text-white'
     case 'Facil':
-      // Fácil: azul (próximo do status-info dos Flashcards)
-      return 'border-transparent bg-blue-200 text-black dark:bg-blue-600 dark:text-white'
+      // Azul: #60A5FA
+      return 'border-transparent bg-[#60A5FA] text-white'
     case 'Medio':
-      // Médio: amarelo (próximo do status-warning dos Flashcards)
-      return 'border-transparent bg-yellow-300 text-black dark:bg-yellow-700 dark:text-white'
+      // Amarelo: #FACC15
+      return 'border-transparent bg-[#FACC15] text-white'
     case 'Dificil':
-      // Difícil: laranja
-      return 'border-transparent bg-orange-300 text-black dark:bg-orange-700 dark:text-white'
+      // Laranja: #FB923C
+      return 'border-transparent bg-[#FB923C] text-white'
     case 'Muito Dificil':
-      // Muito difícil: vermelho bem intenso
-      return 'border-transparent bg-red-300 text-black dark:bg-red-700 dark:text-white'
+      // Vermelho: #F87171
+      return 'border-transparent bg-[#F87171] text-white'
     default:
       return ''
   }
@@ -153,16 +153,16 @@ export function AtividadeChecklistRow({
 
   const statusBadgeColor =
     isConcluido
-      ? 'border-transparent bg-green-200 text-black dark:bg-green-600 dark:text-white'
+      ? 'border-transparent bg-[#34D399] text-white' // Verde
       : isIniciado
-        ? 'border-transparent bg-blue-200 text-black dark:bg-blue-600 dark:text-white'
-        : 'border-transparent bg-slate-200 text-black dark:bg-slate-600 dark:text-white'
+        ? 'border-transparent bg-[#60A5FA] text-white' // Azul
+        : 'border-transparent bg-[#22D3EE] text-white' // Ciano (pendente)
 
   return (
     <>
       <div className={cn('relative rounded-md border p-3', className)}>
         <div className="flex items-start gap-3">
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-start mt-px">
             <Checkbox
               checked={isConcluido}
               onCheckedChange={handleCheckboxChange}
@@ -172,11 +172,11 @@ export function AtividadeChecklistRow({
           </div>
 
           <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium">{atividade.titulo}</span>
-                    <Badge variant="outline" className={cn('text-xs', statusBadgeColor)}>
-                      {status}
-                    </Badge>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-sm font-medium">{atividade.titulo}</span>
+              <Badge variant="outline" className={cn('text-xs', statusBadgeColor)}>
+                {status}
+              </Badge>
             </div>
 
             {(isIniciado || isConcluido) && atividade.progressoDataInicio && (
@@ -229,7 +229,7 @@ export function AtividadeChecklistRow({
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-start gap-2 shrink-0 mt-px">
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>

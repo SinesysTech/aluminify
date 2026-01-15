@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
-import { createFlashcardsService } from '@/backend/services/flashcards/flashcards.service';
+import { createFlashcardsService, type FlashcardsReviewScope } from '@/backend/services/flashcards/flashcards.service';
 
 async function handler(request: AuthenticatedRequest) {
   try {
@@ -9,6 +9,8 @@ async function handler(request: AuthenticatedRequest) {
     const cursoId = searchParams.get('cursoId') || undefined;
     const frenteId = searchParams.get('frenteId') || undefined;
     const moduloId = searchParams.get('moduloId') || undefined;
+    const scopeParam = searchParams.get('scope') || undefined;
+    const scope: FlashcardsReviewScope = scopeParam === 'completed' ? 'completed' : 'all';
     
     // Parâmetro para excluir cards já vistos na sessão
     const excludeIdsParam = searchParams.get('excludeIds');
@@ -20,7 +22,8 @@ async function handler(request: AuthenticatedRequest) {
       request.user!.id,
       modo,
       { cursoId, frenteId, moduloId },
-      excludeIds
+      excludeIds,
+      scope,
     );
     console.log(`[flashcards/revisao] Retornando ${data.length} flashcards`);
     return NextResponse.json({ data });

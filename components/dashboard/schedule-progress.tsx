@@ -13,22 +13,22 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
   // Determinar cor baseada no valor
   const getColorClass = () => {
     if (value < 30) {
-      return 'bg-red-500 dark:bg-red-500'
+      return 'bg-[#F87171]'
     }
     if (value < 70) {
-      return 'bg-yellow-500 dark:bg-yellow-500'
+      return 'bg-[#FACC15]'
     }
-    return 'bg-green-500 dark:bg-green-500'
+    return 'bg-[#34D399]'
   }
 
   const getTextColor = () => {
     if (value < 30) {
-      return 'text-red-500'
+      return 'text-[#F87171]'
     }
     if (value < 70) {
-      return 'text-yellow-500'
+      return 'text-[#FACC15]'
     }
-    return 'text-green-500'
+    return 'text-[#34D399]'
   }
 
   return (

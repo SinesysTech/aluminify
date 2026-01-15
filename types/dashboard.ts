@@ -11,8 +11,8 @@ export interface UserInfo {
 
 export interface Metrics {
   scheduleProgress: number // Percentual (0-100)
-  focusTime: string // Formato "12h 30m"
-  focusTimeDelta: string // Formato "+2h" ou "-1h"
+  focusTime: string // Tempo de estudo total (aulas assistidas + listas), formato "12h 30m"
+  focusTimeDelta: string // Diferença vs período anterior, formato "+2h" ou "-1h"
   questionsAnswered: number
   questionsAnsweredPeriod: string // Ex: "Essa semana"
   accuracy: number // Percentual (0-100)
@@ -64,6 +64,47 @@ export interface SubjectDistributionItem {
   name: string
   percentage: number // Percentual (0-100)
   color: string // Cor em formato hex ou Tailwind class
+}
+
+export type DashboardScopeLevel = 'curso' | 'disciplina' | 'frente' | 'modulo'
+export type DashboardGroupBy = 'curso' | 'disciplina' | 'frente' | 'modulo'
+export type DashboardPeriod = 'semanal' | 'mensal' | 'anual'
+
+export interface SubjectDistributionExtendedItem extends SubjectDistributionItem {
+  id?: string | null
+  seconds?: number
+  prettyTime?: string
+}
+
+export interface SubjectDistributionResponse {
+  totalSeconds: number
+  totalHours: number
+  items: SubjectDistributionExtendedItem[]
+}
+
+export interface PerformanceItem {
+  id: string
+  name: string
+  subLabel?: string | null
+  score: number // Percentual (0-100)
+  isNotStarted: boolean
+  // Quando groupBy = 'modulo'
+  moduloNumero?: number | null
+  importancia?: ModuloImportancia | null
+}
+
+export interface StrategicDomainModuleItem {
+  moduloId: string
+  moduloNome: string
+  importancia: ModuloImportancia
+  flashcardsScore: number | null
+  questionsScore: number | null
+  risk: number | null
+}
+
+export interface StrategicDomainResponse {
+  data: StrategicDomain
+  modules: StrategicDomainModuleItem[]
 }
 
 export interface DashboardData {

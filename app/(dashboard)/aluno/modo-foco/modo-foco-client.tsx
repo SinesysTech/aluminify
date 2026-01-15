@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams as useNextSearchParams, useRouter } from 'next/navigation';
 import { Play, Pause, StopCircle, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,8 @@ const POMODORO_DEFAULT = {
   totalCycles: 4,
 };
 
+const FOCUS_CONTEXT_STORAGE_KEY = 'modo-foco:context';
+
 function formatMs(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600)
@@ -51,6 +53,9 @@ export default function ModoFocoClient() {
   const [metodo, setMetodo] = useState<MetodoEstudo>('cronometro');
   const [timerMin, setTimerMin] = useState<number>(25);
   const [pomodoroConfig, setPomodoroConfig] = useState(POMODORO_DEFAULT);
+  const [isCleanView, setIsCleanView] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState<string | null>(null);
   const nextSearchParams = useNextSearchParams();
   const [cursoId, setCursoId] = useState<string>('');
   const [disciplinaId, setDisciplinaId] = useState('');
@@ -82,6 +87,94 @@ export default function ModoFocoClient() {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    onFullscreenChange();
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    };
+  }, []);
+
+  const exitFullscreenSafe = useCallback(async () => {
+    if (typeof document === 'undefined') return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const requestFullscreenSafe = useCallback(async (source: 'auto' | 'user') => {
+    if (typeof document === 'undefined') return;
+    const el = document.documentElement;
+    if (!('requestFullscreen' in el) || typeof el.requestFullscreen !== 'function') {
+      if (source === 'user') {
+        setFullscreenError('Seu navegador não suporta tela cheia (Fullscreen API).');
+      }
+      return;
+    }
+
+    if (source === 'user') {
+      setFullscreenError(null);
+    }
+
+    try {
+      if (!document.fullscreenElement) {
+        await el.requestFullscreen();
+      }
+    } catch (_err) {
+      // Quando disparado automaticamente, muitos browsers bloqueiam (precisa de gesto do usuário)
+      if (source === 'user') {
+        setFullscreenError(
+          'Não foi possível entrar em tela cheia. Alguns navegadores bloqueiam essa ação por permissão/política (geralmente precisa ser liberada pelo navegador e iniciada por clique).',
+        );
+      }
+    }
+  }, []);
+
+  const enterCleanView = useCallback(async () => {
+    setIsCleanView(true);
+    // Best-effort: pode falhar por não estar no "user gesture"
+    if (typeof document === 'undefined') return;
+    await requestFullscreenSafe('auto');
+  }, [requestFullscreenSafe]);
+
+  const leaveCleanView = useCallback(async () => {
+    setIsCleanView(false);
+    await exitFullscreenSafe();
+  }, [exitFullscreenSafe]);
+
+  // Acessibilidade/UX: enquanto no modo clean, bloquear scroll e permitir ESC para sair
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const prevOverflow = document.body.style.overflow;
+    if (isCleanView) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!isCleanView) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        // Sair do modo clean sem encerrar a sessão (mantém timer rodando)
+        void leaveCleanView();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isCleanView, leaveCleanView]);
+
+  useEffect(() => {
     const cursoParam = nextSearchParams.get('cursoId');
     const disciplinaParam = nextSearchParams.get('disciplinaId');
     const frenteParam = nextSearchParams.get('frenteId');
@@ -94,6 +187,25 @@ export default function ModoFocoClient() {
     if (moduloParam !== null) setModuloId(moduloParam);
     if (atividadeParam !== null) setAtividadeId(atividadeParam);
   }, [nextSearchParams]);
+
+  // Persistir o último contexto selecionado para reuso (ex.: atalho no header do dashboard)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(
+        FOCUS_CONTEXT_STORAGE_KEY,
+        JSON.stringify({
+          cursoId,
+          disciplinaId,
+          frenteId,
+          moduloId,
+          atividadeId,
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  }, [cursoId, disciplinaId, frenteId, moduloId, atividadeId]);
 
   // Carregar cursos com base no papel
   useEffect(() => {
@@ -376,6 +488,9 @@ export default function ModoFocoClient() {
       const body = {
         disciplina_id: disciplinaId || null,
         frente_id: frenteId || null,
+        // Importante: enviar `modulo_id` mesmo sem atividade selecionada,
+        // para permitir métricas por módulo no dashboard.
+        modulo_id: moduloId || null,
         atividade_relacionada_id: atividadeId || null,
         metodo_estudo: metodo,
         inicio: new Date().toISOString(),
@@ -413,6 +528,8 @@ export default function ModoFocoClient() {
       } else {
         start({ mode: 'cronometro', startIso: data.inicio });
       }
+
+      await enterCleanView();
     } catch (err) {
       console.error(err);
       setErro(err instanceof Error ? err.message : 'Erro ao iniciar');
@@ -431,6 +548,8 @@ export default function ModoFocoClient() {
     setFinalizando(true);
 
     try {
+      // Garantir que não ficaremos presos no overlay/Fullscreen
+      await leaveCleanView();
       finalize();
       const snapshot = latestState();
       const { data: sessionData, error } = await supabase.auth.getSession();
@@ -536,7 +655,114 @@ export default function ModoFocoClient() {
   }, [pomodoroConfig, metodo]);
 
   return (
-    <div className="space-y-6">
+    <>
+      {isCleanView && (
+        <div
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Modo Foco - Tela limpa"
+        >
+          <div className="h-full w-full flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-background/60">
+              <div className="inline-flex items-center gap-2 rounded-full border bg-muted/30 px-3 py-1">
+                <span className="text-[11px] text-muted-foreground">Foco</span>
+                <span className="text-sm font-semibold tabular-nums">{elapsedLabel}</span>
+                {(metodo === 'timer' || metodo === 'pomodoro') && (
+                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                    restante {remainingLabel}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {!isFullscreen && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={async () => {
+                      await requestFullscreenSafe('user');
+                    }}
+                    aria-label="Entrar em tela cheia"
+                  >
+                    Entrar em tela cheia
+                  </Button>
+                )}
+                {isFullscreen && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={async () => {
+                      setFullscreenError(null);
+                      await exitFullscreenSafe();
+                    }}
+                    aria-label="Sair da tela cheia"
+                  >
+                    Sair da tela cheia
+                  </Button>
+                )}
+                {state.running && !state.paused && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={pause}
+                    disabled={disabledControls}
+                    aria-label="Pausar sessão"
+                    autoFocus
+                  >
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pausar
+                  </Button>
+                )}
+                {state.running && state.paused && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={resume}
+                    disabled={disabledControls}
+                    aria-label="Retomar sessão"
+                    autoFocus
+                  >
+                    <Activity className="h-4 w-4 mr-2" />
+                    Retomar
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={async () => {
+                    // Volta para a tela completa e abre o modal de finalização
+                    if (!state.startedAt || !sessaoId) {
+                      setErro('Inicie a sessão antes de encerrar.');
+                      await leaveCleanView();
+                      return;
+                    }
+                    await leaveCleanView();
+                    setShowFinalizeModal(true);
+                  }}
+                  disabled={disabledControls || !state.startedAt}
+                  aria-label="Encerrar sessão"
+                >
+                  <StopCircle className="h-4 w-4 mr-2" />
+                  Encerrar
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center px-6 relative">
+              {fullscreenError && (
+                <div className="absolute bottom-4 left-4 max-w-sm rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2">
+                  <p className="text-xs text-destructive">{fullscreenError}</p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground absolute bottom-4 right-4">
+                Dica: pressione <span className="font-semibold">Esc</span> para sair desta tela sem encerrar.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-6" aria-hidden={isCleanView}>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Modo Foco</h1>
@@ -827,10 +1053,10 @@ export default function ModoFocoClient() {
                           timeline.totalMs > 0 ? `${Math.max(8, (seg.ms / timeline.totalMs) * 100)}%` : '20%';
                         const colors =
                           seg.type === 'focus'
-                            ? 'bg-primary/80 text-primary-foreground'
+                            ? 'bg-[#60A5FA] text-white' // Azul
                             : seg.type === 'long_break'
-                              ? 'bg-emerald-200 text-emerald-900'
-                              : 'bg-amber-200 text-amber-900';
+                              ? 'bg-[#34D399] text-white' // Verde
+                              : 'bg-[#FACC15] text-white'; // Amarelo (pausa curta)
                         return (
                           <div
                             key={`${seg.type}-${idx}`}
@@ -838,8 +1064,10 @@ export default function ModoFocoClient() {
                             style={{ width, minHeight: '64px' }}
                           >
                             <div className="flex flex-col justify-center h-full">
-                              <div>{seg.label}</div>
-                              <div>{minutos(seg.ms)}m</div>
+                              <div className="text-[11px] leading-tight opacity-95">{seg.label}</div>
+                              <div className="mt-1 text-base font-extrabold leading-none tabular-nums">
+                                {minutos(seg.ms)}m
+                              </div>
                             </div>
                           </div>
                         );
@@ -847,15 +1075,15 @@ export default function ModoFocoClient() {
                     </div>
                     <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
-                        <span className="inline-block h-2 w-2 rounded-full bg-primary/80" />
+                        <span className="inline-block h-2 w-2 rounded-full bg-[#60A5FA]" />
                         Foco
                       </span>
                       <span className="inline-flex items-center gap-1">
-                        <span className="inline-block h-2 w-2 rounded-full bg-amber-300" />
+                        <span className="inline-block h-2 w-2 rounded-full bg-[#FACC15]" />
                         Pausa curta
                       </span>
                       <span className="inline-flex items-center gap-1">
-                        <span className="inline-block h-2 w-2 rounded-full bg-emerald-300" />
+                        <span className="inline-block h-2 w-2 rounded-full bg-[#34D399]" />
                         Pausa longa
                       </span>
                     </div>
@@ -889,6 +1117,17 @@ export default function ModoFocoClient() {
                   Iniciar
                 </Button>
               )}
+              {state.running && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void enterCleanView();
+                  }}
+                  disabled={disabledControls}
+                >
+                  Voltar ao modo clean
+                </Button>
+              )}
               {state.running && !state.paused && (
                 <Button variant="outline" onClick={pause} disabled={disabledControls}>
                   <Pause className="h-4 w-4 mr-2" />
@@ -896,7 +1135,14 @@ export default function ModoFocoClient() {
                 </Button>
               )}
               {state.running && state.paused && (
-                <Button variant="outline" onClick={resume} disabled={disabledControls}>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    resume();
+                    await enterCleanView();
+                  }}
+                  disabled={disabledControls}
+                >
                   <Activity className="h-4 w-4 mr-2" />
                   Retomar
                 </Button>
@@ -1040,6 +1286,7 @@ export default function ModoFocoClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }

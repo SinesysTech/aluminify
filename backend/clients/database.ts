@@ -22,17 +22,24 @@ function getDatabaseCredentials() {
 
 function getDatabaseUserCredentials() {
   const DATABASE_URL = process.env.SUPABASE_URL;
-  // Para operar com RLS, precisamos usar anon/publishable e um JWT do usuário
-  const DATABASE_ANON_KEY =
-    process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+  /**
+   * Preferimos anon/publishable para manter o modelo “user-scoped” alinhado com RLS.
+   * Porém, em alguns ambientes o projeto roda apenas com SUPABASE_SECRET_KEY / SERVICE_ROLE_KEY.
+   * Nesse caso, fazemos fallback para a chave disponível, mantendo o JWT do usuário no header.
+   */
+  const DATABASE_API_KEY =
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!DATABASE_URL || !DATABASE_ANON_KEY) {
+  if (!DATABASE_URL || !DATABASE_API_KEY) {
     throw new Error(
-      'Database user credentials are not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY).',
+      'Database user credentials are not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY). If you only have server keys, set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.',
     );
   }
 
-  return { DATABASE_URL, DATABASE_ANON_KEY };
+  return { DATABASE_URL, DATABASE_API_KEY };
 }
 
 export function getDatabaseClient(): SupabaseClient {
@@ -62,8 +69,8 @@ export function getDatabaseClientAsUser(accessToken: string): SupabaseClient {
     throw new Error('accessToken é obrigatório para getDatabaseClientAsUser');
   }
 
-  const { DATABASE_URL, DATABASE_ANON_KEY } = getDatabaseUserCredentials();
-  return createClient(DATABASE_URL, DATABASE_ANON_KEY, {
+  const { DATABASE_URL, DATABASE_API_KEY } = getDatabaseUserCredentials();
+  return createClient(DATABASE_URL, DATABASE_API_KEY, {
     auth: {
       persistSession: false,
     },

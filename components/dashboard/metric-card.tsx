@@ -54,7 +54,7 @@ function ProgressCircle({ value }: { value: number }) {
           strokeLinecap="round"
           strokeWidth="3"
           transform="rotate(-90 18 18)"
-          className="text-green-500"
+          className="text-[#34D399]"
         />
       </svg>
     </div>
@@ -130,8 +130,8 @@ export function MetricCard({
               className={cn(
                 'text-[10px] sm:text-xs md:text-sm font-medium wrap-break-word leading-tight',
                 trend.isPositive
-                  ? 'text-green-600 dark:text-green-500'
-                  : 'text-red-600 dark:text-red-500'
+                  ? 'text-[#34D399]'
+                  : 'text-[#F87171]'
               )}
             >
               {trend.isPositive ? '+' : ''}

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   AlertCircle,
   Loader2,
@@ -63,10 +64,19 @@ const MODOS = [
   {
     id: 'mais_cobrados',
     title: '🔥 Mais Cobrados',
-    desc: 'Foco no que cai na prova',
+    desc: 'Foco no que mais cai nas provas',
     tooltip: [
       'Gera flashcards a partir dos conteúdos/tópicos com maior recorrência em provas.',
       'Ideal para priorizar estudo com maior retorno.',
+    ],
+  },
+  {
+    id: 'conteudos_basicos',
+    title: '📚 Conteúdos Básicos',
+    desc: 'Revisão do essencial',
+    tooltip: [
+      'Gera flashcards sortidos a partir de módulos marcados como "Base".',
+      'Ideal para revisar fundamentos e pontos recorrentes da prova.',
     ],
   },
   {
@@ -101,11 +111,13 @@ const MODOS = [
 export default function FlashcardsClient() {
   const supabase = createClient()
   const [modo, setModo] = React.useState<string | null>(null)
+  const [scope, setScope] = React.useState<'all' | 'completed'>('all')
   const [cards, setCards] = React.useState<Flashcard[]>([])
   const [idx, setIdx] = React.useState(0)
   const [showAnswer, setShowAnswer] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const didMountRef = React.useRef(false)
   
   // Estados para modo personalizado
   const [cursos, setCursos] = React.useState<Curso[]>([])
@@ -120,7 +132,7 @@ export default function FlashcardsClient() {
   const [loadingCursos, setLoadingCursos] = React.useState(true)
   
   // Estados para rastreamento de sessão
-  const [cardsVistos, setCardsVistos] = React.useState<Set<string>>(new Set())
+  const [_cardsVistos, setCardsVistos] = React.useState<Set<string>>(new Set())
   const [feedbacks, setFeedbacks] = React.useState<number[]>([])
   const [sessaoCompleta, setSessaoCompleta] = React.useState(false)
   
@@ -152,7 +164,15 @@ export default function FlashcardsClient() {
   )
 
   const fetchCards = React.useCallback(
-    async (modoSelecionado: string, cursoId?: string, frenteId?: string, moduloId?: string, resetSession = false) => {
+    async (
+      modoSelecionado: string,
+      scopeSelecionado: 'all' | 'completed',
+      cursoId?: string,
+      frenteId?: string,
+      moduloId?: string,
+      resetSession = false,
+      excludeIds?: string[],
+    ) => {
       try {
         setLoading(true)
         setError(null)
@@ -166,15 +186,14 @@ export default function FlashcardsClient() {
         }
         
         // Construir URL com excludeIds
-        let url = `/api/flashcards/revisao?modo=${modoSelecionado}`
+        let url = `/api/flashcards/revisao?modo=${modoSelecionado}&scope=${scopeSelecionado}`
         if (cursoId) url += `&cursoId=${cursoId}`
         if (frenteId) url += `&frenteId=${frenteId}`
         if (moduloId) url += `&moduloId=${moduloId}`
         
         // Adicionar IDs já vistos na sessão
-        if (cardsVistos.size > 0 && !resetSession) {
-          const excludeIds = Array.from(cardsVistos).join(',')
-          url += `&excludeIds=${excludeIds}`
+        if (excludeIds && excludeIds.length > 0 && !resetSession) {
+          url += `&excludeIds=${excludeIds.join(',')}`
         }
         
         const res = await fetchWithAuth(url)
@@ -196,8 +215,19 @@ export default function FlashcardsClient() {
         setLoading(false)
       }
     },
-    [fetchWithAuth, cardsVistos],
+    [fetchWithAuth],
   )
+
+  // Auto-refresh ao trocar escopo (usa o scope atualizado, evitando corrida com setState)
+  React.useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
+    }
+
+    if (!modo || modo === 'personalizado') return
+    fetchCards(modo, scope, undefined, undefined, undefined, true)
+  }, [scope, modo, fetchCards])
 
   // Carregar cursos (diferente para alunos e professores)
   React.useEffect(() => {
@@ -467,7 +497,7 @@ export default function FlashcardsClient() {
   const handleSelectModo = (id: string) => {
     setModo(id)
     if (id !== 'personalizado') {
-      fetchCards(id, undefined, undefined, undefined, true)
+      fetchCards(id, scope, undefined, undefined, undefined, true)
     } else {
       // Resetar cards quando selecionar modo personalizado
       setCards([])
@@ -483,7 +513,7 @@ export default function FlashcardsClient() {
       setError('Selecione curso, disciplina, frente e módulo para buscar flashcards')
       return
     }
-    fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
+    fetchCards('personalizado', scope, cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
   }
 
   const handleFeedback = async (feedback: number) => {
@@ -528,17 +558,17 @@ export default function FlashcardsClient() {
   const handleStudyMore = () => {
     // Manter modo e filtros, mas resetar sessão
     if (modo === 'personalizado') {
-      fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
+      fetchCards('personalizado', scope, cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
     } else if (modo) {
-      fetchCards(modo, undefined, undefined, undefined, true)
+      fetchCards(modo, scope, undefined, undefined, undefined, true)
     }
   }
 
   const handleReload = () => {
     if (modo === 'personalizado') {
-      fetchCards('personalizado', cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
+      fetchCards('personalizado', scope, cursoSelecionado, frenteSelecionada, moduloSelecionado, true)
     } else if (modo) {
-      fetchCards(modo, undefined, undefined, undefined, true)
+      fetchCards(modo, scope, undefined, undefined, undefined, true)
     }
   }
 
@@ -552,48 +582,125 @@ export default function FlashcardsClient() {
         <p className="text-muted-foreground">Selecione o modo e revise com espaçamento inteligente.</p>
       </div>
 
-      {/* Modo de seleção */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <TooltipProvider delayDuration={200}>
-          {MODOS.map((m) => (
-            <Tooltip key={m.id}>
-              <TooltipTrigger asChild>
-                <Card
-                  role="button"
-                  tabIndex={0}
-                  className={`cursor-pointer transition hover:border-primary ${
-                    modo === m.id ? 'border-primary shadow-md' : ''
-                  }`}
-                  onClick={() => handleSelectModo(m.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      handleSelectModo(m.id)
-                    }
-                  }}
-                >
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between gap-3">
-                      <span>{m.title}</span>
-                      <span className="text-muted-foreground">
-                        <Info className="h-4 w-4" aria-hidden="true" />
-                      </span>
-                    </CardTitle>
-                    <CardDescription>{m.desc}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start" className="max-w-xs">
-                <div className="space-y-2 text-sm">
-                  {m.tooltip.map((t) => (
-                    <p key={t}>{t}</p>
-                  ))}
+      {/* Escopo da revisão */}
+      <Card className="border-primary/70 bg-muted/25 shadow-lg">
+        <CardContent className="px-4 md:px-6 py-0">
+          <div className="grid gap-3 md:grid-cols-2 md:items-start">
+            {/* Coluna esquerda: título + descrição */}
+            <div className="space-y-1">
+              <CardTitle>Fonte dos flashcards</CardTitle>
+              <CardDescription>
+                Escolha se a revisão considera todos os módulos do seu curso ou apenas os módulos concluídos.
+              </CardDescription>
+            </div>
+
+            {/* Coluna direita: seletor */}
+            <div className="space-y-2 md:justify-self-end md:w-full md:max-w-md">
+              <Label>Gerar flashcards a partir de</Label>
+              <div className="flex flex-col gap-2 rounded-md border bg-background/50 p-2">
+                <div className="flex flex-wrap items-center gap-6">
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={scope === 'all'}
+                      onCheckedChange={(checked) => {
+                        if (!checked) return
+                        setScope('all')
+                      }}
+                      disabled={loading || modo === 'personalizado'}
+                      aria-label="Todos os módulos do meu curso"
+                    />
+                    <span>Todos os módulos do meu curso</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={scope === 'completed'}
+                      onCheckedChange={(checked) => {
+                        if (!checked) return
+                        setScope('completed')
+                      }}
+                      disabled={loading || modo === 'personalizado'}
+                      aria-label="Apenas módulos concluídos"
+                    />
+                    <span>Apenas módulos concluídos</span>
+                  </label>
                 </div>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </TooltipProvider>
-      </div>
+                {modo === 'personalizado' && (
+                  <p className="text-xs text-muted-foreground">
+                    No modo <strong>Personalizado</strong>, o escopo não se aplica (você escolhe um módulo específico).
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modo de seleção */}
+      <TooltipProvider delayDuration={200}>
+        <div className="grid gap-4 md:grid-cols-2">
+          {(() => {
+            const byId = new Map(MODOS.map((m) => [m.id, m] as const))
+            const renderCard = (modeId: string, className?: string) => {
+              const m = byId.get(modeId)
+              if (!m) return null
+
+              return (
+                <Tooltip key={m.id}>
+                  <TooltipTrigger asChild>
+                    <Card
+                      role="button"
+                      tabIndex={0}
+                      className={`cursor-pointer transition hover:border-primary ${className ?? ''} ${
+                        modo === m.id ? 'border-primary shadow-md' : ''
+                      }`}
+                      onClick={() => handleSelectModo(m.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSelectModo(m.id)
+                        }
+                      }}
+                    >
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-center gap-2 text-center">
+                          <span>{m.title}</span>
+                          <span className="text-muted-foreground">
+                            <Info className="h-4 w-4" aria-hidden="true" />
+                          </span>
+                        </CardTitle>
+                        <CardDescription className="text-center">{m.desc}</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start" className="max-w-xs">
+                    <div className="space-y-2 text-sm">
+                      {m.tooltip.map((t) => (
+                        <p key={t}>{t}</p>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              )
+            }
+
+            return (
+              <>
+                {/* Linha 1 (destaque): UTI dos erros ocupa as 2 colunas */}
+                {renderCard('mais_errados', 'md:col-span-2')}
+
+                {/* Linha 2: Mais Cobrados + Conteúdos Básicos */}
+                {renderCard('mais_cobrados')}
+                {renderCard('conteudos_basicos')}
+
+                {/* Linha 3: Personalizado + Revisão Geral */}
+                {renderCard('personalizado')}
+                {renderCard('revisao_geral')}
+              </>
+            )
+          })()}
+        </div>
+      </TooltipProvider>
 
       {/* Filtros para modo personalizado */}
       {modo === 'personalizado' && (
@@ -820,6 +927,7 @@ export default function FlashcardsClient() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <BrainCircuit className="h-4 w-4" />
               {modo === 'mais_cobrados' && 'Foco: importância Alta'}
+              {modo === 'conteudos_basicos' && 'Foco: módulos Base'}
               {modo === 'mais_errados' && 'Foco: dificuldades e baixo aproveitamento'}
               {modo === 'revisao_geral' && 'Foco: revisão mista'}
               {modo === 'personalizado' && 'Foco: módulo selecionado'}
@@ -891,28 +999,28 @@ export default function FlashcardsClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
               <Button 
                 onClick={() => handleFeedback(1)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-error text-status-error-foreground shadow-lg transition hover:bg-status-error/90 hover:shadow-xl active:bg-status-error/80 active:shadow-md"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-[#F87171] text-white shadow-lg transition hover:bg-[#F87171]/90 hover:shadow-xl active:bg-[#F87171]/80 active:shadow-md"
               >
                 <XCircle className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Errei o item</span>
               </Button>
               <Button 
                 onClick={() => handleFeedback(2)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-warning text-status-warning-foreground shadow-lg transition hover:bg-status-warning/90 hover:shadow-xl active:bg-status-warning/80 active:shadow-md"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-[#FB923C] text-white shadow-lg transition hover:bg-[#FB923C]/90 hover:shadow-xl active:bg-[#FB923C]/80 active:shadow-md"
               >
                 <AlertTriangle className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei parcialmente</span>
               </Button>
               <Button 
                 onClick={() => handleFeedback(3)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-info text-status-info-foreground shadow-lg transition hover:bg-status-info/90 hover:shadow-xl active:bg-status-info/80 active:shadow-md"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-[#FACC15] text-white shadow-lg transition hover:bg-[#FACC15]/90 hover:shadow-xl active:bg-[#FACC15]/80 active:shadow-md"
               >
                 <Lightbulb className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei com dificuldade</span>
               </Button>
               <Button 
                 onClick={() => handleFeedback(4)}
-                className="flex flex-col items-center gap-1 h-auto py-2 bg-status-success text-status-success-foreground shadow-lg transition hover:bg-status-success/90 hover:shadow-xl active:bg-status-success/80 active:shadow-md"
+                className="flex flex-col items-center gap-1 h-auto py-2 bg-[#34D399] text-white shadow-lg transition hover:bg-[#34D399]/90 hover:shadow-xl active:bg-[#34D399]/80 active:shadow-md"
               >
                 <CheckCircle2 className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei com facilidade</span>

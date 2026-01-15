@@ -84,6 +84,7 @@ export interface SessaoEstudo {
   alunoId: string;
   disciplinaId: string | null;
   frenteId: string | null;
+  moduloId: string | null;
   atividadeRelacionadaId: string | null;
   inicio: string;
   fim: string | null;
@@ -99,6 +100,7 @@ export interface SessaoEstudo {
 export interface IniciarSessaoInput {
   disciplinaId?: string;
   frenteId?: string;
+  moduloId?: string;
   atividadeRelacionadaId?: string;
   metodoEstudo?: MetodoEstudo;
   inicioIso?: string; // permite iniciar com horário vindo do worker

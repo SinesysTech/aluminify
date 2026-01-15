@@ -13,6 +13,7 @@ function serialize(sessao: SessaoEstudo) {
     aluno_id: sessao.alunoId,
     disciplina_id: sessao.disciplinaId,
     frente_id: sessao.frenteId,
+    modulo_id: sessao.moduloId,
     atividade_relacionada_id: sessao.atividadeRelacionadaId,
     inicio: sessao.inicio,
     fim: sessao.fim,

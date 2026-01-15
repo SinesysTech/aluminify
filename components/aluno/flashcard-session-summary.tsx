@@ -34,10 +34,11 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
   const score = total > 0 ? Math.round((acertos / total) * 100) : 0
 
   // Cores para o gráfico
-  const erreiColor = 'bg-status-error'
-  const parcialColor = 'bg-status-warning'
-  const dificilColor = 'bg-status-info'
-  const facilColor = 'bg-status-success'
+  // Paleta (mantém consistência com os botões de feedback)
+  const erreiColor = 'bg-[#F87171]' // Vermelho
+  const parcialColor = 'bg-[#FB923C]' // Laranja
+  const dificilColor = 'bg-[#FACC15]' // Amarelo
+  const facilColor = 'bg-[#34D399]' // Verde
 
   // Calcular percentuais para o gráfico
   const erreiPercent = total > 0 ? (counts.errei / total) * 100 : 0
@@ -45,18 +46,26 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
   const dificilPercent = total > 0 ? (counts.dificil / total) * 100 : 0
   const facilPercent = total > 0 ? (counts.facil / total) * 100 : 0
 
+  const erreiPercentLabel = total > 0 ? Math.round(erreiPercent) : 0
+  const parcialPercentLabel = total > 0 ? Math.round(parcialPercent) : 0
+  const dificilPercentLabel = total > 0 ? Math.round(dificilPercent) : 0
+  const facilPercentLabel = total > 0 ? Math.round(facilPercent) : 0
+
   // Determinar mensagem baseada no score
   const getScoreMessage = (score: number) => {
-    if (score >= 80) return { text: 'Excelente!', color: 'text-status-success-text' }
-    if (score >= 60) return { text: 'Bom trabalho!', color: 'text-status-info-text' }
-    if (score >= 40) return { text: 'Continue praticando!', color: 'text-status-warning-text' }
-    return { text: 'Não desista!', color: 'text-status-error-text' }
+    if (score >= 80) return { text: 'Excelente!', color: 'text-[#34D399]' }
+    if (score >= 60) return { text: 'Bom trabalho!', color: 'text-[#60A5FA]' }
+    if (score >= 40) return { text: 'Continue praticando!', color: 'text-[#FACC15]' }
+    return { text: 'Não desista!', color: 'text-[#F87171]' }
   }
 
   const scoreMessage = getScoreMessage(score)
 
   // Gerar ID único para este componente para evitar conflitos de CSS
   const chartId = React.useId()
+
+  // Tipografia (padrão e hierarquia)
+  const headingClass = 'text-lg md:text-xl font-bold tracking-tight text-foreground'
 
   return (
     <Card className="border-2 border-primary/50">
@@ -74,17 +83,17 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
       />
       <CardHeader className="text-center">
         <div className="flex justify-center mb-2">
-          <Trophy className="h-12 w-12 text-status-warning-text" />
+          <Trophy className="h-12 w-12 text-[#FACC15]" />
         </div>
-        <CardTitle className="text-2xl">Sessão Concluída!</CardTitle>
+        <CardTitle className={headingClass}>Sessão Concluída!</CardTitle>
         <CardDescription>Você completou 10 flashcards</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Score Geral */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Score Geral</span>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <h3 className={headingClass}>Score Geral</h3>
           </div>
           <div className={`text-4xl font-bold ${scoreMessage.color}`}>
             {score}%
@@ -97,62 +106,95 @@ export function FlashcardSessionSummary({ feedbacks, onFinish, onStudyMore }: Se
 
         {/* Gráfico Visual - Barra de Distribuição */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-center">Distribuição de Respostas</h3>
-          <div className="relative h-8 rounded-md overflow-hidden border">
+          <h3 className={`${headingClass} text-center`}>Distribuição de Respostas</h3>
+          <div className="relative h-10 rounded-md overflow-hidden border">
             <div className={`absolute inset-0 flex chart-container-${chartId}`}>
               {erreiPercent > 0 && (
                 <div
-                  className={`${erreiColor} flex-[0_0_var(--errei-width)]`}
+                  className={`${erreiColor} flex-[0_0_var(--errei-width)] flex items-center justify-center`}
                   title={`Errei: ${counts.errei}`}
-                />
+                >
+                  {erreiPercentLabel >= 10 && (
+                    <span className="text-xs font-bold text-white tabular-nums drop-shadow-sm">
+                      {erreiPercentLabel}%
+                    </span>
+                  )}
+                </div>
               )}
               {parcialPercent > 0 && (
                 <div
-                  className={`${parcialColor} flex-[0_0_var(--parcial-width)]`}
-                  title={`Parcial: ${counts.parcial}`}
-                />
+                  className={`${parcialColor} flex-[0_0_var(--parcial-width)] flex items-center justify-center`}
+                  title={`Acertei parcialmente: ${counts.parcial}`}
+                >
+                  {parcialPercentLabel >= 10 && (
+                    <span className="text-xs font-bold text-white tabular-nums drop-shadow-sm">
+                      {parcialPercentLabel}%
+                    </span>
+                  )}
+                </div>
               )}
               {dificilPercent > 0 && (
                 <div
-                  className={`${dificilColor} flex-[0_0_var(--dificil-width)]`}
-                  title={`Difícil: ${counts.dificil}`}
-                />
+                  className={`${dificilColor} flex-[0_0_var(--dificil-width)] flex items-center justify-center`}
+                  title={`Acertei com dificuldade: ${counts.dificil}`}
+                >
+                  {dificilPercentLabel >= 10 && (
+                    <span className="text-xs font-bold text-slate-950 tabular-nums drop-shadow-sm">
+                      {dificilPercentLabel}%
+                    </span>
+                  )}
+                </div>
               )}
               {facilPercent > 0 && (
                 <div
-                  className={`${facilColor} flex-[0_0_var(--facil-width)]`}
-                  title={`Fácil: ${counts.facil}`}
-                />
+                  className={`${facilColor} flex-[0_0_var(--facil-width)] flex items-center justify-center`}
+                  title={`Acertei com facilidade: ${counts.facil}`}
+                >
+                  {facilPercentLabel >= 10 && (
+                    <span className="text-xs font-bold text-white tabular-nums drop-shadow-sm">
+                      {facilPercentLabel}%
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
-          {/* Legenda */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-            {counts.errei > 0 && (
-              <div className="flex items-center gap-1">
-                <div className={`w-3 h-3 rounded ${erreiColor}`} />
-                <span>Errei: {counts.errei}</span>
+          {/* Legenda (box vertical) */}
+          <div className="mx-auto w-fit rounded-md border bg-muted/20 px-3 py-2">
+            <div className="grid grid-cols-[auto_auto_auto] gap-x-4 gap-y-1 text-[11px]">
+              <div className="font-semibold text-muted-foreground text-center">Legendas</div>
+              <div className="font-semibold text-muted-foreground text-center">Número de acertos</div>
+              <div className="font-semibold text-muted-foreground text-center">Acertos percentuais</div>
+
+              <div className="flex items-center justify-start gap-2">
+                <span className={`h-3 w-3 rounded ${erreiColor}`} />
+                <span className="font-medium">Errei</span>
               </div>
-            )}
-            {counts.parcial > 0 && (
-              <div className="flex items-center gap-1">
-                <div className={`w-3 h-3 rounded ${parcialColor}`} />
-                <span>Parcial: {counts.parcial}</span>
+              <div className="tabular-nums text-center">{counts.errei}</div>
+              <div className="tabular-nums text-center">{erreiPercentLabel}%</div>
+
+              <div className="flex items-center justify-start gap-2">
+                <span className={`h-3 w-3 rounded ${parcialColor}`} />
+                <span className="font-medium">Acertei parcialmente</span>
               </div>
-            )}
-            {counts.dificil > 0 && (
-              <div className="flex items-center gap-1">
-                <div className={`w-3 h-3 rounded ${dificilColor}`} />
-                <span>Difícil: {counts.dificil}</span>
+              <div className="tabular-nums text-center">{counts.parcial}</div>
+              <div className="tabular-nums text-center">{parcialPercentLabel}%</div>
+
+              <div className="flex items-center justify-start gap-2">
+                <span className={`h-3 w-3 rounded ${dificilColor}`} />
+                <span className="font-medium">Acertei com dificuldade</span>
               </div>
-            )}
-            {counts.facil > 0 && (
-              <div className="flex items-center gap-1">
-                <div className={`w-3 h-3 rounded ${facilColor}`} />
-                <span>Fácil: {counts.facil}</span>
+              <div className="tabular-nums text-center">{counts.dificil}</div>
+              <div className="tabular-nums text-center">{dificilPercentLabel}%</div>
+
+              <div className="flex items-center justify-start gap-2">
+                <span className={`h-3 w-3 rounded ${facilColor}`} />
+                <span className="font-medium">Acertei com facilidade</span>
               </div>
-            )}
+              <div className="tabular-nums text-center">{counts.facil}</div>
+              <div className="tabular-nums text-center">{facilPercentLabel}%</div>
+            </div>
           </div>
         </div>
 

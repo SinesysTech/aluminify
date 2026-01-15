@@ -1,9 +1,7 @@
-'use client'
-
-import { ScheduleWizard } from '@/components/aluno/schedule-wizard'
+import NovoCronogramaClientPage from './novo-cronograma-client'
 
 export default function NovoCronogramaPage() {
-  return <ScheduleWizard />
+  return <NovoCronogramaClientPage />
 }
 
 

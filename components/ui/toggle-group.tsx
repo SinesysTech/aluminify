@@ -12,6 +12,11 @@ const toggleGroupVariants = cva(
         default: "bg-transparent",
         outline:
           "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",
+        segmented:
+          // Segmentado: borda só no container, itens ocupam 100% da altura/largura.
+          // Importante: remove o padding lateral do size (px-1) para o highlight não “sobrar” nas bordas.
+          // Não usar `overflow-hidden`: ele corta o botão (ex.: focus ring / arredondamento) em alguns layouts.
+          "inline-flex items-stretch justify-center overflow-visible border border-input bg-transparent shadow-sm divide-x divide-border p-0 !px-0",
       },
       size: {
         default: "h-9 px-1",
@@ -47,6 +52,12 @@ const toggleGroupItemVariants = cva(
         default: "bg-transparent",
         outline:
           "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",
+        segmented:
+          // Segmentado: cada item preenche a altura do container e respeita o arredondamento externo.
+          // Remove “retângulo”/borda extra no selecionado (sem inset border), deixando o highlight limpo.
+          // Destaque do selecionado: mesmo padrão dos toggles "Semanal/Mensal/Anual" (bg-primary).
+          // Obs: não usamos `shadow` no selecionado aqui porque o container é `overflow-hidden` (senão o highlight fica “cortado”).
+          "h-full flex-1 rounded-none border-0 bg-transparent shadow-none leading-none hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:data-[state=on]:bg-primary/90 data-[state=on]:font-semibold focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 first:rounded-l-md last:rounded-r-md",
       },
       size: {
         default: "h-9 px-3",

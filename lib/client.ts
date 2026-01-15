@@ -2,6 +2,10 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from './database.types'
 import { getPublicSupabaseConfig } from './supabase-public-env'
 
+// Evita flood no console quando o auth-js tenta refresh/retry.
+const SUPABASE_FETCH_LOG_THROTTLE_MS = 5_000
+const supabaseFetchLogLastAt = new Map<string, number>()
+
 export function createClient() {
   const { url, anonKey } = getPublicSupabaseConfig()
   console.log('[DEBUG] createClient() - Supabase config:', {
@@ -25,18 +29,67 @@ export function createClient() {
               ? String((input as { url: string }).url)
               : undefined
 
-      // Evitar logar headers/sensíveis. Só URL + erro.
-      console.error('[Supabase] fetch falhou no navegador.', {
-        requestUrl,
-        supabaseUrlHost: (() => {
-          try {
-            return new URL(url).host
-          } catch {
-            return url
+      const pageOrigin =
+        typeof window !== 'undefined' && typeof window.location !== 'undefined'
+          ? window.location.origin
+          : undefined
+
+      const online =
+        typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
+          ? navigator.onLine
+          : undefined
+
+      const supabaseOrigin = (() => {
+        try {
+          const u = new URL(url)
+          return `${u.protocol}//${u.host}`
+        } catch {
+          return url
+        }
+      })()
+
+      const hints: string[] = []
+      try {
+        if (requestUrl) {
+          const req = new URL(requestUrl, pageOrigin ?? undefined)
+          if (pageOrigin && req.protocol === 'http:' && pageOrigin.startsWith('https:')) {
+            hints.push('mixed-content (página https chamando recurso http)')
           }
-        })(),
-        message: error instanceof Error ? error.message : String(error),
-      })
+        }
+      } catch {
+        // Ignore: requestUrl pode ser relativo/estranho; não queremos falhar o log
+      }
+      if (online === false) hints.push('navegador offline')
+      if (!hints.length) {
+        hints.push('possível bloqueio por extensão/proxy/firewall/DNS, ou erro de CORS/CSP')
+      }
+
+      // Evitar logar headers/sensíveis. Só URL + erro.
+      const message = [
+        '[Supabase] fetch falhou no navegador.',
+        requestUrl ? `requestUrl=${requestUrl}` : 'requestUrl=(indisponível)',
+        pageOrigin ? `pageOrigin=${pageOrigin}` : 'pageOrigin=(indisponível)',
+        `supabaseOrigin=${supabaseOrigin}`,
+        typeof online === 'boolean' ? `online=${online}` : 'online=(indisponível)',
+        `hints=${hints.join(' | ')}`,
+        `error=${error instanceof Error ? error.message : String(error)}`,
+      ].join(' ')
+
+      const key = `${requestUrl ?? 'requestUrl=(indisponível)'}|${error instanceof Error ? error.message : String(error)}`
+      const now = Date.now()
+      const last = supabaseFetchLogLastAt.get(key) ?? 0
+      const shouldLog = now - last >= SUPABASE_FETCH_LOG_THROTTLE_MS
+      if (shouldLog) {
+        supabaseFetchLogLastAt.set(key, now)
+        // Se o navegador estiver offline, isso é esperado — não tratar como erro “alto”.
+        if (online === false) {
+          console.warn(message)
+        } else {
+          console.error(message)
+          // Mantém o erro original no console (stack/causa), sem vazar headers/chaves.
+          console.error(error)
+        }
+      }
 
       throw error
     }

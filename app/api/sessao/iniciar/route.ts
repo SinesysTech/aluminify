@@ -12,6 +12,7 @@ function serialize(sessao: SessaoEstudo) {
     aluno_id: sessao.alunoId,
     disciplina_id: sessao.disciplinaId,
     frente_id: sessao.frenteId,
+    modulo_id: sessao.moduloId,
     atividade_relacionada_id: sessao.atividadeRelacionadaId,
     inicio: sessao.inicio,
     fim: sessao.fim,
@@ -31,6 +32,7 @@ async function handler(request: AuthenticatedRequest) {
     const sessao = await sessaoEstudoService.iniciarSessao(request.user!.id, {
       disciplinaId: body?.disciplina_id ?? undefined,
       frenteId: body?.frente_id ?? undefined,
+      moduloId: body?.modulo_id ?? undefined,
       atividadeRelacionadaId: body?.atividade_relacionada_id ?? undefined,
       metodoEstudo: body?.metodo_estudo ?? undefined,
       inicioIso: body?.inicio ?? undefined,

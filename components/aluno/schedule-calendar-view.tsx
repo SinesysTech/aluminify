@@ -2193,30 +2193,30 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                 modifiersClassNames={{
                   // hasConcluidas: verde (prioridade máxima - todas as aulas concluídas)
                   hasConcluidas:
-                    'bg-emerald-100/70 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/60 ' +
+                    'bg-[#34D399]/20 dark:bg-[#34D399]/25 border border-[#34D399]/35 dark:border-[#34D399]/45 ' +
                     'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasPendentes: laranja (prioridade média - algumas aulas concluídas mas não todas)
                   hasPendentes:
-                    'bg-amber-100/70 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/60 ' +
+                    'bg-[#FB923C]/20 dark:bg-[#FB923C]/25 border border-[#FB923C]/35 dark:border-[#FB923C]/45 ' +
                     'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasAulas: azul (prioridade baixa - tem aulas mas nenhuma concluída)
                   hasAulas:
-                    'bg-sky-100/70 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-700/60 ' +
+                    'bg-[#60A5FA]/20 dark:bg-[#60A5FA]/25 border border-[#60A5FA]/35 dark:border-[#60A5FA]/45 ' +
                     'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasDiasSelecionados: amarelo (prioridade baixa - dia selecionado sem aulas ainda)
                   hasDiasSelecionados:
-                    'bg-yellow-100/60 dark:bg-yellow-900/25 border border-yellow-200 dark:border-yellow-700/60 ' +
+                    'bg-[#FACC15]/20 dark:bg-[#FACC15]/25 border border-[#FACC15]/35 dark:border-[#FACC15]/45 ' +
                     'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasFerias: rosa (períodos de férias e recesso)
                   hasFerias:
-                    'bg-pink-100/70 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700/60 ' +
+                    'bg-[#F472B6]/20 dark:bg-[#F472B6]/25 border border-[#F472B6]/35 dark:border-[#F472B6]/45 ' +
                     'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
                   // hasSemanaSobrecarregada: vermelho (semana acima de 100% de capacidade)
-                  hasSemanaSobrecarregada: 'ring-2 ring-red-500 dark:ring-red-400',
+                  hasSemanaSobrecarregada: 'ring-2 ring-[#F87171]',
                   // hasSemanaCompleta: laranja (semana entre 95-100% de capacidade)
-                  hasSemanaCompleta: 'ring-2 ring-orange-500 dark:ring-orange-400',
+                  hasSemanaCompleta: 'ring-2 ring-[#FB923C]',
                   // hasSemanaParcial: amarelo (semana com uso parcial)
-                  hasSemanaParcial: 'ring-1 ring-yellow-400 dark:ring-yellow-500',
+                  hasSemanaParcial: 'ring-1 ring-[#FACC15]',
                 }}
                 numberOfMonths={isMobile ? 1 : 2}
                 className="rounded-md border w-full"
@@ -2284,23 +2284,23 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     <CardContent className="px-3 pb-1.5 pt-0">
                       <div className="flex flex-col gap-1.5 text-sm">
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-yellow-100/60 dark:bg-yellow-900/25 border border-yellow-200 dark:border-yellow-700/60 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-[#FACC15]/20 dark:bg-[#FACC15]/25 border border-[#FACC15]/35 dark:border-[#FACC15]/45 shrink-0" />
                           <span className="text-xs">Dias selecionados para estudo</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-sky-100/70 dark:bg-sky-900/30 border border-sky-200 dark:border-sky-700/60 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-[#60A5FA]/20 dark:bg-[#60A5FA]/25 border border-[#60A5FA]/35 dark:border-[#60A5FA]/45 shrink-0" />
                           <span className="text-xs">Dia com aulas</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-emerald-100/70 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/60 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-[#34D399]/20 dark:bg-[#34D399]/25 border border-[#34D399]/35 dark:border-[#34D399]/45 shrink-0" />
                           <span className="text-xs">Dia com aulas concluídas</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-amber-100/70 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/60 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-[#FB923C]/20 dark:bg-[#FB923C]/25 border border-[#FB923C]/35 dark:border-[#FB923C]/45 shrink-0" />
                           <span className="text-xs">Dia com aulas pendentes</span>
                         </div>
                         <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-pink-100/70 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700/60 shrink-0" />
+                          <div className="w-4 h-4 rounded bg-[#F472B6]/20 dark:bg-[#F472B6]/25 border border-[#F472B6]/35 dark:border-[#F472B6]/45 shrink-0" />
                           <span className="text-xs">Períodos de férias e recesso</span>
                         </div>
                       </div>
@@ -3093,12 +3093,21 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                               const disciplinaId = itensGrupo[0]?.aulas?.modulos?.frentes?.disciplinas?.id || ''
                               const frenteId = itensGrupo[0]?.aulas?.modulos?.frentes?.id || ''
 
-                              // Gerar cor única baseada no ID da disciplina e frente para diferenciação visual
+                              // Cor do grupo (disciplina + frente) baseada na paleta do app
                               const hash = (disciplinaId + frenteId).split('').reduce((acc, char) => {
                                 return char.charCodeAt(0) + ((acc << 5) - acc)
                               }, 0)
-                              const hue = Math.abs(hash) % 360
-                              const borderColor = `hsl(${hue}, 70%, 50%)`
+                              const paleta = [
+                                '#60A5FA', // Azul
+                                '#22D3EE', // Ciano
+                                '#34D399', // Verde
+                                '#FACC15', // Amarelo
+                                '#FB923C', // Laranja
+                                '#A78BFA', // Roxo
+                                '#F472B6', // Rosa (opcional)
+                                '#F87171', // Vermelho
+                              ] as const
+                              const borderColor = paleta[Math.abs(hash) % paleta.length]
 
                               const estaExpandido = cardsExpandidos.has(chave)
 
@@ -3119,7 +3128,8 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                   }}
                                 >
                                   <div
-                                    className={`border rounded-lg p-4 bg-card space-y-2 border-l-4 border-l-[${borderColor}]`}
+                                    className="border rounded-lg p-4 bg-card space-y-2 border-l-4"
+                                    style={{ borderLeftColor: borderColor }}
                                   >
                                     {/* Cabeçalho do grupo: Disciplina e Frente */}
                                     <div className="mb-3 pb-2 border-b">

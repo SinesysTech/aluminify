@@ -103,6 +103,7 @@ export class SessaoEstudoService {
       alunoId,
       disciplinaId: input.disciplinaId,
       frenteId: input.frenteId,
+      moduloId: input.moduloId,
       atividadeRelacionadaId: input.atividadeRelacionadaId,
       metodoEstudo: input.metodoEstudo,
       inicioIso: input.inicioIso,
