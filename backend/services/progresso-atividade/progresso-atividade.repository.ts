@@ -27,17 +27,17 @@ type ProgressoUpdate = Database['public']['Tables']['progresso_atividades']['Upd
 function mapRow(row: ProgressoRow): ProgressoAtividade {
   return {
     id: row.id,
-    alunoId: row.aluno_id,
-    atividadeId: row.atividade_id,
-    status: row.status,
+    alunoId: row.aluno_id ?? '',
+    atividadeId: row.atividade_id ?? '',
+    status: (row.status as StatusAtividade) ?? 'Pendente',
     dataInicio: row.data_inicio ? new Date(row.data_inicio) : null,
     dataConclusao: row.data_conclusao ? new Date(row.data_conclusao) : null,
-    questoesTotais: row.questoes_totais,
-    questoesAcertos: row.questoes_acertos,
-    dificuldadePercebida: row.dificuldade_percebida,
-    anotacoesPessoais: row.anotacoes_pessoais,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
+    questoesTotais: row.questoes_totais ?? 0,
+    questoesAcertos: row.questoes_acertos ?? 0,
+    dificuldadePercebida: (row.dificuldade_percebida as DificuldadePercebida) ?? null,
+    anotacoesPessoais: row.anotacoes_pessoais ?? null,
+    createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   };
 }
 

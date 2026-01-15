@@ -49,7 +49,7 @@ export class EmpresaRepositoryImpl implements EmpresaRepository {
       telefone: input.telefone ?? null,
       logo_url: input.logoUrl ?? null,
       plano: input.plano ?? 'basico',
-      configuracoes: input.configuracoes ?? {},
+      configuracoes: (input.configuracoes ?? {}) as Database['public']['Tables']['empresas']['Insert']['configuracoes'],
     };
 
     const { data, error } = await this.client
@@ -128,7 +128,7 @@ export class EmpresaRepositoryImpl implements EmpresaRepository {
     }
 
     if (input.configuracoes !== undefined) {
-      updateData.configuracoes = input.configuracoes;
+      updateData.configuracoes = input.configuracoes as Database['public']['Tables']['empresas']['Update']['configuracoes'];
     }
 
     const { data, error } = await this.client

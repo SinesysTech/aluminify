@@ -96,7 +96,7 @@ type TeacherUpdate = Database['public']['Tables']['professores']['Update'];
 function mapRow(row: TeacherRow): Teacher {
   return {
     id: row.id,
-    empresaId: row.empresa_id,
+    empresaId: row.empresa_id ?? '',
     isAdmin: row.is_admin,
     fullName: row.nome_completo,
     email: row.email,
@@ -205,7 +205,7 @@ export class TeacherRepositoryImpl implements TeacherRepository {
      * - Invalid field names are used
      */
     const insertData: TeacherInsert = {
-      id: payload.id, // ID is required (comes from auth.users)
+      id: payload.id ?? '', // ID is required (comes from auth.users)
       nome_completo: payload.fullName,
       email: payload.email.toLowerCase(),
       empresa_id: payload.empresaId,

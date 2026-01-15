@@ -1,4 +1,5 @@
 import { getDatabaseClient, clearDatabaseClientCache } from '@/backend/clients/database';
+import type { Database } from '@/lib/database.types';
 import {
   GerarCronogramaInput,
   GerarCronogramaResult,
@@ -12,6 +13,7 @@ import {
   SemanaEstatisticas,
   EstatisticasSemanasResult,
   CronogramaDetalhado,
+  FeriasPeriodo,
 } from './cronograma.types';
 import {
   FrenteValidacaoResult,
@@ -49,6 +51,30 @@ const logDebug = (...args: unknown[]) => {
 const logError = (...args: unknown[]) => {
   console.error(...args);
 };
+
+// Helper to map database row to CronogramaDetalhado
+function mapToCronogramaDetalhado(row: Database['public']['Tables']['cronogramas']['Row']): CronogramaDetalhado {
+  return {
+    id: row.id,
+    aluno_id: row.aluno_id,
+    curso_alvo_id: row.curso_alvo_id,
+    nome: row.nome ?? 'Meu Cronograma',
+    data_inicio: row.data_inicio,
+    data_fim: row.data_fim,
+    dias_estudo_semana: row.dias_estudo_semana,
+    horas_estudo_dia: row.horas_estudo_dia,
+    periodos_ferias: (row.periodos_ferias as unknown as FeriasPeriodo[]) ?? [],
+    prioridade_minima: row.prioridade_minima,
+    modalidade_estudo: row.modalidade_estudo as 'paralelo' | 'sequencial',
+    disciplinas_selecionadas: (row.disciplinas_selecionadas as unknown as string[]) ?? [],
+    ordem_frentes_preferencia: (row.ordem_frentes_preferencia as unknown as string[]) ?? null,
+    modulos_selecionados: (row.modulos_selecionados as unknown as string[]) ?? null,
+    excluir_aulas_concluidas: row.excluir_aulas_concluidas,
+    velocidade_reproducao: row.velocidade_reproducao ?? 1.0,
+    created_at: row.created_at ?? new Date().toISOString(),
+    updated_at: row.updated_at ?? new Date().toISOString(),
+  };
+}
 
 export class CronogramaService {
   async gerarCronograma(
@@ -1514,12 +1540,12 @@ export class CronogramaService {
         data_fim: input.data_fim,
         dias_estudo_semana: input.dias_semana,
         horas_estudo_dia: input.horas_dia,
-        periodos_ferias: input.ferias || [],
+        periodos_ferias: (input.ferias || []) as unknown as Database['public']['Tables']['cronogramas']['Insert']['periodos_ferias'],
         prioridade_minima: input.prioridade_minima,
         modalidade_estudo: input.modalidade,
-        disciplinas_selecionadas: input.disciplinas_ids,
-        ordem_frentes_preferencia: input.ordem_frentes_preferencia || null,
-        modulos_selecionados: input.modulos_ids?.length ? input.modulos_ids : null,
+        disciplinas_selecionadas: input.disciplinas_ids as unknown as Database['public']['Tables']['cronogramas']['Insert']['disciplinas_selecionadas'],
+        ordem_frentes_preferencia: (input.ordem_frentes_preferencia || null) as unknown as Database['public']['Tables']['cronogramas']['Insert']['ordem_frentes_preferencia'],
+        modulos_selecionados: (input.modulos_ids?.length ? input.modulos_ids : null) as unknown as Database['public']['Tables']['cronogramas']['Insert']['modulos_selecionados'],
         excluir_aulas_concluidas: input.excluir_aulas_concluidas !== false,
         velocidade_reproducao: input.velocidade_reproducao ?? 1.0,
       })
@@ -1558,11 +1584,11 @@ export class CronogramaService {
             data_fim: input.data_fim,
             dias_estudo_semana: input.dias_semana,
             horas_estudo_dia: input.horas_dia,
-            periodos_ferias: input.ferias || [],
+            periodos_ferias: (input.ferias || []) as unknown as Database['public']['Tables']['cronogramas']['Insert']['periodos_ferias'],
             prioridade_minima: input.prioridade_minima,
             modalidade_estudo: input.modalidade,
-            disciplinas_selecionadas: input.disciplinas_ids,
-            ordem_frentes_preferencia: input.ordem_frentes_preferencia || null,
+            disciplinas_selecionadas: input.disciplinas_ids as unknown as Database['public']['Tables']['cronogramas']['Insert']['disciplinas_selecionadas'],
+            ordem_frentes_preferencia: (input.ordem_frentes_preferencia || null) as unknown as Database['public']['Tables']['cronogramas']['Insert']['ordem_frentes_preferencia'],
           })
           .select()
           .single();
@@ -1571,7 +1597,7 @@ export class CronogramaService {
           throw new Error(`Erro ao criar cronograma: ${fallbackError?.message || cronogramaError?.message || 'Desconhecido'}`);
         }
 
-        cronograma = cronogramaFallback;
+        cronograma = mapToCronogramaDetalhado(cronogramaFallback);
 
         // Verificar se cronograma foi criado com sucesso
         if (!cronograma) {
@@ -1600,7 +1626,7 @@ export class CronogramaService {
               .single();
 
             if (!updateError && cronogramaUpdated) {
-              cronograma = cronogramaUpdated;
+              cronograma = mapToCronogramaDetalhado(cronogramaUpdated);
             } else {
               console.warn('[CronogramaService] Não foi possível atualizar alguns campos novos, mas cronograma foi criado');
             }
@@ -1612,7 +1638,7 @@ export class CronogramaService {
         throw new Error(`Erro ao criar cronograma: ${cronogramaError?.message || 'Desconhecido'}`);
       }
     } else {
-      cronograma = cronogramaData;
+      cronograma = mapToCronogramaDetalhado(cronogramaData);
     }
 
     // Verificar se cronograma foi criado com sucesso
@@ -1708,7 +1734,7 @@ export class CronogramaService {
       return cronogramaConfirmado;
     }
 
-    return cronogramaCompleto;
+    return mapToCronogramaDetalhado(cronogramaCompleto as Database['public']['Tables']['cronogramas']['Row']);
   }
 
   /**
@@ -1755,8 +1781,8 @@ export class CronogramaService {
       id: data.id,
       cronograma_id: data.cronograma_id,
       dias_semana: data.dias_semana || [],
-      created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
+      created_at: new Date(data.created_at ?? new Date().toISOString()),
+      updated_at: new Date(data.updated_at ?? new Date().toISOString()),
     };
   }
 
@@ -1843,8 +1869,8 @@ export class CronogramaService {
       id: resultado.id,
       cronograma_id: resultado.cronograma_id,
       dias_semana: resultado.dias_semana || [],
-      created_at: new Date(resultado.created_at),
-      updated_at: new Date(resultado.updated_at),
+      created_at: new Date(resultado.created_at ?? new Date().toISOString()),
+      updated_at: new Date(resultado.updated_at ?? new Date().toISOString()),
     };
   }
 
@@ -2305,15 +2331,26 @@ export class CronogramaService {
     const client = getDatabaseClient();
 
     // Verificar se o cronograma pertence ao usuário
-    const { data: cronograma, error: cronogramaError } = await client
+    const { data: cronogramaRaw, error: cronogramaError } = await client
       .from('cronogramas')
       .select('id, aluno_id, data_inicio, data_fim, horas_estudo_dia, dias_estudo_semana, periodos_ferias, velocidade_reproducao')
       .eq('id', cronogramaId)
       .single();
 
-    if (cronogramaError || !cronograma) {
+    if (cronogramaError || !cronogramaRaw) {
       throw new CronogramaValidationError('Cronograma não encontrado');
     }
+
+    const cronograma = cronogramaRaw as {
+      id: string;
+      aluno_id: string;
+      data_inicio: string;
+      data_fim: string;
+      horas_estudo_dia: number;
+      dias_estudo_semana: number;
+      periodos_ferias: unknown;
+      velocidade_reproducao: number;
+    };
 
     if (cronograma.aluno_id !== userId) {
       throw new CronogramaValidationError('Você só pode acessar seus próprios cronogramas');
@@ -2345,7 +2382,7 @@ export class CronogramaService {
     // Calcular semanas (mesma lógica do calcularSemanas)
     const dataInicio = new Date(cronograma.data_inicio);
     const dataFim = new Date(cronograma.data_fim);
-    const ferias = cronograma.periodos_ferias || [];
+    const ferias = (cronograma.periodos_ferias as unknown as FeriasPeriodo[]) || [];
     const horasDia = cronograma.horas_estudo_dia || 0;
     const diasSemana = cronograma.dias_estudo_semana || 0;
     const velocidadeReproducao = cronograma.velocidade_reproducao ?? 1.0;
@@ -2358,16 +2395,16 @@ export class CronogramaService {
       id: string;
       semana_numero: number;
       ordem_na_semana: number;
-      concluido?: boolean;
+      concluido?: boolean | null;
       aula_id: string;
       aulas?: {
         id: string;
         tempo_estimado_minutos?: number | null;
-      }[];
+      } | null;
     };
 
     const itensPorSemana = new Map<number, ItemComDados[]>();
-    (itens as ItemComDados[] || []).forEach((item) => {
+    ((itens as unknown as ItemComDados[]) || []).forEach((item) => {
       const semanaNum = item.semana_numero;
       if (!itensPorSemana.has(semanaNum)) {
         itensPorSemana.set(semanaNum, []);

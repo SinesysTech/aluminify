@@ -15,25 +15,25 @@ type SessaoEstudoUpdate = Database['public']['Tables']['sessoes_estudo']['Update
 function mapRowToModel(row: SessaoEstudoRow): SessaoEstudo {
   return {
     id: row.id,
-    alunoId: row.aluno_id,
-    disciplinaId: row.disciplina_id,
-    frenteId: row.frente_id,
-    moduloId: row.modulo_id,
-    atividadeRelacionadaId: row.atividade_relacionada_id,
-    inicio: row.inicio,
-    fim: row.fim,
-    tempoTotalBrutoSegundos: row.tempo_total_bruto_segundos,
-    tempoTotalLiquidoSegundos: row.tempo_total_liquido_segundos,
+    alunoId: row.aluno_id ?? '',
+    disciplinaId: row.disciplina_id ?? null,
+    frenteId: row.frente_id ?? null,
+    moduloId: row.modulo_id ?? null,
+    atividadeRelacionadaId: row.atividade_relacionada_id ?? null,
+    inicio: row.inicio ?? '',
+    fim: row.fim ?? null,
+    tempoTotalBrutoSegundos: row.tempo_total_bruto_segundos ?? null,
+    tempoTotalLiquidoSegundos: row.tempo_total_liquido_segundos ?? null,
     logPausas: (row.log_pausas ?? []) as LogPausa[],
-    metodoEstudo: row.metodo_estudo,
-    nivelFoco: row.nivel_foco,
-    status: row.status,
-    createdAt: row.created_at,
+    metodoEstudo: (row.metodo_estudo as MetodoEstudo) ?? null,
+    nivelFoco: row.nivel_foco ?? null,
+    status: (row.status as SessaoStatus) ?? 'em_andamento',
+    createdAt: row.created_at ?? new Date().toISOString(),
   };
 }
 
 export class SessaoEstudoRepository {
-  constructor(private readonly table = 'sessoes_estudo') {}
+  private readonly table = 'sessoes_estudo' as const;
 
   async create(input: {
     alunoId: string;

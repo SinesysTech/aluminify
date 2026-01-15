@@ -55,14 +55,14 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
         const data = await getDisponibilidade(professorId)
         // Filter and map to ensure proper types
         const mapped: AvailabilityRule[] = data
-          .filter((d): d is Disponibilidade => d.ativo !== null && d.ativo !== undefined)
+          .filter((d) => d.ativo !== null && d.ativo !== undefined && d.ativo === true)
           .map((d) => ({
             id: d.id,
             professor_id: d.professor_id,
             dia_semana: d.dia_semana,
             hora_inicio: d.hora_inicio,
             hora_fim: d.hora_fim,
-            ativo: d.ativo,
+            ativo: d.ativo as boolean,
           }))
         setRules(mapped)
       } catch (error) {

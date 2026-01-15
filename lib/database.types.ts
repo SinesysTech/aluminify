@@ -1490,6 +1490,7 @@ export type Database = {
           id: string
           nivel_facilidade: number | null
           numero_revisoes: number | null
+          ultima_revisao: string | null
           ultimo_feedback: number | null
           updated_at: string | null
         }
@@ -1502,6 +1503,7 @@ export type Database = {
           id?: string
           nivel_facilidade?: number | null
           numero_revisoes?: number | null
+          ultima_revisao?: string | null
           ultimo_feedback?: number | null
           updated_at?: string | null
         }
@@ -1514,6 +1516,7 @@ export type Database = {
           id?: string
           nivel_facilidade?: number | null
           numero_revisoes?: number | null
+          ultima_revisao?: string | null
           ultimo_feedback?: number | null
           updated_at?: string | null
         }

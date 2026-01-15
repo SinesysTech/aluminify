@@ -28,8 +28,8 @@ type EnrollmentUpdate = Database['public']['Tables']['matriculas']['Update'];
 function mapRow(row: EnrollmentRow): Enrollment {
   return {
     id: row.id,
-    studentId: row.aluno_id,
-    courseId: row.curso_id,
+    studentId: row.aluno_id ?? '',
+    courseId: row.curso_id ?? '',
     enrollmentDate: new Date(row.data_matricula),
     accessStartDate: new Date(row.data_inicio_acesso),
     accessEndDate: new Date(row.data_fim_acesso),

@@ -20,7 +20,7 @@ export interface FrenteQueryResult {
   id?: string;
   nome: string;
   curso_id?: string | null;
-  disciplina_id?: string;
+  disciplina_id?: string | null;
   disciplinas?: DisciplinaQueryResult | DisciplinaQueryResult[];
 }
 
@@ -32,7 +32,7 @@ export interface ModuloQueryResult {
   id: string;
   nome?: string;
   numero_modulo?: number | null;
-  frente_id?: string;
+  frente_id?: string | null;
   modulo_id?: string;
   curso_id?: string | null;
   frentes?: FrenteQueryResult | FrenteQueryResult[];
