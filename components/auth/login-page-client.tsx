@@ -121,7 +121,7 @@ export function LoginPageClient() {
 
       if (error) {
         // Tratamento de erros específicos do Supabase
-        let errorTitle = 'Não foi possível entrar'
+        const errorTitle = 'Não foi possível entrar'
         let errorDescription = error.message
 
         if (error.message.includes('Invalid login credentials')) {

@@ -163,7 +163,7 @@ export function TenantLoginPageClient({
       });
 
       if (error) {
-        let errorTitle = 'Não foi possível entrar';
+        const errorTitle = 'Não foi possível entrar';
         let errorDescription = error.message;
 
         if (error.message.includes('Invalid login credentials')) {

@@ -1,11 +1,11 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { AppUserRole } from '@/types/shared';
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { AppUserRole } from "@/types/shared";
 import type {
   UserRoleIdentification,
   UserRoleDetail,
   IdentifyRolesOptions,
   SwitchRoleResult,
-} from './user-role-identifier.types';
+} from "./user-role-identifier.types";
 
 /**
  * Service for identifying and managing user roles across tenants
@@ -25,19 +25,19 @@ export class UserRoleIdentifierService {
     const { empresaId, includeDetails = true } = options;
 
     const roleDetails: UserRoleDetail[] = [];
-    const rolesSet = new Set<Exclude<AppUserRole, 'empresa'>>();
+    const rolesSet = new Set<Exclude<AppUserRole, "empresa">>();
     const empresaIdsSet = new Set<string>();
 
     // Check for superadmin role first
     const isSuperadmin = await this.checkSuperadmin(userId);
     if (isSuperadmin) {
-      rolesSet.add('superadmin');
+      rolesSet.add("superadmin");
     }
 
     // Check for professor role
     const professorRoles = await this.checkProfessorRoles(userId, empresaId);
     for (const role of professorRoles) {
-      rolesSet.add('professor');
+      rolesSet.add("professor");
       empresaIdsSet.add(role.empresaId);
       if (includeDetails) {
         roleDetails.push(role);
@@ -47,7 +47,7 @@ export class UserRoleIdentifierService {
     // Check for aluno role
     const alunoRoles = await this.checkAlunoRoles(userId, empresaId);
     for (const role of alunoRoles) {
-      rolesSet.add('aluno');
+      rolesSet.add("aluno");
       empresaIdsSet.add(role.empresaId);
       if (includeDetails) {
         roleDetails.push(role);
@@ -73,7 +73,7 @@ export class UserRoleIdentifierService {
   async getUserPrimaryRole(
     userId: string,
     empresaId?: string
-  ): Promise<Exclude<AppUserRole, 'empresa'>> {
+  ): Promise<Exclude<AppUserRole, "empresa">> {
     const identification = await this.identifyUserRoles(userId, {
       empresaId,
       includeDetails: false,
@@ -87,7 +87,10 @@ export class UserRoleIdentifierService {
   async validateUserBelongsToTenant(
     userId: string,
     empresaId: string
-  ): Promise<{ valid: boolean; roles: Array<Exclude<AppUserRole, 'empresa'>> }> {
+  ): Promise<{
+    valid: boolean;
+    roles: Array<Exclude<AppUserRole, "empresa">>;
+  }> {
     const identification = await this.identifyUserRoles(userId, {
       empresaId,
       includeDetails: false,
@@ -115,7 +118,9 @@ export class UserRoleIdentifierService {
       includeDetails: false,
     });
 
-    if (!identification.roles.includes(newRole as Exclude<AppUserRole, 'empresa'>)) {
+    if (
+      !identification.roles.includes(newRole as Exclude<AppUserRole, "empresa">)
+    ) {
       return {
         success: false,
         newRole,
@@ -133,7 +138,7 @@ export class UserRoleIdentifierService {
     });
 
     if (error) {
-      console.error('[UserRoleIdentifier] Failed to switch role:', error);
+      console.error("[UserRoleIdentifier] Failed to switch role:", error);
       return {
         success: false,
         newRole,
@@ -164,7 +169,7 @@ export class UserRoleIdentifierService {
     // Check user_metadata.role for superadmin
     const { data: userData } = await this.client.auth.admin.getUserById(userId);
 
-    if (userData?.user?.user_metadata?.role === 'superadmin') {
+    if (userData?.user?.user_metadata?.role === "superadmin") {
       return true;
     }
 
@@ -177,8 +182,9 @@ export class UserRoleIdentifierService {
     empresaId?: string
   ): Promise<UserRoleDetail[]> {
     let query = this.client
-      .from('professores')
-      .select(`
+      .from("professores")
+      .select(
+        `
         id,
         empresa_id,
         is_admin,
@@ -187,32 +193,38 @@ export class UserRoleIdentifierService {
           nome,
           slug
         )
-      `)
-      .eq('id', userId);
+      `
+      )
+      .eq("id", userId);
 
     if (empresaId) {
-      query = query.eq('empresa_id', empresaId);
+      query = query.eq("empresa_id", empresaId);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('[UserRoleIdentifier] Error checking professor roles:', error);
+      console.error(
+        "[UserRoleIdentifier] Error checking professor roles:",
+        error
+      );
       return [];
     }
 
-    return (data || []).map((row: {
-      id: string;
-      empresa_id: string;
-      is_admin: boolean;
-      empresas: { id: string; nome: string; slug: string };
-    }) => ({
-      role: 'professor' as const,
-      empresaId: row.empresa_id,
-      empresaNome: row.empresas.nome,
-      empresaSlug: row.empresas.slug,
-      isAdmin: row.is_admin,
-    }));
+    return (data || []).map(
+      (row: {
+        id: string;
+        empresa_id: string;
+        is_admin: boolean;
+        empresas: { id: string; nome: string; slug: string };
+      }) => ({
+        role: "professor" as const,
+        empresaId: row.empresa_id,
+        empresaNome: row.empresas.nome,
+        empresaSlug: row.empresas.slug,
+        isAdmin: row.is_admin,
+      })
+    );
   }
 
   private async checkAlunoRoles(
@@ -220,9 +232,10 @@ export class UserRoleIdentifierService {
     empresaId?: string
   ): Promise<UserRoleDetail[]> {
     // Alunos are linked to empresas through alunos_cursos -> cursos -> empresa_id
-    let query = this.client
-      .from('alunos_cursos')
-      .select(`
+    const query = this.client
+      .from("alunos_cursos")
+      .select(
+        `
         aluno_id,
         cursos!inner (
           empresa_id,
@@ -232,13 +245,14 @@ export class UserRoleIdentifierService {
             slug
           )
         )
-      `)
-      .eq('aluno_id', userId);
+      `
+      )
+      .eq("aluno_id", userId);
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('[UserRoleIdentifier] Error checking aluno roles:', error);
+      console.error("[UserRoleIdentifier] Error checking aluno roles:", error);
       return [];
     }
 
@@ -258,7 +272,7 @@ export class UserRoleIdentifierService {
 
       if (!empresaMap.has(curso.empresa_id)) {
         empresaMap.set(curso.empresa_id, {
-          role: 'aluno' as const,
+          role: "aluno" as const,
           empresaId: curso.empresa_id,
           empresaNome: curso.empresas.nome,
           empresaSlug: curso.empresas.slug,
@@ -270,20 +284,20 @@ export class UserRoleIdentifierService {
   }
 
   private determinePrimaryRole(
-    roles: Array<Exclude<AppUserRole, 'empresa'>>
-  ): Exclude<AppUserRole, 'empresa'> {
+    roles: Array<Exclude<AppUserRole, "empresa">>
+  ): Exclude<AppUserRole, "empresa"> {
     // Priority: superadmin > professor > aluno
-    if (roles.includes('superadmin')) {
-      return 'superadmin';
+    if (roles.includes("superadmin")) {
+      return "superadmin";
     }
-    if (roles.includes('professor')) {
-      return 'professor';
+    if (roles.includes("professor")) {
+      return "professor";
     }
-    if (roles.includes('aluno')) {
-      return 'aluno';
+    if (roles.includes("aluno")) {
+      return "aluno";
     }
     // Default to aluno if no roles found (shouldn't happen)
-    return 'aluno';
+    return "aluno";
   }
 }
 
