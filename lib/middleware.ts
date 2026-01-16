@@ -240,6 +240,15 @@ export async function updateSession(request: NextRequest) {
     "/auth/professor/cadastro",
     "/api/auth/signup-with-empresa", // Endpoint de cadastro público
     "/api/chat/attachments", // Anexos usam token na URL, não precisam de autenticação de sessão
+    "/", // Landing page
+    "/signup",
+    "/features.html",
+    "/pricing.html",
+    "/docs.html",
+    "/open-source.html",
+    "/roadmap.html",
+    "/changelog.html",
+    "/status.html",
   ];
 
   // Also allow tenant-specific auth routes

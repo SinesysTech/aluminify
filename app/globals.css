@@ -165,9 +165,9 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /* Fonts */
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
-  --font-display: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
   /* Keyframes (Animações Shadcn) */
   @keyframes accordion-down {
