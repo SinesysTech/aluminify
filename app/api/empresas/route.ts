@@ -89,13 +89,13 @@ export async function POST(request: NextRequest) {
       } else if (newUser.user) {
         // Inserir em empresa_admins como owner
         await adminClient
-          .from('empresa_admins' as any) // Table not in generated types yet
+          .from('empresa_admins')
           .insert({
             empresa_id: empresa.id,
             user_id: newUser.user.id,
             is_owner: true,
             permissoes: {},
-          } as any); // Type assertion for table not in generated types
+          });
       }
     }
 

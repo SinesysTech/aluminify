@@ -21,7 +21,7 @@ const TABLE = 'progresso_atividades';
 
 // Use generated Database types instead of manual definitions
 type ProgressoRow = Database['public']['Tables']['progresso_atividades']['Row'];
-type ProgressoInsert = Database['public']['Tables']['progresso_atividades']['Insert'];
+type _ProgressoInsert = Database['public']['Tables']['progresso_atividades']['Insert'];
 type ProgressoUpdate = Database['public']['Tables']['progresso_atividades']['Update'];
 
 function mapRow(row: ProgressoRow): ProgressoAtividade {

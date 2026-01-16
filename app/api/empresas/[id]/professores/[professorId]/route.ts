@@ -70,11 +70,9 @@ export async function PATCH(
     }
 
     // Atualizar o campo is_admin na tabela professores
-    const updateData = { is_admin: isAdmin };
     const { error: updateError } = await supabase
       .from('professores')
-      // @ts-ignore - Update type inference issue with generated types
-      .update(updateData)
+      .update({ is_admin: isAdmin })
       .eq('id', professorId);
 
     if (updateError) {

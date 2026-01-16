@@ -104,7 +104,6 @@ async function putHandler(
     }
 
     // Verificar se já existe registro
-    // @ts-ignore - Table cronograma_tempo_estudos not yet in generated Database types
     const { data: existente } = await client
       .from('cronograma_tempo_estudos')
       .select('id')
@@ -114,11 +113,8 @@ async function putHandler(
       .eq('frente_id', frente_id)
       .maybeSingle();
 
-    // Type assertion: Query result for table not yet in generated types
-    const typedExistente = existente as { id: string } | null;
-
     let resultado;
-    if (typedExistente) {
+    if (existente) {
       // Atualizar
       const updateData = {
         tempo_estudos_concluido,
@@ -127,9 +123,8 @@ async function putHandler(
       
       const { data: updated, error: updateError } = await client
         .from('cronograma_tempo_estudos')
-        // @ts-ignore - Table cronograma_tempo_estudos not yet in generated Database types
         .update(updateData)
-        .eq('id', typedExistente.id)
+        .eq('id', existente.id)
         .select()
         .single();
 
@@ -152,7 +147,6 @@ async function putHandler(
       
       const { data: created, error: createError } = await client
         .from('cronograma_tempo_estudos')
-        // @ts-ignore - Table cronograma_tempo_estudos not yet in generated Database types
         .insert(insertData)
         .select()
         .single();

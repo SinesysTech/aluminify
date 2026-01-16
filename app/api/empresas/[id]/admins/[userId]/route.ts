@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
 import { getAuthUser } from '@/backend/auth/middleware';
 import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
-import type { Database } from '@/lib/database.types';
 
 interface RouteContext {
   params: Promise<{ id: string; userId: string }>;
@@ -29,16 +28,13 @@ async function deleteHandler(
     
     // Verificar se é owner ou superadmin
     const { data: isOwner } = await supabase
-      .from('empresa_admins' as any) // Table not in generated types yet
+      .from('empresa_admins')
       .select('is_owner')
       .eq('empresa_id', id)
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // Type assertion: Query result for table not yet in generated types
-    const typedIsOwner = isOwner as { is_owner: boolean } | null;
-
-    if (!context.isSuperAdmin && (!validateEmpresaAccess(context, id) || !typedIsOwner?.is_owner)) {
+    if (!context.isSuperAdmin && (!validateEmpresaAccess(context, id) || !isOwner?.is_owner)) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas owner ou superadmin pode remover admins.' },
         { status: 403 }
@@ -48,15 +44,12 @@ async function deleteHandler(
     // Não permitir remover a si mesmo se for o único owner
     if (userId === user.id) {
       const { data: owners } = await supabase
-        .from('empresa_admins' as any) // Table not in generated types yet
+        .from('empresa_admins')
         .select('user_id')
         .eq('empresa_id', id)
         .eq('is_owner', true);
 
-      // Type assertion: Query result for table not yet in generated types
-      const typedOwners = owners as { user_id: string }[] | null;
-
-      if (typedOwners && typedOwners.length === 1 && typedOwners[0].user_id === user.id) {
+      if (owners && owners.length === 1 && owners[0].user_id === user.id) {
         return NextResponse.json(
           { error: 'Não é possível remover o único owner da empresa' },
           { status: 400 }
@@ -66,7 +59,7 @@ async function deleteHandler(
 
     // Remover de empresa_admins
     const { error: deleteError } = await supabase
-      .from('empresa_admins' as any) // Table not in generated types yet
+      .from('empresa_admins')
       .delete()
       .eq('empresa_id', id)
       .eq('user_id', userId);
@@ -76,11 +69,9 @@ async function deleteHandler(
     }
 
     // Atualizar is_admin na tabela professores
-    const updateData = { is_admin: false };
     await supabase
       .from('professores')
-      // @ts-ignore - Update type inference issue with generated types
-      .update(updateData)
+      .update({ is_admin: false })
       .eq('id', userId);
 
     return NextResponse.json({ success: true });

@@ -330,12 +330,12 @@ export function ScheduleWizard() {
             .from('cursos')
             .select('*')
             .eq('created_by', user.id)
-            .order('nome', { ascending: true }) as unknown as Promise<{ data: CursoData[] | null; error: any }>,
+            .order('nome', { ascending: true }) as unknown as Promise<{ data: CursoData[] | null; error: unknown }>,
           supabase
             .from('cursos')
             .select('*')
             .is('created_by', null)
-            .order('nome', { ascending: true }) as unknown as Promise<{ data: CursoData[] | null; error: any }>,
+            .order('nome', { ascending: true }) as unknown as Promise<{ data: CursoData[] | null; error: unknown }>,
         ])
 
         if (cursosDoProfessor.error) {
@@ -364,7 +364,7 @@ export function ScheduleWizard() {
         const { data: alunosCursos, error: alunosCursosError } = (await supabase
           .from('alunos_cursos')
           .select('curso_id, cursos(*)')
-          .eq('aluno_id', user.id)) as { data: Array<{ curso_id: string; cursos: CursoData }> | null; error: any }
+          .eq('aluno_id', user.id)) as { data: Array<{ curso_id: string; cursos: CursoData }> | null; error: unknown }
 
         if (alunosCursosError) {
           console.error('Erro ao carregar cursos do aluno:', alunosCursosError)
@@ -416,7 +416,7 @@ export function ScheduleWizard() {
         const { data: cursosDisciplinas, error: cdError } = (await supabase
           .from('cursos_disciplinas')
           .select('disciplina_id')
-          .eq('curso_id', cursoSelecionado)) as { data: Array<{ disciplina_id: string }> | null; error: any }
+          .eq('curso_id', cursoSelecionado)) as { data: Array<{ disciplina_id: string }> | null; error: unknown }
 
         if (cdError) {
           console.error('Erro ao carregar disciplinas do curso:', cdError)
@@ -438,7 +438,7 @@ export function ScheduleWizard() {
           .from('disciplinas')
           .select('id, nome')
           .in('id', disciplinaIds)
-          .order('nome', { ascending: true })) as { data: DisciplinaData[] | null; error: any }
+          .order('nome', { ascending: true })) as { data: DisciplinaData[] | null; error: unknown }
 
         if (discError) {
           console.error('Erro ao carregar detalhes das disciplinas:', discError)
@@ -522,14 +522,14 @@ export function ScheduleWizard() {
           .select('id, nome, disciplina_id, disciplinas(nome)')
           .eq('curso_id', cursoSelecionado)
           .in('disciplina_id', disciplinasIds)
-          .order('nome', { ascending: true })) as { data: Array<FrenteData & { disciplinas?: { nome?: string } }> | null; error: any }
+          .order('nome', { ascending: true })) as { data: Array<FrenteData & { disciplinas?: { nome?: string } }> | null; error: { message?: string; details?: string; hint?: string; code?: string } | null }
 
         if (frentesError) {
           console.error('Erro ao buscar frentes:', {
-            message: frentesError.message,
-            details: frentesError.details,
-            hint: frentesError.hint,
-            code: frentesError.code,
+            message: frentesError.message ?? 'Sem mensagem',
+            details: frentesError.details ?? null,
+            hint: frentesError.hint ?? null,
+            code: frentesError.code ?? null,
             cursoSelecionado,
             disciplinasIds,
           })
@@ -554,13 +554,13 @@ export function ScheduleWizard() {
           .from('modulos')
           .select('id, nome, numero_modulo, frente_id, importancia')
           .in('frente_id', frenteIds)
-          .order('numero_modulo', { ascending: true })) as { data: Array<{ id: string; nome: string; numero_modulo: number; frente_id: string; importancia: string }> | null; error: any }
+          .order('numero_modulo', { ascending: true })) as { data: Array<{ id: string; nome: string; numero_modulo: number; frente_id: string; importancia: string }> | null; error: { message?: string; details?: string; code?: string } | null }
 
         if (modulosError) {
           console.error('Erro ao buscar módulos:', {
-            message: modulosError.message,
-            details: modulosError.details,
-            code: modulosError.code,
+            message: modulosError.message ?? 'Sem mensagem',
+            details: modulosError.details ?? null,
+            code: modulosError.code ?? null,
           })
           throw modulosError
         }
@@ -614,13 +614,13 @@ export function ScheduleWizard() {
         const { data: aulasData, error: aulasError } = (await supabase
           .from('aulas')
           .select('id, modulo_id, tempo_estimado_minutos')
-          .in('modulo_id', moduloIds)) as { data: Array<{ id: string; modulo_id: string | null; tempo_estimado_minutos: number | null }> | null; error: any }
+          .in('modulo_id', moduloIds)) as { data: Array<{ id: string; modulo_id: string | null; tempo_estimado_minutos: number | null }> | null; error: { message?: string; details?: string; code?: string } | null }
 
         if (aulasError) {
           console.error('Erro ao buscar aulas:', {
-            message: aulasError.message,
-            details: aulasError.details,
-            code: aulasError.code,
+            message: aulasError.message ?? 'Sem mensagem',
+            details: aulasError.details ?? null,
+            code: aulasError.code ?? null,
           })
           // Não falhar se não conseguir buscar aulas, apenas logar
           console.warn('Continuando sem dados de aulas')
@@ -634,14 +634,14 @@ export function ScheduleWizard() {
             .from('aulas_concluidas')
             .select('aula_id')
             .eq('aluno_id', userId)
-            .eq('curso_id', cursoSelecionado)) as { data: Array<{ aula_id: string }> | null; error: any }
+            .eq('curso_id', cursoSelecionado)) as { data: Array<{ aula_id: string }> | null; error: { message?: string; details?: string; code?: string } | null }
 
           if (concluidasError) {
             // Se a tabela não existir ou houver erro, apenas logar e continuar
             console.warn('Aviso ao buscar aulas concluídas (pode não existir a tabela):', {
-              message: concluidasError.message,
-              details: concluidasError.details,
-              code: concluidasError.code,
+              message: concluidasError.message ?? 'Sem mensagem',
+              details: concluidasError.details ?? null,
+              code: concluidasError.code ?? null,
             })
           } else if (concluidasData) {
             concluidasSet = new Set(concluidasData.map((row) => row.aula_id as string))
@@ -861,7 +861,7 @@ export function ScheduleWizard() {
               prioridade: number | null;
               modulos: { id: string; frentes: { disciplina_id: string } }
             }> | null; 
-            error: any 
+            error: unknown 
           }
 
         if (error) {

@@ -9,7 +9,7 @@ import {
 
 // Use generated Database types instead of manual definitions
 type SessaoEstudoRow = Database['public']['Tables']['sessoes_estudo']['Row'];
-type SessaoEstudoInsert = Database['public']['Tables']['sessoes_estudo']['Insert'];
+type _SessaoEstudoInsert = Database['public']['Tables']['sessoes_estudo']['Insert'];
 type SessaoEstudoUpdate = Database['public']['Tables']['sessoes_estudo']['Update'];
 
 function mapRowToModel(row: SessaoEstudoRow): SessaoEstudo {

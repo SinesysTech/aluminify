@@ -49,24 +49,18 @@ async function patchHandler(request: AuthenticatedRequest, params: { id: string 
     }
 
     // Atualizar a importância
-    const updateData = { importancia };
     const { data: updatedModulo, error: updateError } = await client
       .from('modulos')
-      // @ts-ignore - Update type inference issue with generated types
-      .update(updateData)
+      .update({ importancia })
       .eq('id', id)
       .select('id, importancia')
       .single();
-
-    // Type assertion: Query result properly typed from Database schema
-    type ModuloUpdate = Pick<Database['public']['Tables']['modulos']['Row'], 'id' | 'importancia'>;
-    const typedUpdatedModulo = updatedModulo as ModuloUpdate | null;
 
     if (updateError) {
       throw new Error(`Erro ao atualizar módulo: ${updateError.message}`);
     }
 
-    return NextResponse.json({ data: typedUpdatedModulo });
+    return NextResponse.json({ data: updatedModulo });
   } catch (error) {
     console.error('[modulo PATCH]', error);
     const message = error instanceof Error ? error.message : 'Erro interno';

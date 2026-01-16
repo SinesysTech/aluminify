@@ -83,16 +83,13 @@ async function postHandler(
     
     // Verificar se é owner ou superadmin
     const { data: isOwner } = await supabase
-      .from('empresa_admins' as any) // Table not in generated types yet
+      .from('empresa_admins')
       .select('is_owner')
       .eq('empresa_id', id)
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // Type assertion: Query result for table not yet in generated types
-    const typedIsOwner = isOwner as { is_owner: boolean } | null;
-
-    if (!context.isSuperAdmin && (!validateEmpresaAccess(context, id) || !typedIsOwner?.is_owner)) {
+    if (!context.isSuperAdmin && (!validateEmpresaAccess(context, id) || !isOwner?.is_owner)) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas owner ou superadmin pode adicionar admins.' },
         { status: 403 }
@@ -107,11 +104,7 @@ async function postHandler(
       .eq('empresa_id', id)
       .maybeSingle();
 
-    // Type assertion: Query result properly typed from Database schema
-    type ProfessorEmpresa = Pick<Database['public']['Tables']['professores']['Row'], 'empresa_id'>;
-    const typedProfessor = professor as ProfessorEmpresa | null;
-
-    if (!typedProfessor) {
+    if (!professor) {
       return NextResponse.json(
         { error: 'Professor não encontrado ou não pertence à empresa' },
         { status: 404 }
@@ -120,24 +113,22 @@ async function postHandler(
 
     // Adicionar como admin
     const { error: insertError } = await supabase
-      .from('empresa_admins' as any) // Table not in generated types yet
+      .from('empresa_admins')
       .insert({
         empresa_id: id,
         user_id: professorId,
         is_owner: false,
         permissoes: {},
-      } as any); // Type assertion for insert
+      });
 
     if (insertError) {
       throw insertError;
     }
 
     // Atualizar is_admin na tabela professores
-    const updateData = { is_admin: true };
     await supabase
       .from('professores')
-      // @ts-ignore - Update type inference issue with generated types
-      .update(updateData)
+      .update({ is_admin: true })
       .eq('id', professorId);
 
     return NextResponse.json({ success: true }, { status: 201 });

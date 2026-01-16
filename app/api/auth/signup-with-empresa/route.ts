@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       biografia: null,
       foto_url: null,
       especialidade: null,
-    } as any); // Type assertion for insert
+    });
 
     if (insertProfessorError) {
       console.error('Error creating professor record:', insertProfessorError);
@@ -121,13 +121,13 @@ export async function POST(request: NextRequest) {
 
     // 3. Inserir em empresa_admins como owner
     const { error: adminError } = await adminClient
-      .from('empresa_admins' as any) // Table not in generated types yet
+      .from('empresa_admins')
       .insert({
         empresa_id: empresa.id,
         user_id: newUser.user.id,
         is_owner: true,
         permissoes: {},
-      } as any); // Type assertion for table not in generated types
+      });
 
     if (adminError) {
       console.error('Error creating empresa_admin:', adminError);

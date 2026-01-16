@@ -83,11 +83,9 @@ export async function POST(request: NextRequest) {
     });
 
     // 2) Vincular professor à empresa e marcar como admin
-    const updateData = { empresa_id: empresa.id, is_admin: true };
     const { error: updateProfessorError } = await adminClient
       .from('professores')
-      // @ts-ignore - Update type inference issue with generated types
-      .update(updateData)
+      .update({ empresa_id: empresa.id, is_admin: true })
       .eq('id', user.id);
 
     if (updateProfessorError) {
@@ -98,12 +96,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 3) Inserir em empresa_admins como owner
-    const { error: adminInsertError } = await adminClient.from('empresa_admins' as any).insert({
+    const { error: adminInsertError } = await adminClient.from('empresa_admins').insert({
       empresa_id: empresa.id,
       user_id: user.id,
       is_owner: true,
       permissoes: {},
-    } as any); // Type assertion for table not in generated types
+    });
 
     if (adminInsertError) {
       console.error('Error inserting empresa_admin:', adminInsertError);

@@ -22,7 +22,7 @@ export interface CachedActivity {
   updatedAt: string;
 }
 
-interface ActivityRow {
+interface _ActivityRow {
   id: string;
   modulo_id: string;
   tipo: string;

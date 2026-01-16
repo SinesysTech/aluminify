@@ -158,14 +158,14 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           .from('cronogramas')
           .select('*')
           .eq('id', cronogramaId)
-          .single()) as { data: Omit<Cronograma, 'cronograma_itens'> | null; error: any }
+          .single()) as { data: Omit<Cronograma, 'cronograma_itens'> | null; error: { message?: string; details?: string; hint?: string; code?: string } | null }
 
         if (cronogramaError) {
           console.error('Erro ao carregar cronograma base:', {
-            message: cronogramaError.message || 'Sem mensagem',
-            details: cronogramaError.details || null,
-            hint: cronogramaError.hint || null,
-            code: cronogramaError.code || null,
+            message: cronogramaError.message ?? 'Sem mensagem',
+            details: cronogramaError.details ?? null,
+            hint: cronogramaError.hint ?? null,
+            code: cronogramaError.code ?? null,
             cronogramaId,
             error: cronogramaError,
             errorString: String(cronogramaError),
@@ -197,14 +197,15 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           .select('id, aula_id, semana_numero, ordem_na_semana, concluido, data_conclusao')
           .eq('cronograma_id', cronogramaId)
           .order('semana_numero', { ascending: true })
-          .order('ordem_na_semana', { ascending: true })) as { data: CronogramaItemRaw[] | null; error: unknown }
+          .order('ordem_na_semana', { ascending: true })) as { data: CronogramaItemRaw[] | null; error: { message?: string; details?: string; code?: string } | null }
 
         if (itensError) {
+          const error = itensError as Record<string, unknown>;
           console.error('[ScheduleDashboard] Erro ao carregar itens do cronograma:', {
-            message: (itensError as any).message,
-            details: (itensError as any).details,
-            hint: (itensError as any).hint,
-            code: (itensError as any).code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
             cronogramaId,
           })
           // Continue anyway with empty items
@@ -337,7 +338,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               const { data: modulosData, error: modulosError } = (await supabase
                 .from('modulos')
                 .select('id, nome, numero_modulo, frente_id')
-                .in('id', moduloIds)) as { data: ModuloMapValue[] | null; error: any }
+                .in('id', moduloIds)) as { data: ModuloMapValue[] | null; error: unknown }
 
               if (modulosError) {
                 console.error('Erro ao carregar módulos:', modulosError)
@@ -355,7 +356,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               const { data: frentesData, error: frentesError } = (await supabase
                 .from('frentes')
                 .select('id, nome, disciplina_id')
-                .in('id', frenteIds)) as { data: FrenteMapValue[] | null; error: any }
+                .in('id', frenteIds)) as { data: FrenteMapValue[] | null; error: unknown }
 
               if (frentesError) {
                 console.error('Erro ao carregar frentes:', frentesError)
@@ -373,7 +374,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               const { data: disciplinasData, error: disciplinasError } = (await supabase
                 .from('disciplinas')
                 .select('id, nome')
-                .in('id', disciplinaIds)) as { data: DisciplinaMapValue[] | null; error: any }
+                .in('id', disciplinaIds)) as { data: DisciplinaMapValue[] | null; error: unknown }
 
               if (disciplinasError) {
                 console.error('Erro ao carregar disciplinas:', disciplinasError)
@@ -584,7 +585,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     // Type assertion needed because database types are currently out of sync with actual schema
     const { error } = await supabase
       .from('cronograma_itens')
-      // @ts-ignore - Database types are outdated, actual schema has these fields
       .update(updateData)
       .eq('id', itemId)
 
@@ -602,7 +602,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         // Type assertion needed because database types are currently out of sync with actual schema
         const { error: aulaError } = await supabase
           .from('aulas_concluidas')
-          // @ts-ignore - Database types are outdated, actual schema has these fields
           .upsert(
             {
               aluno_id: alunoAtual,

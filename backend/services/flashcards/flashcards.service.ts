@@ -7,7 +7,7 @@ import type {
   ProgressoFlashcard,
   CursoRow,
   ModuloRow,
-  FlashcardRow,
+  FlashcardRow as _FlashcardRow,
   ModuloComFrenteRow,
   ModuloWithNestedRelations,
 } from './flashcards.query-types';
@@ -463,7 +463,7 @@ export class FlashcardsService {
         curso_id: string
         frentes: { id: string; disciplina_id: string; curso_id: string } | null
       }
-      const typedModulo = moduloData as unknown as ModuloWithFrente;
+      const _typedModulo = moduloData as unknown as ModuloWithFrente;
 
       // 2. Verificar se é professor ou aluno
       const { data: professorData } = await this.client

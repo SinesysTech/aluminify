@@ -320,7 +320,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             }
 
             const todasAulas: AulaData[] = []
-            for (const lote of lotes) {
+            for (const _lote of lotes) {
               // Type assertion needed because database types are currently out of sync with actual schema
               const { data: loteData, error: loteError } = await supabase
                 .from('aulas')
@@ -717,7 +717,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     // Type assertion needed because database types are currently out of sync with actual schema
     const { error } = await supabase
       .from('cronograma_itens')
-      // @ts-ignore - Database types are outdated, actual schema has these fields
       .update(updateData)
       .eq('id', itemId)
 
@@ -735,7 +734,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         // Type assertion needed because database types are currently out of sync with actual schema
         await supabase
           .from('aulas_concluidas')
-          // @ts-ignore - Database types are outdated, actual schema has these fields
           .upsert(
             {
               aluno_id: alunoAtual,
@@ -878,7 +876,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     // Type assertion needed because database types are currently out of sync with actual schema
     const { error: updateError, data: updateData } = await supabase
       .from('cronograma_itens')
-      // @ts-ignore - Database types are outdated, actual schema has these fields
       .update({
         concluido: novoEstado,
         data_conclusao: dataConclusao
@@ -908,7 +905,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             // Type assertion needed because database types are currently out of sync with actual schema
             await supabase
               .from('aulas_concluidas')
-              // @ts-ignore - Database types are outdated, actual schema has these fields
               .upsert(
                 {
                   aluno_id: alunoAtual,
@@ -1055,7 +1051,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     // Type assertion needed because database types are currently out of sync with actual schema
     const { error: updateError } = await supabase
       .from('cronograma_itens')
-      // @ts-ignore - Database types are outdated, actual schema has these fields
       .update({
         concluido: novoEstado,
         data_conclusao: dataConclusao
@@ -1081,7 +1076,6 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             // Type assertion needed because database types are currently out of sync with actual schema
             await supabase
               .from('aulas_concluidas')
-              // @ts-ignore - Database types are outdated, actual schema has these fields
               .upsert(
                 {
                   aluno_id: alunoAtual,
@@ -1314,7 +1308,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           }
 
           const todasAulas: AulaData[] = []
-          for (const lote of lotes) {
+          for (const _lote of lotes) {
             // Type assertion needed because database types are currently out of sync with actual schema
             const { data: loteData, error: loteError } = await supabase
               .from('aulas')
@@ -1589,7 +1583,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           .from('cronograma_itens')
           .select('data_prevista')
           .eq('cronograma_id', cronogramaId)
-          .limit(200)) as { data: Array<{ data_prevista: string | null }> | null; error: any }
+          .limit(200)) as { data: Array<{ data_prevista: string | null }> | null; error: unknown }
 
         if (amostraError) {
           console.error('[SalvarDistribuicao] Erro ao verificar atualização:', amostraError)

@@ -185,7 +185,7 @@ describe('Property 10: Backward Compatibility', () => {
           tableName: fc.constantFrom('empresas', 'professores', 'alunos'),
           useTypeAssertion: fc.boolean()
         }),
-        async ({ tableName, useTypeAssertion }) => {
+        async ({ tableName, useTypeAssertion: _useTypeAssertion }) => {
           const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           // Build a query

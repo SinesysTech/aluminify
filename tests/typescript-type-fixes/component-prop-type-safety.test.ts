@@ -8,7 +8,6 @@
 import fc from 'fast-check';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/database.types';
-import * as React from 'react';
 
 // Mock Supabase client for type checking tests
 const mockSupabaseUrl = 'https://test.supabase.co';
@@ -20,7 +19,7 @@ type LoadingState = {
   error: Error | null;
 };
 
-type DataState<T> = LoadingState & {
+type _DataState<T> = LoadingState & {
   data: T | null;
 };
 
@@ -47,7 +46,7 @@ describe('Property 8: Component Prop Type Safety', () => {
           'segmento'
         ),
         async (entityType) => {
-          const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
+          const _client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           // Test that component props are properly typed based on entity type
           if (entityType === 'aluno') {
@@ -234,7 +233,7 @@ describe('Property 8: Component Prop Type Safety', () => {
           'segmentos'
         ),
         async (tableName) => {
-          const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
+          const _client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           // Simulate a custom hook that fetches data
           type TableName = keyof Database['public']['Tables'];
@@ -398,14 +397,14 @@ describe('Property 8: Component Prop Type Safety', () => {
           { table: 'cursos', propName: 'cursos' },
           { table: 'disciplinas', propName: 'disciplinas' }
         ),
-        async ({ table, propName }) => {
-          const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
+        async ({ table, propName: _propName }) => {
+          const _client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           // Type for array component props
           type TableName = keyof Database['public']['Tables'];
           type TableRow<T extends TableName> = Database['public']['Tables'][T]['Row'];
           
-          type ArrayComponentProps<T extends TableName> = {
+          type _ArrayComponentProps<T extends TableName> = {
             [key: string]: TableRow<T>[];
           };
           
@@ -509,7 +508,7 @@ describe('Property 8: Component Prop Type Safety', () => {
           hasData: fc.boolean(),
           hasNullableField: fc.boolean(),
         }),
-        async ({ hasData, hasNullableField }) => {
+        async ({ hasData: _hasData, hasNullableField: _hasNullableField }) => {
           // Test optional props
           type OptionalDataProps = {
             aluno?: Database['public']['Tables']['alunos']['Row'];
@@ -602,7 +601,7 @@ describe('Property 8: Component Prop Type Safety', () => {
           'curso-with-disciplinas'
         ),
         async (joinType) => {
-          const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
+          const _client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           if (joinType === 'aluno-with-matriculas') {
             // Type for aluno with matriculas join

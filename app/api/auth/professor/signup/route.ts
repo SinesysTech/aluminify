@@ -64,14 +64,14 @@ export async function POST(request: NextRequest) {
       id: userId,
       email,
       nome_completo: fullName,
-      empresa_id: '', // Provide empty string as required field, admin can bypass
+      empresa_id: null,
       is_admin: false,
       cpf: null,
       telefone: null,
       biografia: null,
       foto_url: null,
       especialidade: null,
-    } as any); // Type assertion needed because we're bypassing required field with admin
+    });
 
     if (insertProfessorError) {
       // rollback best-effort

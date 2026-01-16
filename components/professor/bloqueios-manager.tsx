@@ -41,7 +41,7 @@ const TIPOS_BLOQUEIO = [
   { value: 'outro', label: 'Outro' },
 ]
 
-type BloqueioRow = Database['public']['Tables']['agendamento_bloqueios']['Row']
+type _BloqueioRow = Database['public']['Tables']['agendamento_bloqueios']['Row']
 
 interface Bloqueio {
   id: string

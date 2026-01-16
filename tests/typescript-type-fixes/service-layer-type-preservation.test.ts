@@ -12,8 +12,8 @@ import { StudentRepositoryImpl } from '@/backend/services/student/student.reposi
 import { StudentService } from '@/backend/services/student/student.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/database.types';
-import type { Teacher, CreateTeacherInput, UpdateTeacherInput } from '@/types/shared/entities/user';
-import type { Student, CreateStudentInput, UpdateStudentInput } from '@/backend/services/student/student.types';
+import type { Teacher } from '@/types/shared/entities/user';
+import type { Student } from '@/backend/services/student/student.types';
 
 // Mock Supabase client for type checking tests
 const mockSupabaseUrl = 'https://test.supabase.co';
@@ -41,13 +41,13 @@ describe('Property 7: Service Layer Type Preservation', () => {
           const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           if (entityType === 'teacher') {
-            const repository = new TeacherRepositoryImpl(client);
+            const _repository = new TeacherRepositoryImpl(client);
             
             // Test that repository methods have proper return types
             // These are compile-time checks - if they compile, types are correct
             
             // findById should return Teacher | null (not any or never)
-            type FindByIdReturnType = Awaited<ReturnType<typeof repository.findById>>;
+            type FindByIdReturnType = Awaited<ReturnType<typeof _repository.findById>>;
             const _findByIdCheck: FindByIdReturnType = null as FindByIdReturnType;
             
             // Verify it's typed as Teacher | null (can be null)
@@ -107,10 +107,10 @@ describe('Property 7: Service Layer Type Preservation', () => {
             expect(Array.isArray(_findByEmpresaCheck)).toBe(true);
             
           } else if (entityType === 'student') {
-            const repository = new StudentRepositoryImpl(client);
+            const _repository = new StudentRepositoryImpl(client);
             
             // findById should return Student | null (not any or never)
-            type FindByIdReturnType = Awaited<ReturnType<typeof repository.findById>>;
+            type FindByIdReturnType = Awaited<ReturnType<typeof _repository.findById>>;
             const _findByIdCheck: FindByIdReturnType = null as FindByIdReturnType;
             
             // Verify it's typed as Student | null
@@ -186,12 +186,12 @@ describe('Property 7: Service Layer Type Preservation', () => {
           
           if (entityType === 'teacher') {
             const repository = new TeacherRepositoryImpl(client);
-            const service = new TeacherService(repository);
+            const _service = new TeacherService(repository);
             
             // Test that service methods accept properly typed parameters
             
             // create should accept CreateTeacherInput
-            type CreateInputType = Parameters<typeof service.create>[0];
+            type CreateInputType = Parameters<typeof _service.create>[0];
             const _createInput: CreateInputType = {
               id: 'test-id',
               empresaId: 'empresa-id',
@@ -238,10 +238,10 @@ describe('Property 7: Service Layer Type Preservation', () => {
             
           } else if (entityType === 'student') {
             const repository = new StudentRepositoryImpl(client);
-            const service = new StudentService(repository);
+            const _service = new StudentService(repository);
             
             // create should accept CreateStudentInput
-            type CreateInputType = Parameters<typeof service.create>[0];
+            type CreateInputType = Parameters<typeof _service.create>[0];
             const _createInput: CreateInputType = {
               email: 'student@example.com',
               courseIds: ['course-1'],
@@ -296,11 +296,11 @@ describe('Property 7: Service Layer Type Preservation', () => {
           entityType: fc.constantFrom('teacher', 'student'),
           hasOptionalFields: fc.boolean(),
         }),
-        async ({ entityType, hasOptionalFields }) => {
+        async ({ entityType, hasOptionalFields: _hasOptionalFields }) => {
           const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           if (entityType === 'teacher') {
-            const repository = new TeacherRepositoryImpl(client);
+            const _repository = new TeacherRepositoryImpl(client);
             
             // Verify that database types map to domain types correctly
             type TeacherRow = Database['public']['Tables']['professores']['Row'];
@@ -347,7 +347,7 @@ describe('Property 7: Service Layer Type Preservation', () => {
             expect(_verifyUpdateType).toBeDefined();
             
           } else if (entityType === 'student') {
-            const repository = new StudentRepositoryImpl(client);
+            const _repository = new StudentRepositoryImpl(client);
             
             // Verify that database types map to domain types correctly
             type StudentRow = Database['public']['Tables']['alunos']['Row'];
@@ -416,7 +416,7 @@ describe('Property 7: Service Layer Type Preservation', () => {
           
           if (entityType === 'teacher') {
             const repository = new TeacherRepositoryImpl(client);
-            const service = new TeacherService(repository);
+            const _service = new TeacherService(repository);
             
             // Verify that methods don't return 'any' - compile-time check
             // If these compile with specific types, they're not 'any'
@@ -484,7 +484,7 @@ describe('Property 7: Service Layer Type Preservation', () => {
             
           } else if (entityType === 'student') {
             const repository = new StudentRepositoryImpl(client);
-            const service = new StudentService(repository);
+            const _service = new StudentService(repository);
             
             // Verify repository methods have specific types - compile-time check
             type FindByIdReturn = Awaited<ReturnType<typeof repository.findById>>;

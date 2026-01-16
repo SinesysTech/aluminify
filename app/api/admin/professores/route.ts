@@ -88,14 +88,14 @@ export async function POST(request: NextRequest) {
           id: tempUser.user.id,
           email: email.toLowerCase(),
           nome_completo: fullName,
-          empresa_id: empresaId || '', // Provide empty string as fallback for required field
+          empresa_id: empresaId || null,
           is_admin: isAdmin || false,
           cpf: cpf || null,
           telefone: phone || null,
           biografia: biography || null,
           foto_url: photoUrl || null,
           especialidade: specialty || null,
-        } as any); // Type assertion needed because empresa_id is required in schema but we're bypassing with admin
+        });
 
       if (insertError) {
         console.error('Error creating professor record:', insertError);

@@ -293,7 +293,6 @@ export function ScheduleList({
           // Type assertion needed because database types are currently out of sync with actual schema
           await supabase
             .from('cronograma_itens')
-            // @ts-ignore - Database types are outdated, actual schema has these fields
             .update({ ordem_na_semana: item.ordem_na_semana })
             .eq('id', item.id)
         }
