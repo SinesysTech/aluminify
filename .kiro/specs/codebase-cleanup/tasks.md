@@ -31,26 +31,26 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Test include/exclude pattern combinations
     - _Requirements: 1.1_
 
-- [-] 3. Implement Pattern Analyzer base and utilities
+- [x] 3. Implement Pattern Analyzer base and utilities
   - [x] 3.1 Create PatternAnalyzer abstract base class
     - Define analyze() interface returning Issue[]
     - Implement common AST traversal utilities
     - Create helper methods for issue creation with location tracking
     - _Requirements: All pattern detection requirements_
   
-  - [-] 3.2 Create AST parsing utilities
+  - [x] 3.2 Create AST parsing utilities
     - Implement file-to-AST parsing using ts-morph
     - Add error handling for invalid syntax
     - Create AST query helpers (find functions, find imports, find types, etc.)
     - _Requirements: All analysis requirements_
   
-  - [ ] 3.3 Write unit tests for AST utilities
+  - [x] 3.3 Write unit tests for AST utilities
     - Test parsing valid and invalid TypeScript/JavaScript
     - Test AST query helpers with various code structures
     - _Requirements: All analysis requirements_
 
-- [ ] 4. Implement CodeQualityAnalyzer
-  - [ ] 4.1 Implement confusing logic detection
+- [-] 4. Implement CodeQualityAnalyzer
+  - [-] 4.1 Implement confusing logic detection
     - Detect deeply nested conditionals (>3 levels)
     - Detect complex boolean expressions (>3 operators)
     - Detect unclear control flow patterns

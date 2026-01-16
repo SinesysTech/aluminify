@@ -7,6 +7,9 @@
 // Export all types
 export * from './types.js';
 
+// Export utilities
+export * from './utils/index.js';
+
 // Placeholder for future exports
 // export * from './scanner/index.js';
 // export * from './analyzers/index.js';
