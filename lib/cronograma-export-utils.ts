@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface CronogramaData {
   id: string;
-  nome: string;
+  nome: string | null;
   data_inicio: string;
   data_fim: string;
   [key: string]: unknown;
@@ -74,13 +74,13 @@ export async function fetchCronogramaCompleto(
     id: string;
     nome: string;
     numero_modulo: number | null;
-    frente_id: string;
+    frente_id: string | null;
   }
 
   interface FrenteData {
     id: string;
     nome: string;
-    disciplina_id: string;
+    disciplina_id: string | null;
   }
 
   interface DisciplinaData {
@@ -102,27 +102,27 @@ export async function fetchCronogramaCompleto(
       if (lote) todasAulas.push(...lote)
     }
 
-    const moduloIds = [...new Set(todasAulas.map((a) => a.modulo_id).filter(Boolean))]
+    const moduloIds = [...new Set(todasAulas.map((a) => a.modulo_id).filter((id): id is string => Boolean(id)))]
     let modulosMap = new Map<string, ModuloData>()
     if (moduloIds.length) {
       const { data: modulos } = await client
         .from('modulos')
         .select('id, nome, numero_modulo, frente_id')
         .in('id', moduloIds)
-      if (modulos) modulosMap = new Map(modulos.map((m: ModuloData) => [m.id, m]))
+      if (modulos) modulosMap = new Map(modulos.map((m) => [m.id, m as ModuloData]))
     }
 
-    const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: ModuloData) => m.frente_id).filter(Boolean))]
+    const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m) => m.frente_id).filter((id): id is string => Boolean(id)))]
     let frentesMap = new Map<string, FrenteData>()
     if (frenteIds.length) {
       const { data: frentes } = await client
         .from('frentes')
         .select('id, nome, disciplina_id')
         .in('id', frenteIds)
-      if (frentes) frentesMap = new Map(frentes.map((f: FrenteData) => [f.id, f]))
+      if (frentes) frentesMap = new Map(frentes.map((f) => [f.id, f as FrenteData]))
     }
 
-    const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: FrenteData) => f.disciplina_id).filter(Boolean))]
+    const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f) => f.disciplina_id).filter((id): id is string => Boolean(id)))]
     let disciplinasMap = new Map<string, DisciplinaData>()
     if (disciplinaIds.length) {
       const { data: disciplinas } = await client
@@ -135,8 +135,8 @@ export async function fetchCronogramaCompleto(
     aulasMap = new Map(
       todasAulas.map((a) => {
         const modulo = a.modulo_id ? modulosMap.get(a.modulo_id) : undefined
-        const frente = modulo ? frentesMap.get(modulo.frente_id) : null
-        const disciplina = frente ? disciplinasMap.get(frente.disciplina_id) : null
+        const frente = modulo?.frente_id ? frentesMap.get(modulo.frente_id) : null
+        const disciplina = frente?.disciplina_id ? disciplinasMap.get(frente.disciplina_id) : null
         return [
           a.id,
           {
