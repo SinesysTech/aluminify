@@ -1,0 +1,21 @@
+supabase/migrations/20251120201157_create_alunos_table.sql:create policy "Usuários veem o próprio perfil" on public.alunos
+supabase/migrations/20251120201157_create_alunos_table.sql:create policy "Usuários atualizam o próprio perfil" on public.alunos
+supabase/migrations/20251120203921_add_superadmin_policies.sql:create policy "Superadmin vê todos os alunos" on public.alunos
+supabase/migrations/20251120203921_add_superadmin_policies.sql:create policy "Superadmin gerencia alunos" on public.alunos
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Materiais visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Frentes visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Modulos visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Aulas visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Flashcards visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Atividades visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217105928_update_rls_policies_multitenancy.sql:create policy "Admins podem ver alunos de sua empresa"
+supabase/migrations/20251217142438_update_rls_policies_multitenancy_step5.sql:create policy "Materiais visíveis para alunos matriculados e professores da empresa"
+supabase/migrations/20251217142438_update_rls_policies_multitenancy_step5.sql:create policy "Admins podem ver alunos de sua empresa"
+supabase/migrations/20260105152002_fix_alunos_cursos_rls_no_auth_users.sql:create policy "Alunos veem suas matrículas e admins veem matrículas de sua empresa"
+supabase/migrations/20260105152002_fix_alunos_cursos_rls_no_auth_users.sql:create policy "Apenas admins podem criar matrículas"
+supabase/migrations/20260105152002_fix_alunos_cursos_rls_no_auth_users.sql:create policy "Apenas admins podem deletar matrículas"
+supabase/migrations/20260105152003_fix_other_rls_policies_no_auth_users.sql:create policy "Admins podem ver alunos de sua empresa"
+supabase/migrations/20260105182022_fix_alunos_cursos_rls_no_auth_users.sql:create policy "Alunos veem suas matrículas e admins veem matrículas de sua empresa"
+supabase/migrations/20260105182022_fix_alunos_cursos_rls_no_auth_users.sql:create policy "Apenas admins podem criar matrículas"
+supabase/migrations/20260105182022_fix_alunos_cursos_rls_no_auth_users.sql:create policy "Apenas admins podem deletar matrículas"
+supabase/migrations/20260105182054_fix_other_rls_policies_no_auth_users.sql:create policy "Admins podem ver alunos de sua empresa"
