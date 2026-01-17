@@ -65,6 +65,7 @@ export type Database = {
         Row: {
           auto_confirmar: boolean | null
           created_at: string | null
+          empresa_id: string
           id: string
           link_reuniao_padrao: string | null
           mensagem_confirmacao: string | null
@@ -76,6 +77,7 @@ export type Database = {
         Insert: {
           auto_confirmar?: boolean | null
           created_at?: string | null
+          empresa_id: string
           id?: string
           link_reuniao_padrao?: string | null
           mensagem_confirmacao?: string | null
@@ -87,6 +89,7 @@ export type Database = {
         Update: {
           auto_confirmar?: boolean | null
           created_at?: string | null
+          empresa_id?: string
           id?: string
           link_reuniao_padrao?: string | null
           mensagem_confirmacao?: string | null
@@ -95,13 +98,22 @@ export type Database = {
           tempo_lembrete_minutos?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_configuracoes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agendamento_disponibilidade: {
         Row: {
           ativo: boolean | null
           created_at: string | null
           dia_semana: number
+          empresa_id: string
           hora_fim: string
           hora_inicio: string
           id: string
@@ -112,6 +124,7 @@ export type Database = {
           ativo?: boolean | null
           created_at?: string | null
           dia_semana: number
+          empresa_id: string
           hora_fim: string
           hora_inicio: string
           id?: string
@@ -122,19 +135,29 @@ export type Database = {
           ativo?: boolean | null
           created_at?: string | null
           dia_semana?: number
+          empresa_id?: string
           hora_fim?: string
           hora_inicio?: string
           id?: string
           professor_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_disponibilidade_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agendamento_notificacoes: {
         Row: {
           agendamento_id: string
           created_at: string | null
           destinatario_id: string
+          empresa_id: string | null
           enviado: boolean | null
           enviado_em: string | null
           erro: string | null
@@ -145,6 +168,7 @@ export type Database = {
           agendamento_id: string
           created_at?: string | null
           destinatario_id: string
+          empresa_id?: string | null
           enviado?: boolean | null
           enviado_em?: string | null
           erro?: string | null
@@ -155,6 +179,7 @@ export type Database = {
           agendamento_id?: string
           created_at?: string | null
           destinatario_id?: string
+          empresa_id?: string | null
           enviado?: boolean | null
           enviado_em?: string | null
           erro?: string | null
@@ -167,6 +192,13 @@ export type Database = {
             columns: ["agendamento_id"]
             isOneToOne: false
             referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamento_notificacoes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
@@ -235,6 +267,7 @@ export type Database = {
           created_at: string | null
           data_fim: string
           data_inicio: string
+          empresa_id: string
           id: string
           lembrete_enviado: boolean | null
           lembrete_enviado_em: string | null
@@ -252,6 +285,7 @@ export type Database = {
           created_at?: string | null
           data_fim: string
           data_inicio: string
+          empresa_id: string
           id?: string
           lembrete_enviado?: boolean | null
           lembrete_enviado_em?: string | null
@@ -269,6 +303,7 @@ export type Database = {
           created_at?: string | null
           data_fim?: string
           data_inicio?: string
+          empresa_id?: string
           id?: string
           lembrete_enviado?: boolean | null
           lembrete_enviado_em?: string | null
@@ -279,7 +314,15 @@ export type Database = {
           status?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       alunos: {
         Row: {
@@ -409,7 +452,7 @@ export type Database = {
           arquivo_url: string | null
           created_at: string | null
           created_by: string | null
-          empresa_id: string | null
+          empresa_id: string
           gabarito_url: string | null
           id: string
           link_externo: string | null
@@ -424,7 +467,7 @@ export type Database = {
           arquivo_url?: string | null
           created_at?: string | null
           created_by?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           gabarito_url?: string | null
           id?: string
           link_externo?: string | null
@@ -439,7 +482,7 @@ export type Database = {
           arquivo_url?: string | null
           created_at?: string | null
           created_by?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           gabarito_url?: string | null
           id?: string
           link_externo?: string | null
@@ -471,7 +514,7 @@ export type Database = {
         Row: {
           created_at: string | null
           curso_id: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           modulo_id: string | null
           nome: string
@@ -484,7 +527,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           curso_id?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           modulo_id?: string | null
           nome: string
@@ -497,7 +540,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           curso_id?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           modulo_id?: string | null
           nome?: string
@@ -537,6 +580,7 @@ export type Database = {
           aula_id: string
           created_at: string | null
           curso_id: string | null
+          empresa_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -544,6 +588,7 @@ export type Database = {
           aula_id: string
           created_at?: string | null
           curso_id?: string | null
+          empresa_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -551,6 +596,7 @@ export type Database = {
           aula_id?: string
           created_at?: string | null
           curso_id?: string | null
+          empresa_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -573,6 +619,13 @@ export type Database = {
             columns: ["curso_id"]
             isOneToOne: false
             referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aulas_concluidas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
@@ -792,7 +845,7 @@ export type Database = {
           data_inicio: string
           dias_estudo_semana: number
           disciplinas_selecionadas: Json
-          empresa_id: string | null
+          empresa_id: string
           excluir_aulas_concluidas: boolean
           horas_estudo_dia: number
           id: string
@@ -803,7 +856,6 @@ export type Database = {
           periodos_ferias: Json | null
           prioridade_minima: number
           updated_at: string | null
-          velocidade_reproducao: number
         }
         Insert: {
           aluno_id: string
@@ -813,7 +865,7 @@ export type Database = {
           data_inicio: string
           dias_estudo_semana: number
           disciplinas_selecionadas?: Json
-          empresa_id?: string | null
+          empresa_id: string
           excluir_aulas_concluidas?: boolean
           horas_estudo_dia: number
           id?: string
@@ -824,7 +876,6 @@ export type Database = {
           periodos_ferias?: Json | null
           prioridade_minima?: number
           updated_at?: string | null
-          velocidade_reproducao?: number
         }
         Update: {
           aluno_id?: string
@@ -834,7 +885,7 @@ export type Database = {
           data_inicio?: string
           dias_estudo_semana?: number
           disciplinas_selecionadas?: Json
-          empresa_id?: string | null
+          empresa_id?: string
           excluir_aulas_concluidas?: boolean
           horas_estudo_dia?: number
           id?: string
@@ -845,7 +896,6 @@ export type Database = {
           periodos_ferias?: Json | null
           prioridade_minima?: number
           updated_at?: string | null
-          velocidade_reproducao?: number
         }
         Relationships: [
           {
@@ -880,7 +930,7 @@ export type Database = {
           data_termino: string | null
           descricao: string | null
           disciplina_id: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           imagem_capa_url: string | null
           meses_acesso: number | null
@@ -899,7 +949,7 @@ export type Database = {
           data_termino?: string | null
           descricao?: string | null
           disciplina_id?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           imagem_capa_url?: string | null
           meses_acesso?: number | null
@@ -918,7 +968,7 @@ export type Database = {
           data_termino?: string | null
           descricao?: string | null
           disciplina_id?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           imagem_capa_url?: string | null
           meses_acesso?: number | null
@@ -990,7 +1040,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           nome: string
           updated_at: string
@@ -998,7 +1048,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           nome: string
           updated_at?: string
@@ -1006,7 +1056,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           nome?: string
           updated_at?: string
@@ -1101,7 +1151,7 @@ export type Database = {
       flashcards: {
         Row: {
           created_at: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           modulo_id: string | null
           pergunta: string
@@ -1109,7 +1159,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           modulo_id?: string | null
           pergunta: string
@@ -1117,7 +1167,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           modulo_id?: string | null
           pergunta?: string
@@ -1146,7 +1196,7 @@ export type Database = {
           created_by: string | null
           curso_id: string | null
           disciplina_id: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           nome: string
         }
@@ -1155,7 +1205,7 @@ export type Database = {
           created_by?: string | null
           curso_id?: string | null
           disciplina_id?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           nome: string
         }
@@ -1164,7 +1214,7 @@ export type Database = {
           created_by?: string | null
           curso_id?: string | null
           disciplina_id?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           nome?: string
         }
@@ -1199,7 +1249,7 @@ export type Database = {
           created_by: string | null
           curso_id: string | null
           descricao_opcional: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           ordem: number
           tipo: Database["public"]["Enums"]["enum_tipo_material"]
@@ -1212,7 +1262,7 @@ export type Database = {
           created_by?: string | null
           curso_id?: string | null
           descricao_opcional?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           ordem?: number
           tipo?: Database["public"]["Enums"]["enum_tipo_material"]
@@ -1225,7 +1275,7 @@ export type Database = {
           created_by?: string | null
           curso_id?: string | null
           descricao_opcional?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           ordem?: number
           tipo?: Database["public"]["Enums"]["enum_tipo_material"]
@@ -1304,7 +1354,7 @@ export type Database = {
         Row: {
           created_at: string | null
           curso_id: string | null
-          empresa_id: string | null
+          empresa_id: string
           frente_id: string | null
           id: string
           importancia:
@@ -1316,7 +1366,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           curso_id?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           frente_id?: string | null
           id?: string
           importancia?:
@@ -1328,7 +1378,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           curso_id?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           frente_id?: string | null
           id?: string
           importancia?:
@@ -1367,7 +1417,7 @@ export type Database = {
           cpf: string | null
           created_at: string
           email: string
-          empresa_id: string | null
+          empresa_id: string
           especialidade: string | null
           foto_url: string | null
           id: string
@@ -1381,7 +1431,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           email: string
-          empresa_id?: string | null
+          empresa_id: string
           especialidade?: string | null
           foto_url?: string | null
           id: string
@@ -1395,7 +1445,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           email?: string
-          empresa_id?: string | null
+          empresa_id?: string
           especialidade?: string | null
           foto_url?: string | null
           id?: string
@@ -1425,6 +1475,7 @@ export type Database = {
           dificuldade_percebida:
             | Database["public"]["Enums"]["enum_dificuldade_percebida"]
             | null
+          empresa_id: string | null
           id: string
           questoes_acertos: number | null
           questoes_totais: number | null
@@ -1441,6 +1492,7 @@ export type Database = {
           dificuldade_percebida?:
             | Database["public"]["Enums"]["enum_dificuldade_percebida"]
             | null
+          empresa_id?: string | null
           id?: string
           questoes_acertos?: number | null
           questoes_totais?: number | null
@@ -1457,6 +1509,7 @@ export type Database = {
           dificuldade_percebida?:
             | Database["public"]["Enums"]["enum_dificuldade_percebida"]
             | null
+          empresa_id?: string | null
           id?: string
           questoes_acertos?: number | null
           questoes_totais?: number | null
@@ -1478,6 +1531,13 @@ export type Database = {
             referencedRelation: "atividades"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "progresso_atividades_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       progresso_flashcards: {
@@ -1486,11 +1546,11 @@ export type Database = {
           created_at: string | null
           data_proxima_revisao: string | null
           dias_intervalo: number | null
+          empresa_id: string | null
           flashcard_id: string | null
           id: string
           nivel_facilidade: number | null
           numero_revisoes: number | null
-          ultima_revisao: string | null
           ultimo_feedback: number | null
           updated_at: string | null
         }
@@ -1499,11 +1559,11 @@ export type Database = {
           created_at?: string | null
           data_proxima_revisao?: string | null
           dias_intervalo?: number | null
+          empresa_id?: string | null
           flashcard_id?: string | null
           id?: string
           nivel_facilidade?: number | null
           numero_revisoes?: number | null
-          ultima_revisao?: string | null
           ultimo_feedback?: number | null
           updated_at?: string | null
         }
@@ -1512,11 +1572,11 @@ export type Database = {
           created_at?: string | null
           data_proxima_revisao?: string | null
           dias_intervalo?: number | null
+          empresa_id?: string | null
           flashcard_id?: string | null
           id?: string
           nivel_facilidade?: number | null
           numero_revisoes?: number | null
-          ultima_revisao?: string | null
           ultimo_feedback?: number | null
           updated_at?: string | null
         }
@@ -1526,6 +1586,13 @@ export type Database = {
             columns: ["aluno_id"]
             isOneToOne: false
             referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_flashcards_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
           {
@@ -1544,6 +1611,7 @@ export type Database = {
           comecar_no_modulo: number | null
           created_at: string | null
           curso_id: string | null
+          empresa_id: string
           frequencia_modulos: number | null
           gerar_no_ultimo: boolean | null
           id: string
@@ -1557,6 +1625,7 @@ export type Database = {
           comecar_no_modulo?: number | null
           created_at?: string | null
           curso_id?: string | null
+          empresa_id: string
           frequencia_modulos?: number | null
           gerar_no_ultimo?: boolean | null
           id?: string
@@ -1570,6 +1639,7 @@ export type Database = {
           comecar_no_modulo?: number | null
           created_at?: string | null
           curso_id?: string | null
+          empresa_id?: string
           frequencia_modulos?: number | null
           gerar_no_ultimo?: boolean | null
           id?: string
@@ -1585,13 +1655,20 @@ export type Database = {
             referencedRelation: "cursos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "regras_atividades_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       segmentos: {
         Row: {
           created_at: string
           created_by: string | null
-          empresa_id: string | null
+          empresa_id: string
           id: string
           nome: string
           slug: string | null
@@ -1600,7 +1677,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
-          empresa_id?: string | null
+          empresa_id: string
           id?: string
           nome: string
           slug?: string | null
@@ -1609,7 +1686,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
-          empresa_id?: string | null
+          empresa_id?: string
           id?: string
           nome?: string
           slug?: string | null
@@ -1631,13 +1708,13 @@ export type Database = {
           atividade_relacionada_id: string | null
           created_at: string | null
           disciplina_id: string | null
+          empresa_id: string | null
           fim: string | null
           frente_id: string | null
           id: string
           inicio: string | null
           log_pausas: Json | null
           metodo_estudo: string | null
-          modulo_id: string | null
           nivel_foco: number | null
           status: string | null
           tempo_total_bruto_segundos: number | null
@@ -1649,13 +1726,13 @@ export type Database = {
           atividade_relacionada_id?: string | null
           created_at?: string | null
           disciplina_id?: string | null
+          empresa_id?: string | null
           fim?: string | null
           frente_id?: string | null
           id?: string
           inicio?: string | null
           log_pausas?: Json | null
           metodo_estudo?: string | null
-          modulo_id?: string | null
           nivel_foco?: number | null
           status?: string | null
           tempo_total_bruto_segundos?: number | null
@@ -1667,13 +1744,13 @@ export type Database = {
           atividade_relacionada_id?: string | null
           created_at?: string | null
           disciplina_id?: string | null
+          empresa_id?: string | null
           fim?: string | null
           frente_id?: string | null
           id?: string
           inicio?: string | null
           log_pausas?: Json | null
           metodo_estudo?: string | null
-          modulo_id?: string | null
           nivel_foco?: number | null
           status?: string | null
           tempo_total_bruto_segundos?: number | null
@@ -1707,6 +1784,13 @@ export type Database = {
             columns: ["disciplina_id"]
             isOneToOne: false
             referencedRelation: "disciplinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessoes_estudo_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
@@ -1769,7 +1853,6 @@ export type Database = {
             Returns: boolean
           }
       is_superadmin: { Args: never; Returns: boolean }
-      unaccent: { Args: { "": string }; Returns: string }
       user_belongs_to_empresa: {
         Args: { empresa_id_param: string }
         Returns: boolean
