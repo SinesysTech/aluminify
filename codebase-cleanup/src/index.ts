@@ -10,10 +10,14 @@ export * from './types.js';
 // Export utilities
 export * from './utils/index.js';
 
+// Export analyzers
+export * from './analyzers/index.js';
+
+// Export engine
+export * from './engine/index.js';
+
 // Placeholder for future exports
 // export * from './scanner/index.js';
-// export * from './analyzers/index.js';
-// export * from './engine/index.js';
 // export * from './classifier/index.js';
 // export * from './reporter/index.js';
 // export * from './planner/index.js';
