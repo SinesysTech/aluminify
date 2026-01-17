@@ -1,16 +1,17 @@
 'use client'
 
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
-import { getAvailableSlots } from "@/app/actions/agendamentos";
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
+import { useEffect, useState } from "react"
+import { getAvailableSlots } from "@/app/actions/agendamentos"
+import { Clock } from "lucide-react"
 
 interface RightPanelProps {
-  date: Date;
-  timeZone: string;
-  handleChangeAvailableTime: (time: string) => void;
-  professorId: string;
+  date: Date
+  timeZone: string
+  handleChangeAvailableTime: (time: string, durationMinutes: number) => void
+  professorId: string
 }
 
 export function RightPanel({
@@ -19,78 +20,96 @@ export function RightPanel({
   handleChangeAvailableTime,
   professorId,
 }: RightPanelProps) {
-  const locale = 'pt-BR';
-  
+  const locale = 'pt-BR'
+
   // Format day number and name
-  const dayNumber = date.toLocaleDateString(locale, { day: "numeric", timeZone });
-  const dayName = date.toLocaleDateString(locale, { weekday: "short", timeZone });
-  
-  const [slots, setSlots] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const dayNumber = date.toLocaleDateString(locale, { day: "numeric", timeZone })
+  const dayName = date.toLocaleDateString(locale, { weekday: "short", timeZone })
+
+  const [slots, setSlots] = useState<string[]>([])
+  const [slotDuration, setSlotDuration] = useState<number>(30)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     async function fetchSlots() {
-      if (!professorId) return;
-      setLoading(true);
+      if (!professorId) return
+      setLoading(true)
       try {
-        const dateStr = date.toISOString();
-        const available = await getAvailableSlots(professorId, dateStr);
-        // Remove duplicatas usando Set para garantir chaves únicas no React
-        const uniqueSlots = Array.from(new Set(available));
-        setSlots(uniqueSlots);
+        const dateStr = date.toISOString()
+        const result = await getAvailableSlots(professorId, dateStr)
+        // Remove duplicatas usando Set para garantir chaves unicas no React
+        const uniqueSlots = Array.from(new Set(result.slots))
+        setSlots(uniqueSlots)
+        setSlotDuration(result.slotDurationMinutes)
       } catch (error) {
-        console.error("Failed to fetch slots", error);
+        console.error("Failed to fetch slots", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
-    fetchSlots();
-  }, [date, professorId, timeZone]);
+    fetchSlots()
+  }, [date, professorId, timeZone])
 
-  // Helper to format slot time (HH:MM)
-  const formatTime = (isoString: string) => {
-    const d = new Date(isoString);
-    return d.toLocaleTimeString(locale, {
+  // Helper to format slot time range (HH:MM - HH:MM)
+  const formatTimeRange = (isoString: string, durationMinutes: number) => {
+    const startDate = new Date(isoString)
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
+
+    const formatOptions: Intl.DateTimeFormatOptions = {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: false, 
-      timeZone: timeZone 
-    });
-  };
+      hour12: false,
+      timeZone: timeZone
+    }
+
+    const startTime = startDate.toLocaleTimeString(locale, formatOptions)
+    const endTime = endDate.toLocaleTimeString(locale, formatOptions)
+
+    return `${startTime} - ${endTime}`
+  }
 
   return (
     <div className="flex flex-col gap-4 w-[280px] border-l pl-6">
-      <div className="flex justify-between items-center">
-        <p
-          aria-hidden
-          className="flex-1 align-center font-bold text-md text-gray-12 capitalize"
-        >
-          {dayName} <span className="text-gray-11">{dayNumber}</span>
-        </p>
-      </div>
-      
-          <ScrollArea
-            type="always"
-            className="h-full max-h-[320px]"
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-between items-center">
+          <p
+            aria-hidden
+            className="flex-1 align-center font-bold text-md text-gray-12 capitalize"
           >
-            <div className="grid gap-2 pr-3">
-              {loading ? (
-                <p className="text-sm text-muted-foreground text-center">Carregando...</p>
-              ) : slots.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center">Sem horários disponíveis</p>
-              ) : (
-                slots.map((slotIso) => (
-                  <Button
-                    variant="outline"
-                    onClick={() => handleChangeAvailableTime(slotIso)}
-                    key={slotIso}
-                  >
-                    {formatTime(slotIso)}
-                  </Button>
-                ))
-              )}
-            </div>
-          </ScrollArea>
+            {dayName} <span className="text-gray-11">{dayNumber}</span>
+          </p>
+        </div>
+        {!loading && slots.length > 0 && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <span>Duracao: {slotDuration} minutos</span>
+          </div>
+        )}
+      </div>
+
+      <ScrollArea
+        type="always"
+        className="h-full max-h-[320px]"
+      >
+        <div className="grid gap-2 pr-3">
+          {loading ? (
+            <p className="text-sm text-muted-foreground text-center">Carregando...</p>
+          ) : slots.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center">Sem horarios disponiveis</p>
+          ) : (
+            slots.map((slotIso) => (
+              <Button
+                variant="outline"
+                onClick={() => handleChangeAvailableTime(slotIso, slotDuration)}
+                key={slotIso}
+                className="justify-start"
+              >
+                {formatTimeRange(slotIso, slotDuration)}
+              </Button>
+            ))
+          )}
+        </div>
+      </ScrollArea>
     </div>
-  );
+  )
 }

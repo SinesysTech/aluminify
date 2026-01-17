@@ -1,8 +1,8 @@
-import { RecorrenciaManager } from "@/components/professor/recorrencia-manager"
+import { RelatoriosDashboard } from "@/components/professor/relatorios-dashboard"
 import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 
-export default async function DisponibilidadePage() {
+export default async function RelatoriosPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -15,7 +15,7 @@ export default async function DisponibilidadePage() {
   // Get professor's empresa_id
   const { data: professor } = await supabase
     .from("professores")
-    .select("empresa_id")
+    .select("empresa_id, admin")
     .eq("id", user.id)
     .single()
 
@@ -23,9 +23,9 @@ export default async function DisponibilidadePage() {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Disponibilidade</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Relatorios</h1>
           <p className="text-muted-foreground">
-            Voce precisa estar vinculado a uma empresa para configurar disponibilidade.
+            Voce precisa estar vinculado a uma empresa para acessar relatorios.
           </p>
         </div>
       </div>
@@ -35,13 +35,13 @@ export default async function DisponibilidadePage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Disponibilidade</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Relatorios de Agendamentos</h1>
         <p className="text-muted-foreground">
-          Configure seus horarios de atendimento para mentoria.
+          Visualize estatisticas e gere relatorios sobre seus agendamentos.
         </p>
       </div>
 
-      <RecorrenciaManager professorId={user.id} empresaId={professor.empresa_id} />
+      <RelatoriosDashboard empresaId={professor.empresa_id} />
     </div>
   )
 }

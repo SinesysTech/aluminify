@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { AgendamentoComDetalhes, confirmarAgendamento, rejeitarAgendamento } from "@/app/actions/agendamentos"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +24,7 @@ interface AgendamentoActionsProps {
 }
 
 export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
+  const router = useRouter()
   const [isConfirming, setIsConfirming] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
   const [linkReuniao, setLinkReuniao] = useState("")
@@ -39,6 +41,7 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
       toast.success("Agendamento confirmado com sucesso!")
       setConfirmDialogOpen(false)
       setLinkReuniao("")
+      router.refresh()
     } catch (error) {
       toast.error("Erro ao confirmar agendamento")
       console.error(error)
@@ -56,6 +59,7 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
       toast.success("Agendamento rejeitado")
       setRejectDialogOpen(false)
       setMotivoRejeicao("")
+      router.refresh()
     } catch (error) {
       toast.error("Erro ao rejeitar agendamento")
       console.error(error)

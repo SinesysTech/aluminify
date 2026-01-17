@@ -1,3 +1,13 @@
+/**
+ * @deprecated Use RecorrenciaManager instead.
+ * This component uses the legacy agendamento_disponibilidade table.
+ * The new RecorrenciaManager uses agendamento_recorrencia which supports:
+ * - Service types (plantao/mentoria)
+ * - Date ranges (vigencia)
+ * - Configurable slot duration
+ *
+ * This file is kept for backwards compatibility but should not be used in new code.
+ */
 "use client"
 
 import { useEffect, useState } from "react"

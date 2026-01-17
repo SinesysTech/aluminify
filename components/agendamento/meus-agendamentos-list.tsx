@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { AgendamentoComDetalhes, cancelAgendamentoWithReason } from "@/app/actions/agendamentos"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -115,6 +116,7 @@ interface AgendamentoAlunoCardProps {
 }
 
 function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCardProps) {
+  const router = useRouter()
   const [isCancelling, setIsCancelling] = useState(false)
   const [motivoCancelamento, setMotivoCancelamento] = useState("")
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
@@ -141,6 +143,7 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
       toast.success("Agendamento cancelado")
       setCancelDialogOpen(false)
       setMotivoCancelamento("")
+      router.refresh()
     } catch (error) {
       toast.error("Erro ao cancelar agendamento")
       console.error(error)

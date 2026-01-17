@@ -355,17 +355,38 @@ export async function cancelAgendamento(id: string) {
     throw new Error('Unauthorized')
   }
 
+  // Verify ownership - user must be either aluno or professor of the appointment
+  const { data: agendamento } = await supabase
+    .from('agendamentos')
+    .select('professor_id, aluno_id')
+    .eq('id', id)
+    .single()
+
+  if (!agendamento) {
+    throw new Error('Agendamento nao encontrado')
+  }
+
+  const isOwner = agendamento.aluno_id === user.id || agendamento.professor_id === user.id
+  if (!isOwner) {
+    throw new Error('Voce nao tem permissao para cancelar este agendamento')
+  }
+
   const { error } = await supabase
     .from('agendamentos')
-    .update({ status: 'cancelado' })
+    .update({
+      status: 'cancelado',
+      cancelado_por: user.id
+    })
     .eq('id', id)
 
   if (error) {
     console.error('Error cancelling appointment:', error)
-    throw new Error('Failed to cancel appointment')
+    throw new Error('Falha ao cancelar agendamento')
   }
 
   revalidatePath('/agendamentos')
+  revalidatePath('/meus-agendamentos')
+  revalidatePath('/professor/agendamentos')
   return { success: true }
 }
 
@@ -473,7 +494,109 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
     minAdvanceMinutes
   )
 
-  return slots.map(slot => slot.toISOString())
+  return {
+    slots: slots.map(slot => slot.toISOString()),
+    slotDurationMinutes: slotDuration
+  }
+}
+
+// Legacy function for backwards compatibility - returns only slot strings
+export async function getAvailableSlotsLegacy(professorId: string, dateStr: string): Promise<string[]> {
+  const result = await getAvailableSlots(professorId, dateStr)
+  return result.slots
+}
+
+// Get availability summary for a month (which days have available slots)
+export async function getAvailabilityForMonth(
+  professorId: string,
+  year: number,
+  month: number // 1-12
+): Promise<{ [date: string]: { hasSlots: boolean; slotCount: number } }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return {}
+  }
+
+  // Get professor's empresa_id
+  const { data: professor } = await supabase
+    .from('professores')
+    .select('empresa_id')
+    .eq('id', professorId)
+    .single()
+
+  if (!professor?.empresa_id) {
+    return {}
+  }
+
+  // Get recorrencias for this professor
+  const monthStart = new Date(year, month - 1, 1)
+  const monthEnd = new Date(year, month, 0)
+
+  const { data: recorrencias } = await supabase
+    .from('agendamento_recorrencia')
+    .select('*')
+    .eq('professor_id', professorId)
+    .eq('ativo', true)
+    .or(`data_fim.is.null,data_fim.gte.${monthStart.toISOString().split('T')[0]}`)
+    .lte('data_inicio', monthEnd.toISOString().split('T')[0])
+
+  if (!recorrencias || recorrencias.length === 0) {
+    return {}
+  }
+
+  // Create a map of day of week -> recorrencias
+  const dayRecorrencias: { [dayOfWeek: number]: boolean } = {}
+  for (const rec of recorrencias) {
+    dayRecorrencias[rec.dia_semana] = true
+  }
+
+  // Get existing appointments for the month
+  const { data: appointments } = await supabase
+    .from('agendamentos')
+    .select('data_inicio')
+    .eq('professor_id', professorId)
+    .in('status', ['pendente', 'confirmado'])
+    .gte('data_inicio', monthStart.toISOString())
+    .lte('data_inicio', monthEnd.toISOString())
+
+  // Count appointments per date
+  const appointmentCounts: { [date: string]: number } = {}
+  for (const apt of appointments || []) {
+    const dateKey = new Date(apt.data_inicio).toISOString().split('T')[0]
+    appointmentCounts[dateKey] = (appointmentCounts[dateKey] || 0) + 1
+  }
+
+  // Build availability map for each day of the month
+  const availability: { [date: string]: { hasSlots: boolean; slotCount: number } } = {}
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  for (let day = 1; day <= monthEnd.getDate(); day++) {
+    const date = new Date(year, month - 1, day)
+    const dateKey = date.toISOString().split('T')[0]
+    const dayOfWeek = date.getUTCDay()
+
+    // Skip past dates
+    if (date < today) {
+      continue
+    }
+
+    // Check if this day has recorrencias
+    if (dayRecorrencias[dayOfWeek]) {
+      // Estimate slot count (simplified - actual count would need full slot generation)
+      const existingCount = appointmentCounts[dateKey] || 0
+      // Assume about 8-16 slots per day on average, minus existing appointments
+      const estimatedSlots = Math.max(0, 10 - existingCount)
+      availability[dateKey] = {
+        hasSlots: estimatedSlots > 0,
+        slotCount: estimatedSlots
+      }
+    }
+  }
+
+  return availability
 }
 
 // =============================================
@@ -720,7 +843,12 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     .single()
 
   if (!agendamento) {
-    throw new Error('Appointment not found')
+    throw new Error('Agendamento nao encontrado')
+  }
+
+  // Verify that user is the professor of this appointment
+  if (agendamento.professor_id !== user.id) {
+    throw new Error('Apenas o professor pode confirmar este agendamento')
   }
 
   let linkToUse = linkReuniao
@@ -823,6 +951,21 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
     throw new Error('Unauthorized')
   }
 
+  // Verify ownership first for better error message
+  const { data: agendamento } = await supabase
+    .from('agendamentos')
+    .select('professor_id')
+    .eq('id', id)
+    .single()
+
+  if (!agendamento) {
+    throw new Error('Agendamento nao encontrado')
+  }
+
+  if (agendamento.professor_id !== user.id) {
+    throw new Error('Apenas o professor pode rejeitar este agendamento')
+  }
+
   const { data, error } = await supabase
     .from('agendamentos')
     .update({
@@ -831,13 +974,12 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
       cancelado_por: user.id
     })
     .eq('id', id)
-    .eq('professor_id', user.id)
     .select()
     .single()
 
   if (error) {
     console.error('Error rejecting appointment:', error)
-    throw new Error('Failed to reject appointment')
+    throw new Error('Falha ao rejeitar agendamento')
   }
 
   // Notification is created by database trigger notify_agendamento_change()
@@ -856,7 +998,7 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
     throw new Error('Unauthorized')
   }
 
-  // First get the agendamento to validate cancellation
+  // First get the agendamento to validate cancellation and ownership
   const { data: agendamento } = await supabase
     .from('agendamentos')
     .select('professor_id, aluno_id, data_inicio, status')
@@ -864,13 +1006,19 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
     .single()
 
   if (!agendamento) {
-    throw new Error('Appointment not found')
+    throw new Error('Agendamento nao encontrado')
+  }
+
+  // Verify ownership - user must be either aluno or professor of the appointment
+  const isOwner = agendamento.aluno_id === user.id || agendamento.professor_id === user.id
+  if (!isOwner) {
+    throw new Error('Voce nao tem permissao para cancelar este agendamento')
   }
 
   // Validate cancellation timing (2 hours minimum)
   const validationResult = validateCancellation(new Date(agendamento.data_inicio), 2)
   if (!validationResult.valid) {
-    throw new Error(validationResult.error || 'Cannot cancel appointment')
+    throw new Error(validationResult.error || 'Nao e possivel cancelar este agendamento')
   }
 
   const { error } = await supabase
@@ -884,7 +1032,7 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
 
   if (error) {
     console.error('Error cancelling appointment:', error)
-    throw new Error('Failed to cancel appointment')
+    throw new Error('Falha ao cancelar agendamento')
   }
 
   // Notification is created by database trigger notify_agendamento_change()
@@ -1586,14 +1734,16 @@ export async function createBloqueio(data: Omit<Bloqueio, 'id' | 'created_at' | 
   }
 
   // If blocking affects existing appointments, cancel them
+  // Proper range overlap check: appointment starts before bloqueio ends AND appointment ends after bloqueio starts
+  // This catches all overlap cases: partial start, partial end, full containment, exact match
   if (result.professor_id) {
     const { error: cancelError } = await supabase
       .from('agendamentos')
       .update({ status: 'cancelado', motivo_cancelamento: `Bloqueio de agenda: ${data.motivo || 'Sem motivo especificado'}` })
       .eq('professor_id', result.professor_id)
       .in('status', ['pendente', 'confirmado'])
-      .gte('data_inicio', dataInicio)
-      .lte('data_fim', dataFim)
+      .lt('data_inicio', dataFim)  // Appointment starts before bloqueio ends
+      .gt('data_fim', dataInicio)   // Appointment ends after bloqueio starts
 
     if (cancelError) {
       console.error('Error cancelling affected appointments:', cancelError)
@@ -1612,8 +1762,8 @@ export async function createBloqueio(data: Omit<Bloqueio, 'id' | 'created_at' | 
         .update({ status: 'cancelado', motivo_cancelamento: `Bloqueio de agenda: ${data.motivo || 'Sem motivo especificado'}` })
         .in('professor_id', professorIds)
         .in('status', ['pendente', 'confirmado'])
-        .gte('data_inicio', dataInicio)
-        .lte('data_fim', dataFim)
+        .lt('data_inicio', dataFim)  // Appointment starts before bloqueio ends
+        .gt('data_fim', dataInicio)   // Appointment ends after bloqueio starts
 
       if (cancelError) {
         console.error('Error cancelling affected appointments:', cancelError)
@@ -1796,19 +1946,23 @@ export async function validateAgendamento(
     }
   }
 
-  // Check if within availability
+  // Check if within availability (using agendamento_recorrencia table)
   const dayOfWeek = dataInicio.getUTCDay()
-  const { data: rules } = await supabase
-    .from('agendamento_disponibilidade')
+  const dateStr = dataInicio.toISOString().split('T')[0]
+
+  const { data: recorrencias } = await supabase
+    .from('agendamento_recorrencia')
     .select('*')
     .eq('professor_id', professorId)
     .eq('dia_semana', dayOfWeek)
     .eq('ativo', true)
+    .lte('data_inicio', dateStr)
+    .or(`data_fim.is.null,data_fim.gte.${dateStr}`)
 
-  if (!rules || rules.length === 0) {
+  if (!recorrencias || recorrencias.length === 0) {
     return {
       valid: false,
-      error: 'O professor não tem disponibilidade neste dia.'
+      error: 'O professor nao tem disponibilidade neste dia.'
     }
   }
 
@@ -1820,16 +1974,32 @@ export async function validateAgendamento(
   const startMinutes = dataInicio.getUTCHours() * 60 + dataInicio.getUTCMinutes()
   const endMinutes = dataFim.getUTCHours() * 60 + dataFim.getUTCMinutes()
 
-  const isWithinAvailability = rules.some(rule => {
-    const ruleStart = timeToMinutes(rule.hora_inicio)
-    const ruleEnd = timeToMinutes(rule.hora_fim)
+  const isWithinAvailability = recorrencias.some(rec => {
+    const ruleStart = timeToMinutes(rec.hora_inicio)
+    const ruleEnd = timeToMinutes(rec.hora_fim)
     return startMinutes >= ruleStart && endMinutes <= ruleEnd
   })
 
   if (!isWithinAvailability) {
     return {
       valid: false,
-      error: 'O horário selecionado está fora da disponibilidade do professor.'
+      error: 'O horario selecionado esta fora da disponibilidade do professor.'
+    }
+  }
+
+  // Check for bloqueios
+  const { data: bloqueios } = await supabase
+    .from('agendamento_bloqueios')
+    .select('id')
+    .or(`professor_id.is.null,professor_id.eq.${professorId}`)
+    .lt('data_inicio', dataFim.toISOString())
+    .gt('data_fim', dataInicio.toISOString())
+    .limit(1)
+
+  if (bloqueios && bloqueios.length > 0) {
+    return {
+      valid: false,
+      error: 'O horario selecionado esta bloqueado pelo professor.'
     }
   }
 
@@ -2018,4 +2188,237 @@ export async function getAgendamentoStats(professorId: string) {
   }
 
   return stats
+}
+
+// =============================================
+// Professor Selection Functions
+// =============================================
+
+export type ProfessorDisponivel = {
+  id: string
+  nome: string
+  email: string
+  foto_url?: string | null
+  especialidade?: string | null
+  bio?: string | null
+  empresa_id: string
+  proximos_slots: string[] // ISO strings of next available slots
+  tem_disponibilidade: boolean
+}
+
+export async function getProfessoresDisponiveis(empresaId?: string): Promise<ProfessorDisponivel[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  // If no empresaId provided, try to get from aluno's enrolled courses
+  let targetEmpresaId = empresaId
+  if (!targetEmpresaId) {
+    const { data: alunoData } = await supabase
+      .from('alunos')
+      .select('empresa_id')
+      .eq('id', user.id)
+      .single()
+
+    if (alunoData?.empresa_id) {
+      targetEmpresaId = alunoData.empresa_id
+    } else {
+      // Try to get empresa from enrolled courses
+      const { data: cursosData } = await supabase
+        .from('alunos_cursos')
+        .select('cursos(empresa_id)')
+        .eq('aluno_id', user.id)
+        .limit(1)
+        .single()
+
+      type CursoWithEmpresa = { cursos: { empresa_id: string } | null }
+      const cursoData = cursosData as unknown as CursoWithEmpresa
+      if (cursoData?.cursos?.empresa_id) {
+        targetEmpresaId = cursoData.cursos.empresa_id
+      }
+    }
+  }
+
+  if (!targetEmpresaId) {
+    console.warn('No empresa_id found for user')
+    return []
+  }
+
+  // Get all professors from the company
+  const { data: professores, error } = await supabase
+    .from('professores')
+    .select('id, nome_completo, email, foto_url, especialidade, bio, empresa_id')
+    .eq('empresa_id', targetEmpresaId)
+    .order('nome_completo', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching professors:', error)
+    return []
+  }
+
+  if (!professores || professores.length === 0) {
+    return []
+  }
+
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  const nextWeek = new Date(today)
+  nextWeek.setDate(nextWeek.getDate() + 7)
+  const nextWeekStr = nextWeek.toISOString().split('T')[0]
+
+  // Get recorrencias for all professors
+  const professorIds = professores.map(p => p.id)
+  const { data: recorrencias } = await supabase
+    .from('agendamento_recorrencia')
+    .select('professor_id, dia_semana, hora_inicio, hora_fim, duracao_slot_minutos, data_inicio, data_fim')
+    .in('professor_id', professorIds)
+    .eq('ativo', true)
+    .lte('data_inicio', nextWeekStr)
+    .or(`data_fim.is.null,data_fim.gte.${todayStr}`)
+
+  // Get existing appointments for next week
+  const { data: agendamentos } = await supabase
+    .from('agendamentos')
+    .select('professor_id, data_inicio, data_fim')
+    .in('professor_id', professorIds)
+    .gte('data_inicio', today.toISOString())
+    .lte('data_inicio', nextWeek.toISOString())
+    .neq('status', 'cancelado')
+
+  // Get bloqueios for next week
+  const { data: bloqueios } = await supabase
+    .from('agendamento_bloqueios')
+    .select('professor_id, data_inicio, data_fim')
+    .eq('empresa_id', targetEmpresaId)
+    .lte('data_inicio', nextWeek.toISOString())
+    .gte('data_fim', today.toISOString())
+
+  // Build result for each professor
+  const result: ProfessorDisponivel[] = professores.map(professor => {
+    const profRecorrencias = ((recorrencias || []) as AgendamentoRecorrencia[])
+      .filter(r => r.professor_id === professor.id)
+
+    const profAgendamentos = (agendamentos || [])
+      .filter(a => a.professor_id === professor.id)
+      .map(a => ({
+        start: new Date(a.data_inicio),
+        end: new Date(a.data_fim)
+      }))
+
+    const profBloqueios = ((bloqueios || []) as AgendamentoBloqueio[])
+      .filter(b => !b.professor_id || b.professor_id === professor.id)
+      .map(b => ({
+        start: new Date(b.data_inicio),
+        end: new Date(b.data_fim)
+      }))
+
+    const allBlockedSlots = [...profAgendamentos, ...profBloqueios]
+
+    // Find next available slots (up to 3)
+    const proximosSlots: string[] = []
+    const checkDate = new Date(today)
+    let daysChecked = 0
+
+    while (proximosSlots.length < 3 && daysChecked < 14) {
+      const dayOfWeek = checkDate.getUTCDay()
+      const dateStr = checkDate.toISOString().split('T')[0]
+
+      const dayRules = profRecorrencias.filter(r =>
+        r.dia_semana === dayOfWeek &&
+        r.data_inicio <= dateStr &&
+        (!r.data_fim || r.data_fim >= dateStr)
+      )
+
+      if (dayRules.length > 0) {
+        const rules = dayRules.map(r => ({
+          dia_semana: r.dia_semana,
+          hora_inicio: r.hora_inicio,
+          hora_fim: r.hora_fim,
+          ativo: true
+        }))
+
+        const slotDuration = dayRules[0]?.duracao_slot_minutos || 30
+        const slots = generateAvailableSlots(
+          checkDate,
+          rules,
+          allBlockedSlots,
+          slotDuration,
+          60 // min advance
+        )
+
+        for (const slot of slots) {
+          if (proximosSlots.length < 3) {
+            proximosSlots.push(slot.toISOString())
+          }
+        }
+      }
+
+      checkDate.setDate(checkDate.getDate() + 1)
+      daysChecked++
+    }
+
+    return {
+      id: professor.id,
+      nome: professor.nome_completo || '',
+      email: professor.email || '',
+      foto_url: professor.foto_url,
+      especialidade: professor.especialidade,
+      bio: professor.bio,
+      empresa_id: professor.empresa_id,
+      proximos_slots: proximosSlots,
+      tem_disponibilidade: profRecorrencias.length > 0
+    }
+  })
+
+  // Sort: professors with availability first, then by name
+  return result.sort((a, b) => {
+    if (a.tem_disponibilidade && !b.tem_disponibilidade) return -1
+    if (!a.tem_disponibilidade && b.tem_disponibilidade) return 1
+    if (a.proximos_slots.length > 0 && b.proximos_slots.length === 0) return -1
+    if (a.proximos_slots.length === 0 && b.proximos_slots.length > 0) return 1
+    return a.nome.localeCompare(b.nome)
+  })
+}
+
+export async function getProfessorById(professorId: string): Promise<ProfessorDisponivel | null> {
+  const supabase = await createClient()
+
+  const { data: professor, error } = await supabase
+    .from('professores')
+    .select('id, nome_completo, email, foto_url, especialidade, bio, empresa_id')
+    .eq('id', professorId)
+    .single()
+
+  if (error || !professor) {
+    console.error('Error fetching professor:', error)
+    return null
+  }
+
+  // Check if professor has any active recorrencias
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+
+  const { data: recorrencias } = await supabase
+    .from('agendamento_recorrencia')
+    .select('id')
+    .eq('professor_id', professorId)
+    .eq('ativo', true)
+    .lte('data_inicio', todayStr)
+    .or(`data_fim.is.null,data_fim.gte.${todayStr}`)
+    .limit(1)
+
+  return {
+    id: professor.id,
+    nome: professor.nome_completo || '',
+    email: professor.email || '',
+    foto_url: professor.foto_url,
+    especialidade: professor.especialidade,
+    bio: professor.bio,
+    empresa_id: professor.empresa_id,
+    proximos_slots: [],
+    tem_disponibilidade: (recorrencias?.length || 0) > 0
+  }
 }
