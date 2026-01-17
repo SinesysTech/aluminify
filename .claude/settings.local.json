@@ -20,9 +20,18 @@
       "Bash(ls:*)",
       "Bash(grep:*)",
       "Bash(dir /b \"e:\\\\Development\\\\aluminify\\\\middleware*\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__list_migrations"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
