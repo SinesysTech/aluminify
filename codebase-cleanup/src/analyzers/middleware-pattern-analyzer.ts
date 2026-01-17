@@ -704,8 +704,9 @@ export class MiddlewarePatternAnalyzer extends BasePatternAnalyzer {
       .map(m => m.middlewareName.toLowerCase());
 
     // Anti-pattern 1: Validation before authentication
+    // Note: Check for 'authenticate' first, then 'auth' (but exclude 'authorize')
     const authIndex = order.findIndex(name => 
-      name.includes('auth') || name.includes('authenticate')
+      (name.includes('authenticate') || (name.includes('auth') && !name.includes('authorize')))
     );
     const validateIndex = order.findIndex(name => 
       name.includes('validate') || name.includes('validation')
