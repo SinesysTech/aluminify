@@ -401,6 +401,218 @@ describe('AnalysisEngine', () => {
             expect(engine.getErrorCount()).toBe(0);
             expect(engine.getParseErrors().size).toBe(0);
         });
+        it('should clear performance metrics', async () => {
+            const files = [createMockFile('file.ts', 'util')];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            const tmpFile = path.join(tmpDir, 'file.ts');
+            await fs.writeFile(tmpFile, 'const x = 1;');
+            files[0].path = tmpFile;
+            const analyzer = new MockAnalyzer(['util'], async () => []);
+            try {
+                await engine.analyze(files, [analyzer]);
+                expect(engine.getFileMetrics().length).toBe(1);
+                engine.reset();
+                expect(engine.getFileMetrics().length).toBe(0);
+            }
+            finally {
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
+    });
+    describe('performance tracking', () => {
+        it('should track performance metrics for each file', async () => {
+            const files = [
+                createMockFile('file1.ts', 'util'),
+                createMockFile('file2.ts', 'util'),
+            ];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            for (const file of files) {
+                const tmpFile = path.join(tmpDir, file.relativePath);
+                await fs.writeFile(tmpFile, 'const x = 1;');
+                file.path = tmpFile;
+            }
+            const analyzer = new MockAnalyzer(['util'], async (file) => [
+                createMockIssue(file.path),
+            ]);
+            try {
+                await engine.analyze(files, [analyzer]);
+                const metrics = engine.getFileMetrics();
+                expect(metrics.length).toBe(2);
+                for (const metric of metrics) {
+                    expect(metric.filePath).toBeDefined();
+                    expect(metric.parseTime).toBeGreaterThanOrEqual(0);
+                    expect(metric.analysisTime).toBeGreaterThanOrEqual(0);
+                    expect(metric.totalTime).toBeGreaterThanOrEqual(0);
+                    expect(metric.issuesFound).toBe(1);
+                    expect(metric.analyzersRun).toBe(1);
+                }
+            }
+            finally {
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
+        it('should calculate aggregated performance metrics', async () => {
+            const files = [
+                createMockFile('file1.ts', 'util'),
+                createMockFile('file2.ts', 'util'),
+            ];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            for (const file of files) {
+                const tmpFile = path.join(tmpDir, file.relativePath);
+                await fs.writeFile(tmpFile, 'const x = 1;');
+                file.path = tmpFile;
+            }
+            const analyzer = new MockAnalyzer(['util'], async () => []);
+            try {
+                await engine.analyze(files, [analyzer]);
+                const metrics = engine.getPerformanceMetrics();
+                expect(metrics.totalDuration).toBeGreaterThanOrEqual(0);
+                expect(metrics.averageTimePerFile).toBeGreaterThanOrEqual(0);
+                expect(metrics.totalParseTime).toBeGreaterThanOrEqual(0);
+                expect(metrics.totalAnalysisTime).toBeGreaterThanOrEqual(0);
+                expect(metrics.fastestFile).toBeDefined();
+                expect(metrics.slowestFile).toBeDefined();
+                expect(metrics.fileMetrics.length).toBe(2);
+            }
+            finally {
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
+        it('should identify fastest and slowest files', async () => {
+            const files = [
+                createMockFile('fast.ts', 'util'),
+                createMockFile('slow.ts', 'util'),
+            ];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            for (const file of files) {
+                const tmpFile = path.join(tmpDir, file.relativePath);
+                await fs.writeFile(tmpFile, 'const x = 1;');
+                file.path = tmpFile;
+            }
+            // Slow analyzer that takes longer on the second file
+            const analyzer = new MockAnalyzer(['util'], async (file) => {
+                if (file.relativePath === 'slow.ts') {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                return [];
+            });
+            try {
+                await engine.analyze(files, [analyzer]);
+                const metrics = engine.getPerformanceMetrics();
+                expect(metrics.fastestFile).toBeDefined();
+                expect(metrics.slowestFile).toBeDefined();
+                // The slowest file should have taken more time than the fastest
+                expect(metrics.slowestFile.totalTime).toBeGreaterThan(metrics.fastestFile.totalTime);
+                // With a 100ms delay, slow.ts should be significantly slower
+                expect(metrics.slowestFile.totalTime).toBeGreaterThan(50);
+            }
+            finally {
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
+        it('should return empty metrics when no files analyzed', () => {
+            const metrics = engine.getPerformanceMetrics();
+            expect(metrics.totalDuration).toBe(0);
+            expect(metrics.averageTimePerFile).toBe(0);
+            expect(metrics.fastestFile).toBeNull();
+            expect(metrics.slowestFile).toBeNull();
+            expect(metrics.totalParseTime).toBe(0);
+            expect(metrics.totalAnalysisTime).toBe(0);
+            expect(metrics.fileMetrics.length).toBe(0);
+        });
+        it('should include elapsed time and average in progress callback', async () => {
+            const files = [
+                createMockFile('file1.ts', 'util'),
+                createMockFile('file2.ts', 'util'),
+            ];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            for (const file of files) {
+                const tmpFile = path.join(tmpDir, file.relativePath);
+                await fs.writeFile(tmpFile, 'const x = 1;');
+                file.path = tmpFile;
+            }
+            const onProgress = vi.fn();
+            const engineWithProgress = new AnalysisEngineImpl({ onProgress });
+            const analyzer = new MockAnalyzer(['util'], async () => []);
+            try {
+                await engineWithProgress.analyze(files, [analyzer]);
+                expect(onProgress).toHaveBeenCalledTimes(2);
+                // Check that progress includes new fields
+                expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({
+                    currentFile: expect.any(Number),
+                    totalFiles: 2,
+                    fileName: expect.any(String),
+                    issuesFound: expect.any(Number),
+                    elapsedTime: expect.any(Number),
+                    averageTimePerFile: expect.any(Number),
+                }));
+                // Verify elapsed time increases
+                const firstCall = onProgress.mock.calls[0][0];
+                const secondCall = onProgress.mock.calls[1][0];
+                expect(secondCall.elapsedTime).toBeGreaterThanOrEqual(firstCall.elapsedTime);
+            }
+            finally {
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
+        it('should log performance summary when logPerformance is enabled', async () => {
+            const files = [createMockFile('file.ts', 'util')];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            const tmpFile = path.join(tmpDir, 'file.ts');
+            await fs.writeFile(tmpFile, 'const x = 1;');
+            files[0].path = tmpFile;
+            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+            const engineWithLogging = new AnalysisEngineImpl({ logPerformance: true });
+            const analyzer = new MockAnalyzer(['util'], async () => []);
+            try {
+                await engineWithLogging.analyze(files, [analyzer]);
+                // Should have logged performance summary
+                expect(consoleSpy).toHaveBeenCalled();
+                const logCalls = consoleSpy.mock.calls.map(call => call.join(' '));
+                const hasPerformanceLogs = logCalls.some(log => log.includes('Performance Summary') ||
+                    log.includes('Starting analysis'));
+                expect(hasPerformanceLogs).toBe(true);
+            }
+            finally {
+                consoleSpy.mockRestore();
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
+        it('should not log performance when logPerformance is disabled', async () => {
+            const files = [createMockFile('file.ts', 'util')];
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            const tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'tmp-test-'));
+            const tmpFile = path.join(tmpDir, 'file.ts');
+            await fs.writeFile(tmpFile, 'const x = 1;');
+            files[0].path = tmpFile;
+            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+            const analyzer = new MockAnalyzer(['util'], async () => []);
+            try {
+                await engine.analyze(files, [analyzer]);
+                // Should not have logged performance summary
+                const logCalls = consoleSpy.mock.calls.map(call => call.join(' '));
+                const hasPerformanceLogs = logCalls.some(log => log.includes('Performance Summary') ||
+                    log.includes('Starting analysis'));
+                expect(hasPerformanceLogs).toBe(false);
+            }
+            finally {
+                consoleSpy.mockRestore();
+                await fs.rm(tmpDir, { recursive: true, force: true });
+            }
+        });
     });
 });
 //# sourceMappingURL=analysis-engine.test.js.map

@@ -152,13 +152,13 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Identify duplicate component logic
     - _Requirements: 6.4, 6.5_
   
-  - [~] 7.4 Write property tests for component pattern detection
+  - [ ] 7.4 Write property tests for component pattern detection
     - **Property 12: Component Prop Drilling Detection**
     - **Property 13: Component Pattern Inconsistency Detection**
     - **Validates: Requirements 6.3, 6.4**
     - Generate component trees, verify prop drilling and pattern detection
   
-  - [~] 7.5 Write unit tests for component anti-patterns
+  - [ ] 7.5 Write unit tests for component anti-patterns
     - Test specific examples of prop drilling, duplicate logic
     - _Requirements: 6.1, 6.3, 6.4, 6.5_
 
@@ -178,13 +178,13 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Detect unnecessary type assertions
     - _Requirements: 7.3_
   
-  - [~] 8.4 Write property tests for type pattern detection
+  - [ ] 8.4 Write property tests for type pattern detection
     - **Property 15: Type Definition Inconsistency Detection**
     - **Property 16: Type Safety Issue Detection**
     - **Validates: Requirements 7.2, 7.3, 7.4, 7.5**
     - Generate code with type issues, verify detection
   
-  - [~] 8.5 Write unit tests for type anti-patterns
+  - [ ] 8.5 Write unit tests for type anti-patterns
     - Test specific examples of duplicate types, 'any' usage
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
@@ -201,12 +201,12 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Detect duplicate middleware usage
     - _Requirements: 4.2, 4.3, 4.4, 4.5_
   
-  - [~] 9.3 Write property tests for API route pattern detection
+  - [ ] 9.3 Write property tests for API route pattern detection
     - **Property 9: API Route Pattern Inconsistency Detection**
     - **Validates: Requirements 4.2, 4.3, 4.4, 4.5**
     - Generate API routes with various patterns, verify detection
   
-  - [~] 9.4 Write unit tests for API route anti-patterns
+  - [ ] 9.4 Write unit tests for API route anti-patterns
     - Test specific examples of inconsistent routes
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
@@ -226,13 +226,13 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Identify unnecessary service abstraction layers
     - _Requirements: 5.4, 5.5_
   
-  - [~] 10.4 Write property tests for service pattern detection
+  - [ ] 10.4 Write property tests for service pattern detection
     - **Property 10: Circular Dependency Detection**
     - **Property 11: Service Pattern Inconsistency Detection**
     - **Validates: Requirements 5.3, 5.4**
     - Generate services with circular deps, verify detection
   
-  - [~] 10.5 Write unit tests for service anti-patterns
+  - [ ] 10.5 Write unit tests for service anti-patterns
     - Test specific examples of circular dependencies, inconsistent patterns
     - _Requirements: 5.1, 5.3, 5.4, 5.5_
 
@@ -248,67 +248,67 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Identify consolidation opportunities
     - _Requirements: 15.2, 15.3, 15.5_
   
-  - [~] 11.3 Write property tests for middleware pattern detection
+  - [ ] 11.3 Write property tests for middleware pattern detection
     - **Property 23: Middleware Pattern Inconsistency Detection**
     - **Validates: Requirements 15.3, 15.5**
     - Generate middleware with various patterns, verify detection
   
-  - [~] 11.4 Write unit tests for middleware anti-patterns
+  - [ ] 11.4 Write unit tests for middleware anti-patterns
     - Test specific examples of duplicate middleware, inconsistent ordering
     - _Requirements: 15.1, 15.2, 15.3, 15.5_
 
 - [ ] 12. Implement ErrorHandlingPatternAnalyzer
-  - [~] 12.1 Implement error handling pattern discovery
+  - [x] 12.1 Implement error handling pattern discovery
     - Find all error handling patterns (try-catch, error returns, etc.)
     - Track error response formats
     - _Requirements: 9.1_
   
-  - [~] 12.2 Implement error handling inconsistency detection
+  - [x] 12.2 Implement error handling inconsistency detection
     - Detect inconsistent error response formats
     - Detect missing error logging
     - Detect missing error recovery
     - Identify opportunities for typed errors
     - _Requirements: 9.2, 9.3, 9.4, 9.5_
   
-  - [~] 12.3 Write property tests for error handling detection
+  - [ ] 12.3 Write property tests for error handling detection
     - **Property 17: Error Handling Inconsistency Detection**
     - **Validates: Requirements 9.2, 9.3, 9.4, 9.5**
     - Generate error handling code, verify inconsistency detection
   
-  - [~] 12.4 Write unit tests for error handling anti-patterns
+  - [ ] 12.4 Write unit tests for error handling anti-patterns
     - Test specific examples of inconsistent error handling
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
 - [ ] 13. Implement BackwardCompatibilityAnalyzer
-  - [~] 13.1 Implement backward compatibility pattern detection
+  - [-] 13.1 Implement backward compatibility pattern detection
     - Detect version checks and feature flags
     - Detect polyfills and shims
     - Detect migration code patterns
     - Detect dual implementations (old + new)
     - _Requirements: 1.2, 13.1, 13.2, 13.3, 13.4_
   
-  - [~] 13.2 Write property tests for backward compatibility detection
+  - [ ] 13.2 Write property tests for backward compatibility detection
     - **Property 2: Backward Compatibility Pattern Detection**
     - **Validates: Requirements 1.2, 13.1, 13.2, 13.3, 13.4**
     - Generate code with compatibility patterns, verify detection
   
-  - [~] 13.3 Write unit tests for backward compatibility patterns
+  - [ ] 13.3 Write unit tests for backward compatibility patterns
     - Test specific examples of version checks, polyfills, migration code
     - _Requirements: 1.2, 13.1, 13.2, 13.3, 13.4_
 
 - [ ] 14. Implement AdapterPatternAnalyzer
-  - [~] 14.1 Implement adapter pattern detection
+  - [ ] 14.1 Implement adapter pattern detection
     - Find all wrapper functions and abstraction layers
     - Analyze function bodies to detect pass-through behavior
     - Identify adapters that add no meaningful value
     - _Requirements: 1.4, 14.1, 14.2, 14.4_
   
-  - [~] 14.2 Write property tests for adapter detection
+  - [ ] 14.2 Write property tests for adapter detection
     - **Property 4: Unnecessary Adapter Detection**
     - **Validates: Requirements 1.4, 2.5, 3.3, 5.5, 14.1, 14.2, 14.4**
     - Generate wrapper functions, verify unnecessary ones detected
   
-  - [~] 14.3 Write unit tests for adapter anti-patterns
+  - [ ] 14.3 Write unit tests for adapter anti-patterns
     - Test specific examples of pass-through wrappers
     - _Requirements: 1.4, 14.1, 14.2, 14.4_
 
@@ -364,121 +364,121 @@ This implementation plan breaks down the codebase cleanup analysis system into d
     - Implement generateSummary() for executive overview
     - _Requirements: 11.1, 11.2, 11.5_
   
-  - [~] 18.2 Implement report formatting
+  - [ ] 18.2 Implement report formatting
     - Format issues with file paths, line numbers, code snippets
     - Group issues by category and severity
     - Include actionable recommendations
     - Generate summary statistics
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
   
-  - [~] 18.3 Write property tests for report generation
+  - [ ] 18.3 Write property tests for report generation
     - **Property 19: Report Completeness**
     - **Property 20: Report Prioritization**
     - **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5**
     - Generate random issues, verify report completeness and ordering
   
-  - [~] 18.4 Write unit tests for report formatting
+  - [ ] 18.4 Write unit tests for report formatting
     - Test Markdown formatting
     - Test JSON structure
     - Test summary generation
     - _Requirements: 11.1, 11.2, 11.5_
 
 - [ ] 19. Implement Cleanup Planner
-  - [~] 19.1 Create CleanupPlanner class
+  - [ ] 19.1 Create CleanupPlanner class
     - Implement generatePlan() to create cleanup tasks
     - Implement orderTasks() to sequence tasks by dependencies
     - Implement detectDependencies() to find task relationships
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
   
-  - [~] 19.2 Implement task generation logic
+  - [ ] 19.2 Implement task generation logic
     - Generate specific tasks for each issue
     - Estimate effort and risk for each task
     - Flag tasks requiring test coverage
     - Create actionable step-by-step instructions
     - _Requirements: 12.1, 12.4, 12.5_
   
-  - [~] 19.3 Implement dependency detection and ordering
+  - [ ] 19.3 Implement dependency detection and ordering
     - Detect dependencies between tasks (type changes before code changes, etc.)
     - Order tasks into phases (foundation → infrastructure → services → routes → components)
     - Ensure dependencies are respected in ordering
     - _Requirements: 12.2, 12.3_
   
-  - [~] 19.4 Write property tests for cleanup planning
+  - [ ] 19.4 Write property tests for cleanup planning
     - **Property 21: Cleanup Task Generation**
     - **Property 22: Task Dependency Detection**
     - **Validates: Requirements 12.1, 12.2, 12.3, 12.4, 12.5**
     - Generate random issues, verify tasks and dependencies
   
-  - [~] 19.5 Write unit tests for cleanup planner
+  - [ ] 19.5 Write unit tests for cleanup planner
     - Test task generation from issues
     - Test dependency detection
     - Test task ordering
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [~] 20. Checkpoint - Ensure end-to-end flow works
+- [ ] 20. Checkpoint - Ensure end-to-end flow works
   - Run integration tests with test codebase
   - Verify analysis → classification → reporting → planning flow
   - Ensure all tests pass, ask the user if questions arise
 
 - [ ] 21. Create CLI interface
-  - [~] 21.1 Implement command-line interface
+  - [ ] 21.1 Implement command-line interface
     - Create CLI using commander or yargs
     - Add commands: analyze, report, plan
     - Add options: --path, --output, --format, --include, --exclude
     - Implement progress display for long-running analysis
     - _Requirements: All requirements (user interface)_
   
-  - [~] 21.2 Implement configuration file support
+  - [ ] 21.2 Implement configuration file support
     - Support .cleanuprc.json for default options
     - Allow configuration of analyzers, severity thresholds, patterns
     - _Requirements: All requirements_
   
-  - [~] 21.3 Write unit tests for CLI
+  - [ ] 21.3 Write unit tests for CLI
     - Test command parsing
     - Test configuration loading
     - _Requirements: All requirements_
 
 - [ ] 22. Create example usage and documentation
-  - [~] 22.1 Create example test codebase
+  - [ ] 22.1 Create example test codebase
     - Build small Next.js project with known anti-patterns
     - Include examples of each pattern type
     - Document expected analysis results
     - _Requirements: All requirements (validation)_
   
-  - [~] 22.2 Write usage documentation
+  - [ ] 22.2 Write usage documentation
     - Document CLI commands and options
     - Provide examples of running analysis
     - Explain report structure and interpretation
     - Document how to customize analyzers
     - _Requirements: All requirements_
   
-  - [~] 22.3 Create README with quick start guide
+  - [ ] 22.3 Create README with quick start guide
     - Installation instructions
     - Basic usage examples
     - Link to full documentation
     - _Requirements: All requirements_
 
 - [ ] 23. Final integration testing and validation
-  - [~] 23.1 Run full test suite
+  - [ ] 23.1 Run full test suite
     - Execute all unit tests
     - Execute all property tests (100+ iterations each)
     - Execute integration tests
     - Verify test coverage meets goals (80% line, 75% branch)
   
-  - [~] 23.2 Run analysis on example codebase
+  - [ ] 23.2 Run analysis on example codebase
     - Execute full analysis on test codebase
     - Verify all expected issues detected
     - Verify report quality and accuracy
     - Verify cleanup plan is actionable
     - _Requirements: All requirements_
   
-  - [~] 23.3 Performance testing
+  - [ ] 23.3 Performance testing
     - Test on large codebase (1000+ files)
     - Measure analysis time and memory usage
     - Optimize bottlenecks if needed
     - _Requirements: All requirements_
 
-- [~] 24. Final checkpoint - Ensure system is production-ready
+- [ ] 24. Final checkpoint - Ensure system is production-ready
   - All tests passing
   - Documentation complete
   - Example codebase analysis successful
