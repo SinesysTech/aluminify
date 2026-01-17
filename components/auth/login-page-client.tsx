@@ -139,10 +139,26 @@ export function LoginPageClient() {
         return
       }
 
-      console.log('[DEBUG] Login bem-sucedido, redirecionando para:', next)
+      console.log('[DEBUG] Login bem-sucedido')
+
+      // Identify user role to determine redirect URL
+      const { identifyUserRoleAction } = await import('@/app/actions/auth-actions')
+      const roleResult = await identifyUserRoleAction(data.user.id)
+
+      let targetUrl = next
+      if (roleResult.success && roleResult.redirectUrl) {
+        // Determine if we should use the role-based redirect
+        // If "next" is the default "/protected" or not present in search params, use identified role url
+        const hasExplicitNext = searchParams?.get('next')
+        if (!hasExplicitNext || next === '/protected') {
+          targetUrl = roleResult.redirectUrl
+        }
+      }
+
+      console.log('[DEBUG] Redirecionando para:', targetUrl)
       // Usar window.location.href para garantir que os cookies sejam enviados corretamente
       // e o middleware reconheça a sessão
-      window.location.href = next
+      window.location.href = targetUrl
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error)
       console.error('[DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A')

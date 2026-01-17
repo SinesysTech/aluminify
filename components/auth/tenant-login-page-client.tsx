@@ -273,19 +273,27 @@ export function TenantLoginPageClient({
 
       // Identify user roles for this tenant
       console.log('[DEBUG] Identificando roles do usuário...');
-      const roleResponse = await fetch('/api/user/identify-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ empresaId }),
-      });
+      // Use Server Action instead of broken API route
+      const { identifyUserRoleAction } = await import('@/app/actions/auth-actions');
+      const roleResult = await identifyUserRoleAction(data.user.id);
 
-      if (roleResponse.ok) {
-        const roleResult = await roleResponse.json();
-        console.log('[DEBUG] Roles identificados:', roleResult);
+      if (roleResult.success) {
+        console.log('[DEBUG] Role identificado, URL de destino:', roleResult.redirectUrl);
       }
 
       console.log('[DEBUG] Login bem-sucedido, redirecionando para:', next);
-      router.push(next);
+
+      // If we have a role-based redirect, prefer it over the default /protected
+      // unless the user specifically requested a URL (next != /protected)
+      let finalNext = next;
+      if (roleResult.success && roleResult.redirectUrl) {
+        const hasExplicitNext = searchParams?.get('next');
+        if (!hasExplicitNext || next === '/protected') {
+          finalNext = roleResult.redirectUrl;
+        }
+      }
+
+      router.push(finalNext);
       router.refresh();
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error);
