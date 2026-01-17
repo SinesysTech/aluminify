@@ -342,14 +342,25 @@ export abstract class BasePatternAnalyzer implements PatternAnalyzer {
   protected isExported(node: Node): boolean {
     const nodeWithModifiers = node as any;
     
-    if (!nodeWithModifiers.getModifiers) {
-      return false;
+    // First check the node itself
+    if (nodeWithModifiers.getModifiers) {
+      const modifiers = nodeWithModifiers.getModifiers();
+      if (modifiers.some((mod: any) => mod.getKind() === SyntaxKind.ExportKeyword)) {
+        return true;
+      }
     }
     
-    const modifiers = nodeWithModifiers.getModifiers();
-    return modifiers.some((mod: any) => 
-      mod.getKind() === SyntaxKind.ExportKeyword
-    );
+    // For variable declarations, check the parent VariableStatement
+    if (Node.isVariableDeclaration(node)) {
+      const parent = node.getParent(); // VariableDeclarationList
+      const grandParent = parent?.getParent(); // VariableStatement
+      if (grandParent && (grandParent as any).getModifiers) {
+        const modifiers = (grandParent as any).getModifiers();
+        return modifiers.some((mod: any) => mod.getKind() === SyntaxKind.ExportKeyword);
+      }
+    }
+    
+    return false;
   }
 
   /**
