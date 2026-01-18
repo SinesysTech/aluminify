@@ -422,6 +422,48 @@ export type Database = {
           },
         ]
       }
+      alunos_turmas: {
+        Row: {
+          aluno_id: string
+          created_at: string | null
+          data_entrada: string | null
+          data_saida: string | null
+          status: Database["public"]["Enums"]["enum_status_aluno_turma"] | null
+          turma_id: string
+        }
+        Insert: {
+          aluno_id: string
+          created_at?: string | null
+          data_entrada?: string | null
+          data_saida?: string | null
+          status?: Database["public"]["Enums"]["enum_status_aluno_turma"] | null
+          turma_id: string
+        }
+        Update: {
+          aluno_id?: string
+          created_at?: string | null
+          data_entrada?: string | null
+          data_saida?: string | null
+          status?: Database["public"]["Enums"]["enum_status_aluno_turma"] | null
+          turma_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alunos_turmas_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alunos_turmas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           active: boolean
@@ -645,6 +687,7 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
+          empresa_id: string | null
           history: Json
           updated_at: string
           user_id: string
@@ -652,6 +695,7 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
+          empresa_id?: string | null
           history?: Json
           updated_at?: string
           user_id: string
@@ -659,6 +703,7 @@ export type Database = {
         Update: {
           conversation_id?: string
           created_at?: string
+          empresa_id?: string | null
           history?: Json
           updated_at?: string
           user_id?: string
@@ -671,11 +716,19 @@ export type Database = {
             referencedRelation: "chat_conversations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "chat_conversation_history_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       chat_conversations: {
         Row: {
           created_at: string | null
+          empresa_id: string | null
           id: string
           is_active: boolean | null
           messages: Json | null
@@ -686,6 +739,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          empresa_id?: string | null
           id?: string
           is_active?: boolean | null
           messages?: Json | null
@@ -696,6 +750,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          empresa_id?: string | null
           id?: string
           is_active?: boolean | null
           messages?: Json | null
@@ -704,7 +759,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cronograma_itens: {
         Row: {
@@ -1485,6 +1548,98 @@ export type Database = {
           },
         ]
       }
+      professores_disciplinas: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          curso_id: string | null
+          disciplina_id: string
+          empresa_id: string
+          frente_id: string | null
+          id: string
+          modulo_id: string | null
+          professor_id: string
+          turma_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          curso_id?: string | null
+          disciplina_id: string
+          empresa_id: string
+          frente_id?: string | null
+          id?: string
+          modulo_id?: string | null
+          professor_id: string
+          turma_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          curso_id?: string | null
+          disciplina_id?: string
+          empresa_id?: string
+          frente_id?: string | null
+          id?: string
+          modulo_id?: string | null
+          professor_id?: string
+          turma_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professores_disciplinas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professores_disciplinas_disciplina_id_fkey"
+            columns: ["disciplina_id"]
+            isOneToOne: false
+            referencedRelation: "disciplinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professores_disciplinas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professores_disciplinas_frente_id_fkey"
+            columns: ["frente_id"]
+            isOneToOne: false
+            referencedRelation: "frentes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professores_disciplinas_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professores_disciplinas_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "professores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professores_disciplinas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       progresso_atividades: {
         Row: {
           aluno_id: string | null
@@ -1816,11 +1971,69 @@ export type Database = {
           },
         ]
       }
+      turmas: {
+        Row: {
+          acesso_apos_termino: boolean | null
+          ativo: boolean | null
+          created_at: string | null
+          curso_id: string
+          data_fim: string | null
+          data_inicio: string | null
+          dias_acesso_extra: number | null
+          empresa_id: string
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          acesso_apos_termino?: boolean | null
+          ativo?: boolean | null
+          created_at?: string | null
+          curso_id: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          dias_acesso_extra?: number | null
+          empresa_id: string
+          id?: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          acesso_apos_termino?: boolean | null
+          ativo?: boolean | null
+          created_at?: string | null
+          curso_id?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          dias_acesso_extra?: number | null
+          empresa_id?: string
+          id?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turmas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turmas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      aluno_em_turma: { Args: { p_turma_id: string }; Returns: boolean }
       aluno_matriculado_empresa: {
         Args: { empresa_id_param: string }
         Returns: boolean
@@ -1846,6 +2059,7 @@ export type Database = {
           curso_id: string
         }[]
       }
+      get_professor_disciplinas: { Args: never; Returns: string[] }
       get_user_empresa_id: { Args: never; Returns: string }
       importar_cronograma_aulas:
         | {
@@ -1877,7 +2091,19 @@ export type Database = {
           }
       is_empresa_owner: { Args: { empresa_id_param: string }; Returns: boolean }
       is_professor: { Args: never; Returns: boolean }
+      is_professor_da_disciplina: {
+        Args: { p_disciplina_id: string }
+        Returns: boolean
+      }
       is_superadmin: { Args: never; Returns: boolean }
+      professor_tem_acesso_frente: {
+        Args: { p_frente_id: string }
+        Returns: boolean
+      }
+      professor_tem_acesso_modulo: {
+        Args: { p_modulo_id: string }
+        Returns: boolean
+      }
       user_belongs_to_empresa: {
         Args: { empresa_id_param: string }
         Returns: boolean
@@ -1893,6 +2119,7 @@ export type Database = {
       enum_importancia_modulo: "Alta" | "Media" | "Baixa" | "Base"
       enum_modalidade: "EAD" | "LIVE"
       enum_plano_empresa: "basico" | "profissional" | "enterprise"
+      enum_status_aluno_turma: "ativo" | "concluido" | "cancelado" | "trancado"
       enum_status_atividade: "Pendente" | "Iniciado" | "Concluido"
       enum_tipo_atividade:
         | "Nivel_1"
@@ -2058,6 +2285,7 @@ export const Constants = {
       enum_importancia_modulo: ["Alta", "Media", "Baixa", "Base"],
       enum_modalidade: ["EAD", "LIVE"],
       enum_plano_empresa: ["basico", "profissional", "enterprise"],
+      enum_status_aluno_turma: ["ativo", "concluido", "cancelado", "trancado"],
       enum_status_atividade: ["Pendente", "Iniciado", "Concluido"],
       enum_tipo_atividade: [
         "Nivel_1",
