@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { requireUser } from '@/lib/auth'
+﻿import { requireUser } from '@/lib/auth'
 import MateriaisClientPage from './materiais-client'
 
 export default async function MateriaisPage() {

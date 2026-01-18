@@ -1,6 +1,5 @@
-'use client'
+﻿'use client'
 
-import * as React from 'react'
 import {
   Accordion,
   AccordionContent,
@@ -44,11 +43,11 @@ export function ModuloActivitiesAccordion({
           <div className="flex items-center justify-between w-full mr-4">
             <div className="flex items-center gap-2">
               <span className="font-medium">
-                Módulo {modulo.numeroModulo || 'N/A'}: {modulo.nome}
+                MÃ³dulo {modulo.numeroModulo || 'N/A'}: {modulo.nome}
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
-              {atividadesConcluidas}/{totalAtividades} atividades concluídas ({percentual}%)
+              {atividadesConcluidas}/{totalAtividades} atividades concluÃ­das ({percentual}%)
             </div>
           </div>
         </AccordionTrigger>
@@ -56,7 +55,7 @@ export function ModuloActivitiesAccordion({
           <div className="space-y-2 mt-2">
             {modulo.atividades.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhuma atividade disponível
+                Nenhuma atividade disponÃ­vel
               </p>
             ) : (
               modulo.atividades.map((atividade) => (

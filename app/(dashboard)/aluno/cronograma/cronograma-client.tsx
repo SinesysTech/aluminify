@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -45,10 +43,10 @@ export default function CronogramaClientPage() {
 
       if (error) {
         // Ignorar erro 400 se for relacionado a coluna 'ativo' inexistente
-        // (pode ser cache do navegador com código antigo)
+        // (pode ser cache do navegador com cÃ³digo antigo)
         if (error.code === 'PGRST116' || error.message?.includes('ativo')) {
-          // Erro esperado - coluna 'ativo' não existe na tabela cronogramas
-          // Pode ser cache do navegador, não logar
+          // Erro esperado - coluna 'ativo' nÃ£o existe na tabela cronogramas
+          // Pode ser cache do navegador, nÃ£o logar
         } else {
           console.error('Erro ao buscar cronograma:', error)
         }

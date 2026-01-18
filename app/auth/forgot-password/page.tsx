@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
+﻿import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
 import { TenantLogo } from '@/components/shared/tenant-logo';
 
 export default function Page() {
@@ -11,7 +9,7 @@ export default function Page() {
         <div className="flex justify-center">
           <TenantLogo
             logoType="login"
-            fallbackText="Sistema de Gestão"
+            fallbackText="Sistema de GestÃ£o"
             width={160}
             height={50}
           />

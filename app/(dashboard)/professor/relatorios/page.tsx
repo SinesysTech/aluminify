@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { RelatoriosDashboard } from "@/components/professor/relatorios-dashboard"
+﻿import { RelatoriosDashboard } from "@/components/professor/relatorios-dashboard"
 import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 

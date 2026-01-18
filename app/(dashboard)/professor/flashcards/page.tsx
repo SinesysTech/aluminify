@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { requireUser } from '@/lib/auth'
+﻿import { requireUser } from '@/lib/auth'
 import FlashcardsAdminClient from './flashcards-admin-client'
 
 export default async function FlashcardsAdminPage() {

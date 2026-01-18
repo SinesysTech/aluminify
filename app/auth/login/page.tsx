@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { LoginPageClient } from '@/components/auth/login-page-client'
+﻿import { LoginPageClient } from '@/components/auth/login-page-client'
 import { Suspense } from 'react'
 
 export default function LoginPage() {

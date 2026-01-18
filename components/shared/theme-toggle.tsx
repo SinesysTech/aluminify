@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Moon, Sun } from 'lucide-react'
 import { useThemeContext } from '@/components/providers/theme-provider'

@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -85,7 +83,7 @@ export function RankingList({
                   key={item.id}
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  {/* Posição com ícone ou número */}
+                  {/* PosiÃ§Ã£o com Ã­cone ou nÃºmero */}
                   <div
                     className={cn(
                       'flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border',

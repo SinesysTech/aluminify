@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { RefreshCw, AlertCircle } from 'lucide-react'
@@ -18,7 +16,7 @@ import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-// Intervalo de refresh automático (5 minutos)
+// Intervalo de refresh automÃ¡tico (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
 
 export default function ProfessorDashboardClient() {
@@ -47,10 +45,10 @@ export default function ProfessorDashboardClient() {
         errorMessage = err.message
 
         if ((err as ProfessorDashboardServiceError).isAuthError) {
-          errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.'
+          errorMessage = 'Sua sessÃ£o expirou. Por favor, faÃ§a login novamente.'
         } else if ((err as ProfessorDashboardServiceError).isNetworkError) {
           errorMessage =
-            'Erro de conexão. Verifique sua internet e tente novamente.'
+            'Erro de conexÃ£o. Verifique sua internet e tente novamente.'
         }
       }
 
@@ -70,7 +68,7 @@ export default function ProfessorDashboardClient() {
     loadDashboardData()
   }, [loadDashboardData])
 
-  // Refresh automático
+  // Refresh automÃ¡tico
   useEffect(() => {
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current)
@@ -87,7 +85,7 @@ export default function ProfessorDashboardClient() {
     }
   }, [loadDashboardData])
 
-  // Função para refresh manual
+  // FunÃ§Ã£o para refresh manual
   const handleManualRefresh = () => {
     loadDashboardData(true)
   }
@@ -122,14 +120,14 @@ export default function ProfessorDashboardClient() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Nenhum dado disponível</p>
+        <p className="text-muted-foreground">Nenhum dado disponÃ­vel</p>
       </div>
     )
   }
 
   return (
     <div className="mx-auto max-w-7xl">
-      {/* Header com botão de refresh */}
+      {/* Header com botÃ£o de refresh */}
       <div className="flex items-start justify-between gap-4 mb-4">
         <ProfessorHeader professorNome={data.professorNome} />
         <Button
@@ -142,7 +140,7 @@ export default function ProfessorDashboardClient() {
         </Button>
       </div>
 
-      {/* Mensagem de erro (se houver dados mas também erro) */}
+      {/* Mensagem de erro (se houver dados mas tambÃ©m erro) */}
       {error && data && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
@@ -153,10 +151,10 @@ export default function ProfessorDashboardClient() {
         </Alert>
       )}
 
-      {/* Métricas principais */}
+      {/* MÃ©tricas principais */}
       <ProfessorMetrics summary={data.summary} />
 
-      {/* Próximos agendamentos (largura total) */}
+      {/* PrÃ³ximos agendamentos (largura total) */}
       <div className="mb-8">
         <UpcomingAppointments appointments={data.agendamentos} />
       </div>

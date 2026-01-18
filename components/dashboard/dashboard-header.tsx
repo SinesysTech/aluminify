@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import { Flame, Timer } from 'lucide-react'
@@ -67,7 +65,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     return query ? `/aluno/modo-foco?${query}` : '/aluno/modo-foco'
   }, [searchParams, storedContext])
 
-  // Determinar saudação baseada no horário
+  // Determinar saudaÃ§Ã£o baseada no horÃ¡rio
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Bom dia'
@@ -104,15 +102,15 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           </TooltipTrigger>
           <TooltipContent side="bottom" align="end" className="max-w-sm font-normal">
             <div className="space-y-2">
-              <p className="text-sm font-semibold">Estudo sem distrações, com sessão registrada</p>
+              <p className="text-sm font-semibold">Estudo sem distraÃ§Ãµes, com sessÃ£o registrada</p>
               <ul className="list-disc pl-4 space-y-1 text-sm">
-                <li>Cronômetro, timer regressivo e Pomodoro</li>
-                <li>Monitora troca de aba (distrações) e registra pausas</li>
-                <li>Salva a sessão de estudo para métricas (ex.: eficiência de foco)</li>
-                <li>Mostra quantas pessoas estão estudando no mesmo contexto</li>
+                <li>CronÃ´metro, timer regressivo e Pomodoro</li>
+                <li>Monitora troca de aba (distraÃ§Ãµes) e registra pausas</li>
+                <li>Salva a sessÃ£o de estudo para mÃ©tricas (ex.: eficiÃªncia de foco)</li>
+                <li>Mostra quantas pessoas estÃ£o estudando no mesmo contexto</li>
               </ul>
               <p className="text-[11px] text-slate-200/90">
-                Dica: o botão tenta reutilizar o último contexto (curso/disciplina/módulo/atividade) quando disponível.
+                Dica: o botÃ£o tenta reutilizar o Ãºltimo contexto (curso/disciplina/mÃ³dulo/atividade) quando disponÃ­vel.
               </p>
             </div>
           </TooltipContent>

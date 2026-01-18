@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { requireUser } from '@/lib/auth'
+﻿import { requireUser } from '@/lib/auth'
 
 export default async function SuperAdminDashboardPage() {
   const user = await requireUser({ allowedRoles: ['superadmin'] })

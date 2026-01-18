@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { requireUser } from '@/lib/auth'
+﻿import { requireUser } from '@/lib/auth'
 
 export default async function EmpresaDashboardPage() {
   const user = await requireUser({ allowedRoles: ['empresa'] })
@@ -21,23 +19,23 @@ export default async function EmpresaDashboardPage() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-2">Configurações</h2>
+          <h2 className="text-lg font-semibold mb-2">ConfiguraÃ§Ãµes</h2>
           <p className="text-sm text-muted-foreground">
-            Gerencie as configurações da empresa
+            Gerencie as configuraÃ§Ãµes da empresa
           </p>
         </div>
         
         <div className="rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-2">Usuários</h2>
+          <h2 className="text-lg font-semibold mb-2">UsuÃ¡rios</h2>
           <p className="text-sm text-muted-foreground">
             Gerencie administradores, professores e alunos
           </p>
         </div>
         
         <div className="rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-2">Relatórios</h2>
+          <h2 className="text-lg font-semibold mb-2">RelatÃ³rios</h2>
           <p className="text-sm text-muted-foreground">
-            Visualize relatórios e estatísticas
+            Visualize relatÃ³rios e estatÃ­sticas
           </p>
         </div>
       </div>

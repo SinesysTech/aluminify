@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -24,7 +22,7 @@ export default function BrandingPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sessão expirada. Faça login novamente.');
+        throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
       }
 
       const profileResponse = await fetch('/api/user/profile', {
@@ -34,7 +32,7 @@ export default function BrandingPage() {
       });
 
       if (!profileResponse.ok) {
-        throw new Error('Erro ao buscar dados do usuário');
+        throw new Error('Erro ao buscar dados do usuÃ¡rio');
       }
 
       const userData = await profileResponse.json();
@@ -99,7 +97,7 @@ export default function BrandingPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sessão expirada. Faça login novamente.');
+        throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
       }
 
       const response = await fetch(`/api/tenant-branding/${empresaId}`, {
@@ -124,13 +122,13 @@ export default function BrandingPage() {
 
       toast({
         title: 'Sucesso',
-        description: 'Personalização de marca salva com sucesso',
+        description: 'PersonalizaÃ§Ã£o de marca salva com sucesso',
       });
     } catch (error) {
       console.error('Error saving branding:', error);
       toast({
         title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao salvar personalização',
+        description: error instanceof Error ? error.message : 'Erro ao salvar personalizaÃ§Ã£o',
         variant: 'destructive',
       });
       throw error;
@@ -145,7 +143,7 @@ export default function BrandingPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sessão expirada. Faça login novamente.');
+        throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
       }
 
       const response = await fetch(`/api/tenant-branding/${empresaId}`, {
@@ -164,13 +162,13 @@ export default function BrandingPage() {
 
       toast({
         title: 'Sucesso',
-        description: 'Personalização de marca resetada para o padrão',
+        description: 'PersonalizaÃ§Ã£o de marca resetada para o padrÃ£o',
       });
     } catch (error) {
       console.error('Error resetting branding:', error);
       toast({
         title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao resetar personalização',
+        description: error instanceof Error ? error.message : 'Erro ao resetar personalizaÃ§Ã£o',
         variant: 'destructive',
       });
       throw error;
@@ -196,9 +194,9 @@ export default function BrandingPage() {
       <div className="container mx-auto py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Empresa não encontrada</CardTitle>
+            <CardTitle>Empresa nÃ£o encontrada</CardTitle>
             <CardDescription>
-              Seu usuário não está vinculado a uma empresa.
+              Seu usuÃ¡rio nÃ£o estÃ¡ vinculado a uma empresa.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -209,7 +207,7 @@ export default function BrandingPage() {
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Personalização da Marca</h1>
+        <h1 className="text-2xl font-bold tracking-tight">PersonalizaÃ§Ã£o da Marca</h1>
         <p className="text-muted-foreground">
           Personalize a identidade visual da sua empresa: logos, cores e fontes
         </p>

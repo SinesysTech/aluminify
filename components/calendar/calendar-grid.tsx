@@ -1,6 +1,4 @@
-import React from 'react'
-
-import {
+﻿import {
 	type DateDuration,
 	endOfMonth,
 	getWeeksInMonth,

@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { GraduationCap } from 'lucide-react'
 
@@ -9,7 +7,7 @@ interface ProfessorHeaderProps {
 }
 
 export function ProfessorHeader({ professorNome }: ProfessorHeaderProps) {
-  // Determinar saudação baseada no horário
+  // Determinar saudaÃ§Ã£o baseada no horÃ¡rio
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Bom dia'

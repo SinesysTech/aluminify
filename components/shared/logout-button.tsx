@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { createClient } from '@/lib/client'
 import { Button } from '@/components/ui/button'

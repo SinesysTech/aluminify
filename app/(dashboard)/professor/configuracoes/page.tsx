@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { createClient } from "@/lib/server"
+﻿import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 import { getConfiguracoesProfessor } from "@/app/actions/agendamentos"
 import { ConfiguracoesForm } from "@/components/professor/configuracoes-form"

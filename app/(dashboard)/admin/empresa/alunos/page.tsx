@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { createClient } from '@/lib/server'
+﻿import { createClient } from '@/lib/server'
 import { createStudentService } from '@/backend/services/student'
 import { createCourseService } from '@/backend/services/course'
 import { AlunosClientPage } from '@/app/(dashboard)/admin/alunos/components/client-page'
@@ -13,7 +11,7 @@ export default async function EmpresaAlunosPage({ searchParams }: { searchParams
   const page = Number(searchParams.page) || 1
   const query = searchParams.query || ''
 
-  // Usar cliente com contexto do usuário para respeitar RLS
+  // Usar cliente com contexto do usuÃ¡rio para respeitar RLS
   const supabase = await createClient()
   const studentService = createStudentService(supabase)
   const courseService = createCourseService(supabase)

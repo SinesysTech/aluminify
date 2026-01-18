@@ -1,6 +1,4 @@
-import React from 'react'
-
-/**
+﻿/**
  * @deprecated Use RecorrenciaManager instead.
  * This component uses the legacy agendamento_disponibilidade table.
  * The new RecorrenciaManager uses agendamento_recorrencia which supports:
@@ -43,11 +41,11 @@ import { TableSkeleton } from "@/components/ui/table-skeleton"
 const DAYS = [
   "Domingo",
   "Segunda-feira",
-  "Terça-feira",
+  "TerÃ§a-feira",
   "Quarta-feira",
   "Quinta-feira",
   "Sexta-feira",
-  "Sábado",
+  "SÃ¡bado",
 ]
 
 type AvailabilityRule = Disponibilidade
@@ -162,7 +160,7 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Dia da Semana</TableHead>
-              <TableHead>Início</TableHead>
+              <TableHead>InÃ­cio</TableHead>
               <TableHead>Fim</TableHead>
               <TableHead>Ativo</TableHead>
               <TableHead className="w-[50px]"></TableHead>
@@ -224,12 +222,12 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
         <div className="flex justify-between">
             <Button variant="outline" onClick={handleAddRule}>
                 <Plus className="size-4 mr-2" />
-                Adicionar Horário
+                Adicionar HorÃ¡rio
             </Button>
             <Button onClick={handleSave} disabled={saving}>
                 {saving && <Loader2 className="size-4 mr-2 animate-spin" />}
                 <Save className="size-4 mr-2" />
-                Salvar Alterações
+                Salvar AlteraÃ§Ãµes
             </Button>
         </div>
       </CardContent>

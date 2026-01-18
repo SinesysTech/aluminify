@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Check, ChevronRight, Loader2 } from 'lucide-react'
 
@@ -20,7 +18,7 @@ export function SignupDecorativeTerminal() {
             <div className="h-3 w-3 rounded-full bg-[#27c93f]" />
           </div>
           <span className="ml-2 font-mono text-xs text-gray-400">
-            setup.sh — Aluminify CLI
+            setup.sh â€” Aluminify CLI
           </span>
         </div>
 
@@ -65,7 +63,7 @@ export function SignupDecorativeTerminal() {
 
           {/* Ready Message */}
           <div className="mt-4 text-green-400">
-            <span className="animate-pulse">▋</span>
+            <span className="animate-pulse">â–‹</span>
           </div>
         </div>
       </div>

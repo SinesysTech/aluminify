@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { cn } from '@/lib/utils';
+﻿import { cn } from '@/lib/utils';
 import type { Experimental_GeneratedImage } from 'ai';
 
 export type ImageProps = Experimental_GeneratedImage & {

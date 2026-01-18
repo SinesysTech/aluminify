@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { Badge } from '@/components/ui/badge';
 import {

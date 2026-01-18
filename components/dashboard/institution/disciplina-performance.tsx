@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -52,7 +50,7 @@ export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformance
                         {disciplina.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {disciplina.totalQuestoes} questões • {disciplina.alunosAtivos} alunos
+                        {disciplina.totalQuestoes} questÃµes â€¢ {disciplina.alunosAtivos} alunos
                       </p>
                     </div>
                     <span

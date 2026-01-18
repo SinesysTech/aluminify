@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +46,7 @@ export default function EmpresaAdminsPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Buscar empresa do usuário
+      // Buscar empresa do usuÃ¡rio
       const userResponse = await fetch('/api/user/profile');
       const userData = await userResponse.json();
 

@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { SegmentoTable } from '@/components/segmento/segmento-table'
+﻿import { SegmentoTable } from '@/components/segmento/segmento-table'
 import { requireUser } from '@/lib/auth'
 
 export default async function SegmentoPage() {

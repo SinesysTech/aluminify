@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -23,7 +21,7 @@ export function SettingsTabs({ user, initialTab }: SettingsTabsProps) {
         return (
             <div className="text-center py-8">
                 <p className="text-muted-foreground">
-                    Você não está associado a nenhuma empresa.
+                    VocÃª nÃ£o estÃ¡ associado a nenhuma empresa.
                 </p>
             </div>
         )
@@ -33,18 +31,18 @@ export function SettingsTabs({ user, initialTab }: SettingsTabsProps) {
         <div className="flex flex-col gap-8 h-full">
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Configurações da Empresa</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900">ConfiguraÃ§Ãµes da Empresa</h1>
                     <p className="text-sm text-[#71717A]">
-                        Gerencie as configurações, personalização e usuários da sua empresa.
+                        Gerencie as configuraÃ§Ãµes, personalizaÃ§Ã£o e usuÃ¡rios da sua empresa.
                     </p>
                 </div>
             </header>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="branding">Customizações de Marca</TabsTrigger>
+                    <TabsTrigger value="branding">CustomizaÃ§Ãµes de Marca</TabsTrigger>
                     <TabsTrigger value="empresa">Dados da Empresa</TabsTrigger>
-                    <TabsTrigger value="usuarios">Gestão de Usuários</TabsTrigger>
+                    <TabsTrigger value="usuarios">GestÃ£o de UsuÃ¡rios</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="branding" className="space-y-6">

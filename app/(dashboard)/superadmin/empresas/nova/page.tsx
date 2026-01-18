@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -70,7 +68,7 @@ export default function NovaEmpresaPage() {
       case 1:
         return formData.nome.trim() !== '';
       case 2:
-        return true; // Plano sempre tem um valor válido
+        return true; // Plano sempre tem um valor vÃ¡lido
       case 3:
         return (
           formData.primeiroAdminEmail.trim() !== '' &&
@@ -148,15 +146,15 @@ export default function NovaEmpresaPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="basico">Básico</SelectItem>
+                    <SelectItem value="basico">BÃ¡sico</SelectItem>
                     <SelectItem value="profissional">Profissional</SelectItem>
                     <SelectItem value="enterprise">Enterprise</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p><strong>Básico:</strong> Funcionalidades essenciais</p>
-                <p><strong>Profissional:</strong> Recursos avançados e suporte prioritário</p>
+                <p><strong>BÃ¡sico:</strong> Funcionalidades essenciais</p>
+                <p><strong>Profissional:</strong> Recursos avanÃ§ados e suporte prioritÃ¡rio</p>
                 <p><strong>Enterprise:</strong> Recursos completos e suporte dedicado</p>
               </div>
             </>
@@ -184,13 +182,13 @@ export default function NovaEmpresaPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="primeiroAdminPassword">Senha Temporária *</Label>
+                <Label htmlFor="primeiroAdminPassword">Senha TemporÃ¡ria *</Label>
                 <Input
                   id="primeiroAdminPassword"
                   type="password"
                   value={formData.primeiroAdminPassword}
                   onChange={(e) => setFormData({ ...formData, primeiroAdminPassword: e.target.value })}
-                  placeholder="Senha temporária (usuário deve alterar no primeiro acesso)"
+                  placeholder="Senha temporÃ¡ria (usuÃ¡rio deve alterar no primeiro acesso)"
                 />
               </div>
             </>
@@ -209,7 +207,7 @@ export default function NovaEmpresaPage() {
                 onClick={() => setStep(step + 1)}
                 disabled={!canProceedToNextStep()}
               >
-                Próximo
+                PrÃ³ximo
               </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={!canProceedToNextStep() || loading}>

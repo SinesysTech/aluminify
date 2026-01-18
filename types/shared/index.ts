@@ -10,6 +10,3 @@ export * from './entities/activity';
 // DTOs
 export * from './dtos/api-responses';
 
-// Enums
-export * from './enums';
-

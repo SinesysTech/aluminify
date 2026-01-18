@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { SiGoogle, SiGithub } from '@icons-pack/react-simple-icons'
 

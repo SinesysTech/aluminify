@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -52,10 +50,10 @@ function formatAppointmentDate(dateString: string): string {
   }
 
   if (isTomorrow(date)) {
-    return `Amanhã, ${format(date, 'HH:mm', { locale: ptBR })}`
+    return `AmanhÃ£, ${format(date, 'HH:mm', { locale: ptBR })}`
   }
 
-  return format(date, "dd/MM 'às' HH:mm", { locale: ptBR })
+  return format(date, "dd/MM 'Ã s' HH:mm", { locale: ptBR })
 }
 
 export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
@@ -64,7 +62,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Calendar className="h-4 w-4" />
-          Próximos Agendamentos
+          PrÃ³ximos Agendamentos
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
@@ -75,7 +73,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
               Nenhum agendamento pendente
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Seus próximos atendimentos aparecerão aqui
+              Seus prÃ³ximos atendimentos aparecerÃ£o aqui
             </p>
           </div>
         ) : (

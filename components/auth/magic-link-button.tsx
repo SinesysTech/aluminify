@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'

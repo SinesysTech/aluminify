@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Users, Calendar, CheckCircle2, Clock } from 'lucide-react'
 import { MetricCard } from '@/components/dashboard/metric-card'
@@ -13,7 +11,7 @@ interface ProfessorMetricsProps {
 }
 
 export function ProfessorMetrics({ summary }: ProfessorMetricsProps) {
-  // Formatar próximo agendamento
+  // Formatar prÃ³ximo agendamento
   const formatNextAppointment = () => {
     if (!summary.proximoAgendamento) return 'Sem agendamentos'
     try {
@@ -34,38 +32,38 @@ export function ProfessorMetrics({ summary }: ProfessorMetricsProps) {
         subtext="total de alunos"
         icon={Users}
         tooltip={[
-          'Número de alunos únicos que você atendeu em agendamentos.',
+          'NÃºmero de alunos Ãºnicos que vocÃª atendeu em agendamentos.',
           'Inclui todos os alunos com pelo menos um agendamento realizado.',
         ]}
       />
       <MetricCard
         label="Agendamentos Pendentes"
         value={summary.agendamentosPendentes}
-        subtext="próximos"
+        subtext="prÃ³ximos"
         icon={Calendar}
         tooltip={[
-          'Agendamentos futuros que ainda não foram realizados.',
+          'Agendamentos futuros que ainda nÃ£o foram realizados.',
           'Inclui agendamentos pendentes e confirmados.',
         ]}
       />
       <MetricCard
-        label="Realizados no Mês"
+        label="Realizados no MÃªs"
         value={summary.agendamentosRealizadosMes}
         subtext="agendamentos"
         icon={CheckCircle2}
         tooltip={[
-          'Agendamentos concluídos neste mês.',
+          'Agendamentos concluÃ­dos neste mÃªs.',
           'Conta apenas agendamentos marcados como realizados.',
         ]}
       />
       <MetricCard
-        label="Próximo Agendamento"
+        label="PrÃ³ximo Agendamento"
         value={summary.proximoAgendamento ? formatNextAppointment() : '-'}
         subtext={summary.proximoAgendamento ? 'agendado' : 'nenhum'}
         icon={Clock}
         tooltip={[
-          'Quando será seu próximo agendamento.',
-          'Mostra o tempo restante até o próximo atendimento.',
+          'Quando serÃ¡ seu prÃ³ximo agendamento.',
+          'Mostra o tempo restante atÃ© o prÃ³ximo atendimento.',
         ]}
       />
     </div>

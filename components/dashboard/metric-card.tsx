@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,12 +17,12 @@ interface MetricCardProps {
   }
   // Para o caso especial do card de Aproveitamento
   showProgressCircle?: boolean
-  progressValue?: number // 0-100 para o círculo de progresso
-  tooltip?: string | string[] // Texto explicativo do tooltip (string única ou array de parágrafos)
+  progressValue?: number // 0-100 para o cÃ­rculo de progresso
+  tooltip?: string | string[] // Texto explicativo do tooltip (string Ãºnica ou array de parÃ¡grafos)
 }
 
 /**
- * Componente de Círculo de Progresso SVG (usado no card de Aproveitamento)
+ * Componente de CÃ­rculo de Progresso SVG (usado no card de Aproveitamento)
  */
 function ProgressCircle({ value }: { value: number }) {
   const radius = 15.91549430918954
@@ -34,7 +32,7 @@ function ProgressCircle({ value }: { value: number }) {
   return (
     <div className="relative size-6 sm:size-7 md:size-8 shrink-0">
       <svg className="size-full" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-        {/* Círculo de fundo */}
+        {/* CÃ­rculo de fundo */}
         <circle
           cx="18"
           cy="18"
@@ -44,7 +42,7 @@ function ProgressCircle({ value }: { value: number }) {
           strokeWidth="3"
           className="text-border"
         />
-        {/* Círculo de progresso */}
+        {/* CÃ­rculo de progresso */}
         <circle
           cx="18"
           cy="18"
@@ -97,7 +95,7 @@ export function MetricCard({
                         <button
                           type="button"
                           className="text-muted-foreground hover:text-foreground transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                          aria-label={`Informações sobre ${label}`}
+                          aria-label={`InformaÃ§Ãµes sobre ${label}`}
                         >
                           <Info className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
                         </button>

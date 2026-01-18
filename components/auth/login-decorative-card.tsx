@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Gauge } from 'lucide-react'
 import { Card } from '@/components/ui/card'

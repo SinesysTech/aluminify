@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import type { FocusEfficiencyDay } from '@/types/dashboard'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,17 +11,17 @@ interface FocusEfficiencyChartProps {
 }
 
 export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
-  // Encontrar o valor máximo para normalizar as alturas
+  // Encontrar o valor mÃ¡ximo para normalizar as alturas
   const maxGrossTime = Math.max(...data.map((day) => day.grossTime))
   const maxNetTime = Math.max(...data.map((day) => day.netTime))
   const maxTime = Math.max(maxGrossTime, maxNetTime)
 
-  // Função para calcular a porcentagem de altura
+  // FunÃ§Ã£o para calcular a porcentagem de altura
   const getHeightPercentage = (time: number) => {
     return maxTime > 0 ? (time / maxTime) * 100 : 0
   }
 
-  // Função para formatar minutos em horas e minutos
+  // FunÃ§Ã£o para formatar minutos em horas e minutos
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
@@ -41,7 +39,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
       <CardContent className="px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center gap-2 mb-4 md:mb-6">
           <h2 className="text-foreground text-base md:text-lg font-semibold">
-            Eficiência de Foco
+            EficiÃªncia de Foco
           </h2>
           <TooltipProvider delayDuration={200}>
             <Tooltip>
@@ -49,7 +47,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                  aria-label="Informações sobre eficiência de foco"
+                  aria-label="InformaÃ§Ãµes sobre eficiÃªncia de foco"
                 >
                   <Info className="h-4 w-4" />
                 </button>
@@ -62,17 +60,17 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
               >
                 <div className="space-y-2 text-sm">
                   <p>
-                    Este gráfico compara o tempo bruto (total que você iniciou uma sessão de estudo) com o tempo líquido
+                    Este grÃ¡fico compara o tempo bruto (total que vocÃª iniciou uma sessÃ£o de estudo) com o tempo lÃ­quido
                     (tempo efetivamente estudado, descontando pausas).
                   </p>
                   <p>
-                    A barra cinza mostra o tempo bruto e a barra colorida mostra o tempo líquido.
+                    A barra cinza mostra o tempo bruto e a barra colorida mostra o tempo lÃ­quido.
                   </p>
                   <p>
-                    Quanto maior a proporção do tempo líquido em relação ao bruto, maior sua eficiência de foco.
+                    Quanto maior a proporÃ§Ã£o do tempo lÃ­quido em relaÃ§Ã£o ao bruto, maior sua eficiÃªncia de foco.
                   </p>
                   <p>
-                    Isso ajuda a identificar em quais dias da semana você está mais focado.
+                    Isso ajuda a identificar em quais dias da semana vocÃª estÃ¡ mais focado.
                   </p>
                 </div>
               </TooltipContent>
@@ -84,7 +82,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
             {data.map((day, index) => {
               const grossHeight = getHeightPercentage(day.grossTime)
               void getHeightPercentage(day.netTime) // netHeight calculation kept for potential future use
-              // Calcular a porcentagem do tempo líquido em relação ao bruto
+              // Calcular a porcentagem do tempo lÃ­quido em relaÃ§Ã£o ao bruto
               const netPercentage = day.grossTime > 0 
                 ? (day.netTime / day.grossTime) * 100 
                 : 0
@@ -101,13 +99,13 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                       style={{ height: `${grossHeight}%` }}
                       title={`${day.day}: Tempo Bruto ${formatTime(day.grossTime)}`}
                     >
-                      {/* Barra de Tempo Líquido (Primary) */}
+                      {/* Barra de Tempo LÃ­quido (Primary) */}
                       <div
                         className={cn(
                           'absolute bottom-0 w-full rounded-t bg-primary transition-all'
                         )}
                         style={{ height: `${netPercentage}%` }}
-                        title={`${day.day}: Tempo Líquido ${formatTime(day.netTime)} (${Math.round(netPercentage)}% eficiência)`}
+                        title={`${day.day}: Tempo LÃ­quido ${formatTime(day.netTime)} (${Math.round(netPercentage)}% eficiÃªncia)`}
                       />
                     </div>
                   </div>
@@ -126,13 +124,13 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                   <button
                     type="button"
                     className="text-sm text-muted-foreground underline decoration-dotted underline-offset-2"
-                    aria-label="O que é tempo bruto?"
+                    aria-label="O que Ã© tempo bruto?"
                   >
                     Tempo Bruto
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" align="center" className="max-w-xs">
-                  Tempo total da sessão (inclui pausas e tempo sem foco).
+                  Tempo total da sessÃ£o (inclui pausas e tempo sem foco).
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -145,9 +143,9 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                   <button
                     type="button"
                     className="text-sm text-muted-foreground underline decoration-dotted underline-offset-2"
-                    aria-label="O que é tempo líquido?"
+                    aria-label="O que Ã© tempo lÃ­quido?"
                   >
-                    Tempo Líquido
+                    Tempo LÃ­quido
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" align="center" className="max-w-xs">

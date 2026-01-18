@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { ProfileTabs } from '@/components/perfil/profile-tabs'
+﻿import { ProfileTabs } from '@/components/perfil/profile-tabs'
 import { requireUser } from '@/lib/auth'
 
 export default async function PerfilPage() {

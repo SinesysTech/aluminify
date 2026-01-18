@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { RankingList, type RankingItem } from '@/components/dashboard/shared/ranking-list'
 import type { StudentRankingItem } from '@/types/dashboard-institution'
@@ -17,7 +15,7 @@ export function StudentRankingList({ students }: StudentRankingListProps) {
     avatarUrl: student.avatarUrl,
     primaryValue: student.horasEstudo,
     secondaryValue: `${student.aproveitamento}% aproveitamento`,
-    badge: student.streakDays > 0 ? `${student.streakDays}🔥` : undefined,
+    badge: student.streakDays > 0 ? `${student.streakDays}ðŸ”¥` : undefined,
   }))
 
   return (

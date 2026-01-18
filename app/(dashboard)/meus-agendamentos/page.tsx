@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { createClient } from "@/lib/server"
+﻿import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 import { getAgendamentosAluno } from "@/app/actions/agendamentos"
 import { MeusAgendamentosList } from "@/components/agendamento/meus-agendamentos-list"

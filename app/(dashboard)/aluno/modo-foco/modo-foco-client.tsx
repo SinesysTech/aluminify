@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams as useNextSearchParams, useRouter } from 'next/navigation';
@@ -116,7 +114,7 @@ export default function ModoFocoClient() {
     const el = document.documentElement;
     if (!('requestFullscreen' in el) || typeof el.requestFullscreen !== 'function') {
       if (source === 'user') {
-        setFullscreenError('Seu navegador não suporta tela cheia (Fullscreen API).');
+        setFullscreenError('Seu navegador nÃ£o suporta tela cheia (Fullscreen API).');
       }
       return;
     }
@@ -130,10 +128,10 @@ export default function ModoFocoClient() {
         await el.requestFullscreen();
       }
     } catch (_err) {
-      // Quando disparado automaticamente, muitos browsers bloqueiam (precisa de gesto do usuário)
+      // Quando disparado automaticamente, muitos browsers bloqueiam (precisa de gesto do usuÃ¡rio)
       if (source === 'user') {
         setFullscreenError(
-          'Não foi possível entrar em tela cheia. Alguns navegadores bloqueiam essa ação por permissão/política (geralmente precisa ser liberada pelo navegador e iniciada por clique).',
+          'NÃ£o foi possÃ­vel entrar em tela cheia. Alguns navegadores bloqueiam essa aÃ§Ã£o por permissÃ£o/polÃ­tica (geralmente precisa ser liberada pelo navegador e iniciada por clique).',
         );
       }
     }
@@ -141,7 +139,7 @@ export default function ModoFocoClient() {
 
   const enterCleanView = useCallback(async () => {
     setIsCleanView(true);
-    // Best-effort: pode falhar por não estar no "user gesture"
+    // Best-effort: pode falhar por nÃ£o estar no "user gesture"
     if (typeof document === 'undefined') return;
     await requestFullscreenSafe('auto');
   }, [requestFullscreenSafe]);
@@ -164,7 +162,7 @@ export default function ModoFocoClient() {
       if (!isCleanView) return;
       if (e.key === 'Escape') {
         e.preventDefault();
-        // Sair do modo clean sem encerrar a sessão (mantém timer rodando)
+        // Sair do modo clean sem encerrar a sessÃ£o (mantÃ©m timer rodando)
         void leaveCleanView();
       }
     };
@@ -190,7 +188,7 @@ export default function ModoFocoClient() {
     if (atividadeParam !== null) setAtividadeId(atividadeParam);
   }, [nextSearchParams]);
 
-  // Persistir o último contexto selecionado para reuso (ex.: atalho no header do dashboard)
+  // Persistir o Ãºltimo contexto selecionado para reuso (ex.: atalho no header do dashboard)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -260,7 +258,7 @@ export default function ModoFocoClient() {
     loadCursos();
   }, [cursoId, supabase]);
 
-  // Carregar disciplinas (independente do curso, mas será filtrado nas frentes)
+  // Carregar disciplinas (independente do curso, mas serÃ¡ filtrado nas frentes)
   useEffect(() => {
     const load = async () => {
       setCarregandoDisciplinas(true);
@@ -307,7 +305,7 @@ export default function ModoFocoClient() {
           .order('nome', { ascending: true });
         if (error) throw error;
         setFrentes((data ?? []).map((f) => ({ id: f.id, nome: f.nome })));
-        // Se frente atual não pertence, limpar
+        // Se frente atual nÃ£o pertence, limpar
         if (frenteId && !(data ?? []).some((f) => f.id === frenteId)) {
           setFrenteId('');
         }
@@ -321,7 +319,7 @@ export default function ModoFocoClient() {
     load();
   }, [disciplinaId, cursoId, frenteId, supabase]);
 
-  // Carregar módulos ao escolher frente
+  // Carregar mÃ³dulos ao escolher frente
   useEffect(() => {
     if (!frenteId) {
       setModulos([]);
@@ -338,7 +336,7 @@ export default function ModoFocoClient() {
           .eq('frente_id', frenteId)
           .order('numero_modulo', { ascending: true, nullsFirst: false });
         if (error) throw error;
-        // Deduplicar para evitar módulos repetidos no dropdown quando existem múltiplas aulas/atividades vinculadas
+        // Deduplicar para evitar mÃ³dulos repetidos no dropdown quando existem mÃºltiplas aulas/atividades vinculadas
         const listaMap = new Map<string, { id: string; nome: string; numero_modulo: number | null }>();
         (data ?? []).forEach((m) => {
           if (!listaMap.has(m.id)) {
@@ -353,8 +351,8 @@ export default function ModoFocoClient() {
         setAtividades([]);
         setAtividadeId('');
       } catch (err) {
-        console.error('[modo-foco] erro ao carregar módulos', err);
-        setErroCarregamento('Erro ao carregar módulos.');
+        console.error('[modo-foco] erro ao carregar mÃ³dulos', err);
+        setErroCarregamento('Erro ao carregar mÃ³dulos.');
       } finally {
         setCarregandoModulos(false);
       }
@@ -398,7 +396,7 @@ export default function ModoFocoClient() {
       try {
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData?.user) {
-          setErro('Falha ao obter usuário para Presence');
+          setErro('Falha ao obter usuÃ¡rio para Presence');
           return;
         }
 
@@ -442,7 +440,7 @@ export default function ModoFocoClient() {
     };
   }, [supabase, disciplinaId, frenteId, atividadeId]);
 
-  // Heartbeat enquanto rodando e não pausado
+  // Heartbeat enquanto rodando e nÃ£o pausado
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
     const startHeartbeat = async () => {
@@ -484,14 +482,14 @@ export default function ModoFocoClient() {
     try {
       const { data: sessionData, error } = await supabase.auth.getSession();
       if (error || !sessionData?.session) {
-        throw new Error('Sessão não encontrada para iniciar foco');
+        throw new Error('SessÃ£o nÃ£o encontrada para iniciar foco');
       }
 
       const body = {
         disciplina_id: disciplinaId || null,
         frente_id: frenteId || null,
         // Importante: enviar `modulo_id` mesmo sem atividade selecionada,
-        // para permitir métricas por módulo no dashboard.
+        // para permitir mÃ©tricas por mÃ³dulo no dashboard.
         modulo_id: moduloId || null,
         atividade_relacionada_id: atividadeId || null,
         metodo_estudo: metodo,
@@ -509,7 +507,7 @@ export default function ModoFocoClient() {
 
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
-        throw new Error(data.error || 'Erro ao iniciar sessão');
+        throw new Error(data.error || 'Erro ao iniciar sessÃ£o');
       }
 
       const { data } = await resp.json();
@@ -543,20 +541,20 @@ export default function ModoFocoClient() {
   const finalizarSessao = async () => {
     if (finalizando) return;
     if (!sessaoId) {
-      setErro('Sessão ainda não iniciada');
+      setErro('SessÃ£o ainda nÃ£o iniciada');
       return;
     }
     setErro(null);
     setFinalizando(true);
 
     try {
-      // Garantir que não ficaremos presos no overlay/Fullscreen
+      // Garantir que nÃ£o ficaremos presos no overlay/Fullscreen
       await leaveCleanView();
       finalize();
       const snapshot = latestState();
       const { data: sessionData, error } = await supabase.auth.getSession();
       if (error || !sessionData?.session) {
-        throw new Error('Sessão expirada');
+        throw new Error('SessÃ£o expirada');
       }
 
       const resp = await fetch('/api/sessao/finalizar', {
@@ -576,7 +574,7 @@ export default function ModoFocoClient() {
 
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
-        throw new Error(data.error || 'Erro ao finalizar sessão');
+        throw new Error(data.error || 'Erro ao finalizar sessÃ£o');
       }
 
       if (concluiuAtividade && atividadeId) {
@@ -590,7 +588,7 @@ export default function ModoFocoClient() {
             body: JSON.stringify({ status: 'Concluido' }),
           });
         } catch (err) {
-          console.warn('[modo-foco] Falha ao marcar atividade concluída', err);
+          console.warn('[modo-foco] Falha ao marcar atividade concluÃ­da', err);
         }
       }
 
@@ -610,20 +608,20 @@ export default function ModoFocoClient() {
   const disabledControls = iniciando || finalizando;
 
   const minutos = (ms: number) => Math.max(0, Math.round(ms / 60000));
-  const cursoNome = cursos.find((c) => c.id === cursoId)?.nome || '—';
-  const disciplinaNome = disciplinas.find((d) => d.id === disciplinaId)?.nome || '—';
-  const frenteNome = frentes.find((f) => f.id === frenteId)?.nome || '—';
+  const cursoNome = cursos.find((c) => c.id === cursoId)?.nome || 'â€”';
+  const disciplinaNome = disciplinas.find((d) => d.id === disciplinaId)?.nome || 'â€”';
+  const frenteNome = frentes.find((f) => f.id === frenteId)?.nome || 'â€”';
   const moduloNome =
     modulos.find((m) => m.id === moduloId)?.nome ||
-    (moduloId ? 'Módulo selecionado' : '—');
-  const atividadeNome = atividades.find((a) => a.id === atividadeId)?.nome || '—';
+    (moduloId ? 'MÃ³dulo selecionado' : 'â€”');
+  const atividadeNome = atividades.find((a) => a.id === atividadeId)?.nome || 'â€”';
 
   const focoRatings = [
     { value: 1, label: 'Socorro' },
     { value: 2, label: 'Precisa melhorar' },
-    { value: 3, label: 'Tá média' },
+    { value: 3, label: 'TÃ¡ mÃ©dia' },
     { value: 4, label: 'Bom foco' },
-    { value: 5, label: 'Eu sou a concentração' },
+    { value: 5, label: 'Eu sou a concentraÃ§Ã£o' },
   ];
 
   const timeline = useMemo(() => {
@@ -708,7 +706,7 @@ export default function ModoFocoClient() {
                     variant="outline"
                     onClick={pause}
                     disabled={disabledControls}
-                    aria-label="Pausar sessão"
+                    aria-label="Pausar sessÃ£o"
                     autoFocus
                   >
                     <Pause className="h-4 w-4 mr-2" />
@@ -721,7 +719,7 @@ export default function ModoFocoClient() {
                     variant="outline"
                     onClick={resume}
                     disabled={disabledControls}
-                    aria-label="Retomar sessão"
+                    aria-label="Retomar sessÃ£o"
                     autoFocus
                   >
                     <Activity className="h-4 w-4 mr-2" />
@@ -732,9 +730,9 @@ export default function ModoFocoClient() {
                   size="sm"
                   variant="destructive"
                   onClick={async () => {
-                    // Volta para a tela completa e abre o modal de finalização
+                    // Volta para a tela completa e abre o modal de finalizaÃ§Ã£o
                     if (!state.startedAt || !sessaoId) {
-                      setErro('Inicie a sessão antes de encerrar.');
+                      setErro('Inicie a sessÃ£o antes de encerrar.');
                       await leaveCleanView();
                       return;
                     }
@@ -742,7 +740,7 @@ export default function ModoFocoClient() {
                     setShowFinalizeModal(true);
                   }}
                   disabled={disabledControls || !state.startedAt}
-                  aria-label="Encerrar sessão"
+                  aria-label="Encerrar sessÃ£o"
                 >
                   <StopCircle className="h-4 w-4 mr-2" />
                   Encerrar
@@ -769,18 +767,18 @@ export default function ModoFocoClient() {
         <div>
           <h1 className="text-3xl font-bold">Modo Foco</h1>
           <p className="text-muted-foreground">
-            Estudo imersivo com worker dedicado e monitoramento de distrações.
+            Estudo imersivo com worker dedicado e monitoramento de distraÃ§Ãµes.
           </p>
         </div>
         <Badge variant="outline" className="text-sm">
-          🟢 {presence.count} estudando aqui
+          ðŸŸ¢ {presence.count} estudando aqui
         </Badge>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Contexto</CardTitle>
-          <CardDescription>Selecione disciplina/frente ou use os parâmetros da URL.</CardDescription>
+          <CardDescription>Selecione disciplina/frente ou use os parÃ¢metros da URL.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -790,7 +788,7 @@ export default function ModoFocoClient() {
                 value={cursoId || undefined}
                 onValueChange={(v) => {
                   setCursoId(v);
-                  // Resetar dependentes somente quando o usuário troca manualmente
+                  // Resetar dependentes somente quando o usuÃ¡rio troca manualmente
                   setDisciplinaId('');
                   setFrenteId('');
                   setModuloId('');
@@ -871,12 +869,12 @@ export default function ModoFocoClient() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="modulo">Módulo (opcional)</Label>
+              <Label htmlFor="modulo">MÃ³dulo (opcional)</Label>
               <Select
                 value={moduloId || undefined}
                 onValueChange={(v) => {
                   setModuloId(v);
-                  // resetar atividade ao trocar módulo manualmente
+                  // resetar atividade ao trocar mÃ³dulo manualmente
                   setAtividadeId('');
                 }}
                 disabled={!frenteId || carregandoModulos}
@@ -895,7 +893,7 @@ export default function ModoFocoClient() {
                 <SelectContent>
                   {modulos.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
-                      {m.numero_modulo ? `Módulo ${m.numero_modulo} - ${m.nome}` : m.nome}
+                      {m.numero_modulo ? `MÃ³dulo ${m.numero_modulo} - ${m.nome}` : m.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -915,7 +913,7 @@ export default function ModoFocoClient() {
                         ? carregandoAtividades
                           ? 'Carregando...'
                           : 'Selecione'
-                        : 'Selecione módulo'
+                        : 'Selecione mÃ³dulo'
                     }
                   />
                 </SelectTrigger>
@@ -952,7 +950,7 @@ export default function ModoFocoClient() {
                   <SelectValue placeholder="Escolha o modo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cronometro">Cronômetro</SelectItem>
+                  <SelectItem value="cronometro">CronÃ´metro</SelectItem>
                   <SelectItem value="timer">Timer regressivo</SelectItem>
                   <SelectItem value="pomodoro">Pomodoro</SelectItem>
                 </SelectContent>
@@ -1034,11 +1032,11 @@ export default function ModoFocoClient() {
 
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Foco {minutos(pomodoroConfig.focusMs)}m · Pausa curta {minutos(pomodoroConfig.shortBreakMs)}m · Longa{' '}
+                  Foco {minutos(pomodoroConfig.focusMs)}m Â· Pausa curta {minutos(pomodoroConfig.shortBreakMs)}m Â· Longa{' '}
                   {minutos(pomodoroConfig.longBreakMs ?? 0)}m
                 </p>
                 <Button variant="secondary" size="sm" onClick={() => setTimelineReady(true)}>
-                  Configuração pronta (gerar linha do tempo)
+                  ConfiguraÃ§Ã£o pronta (gerar linha do tempo)
                 </Button>
               </div>
 
@@ -1153,7 +1151,7 @@ export default function ModoFocoClient() {
                 variant="destructive"
                 onClick={() => {
                   if (!state.startedAt || !sessaoId) {
-                    setErro('Inicie a sessão antes de encerrar.');
+                    setErro('Inicie a sessÃ£o antes de encerrar.');
                     return;
                   }
                   setShowFinalizeModal(true);
@@ -1171,7 +1169,7 @@ export default function ModoFocoClient() {
       <Card>
         <CardHeader>
           <CardTitle>Encerramento</CardTitle>
-          <CardDescription>Feedback rápido antes de salvar.</CardDescription>
+          <CardDescription>Feedback rÃ¡pido antes de salvar.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border px-3 py-2 text-sm">
@@ -1187,7 +1185,7 @@ export default function ModoFocoClient() {
                 Frente: {frenteNome}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border px-2 py-1 bg-muted/50">
-                Módulo: {moduloNome}
+                MÃ³dulo: {moduloNome}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border px-2 py-1 bg-muted/50">
                 Atividade: {atividadeNome}
@@ -1196,11 +1194,11 @@ export default function ModoFocoClient() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Status da sessão</Label>
-              <Input value={sessaoId ? 'Em andamento' : 'Não iniciada'} readOnly />
+              <Label>Status da sessÃ£o</Label>
+              <Input value={sessaoId ? 'Em andamento' : 'NÃ£o iniciada'} readOnly />
             </div>
             <div className="space-y-2">
-              <Label>Nível de foco (1-5)</Label>
+              <Label>NÃ­vel de foco (1-5)</Label>
               <Input
                 type="number"
                 min={1}
@@ -1220,8 +1218,8 @@ export default function ModoFocoClient() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sim">Sim, concluí</SelectItem>
-                    <SelectItem value="nao">Ainda não</SelectItem>
+                    <SelectItem value="sim">Sim, concluÃ­</SelectItem>
+                    <SelectItem value="nao">Ainda nÃ£o</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1239,7 +1237,7 @@ export default function ModoFocoClient() {
       <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Encerrar sessão</DialogTitle>
+            <DialogTitle>Encerrar sessÃ£o</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1271,8 +1269,8 @@ export default function ModoFocoClient() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sim">Sim, concluí</SelectItem>
-                    <SelectItem value="nao">Ainda não</SelectItem>
+                    <SelectItem value="sim">Sim, concluÃ­</SelectItem>
+                    <SelectItem value="nao">Ainda nÃ£o</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

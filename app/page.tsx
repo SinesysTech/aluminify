@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { LandingPage } from "@/components/landing-page";
+﻿import { LandingPage } from "@/components/landing-page";
 
 export const dynamic = "force-dynamic";
 

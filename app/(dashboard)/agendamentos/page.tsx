@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { ProfessorSelector } from "@/components/agendamento/professor-selector"
+﻿import { ProfessorSelector } from "@/components/agendamento/professor-selector"
 import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 import { getProfessoresDisponiveis } from "@/app/actions/agendamentos"

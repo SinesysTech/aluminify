@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useState, useEffect } from 'react';
 import {
@@ -249,7 +247,7 @@ export function BrandCustomizationPanel({
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Palette className="h-6 w-6" />
-                Personalização da Marca
+                PersonalizaÃ§Ã£o da Marca
               </h2>
               <p className="text-muted-foreground mt-1">
                 Personalize a identidade visual da sua empresa, incluindo logos, cores e fontes.
@@ -267,7 +265,7 @@ export function BrandCustomizationPanel({
                 ) : (
                   <RotateCcw className="h-4 w-4 mr-2" />
                 )}
-                Restaurar Padrão
+                Restaurar PadrÃ£o
               </Button>
 
               <Button
@@ -279,14 +277,14 @@ export function BrandCustomizationPanel({
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                Salvar Alterações
+                Salvar AlteraÃ§Ãµes
               </Button>
             </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="overview">VisÃ£o Geral</TabsTrigger>
               <TabsTrigger value="logos">Logos</TabsTrigger>
               <TabsTrigger value="colors">Cores</TabsTrigger>
               <TabsTrigger value="fonts">Fontes</TabsTrigger>
@@ -295,9 +293,9 @@ export function BrandCustomizationPanel({
             <TabsContent value="overview" className="mt-6 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Configuração Atual da Marca</CardTitle>
+                  <CardTitle>ConfiguraÃ§Ã£o Atual da Marca</CardTitle>
                   <CardDescription>
-                    Visão geral das configurações de personalização atuais
+                    VisÃ£o geral das configuraÃ§Ãµes de personalizaÃ§Ã£o atuais
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -314,7 +312,7 @@ export function BrandCustomizationPanel({
                           {brandingState.logos.login ? (
                             <Badge variant="default" className="bg-green-600">Personalizado</Badge>
                           ) : (
-                            <Badge variant="outline">Padrão</Badge>
+                            <Badge variant="outline">PadrÃ£o</Badge>
                           )}
                         </div>
                         <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
@@ -322,7 +320,7 @@ export function BrandCustomizationPanel({
                           {brandingState.logos.sidebar ? (
                             <Badge variant="default" className="bg-green-600">Personalizado</Badge>
                           ) : (
-                            <Badge variant="outline">Padrão</Badge>
+                            <Badge variant="outline">PadrÃ£o</Badge>
                           )}
                         </div>
                         <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
@@ -330,7 +328,7 @@ export function BrandCustomizationPanel({
                           {brandingState.logos.favicon ? (
                             <Badge variant="default" className="bg-green-600">Personalizado</Badge>
                           ) : (
-                            <Badge variant="outline">Padrão</Badge>
+                            <Badge variant="outline">PadrÃ£o</Badge>
                           )}
                         </div>
                       </div>
@@ -349,12 +347,12 @@ export function BrandCustomizationPanel({
                             <div
                               className="w-8 h-8 rounded-full border shadow-sm"
                               style={{ backgroundColor: brandingState.colorPalette.primaryColor }}
-                              title="Primária"
+                              title="PrimÃ¡ria"
                             />
                             <div
                               className="w-8 h-8 rounded-full border shadow-sm"
                               style={{ backgroundColor: brandingState.colorPalette.secondaryColor }}
-                              title="Secundária"
+                              title="SecundÃ¡ria"
                             />
                             <div
                               className="w-8 h-8 rounded-full border shadow-sm"
@@ -366,7 +364,7 @@ export function BrandCustomizationPanel({
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground">
-                          Nenhuma paleta personalizada ativa. Usando cores padrão do sistema.
+                          Nenhuma paleta personalizada ativa. Usando cores padrÃ£o do sistema.
                         </div>
                       )}
                     </div>
@@ -390,7 +388,7 @@ export function BrandCustomizationPanel({
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground">
-                          Nenhum esquema de fonte personalizado ativo. Usando fontes padrão do sistema.
+                          Nenhum esquema de fonte personalizado ativo. Usando fontes padrÃ£o do sistema.
                         </div>
                       )}
                     </div>
@@ -407,7 +405,7 @@ export function BrandCustomizationPanel({
                 >
                   <Upload className="h-6 w-6 mb-1" />
                   <span>Enviar Logos</span>
-                  <span className="text-xs text-muted-foreground font-normal">Faça upload da identidade da sua marca</span>
+                  <span className="text-xs text-muted-foreground font-normal">FaÃ§a upload da identidade da sua marca</span>
                 </Button>
 
                 <Button

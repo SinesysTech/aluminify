@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { requireUser } from '@/lib/auth'
+﻿import { requireUser } from '@/lib/auth'
 import SalaEstudosClientPage from './sala-estudos-client'
 
 export default async function SalaDeEstudosPage() {

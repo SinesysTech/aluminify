@@ -1,121 +1,303 @@
 /**
- * Tipos de entidades de atividade compartilhados
+ * Tipos de Entidades do Sistema
+ * 
+ * Define as interfaces para as principais entidades do banco de dados
+ * relacionadas a atividades, disciplinas, cursos, módulos e frentes.
  */
 
-import type { TipoAtividade, StatusAtividade, DificuldadePercebida } from '../enums';
+// ============================================================================
+// ATIVIDADE
+// ============================================================================
 
 export interface Atividade {
   id: string;
-  moduloId: string;
-  tipo: TipoAtividade;
-  titulo: string;
-  arquivoUrl: string | null;
-  gabaritoUrl: string | null;
-  linkExterno: string | null;
-  obrigatorio: boolean;
-  ordemExibicao: number;
-  createdBy: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  nome: string;
+  frente_id: string;
+  disciplina_id: string;
+  curso_id?: string;
+  modulo_id?: string;
+  status: 'pendente' | 'em_progresso' | 'concluida';
+  dataInicio?: string;
+  dataConclusao?: string;
+  questoesTotais?: number;
+  questoesAcertos?: number;
+  dificuldadePercebida?: 1 | 2 | 3 | 4 | 5;
+  anotacoesPessoais?: string;
+  tipo?: string;
+  descricao?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface CreateAtividadeInput {
-  moduloId: string;
-  tipo: TipoAtividade;
-  titulo: string;
-  arquivoUrl?: string | null;
-  gabaritoUrl?: string | null;
-  linkExterno?: string | null;
-  obrigatorio?: boolean;
-  ordemExibicao?: number;
+export interface AtividadeComDetalhes extends Atividade {
+  frente?: Frente;
+  disciplina?: Disciplina;
+  curso?: Curso;
+  modulo?: Modulo;
 }
 
-export interface UpdateAtividadeInput {
-  arquivoUrl?: string | null;
-  gabaritoUrl?: string | null;
-  linkExterno?: string | null;
-  titulo?: string;
-  obrigatorio?: boolean;
-  ordemExibicao?: number;
+// ============================================================================
+// DISCIPLINA
+// ============================================================================
+
+export interface Disciplina {
+  id: string;
+  nome: string;
+  curso_id: string;
+  descricao?: string;
+  cor?: string;
+  icone?: string;
+  ordem?: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// Tipo para retorno de atividades do aluno (com informações hierárquicas e progresso)
-export interface AtividadeComProgressoEHierarquia extends Atividade {
-  moduloNome: string;
-  moduloNumero: number | null;
-  frenteNome: string;
-  frenteId: string;
-  disciplinaNome: string;
-  disciplinaId: string;
-  cursoNome: string;
-  cursoId: string;
-  progressoStatus: StatusAtividade | null;
-  progressoDataInicio: Date | null;
-  progressoDataConclusao: Date | null;
-  // Campos de desempenho (quando concluído com check qualificado)
-  questoesTotais: number | null;
-  questoesAcertos: number | null;
-  dificuldadePercebida: DificuldadePercebida | null;
-  anotacoesPessoais: string | null;
+export interface DisciplinaComCurso extends Disciplina {
+  curso?: Curso;
 }
 
-// Helper para verificar se um tipo de atividade requer check qualificado (modal de desempenho)
-export function atividadeRequerDesempenho(tipo: TipoAtividade): boolean {
-  // Check simples: Revisao e Conceituario
-  // Check qualificado: Todos os outros tipos
-  return tipo !== 'Revisao' && tipo !== 'Conceituario';
+// ============================================================================
+// CURSO
+// ============================================================================
+
+export interface Curso {
+  id: string;
+  nome: string;
+  descricao?: string;
+  segmento_id?: string;
+  duracao_meses?: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// Tipos de sessão de estudo
-export type MetodoEstudo = 'pomodoro' | 'cronometro' | 'timer';
+export interface CursoComDisciplinas extends Curso {
+  disciplinas?: Disciplina[];
+}
 
-export type LogPausaTipo = 'manual' | 'distracao';
+// ============================================================================
+// MÓDULO
+// ============================================================================
+
+export interface Modulo {
+  id: string;
+  nome: string;
+  numero_modulo: number;
+  frente_id: string;
+  descricao?: string;
+  ordem?: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ModuloComFrente extends Modulo {
+  frente?: Frente;
+}
+
+export interface ModuloComAtividades extends Modulo {
+  atividades?: Atividade[];
+}
+
+// ============================================================================
+// FRENTE
+// ============================================================================
+
+export interface Frente {
+  id: string;
+  nome: string;
+  disciplina_id: string;
+  descricao?: string;
+  cor?: string;
+  ordem?: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FrenteComDisciplina extends Frente {
+  disciplina?: Disciplina;
+}
+
+export interface FrenteComModulos extends Frente {
+  modulos?: Modulo[];
+}
+
+// ============================================================================
+// PROGRESSO
+// ============================================================================
+
+export interface ProgressoAtividade {
+  id: string;
+  aluno_id: string;
+  atividade_id: string;
+  status: 'nao_iniciada' | 'em_progresso' | 'concluida' | 'revisao';
+  data_inicio?: string;
+  data_conclusao?: string;
+  tempo_gasto_minutos?: number;
+  questoes_totais?: number;
+  questoes_acertos?: number;
+  dificuldade_percebida?: 1 | 2 | 3 | 4 | 5;
+  anotacoes_pessoais?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgressoAtividadeComDetalhes extends ProgressoAtividade {
+  atividade?: AtividadeComDetalhes;
+}
+
+// ============================================================================
+// TYPE GUARDS
+// ============================================================================
+
+export function isAtividade(data: unknown): data is Atividade {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'nome' in data &&
+    'frente_id' in data &&
+    'disciplina_id' in data
+  );
+}
+
+export function isDisciplina(data: unknown): data is Disciplina {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'nome' in data &&
+    'curso_id' in data
+  );
+}
+
+export function isCurso(data: unknown): data is Curso {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'nome' in data
+  );
+}
+
+export function isModulo(data: unknown): data is Modulo {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'nome' in data &&
+    'numero_modulo' in data &&
+    'frente_id' in data
+  );
+}
+
+export function isFrente(data: unknown): data is Frente {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'nome' in data &&
+    'disciplina_id' in data
+  );
+}
+
+export function isProgressoAtividade(data: unknown): data is ProgressoAtividade {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'aluno_id' in data &&
+    'atividade_id' in data &&
+    'status' in data
+  );
+}
+
+// ============================================================================
+// HELPER TYPES
+// ============================================================================
+
+export type AtividadeStatus = Atividade['status'];
+export type ProgressoStatus = ProgressoAtividade['status'];
+export type DificuldadePercebida = 1 | 2 | 3 | 4 | 5;
+
+// ============================================================================
+// FILTROS E ORDENAÇÃO
+// ============================================================================
+
+export interface FiltrosAtividade {
+  disciplina_id?: string;
+  curso_id?: string;
+  frente_id?: string;
+  modulo_id?: string;
+  status?: AtividadeStatus;
+  busca?: string;
+}
+
+export interface OrdenacaoAtividade {
+  campo: 'nome' | 'created_at' | 'updated_at' | 'status';
+  direcao: 'asc' | 'desc';
+}
+
+// ============================================================================
+// SESSÃO DE ESTUDO
+// ============================================================================
+
+export type MetodoEstudo = 
+  | 'pomodoro'
+  | 'livre'
+  | 'intervalo_curto'
+  | 'intervalo_longo';
+
+export type LogPausaTipo = 'pausa' | 'retomada';
 
 export interface LogPausa {
-  inicio: string; // ISO string
-  fim: string; // ISO string
   tipo: LogPausaTipo;
+  timestamp: string;
 }
 
-export type SessaoStatus = 'em_andamento' | 'concluido' | 'descartado';
+export type SessaoStatus = 
+  | 'em_andamento'
+  | 'pausada'
+  | 'finalizada'
+  | 'cancelada';
 
 export interface SessaoEstudo {
   id: string;
-  alunoId: string;
-  disciplinaId: string | null;
-  frenteId: string | null;
-  moduloId: string | null;
-  atividadeRelacionadaId: string | null;
+  aluno_id: string;
+  modulo_id?: string | null;
+  disciplina_id?: string | null;
+  frente_id?: string | null;
+  atividade_relacionada_id?: string | null;
+  metodo_estudo: MetodoEstudo;
   inicio: string;
-  fim: string | null;
-  tempoTotalBrutoSegundos: number | null;
-  tempoTotalLiquidoSegundos: number | null;
-  logPausas: LogPausa[];
-  metodoEstudo: MetodoEstudo | null;
-  nivelFoco: number | null;
+  fim?: string | null;
+  tempo_total_minutos?: number | null;
+  tempo_efetivo_minutos?: number | null;
+  pausas?: LogPausa[] | null;
   status: SessaoStatus;
-  createdAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IniciarSessaoInput {
-  disciplinaId?: string;
-  frenteId?: string;
-  moduloId?: string;
-  atividadeRelacionadaId?: string;
-  metodoEstudo?: MetodoEstudo;
-  inicioIso?: string; // permite iniciar com horário vindo do worker
+  aluno_id: string;
+  modulo_id?: string | null;
+  disciplina_id?: string | null;
+  frente_id?: string | null;
+  atividade_relacionada_id?: string | null;
+  metodo_estudo: MetodoEstudo;
 }
 
 export interface FinalizarSessaoInput {
-  sessaoId: string;
-  logPausas: LogPausa[];
-  fimIso?: string; // horário final vindo do worker; fallback para now
-  nivelFoco?: number;
-  status?: Extract<SessaoStatus, 'concluido' | 'descartado'>;
+  sessao_id: string;
+  tempo_total_minutos?: number;
+  tempo_efetivo_minutos?: number;
 }
 
 export interface CalculoTempoResultado {
-  tempoTotalBrutoSegundos: number;
-  tempoTotalLiquidoSegundos: number;
+  tempo_total_minutos: number;
+  tempo_efetivo_minutos: number;
+  pausas: LogPausa[];
 }
-

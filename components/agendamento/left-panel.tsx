@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import {
 	Tooltip,
@@ -12,7 +10,7 @@ import { useSearchParams } from "next/navigation";
 
 // Timezone display name mapping
 const TIMEZONE_NAMES: Record<string, string> = {
-	'America/Sao_Paulo': 'Brasília (GMT-3)',
+	'America/Sao_Paulo': 'BrasÃ­lia (GMT-3)',
 	'America/New_York': 'Nova York (GMT-5)',
 	'America/Los_Angeles': 'Los Angeles (GMT-8)',
 	'Europe/London': 'Londres (GMT+0)',

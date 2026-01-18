@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -79,7 +77,7 @@ export default function CalendarioClientPage() {
               Crie seu Cronograma de Estudos
             </CardTitle>
             <CardDescription className="text-base">
-              Para visualizar seu cronograma no calendário, você precisa criar
+              Para visualizar seu cronograma no calendÃ¡rio, vocÃª precisa criar
               um cronograma primeiro
             </CardDescription>
           </CardHeader>

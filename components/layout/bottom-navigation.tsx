@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -14,7 +12,7 @@ const navigationItems = [
     icon: MessageSquare,
   },
   {
-    name: 'Calendário',
+    name: 'CalendÃ¡rio',
     href: '/aluno/cronograma/calendario',
     icon: Calendar,
   },

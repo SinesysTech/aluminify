@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -112,10 +110,10 @@ export function StudentsUnderCareList({ students }: StudentsUnderCareListProps) 
                       </div>
                     </div>
 
-                    {/* Última atividade */}
+                    {/* Ãšltima atividade */}
                     {student.ultimaAtividade && (
                       <p className="text-[10px] text-muted-foreground">
-                        Última atividade:{' '}
+                        Ãšltima atividade:{' '}
                         {formatDistanceToNow(new Date(student.ultimaAtividade), {
                           addSuffix: true,
                           locale: ptBR,

@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { createClient } from "@/lib/server"
+﻿import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 import { ConfiguracoesForm } from "@/components/professor/configuracoes-form"
 import { getConfiguracoesProfessor } from "@/app/actions/agendamentos"
@@ -29,9 +27,9 @@ export default async function ConfiguracoesAvancadasPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Configurações Avançadas</h1>
+        <h1 className="text-3xl font-bold">ConfiguraÃ§Ãµes AvanÃ§adas</h1>
         <p className="text-muted-foreground">
-          Configure intervalos personalizados, lembretes e preferências de notificações
+          Configure intervalos personalizados, lembretes e preferÃªncias de notificaÃ§Ãµes
         </p>
       </div>
 

@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 
 import { requireUser } from '@/lib/auth'
 import { getDefaultRouteForRole } from '@/lib/roles'
@@ -20,9 +18,9 @@ export default async function PrimeiroAcessoPage() {
         <CardHeader>
           <CardTitle>Defina sua nova senha</CardTitle>
           <CardDescription>
-            Por segurança, você precisa criar uma nova senha antes de acessar sua área.
+            Por seguranÃ§a, vocÃª precisa criar uma nova senha antes de acessar sua Ã¡rea.
             <br />
-            <strong>Importante:</strong> A nova senha deve ser diferente da senha temporária que você recebeu.
+            <strong>Importante:</strong> A nova senha deve ser diferente da senha temporÃ¡ria que vocÃª recebeu.
           </CardDescription>
         </CardHeader>
         <CardContent>

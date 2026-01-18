@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -42,17 +40,17 @@ const formatHorasFromMinutes = (minutos?: number | null) => {
 
 const formatDateSafe = (dateString: string | null | undefined): string => {
   if (!dateString) {
-    return 'Data inválida'
+    return 'Data invÃ¡lida'
   }
 
   try {
     const date = new Date(dateString)
     if (isNaN(date.getTime())) {
-      return 'Data inválida'
+      return 'Data invÃ¡lida'
     }
     return format(date, 'dd/MM/yyyy', { locale: ptBR })
   } catch {
-    return 'Data inválida'
+    return 'Data invÃ¡lida'
   }
 }
 
@@ -143,7 +141,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   useEffect(() => {
     async function loadCronograma() {
       if (!cronogramaId) {
-        console.error('cronogramaId não fornecido')
+        console.error('cronogramaId nÃ£o fornecido')
         setLoading(false)
         return
       }
@@ -178,7 +176,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         }
 
         if (!cronogramaData) {
-          console.error('Cronograma não encontrado para o ID:', cronogramaId)
+          console.error('Cronograma nÃ£o encontrado para o ID:', cronogramaId)
           setLoading(false)
           return
         }
@@ -232,7 +230,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             console.log('[ScheduleDashboard] Buscando aulas:', aulaIds.length, 'aulas')
             
             // Load aulas with their relationships - usando joins mais simples
-            // Primeiro buscar aulas básicas - garantir que temos pelo menos os dados básicos
+            // Primeiro buscar aulas bÃ¡sicas - garantir que temos pelo menos os dados bÃ¡sicos
             console.log('[ScheduleDashboard] Buscando', aulaIds.length, 'aulas com IDs:', aulaIds.slice(0, 3), '...')
             
             // Dividir em lotes de 100 IDs para evitar problemas com queries muito grandes
@@ -242,7 +240,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               lotes.push(aulaIds.slice(i, i + LOTE_SIZE))
             }
             
-            console.log('[ScheduleDashboard] Dividindo em', lotes.length, 'lotes de até', LOTE_SIZE, 'IDs cada')
+            console.log('[ScheduleDashboard] Dividindo em', lotes.length, 'lotes de atÃ©', LOTE_SIZE, 'IDs cada')
             
             // Buscar aulas em lotes
             const todasAulas: AulaData[] = []
@@ -266,22 +264,22 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   loteSize: lote.length,
                   firstIdInLote: lote[0],
                 })
-                // Não parar completamente, apenas marcar o erro
+                // NÃ£o parar completamente, apenas marcar o erro
                 if (!aulasBasicasError) {
                   aulasBasicasError = loteError
                 }
               } else if (loteData) {
                 todasAulas.push(...loteData)
-                console.log(`[ScheduleDashboard] ✓ Lote ${i + 1}/${lotes.length} retornou ${loteData.length} aulas`)
+                console.log(`[ScheduleDashboard] âœ“ Lote ${i + 1}/${lotes.length} retornou ${loteData.length} aulas`)
               } else {
-                console.warn(`[ScheduleDashboard] ⚠️ Lote ${i + 1}/${lotes.length} retornou null/undefined`)
+                console.warn(`[ScheduleDashboard] âš ï¸ Lote ${i + 1}/${lotes.length} retornou null/undefined`)
               }
             }
             
             const aulasBasicas = todasAulas.length > 0 ? todasAulas : null
 
             if (aulasBasicasError) {
-              console.error('[ScheduleDashboard] Erro ao carregar aulas básicas:', {
+              console.error('[ScheduleDashboard] Erro ao carregar aulas bÃ¡sicas:', {
                 message: aulasBasicasError.message,
                 details: aulasBasicasError.details,
                 hint: aulasBasicasError.hint,
@@ -289,11 +287,11 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 aulaIdsCount: aulaIds.length,
                 firstIds: aulaIds.slice(0, 3),
               })
-              // Se houver erro, ainda assim tentar continuar com array vazio para não quebrar
+              // Se houver erro, ainda assim tentar continuar com array vazio para nÃ£o quebrar
             }
 
             if (!aulasBasicas || aulasBasicas.length === 0) {
-              console.error('[ScheduleDashboard] ⚠️ Nenhuma aula encontrada após buscar em lotes!')
+              console.error('[ScheduleDashboard] âš ï¸ Nenhuma aula encontrada apÃ³s buscar em lotes!')
               console.error('[ScheduleDashboard] IDs buscados:', aulaIds.length, 'IDs:', aulaIds.slice(0, 10))
               console.error('[ScheduleDashboard] Erro da query:', aulasBasicasError)
               
@@ -318,20 +316,20 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 }
               }
             } else {
-              console.log('[ScheduleDashboard] ✓ Aulas básicas encontradas:', aulasBasicas.length, 'de', aulaIds.length, 'IDs buscados')
+              console.log('[ScheduleDashboard] âœ“ Aulas bÃ¡sicas encontradas:', aulasBasicas.length, 'de', aulaIds.length, 'IDs buscados')
               if (aulasBasicas.length > 0) {
                 console.log('[ScheduleDashboard] Primeira aula:', aulasBasicas[0])
               }
               if (aulasBasicas.length < aulaIds.length) {
                 const foundIds = new Set(aulasBasicas.map(a => a.id))
                 const missingIds = aulaIds.filter(id => !foundIds.has(id))
-                console.warn('[ScheduleDashboard] ⚠️ Algumas aulas não foram encontradas:', missingIds.length, 'faltando. Primeiros:', missingIds.slice(0, 5))
+                console.warn('[ScheduleDashboard] âš ï¸ Algumas aulas nÃ£o foram encontradas:', missingIds.length, 'faltando. Primeiros:', missingIds.slice(0, 5))
               }
               const moduloIdsUnicos = [...new Set(aulasBasicas.map(a => a.modulo_id).filter(Boolean))]
-              console.log('[ScheduleDashboard] Módulos IDs das aulas:', moduloIdsUnicos.length, 'módulos únicos')
+              console.log('[ScheduleDashboard] MÃ³dulos IDs das aulas:', moduloIdsUnicos.length, 'mÃ³dulos Ãºnicos')
             }
 
-            // Buscar módulos das aulas
+            // Buscar mÃ³dulos das aulas
             const moduloIds = [...new Set((aulasBasicas || []).map(a => a.modulo_id).filter((id): id is string => !!id))]
             let modulosMap = new Map()
             
@@ -343,13 +341,13 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 .in('id', moduloIds)) as { data: ModuloMapValue[] | null; error: unknown }
 
               if (modulosError) {
-                console.error('Erro ao carregar módulos:', modulosError)
+                console.error('Erro ao carregar mÃ³dulos:', modulosError)
               } else if (modulosData) {
                 modulosMap = new Map(modulosData.map(m => [m.id, m]))
               }
             }
 
-            // Buscar frentes dos módulos
+            // Buscar frentes dos mÃ³dulos
             const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: ModuloMapValue) => m.frente_id).filter(Boolean))]
             let frentesMap = new Map()
             
@@ -413,7 +411,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               }
             })
 
-            console.log('[ScheduleDashboard] Aulas completas montadas:', aulasCompletas.length, 'de', aulasBasicas?.length || 0, 'aulas básicas')
+            console.log('[ScheduleDashboard] Aulas completas montadas:', aulasCompletas.length, 'de', aulasBasicas?.length || 0, 'aulas bÃ¡sicas')
             if (aulasCompletas.length > 0) {
               console.log('[ScheduleDashboard] Exemplo de aula completa:', JSON.stringify(aulasCompletas[0], null, 2))
             }
@@ -425,7 +423,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             itensCompletos = itensData.map(item => {
               const aula = aulasMap.get(item.aula_id)
               if (!aula) {
-                console.warn('[ScheduleDashboard] Aula não encontrada para item:', item.id, 'aula_id:', item.aula_id)
+                console.warn('[ScheduleDashboard] Aula nÃ£o encontrada para item:', item.id, 'aula_id:', item.aula_id)
               }
               return {
                 ...item,
@@ -488,7 +486,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
         setCronograma(data)
 
-        // Buscar informações do curso e disciplinas
+        // Buscar informaÃ§Ãµes do curso e disciplinas
         if (data.curso_alvo_id) {
           const { data: cursoData } = await supabase
             .from('cursos')
@@ -526,7 +524,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
     loadCronograma()
 
-    // Subscription Realtime para sincronizar mudanças em cronograma_itens
+    // Subscription Realtime para sincronizar mudanÃ§as em cronograma_itens
     const supabase = createClient()
     const channel = supabase
       .channel(`cronograma-itens-dashboard-${cronogramaId}`)
@@ -539,7 +537,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           filter: `cronograma_id=eq.${cronogramaId}`,
         },
         (payload) => {
-          console.log('[Realtime Dashboard] Mudança detectada em cronograma_itens:', payload)
+          console.log('[Realtime Dashboard] MudanÃ§a detectada em cronograma_itens:', payload)
           
           interface CronogramaItemUpdate {
             id: string;
@@ -547,7 +545,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             data_conclusao: string | null;
             [key: string]: unknown;
           }
-          // Recarregar o item específico que mudou
+          // Recarregar o item especÃ­fico que mudou
           if (cronograma && payload.new) {
             const updatedItem = payload.new as CronogramaItemUpdate
             const updatedItems = cronograma.cronograma_itens.map((item) =>
@@ -613,7 +611,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             { onConflict: 'aluno_id,aula_id' },
           )
         if (aulaError) {
-          console.error('Erro ao registrar aula concluída:', {
+          console.error('Erro ao registrar aula concluÃ­da:', {
             message: aulaError.message,
             details: aulaError.details,
             hint: aulaError.hint,
@@ -623,7 +621,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             curso_id: cursoDaAula,
           })
         } else {
-          console.log('✓ Aula concluída registrada com sucesso:', {
+          console.log('âœ“ Aula concluÃ­da registrada com sucesso:', {
             aluno_id: alunoAtual,
             aula_id: itemAlvo.aula_id,
             curso_id: cursoDaAula,
@@ -636,7 +634,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           .eq('aluno_id', alunoAtual)
           .eq('aula_id', itemAlvo.aula_id)
         if (deleteError) {
-          console.error('Erro ao remover aula concluída:', {
+          console.error('Erro ao remover aula concluÃ­da:', {
             message: deleteError.message,
             details: deleteError.details,
             hint: deleteError.hint,
@@ -645,14 +643,14 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             aula_id: itemAlvo.aula_id,
           })
         } else {
-          console.log('✓ Aula concluída removida com sucesso:', {
+          console.log('âœ“ Aula concluÃ­da removida com sucesso:', {
             aluno_id: alunoAtual,
             aula_id: itemAlvo.aula_id,
           })
         }
       }
     } else {
-      console.warn('⚠️ Não foi possível registrar aula concluída - dados faltando:', {
+      console.warn('âš ï¸ NÃ£o foi possÃ­vel registrar aula concluÃ­da - dados faltando:', {
         temAulaId: !!itemAlvo?.aula_id,
         temAlunoAtual: !!alunoAtual,
         temCursoDaAula: !!cursoDaAula,
@@ -680,7 +678,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     try {
       const supabase = createClient()
 
-      // Deletar o cronograma (os itens serão deletados automaticamente por CASCADE)
+      // Deletar o cronograma (os itens serÃ£o deletados automaticamente por CASCADE)
       const { error } = await supabase
         .from('cronogramas')
         .delete()
@@ -693,7 +691,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         return
       }
 
-      // Redirecionar para a página de criação de novo cronograma
+      // Redirecionar para a pÃ¡gina de criaÃ§Ã£o de novo cronograma
       router.push('/aluno/cronograma/novo')
     } catch (err) {
       console.error('Erro inesperado ao deletar cronograma:', err)
@@ -716,7 +714,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
-            <CardTitle>Cronograma não encontrado</CardTitle>
+            <CardTitle>Cronograma nÃ£o encontrado</CardTitle>
           </CardHeader>
           <CardContent>
             <Button onClick={() => router.push('/aluno/cronograma/novo')}>
@@ -733,7 +731,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const itensConcluidos = cronograma.cronograma_itens.filter((item) => item.concluido).length
   const progressoPercentual = totalItens > 0 ? (itensConcluidos / totalItens) * 100 : 0
 
-  // Função para calcular semanas disponibilizadas (período entre data início e fim, descontando férias)
+  // FunÃ§Ã£o para calcular semanas disponibilizadas (perÃ­odo entre data inÃ­cio e fim, descontando fÃ©rias)
   const calcularSemanasDisponibilizadas = (
     dataInicio: string,
     dataFim: string,
@@ -747,7 +745,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     while (dataAtual <= fim) {
       const fimSemana = addDays(dataAtual, 6) // 7 dias (0-6)
 
-      // Verificar se a semana cai em período de férias
+      // Verificar se a semana cai em perÃ­odo de fÃ©rias
       let isFerias = false
       for (const periodo of ferias || []) {
         if (!periodo.inicio || !periodo.fim) continue
@@ -755,7 +753,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         const inicioFerias = new Date(periodo.inicio)
         const fimFerias = new Date(periodo.fim)
         
-        // Validar se as datas são válidas
+        // Validar se as datas sÃ£o vÃ¡lidas
         if (isNaN(inicioFerias.getTime()) || isNaN(fimFerias.getTime())) {
           continue
         }
@@ -780,7 +778,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     return semanas
   }
 
-  // Calcular semanas com aulas (semanas que têm pelo menos um item)
+  // Calcular semanas com aulas (semanas que tÃªm pelo menos um item)
   const semanasComAulas = new Set(cronograma.cronograma_itens.map(item => item.semana_numero)).size
 
   // Calcular semana atual
@@ -789,7 +787,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const diffTime = hoje.getTime() - dataInicioCalc.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-  // Calcular todas as semanas do cronograma (incluindo férias)
+  // Calcular todas as semanas do cronograma (incluindo fÃ©rias)
   const dataInicio = new Date(cronograma.data_inicio)
   const dataFim = new Date(cronograma.data_fim)
   const todasSemanas: number[] = []
@@ -816,7 +814,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const semanaAtual = Math.min(totalSemanas, Math.max(1, Math.floor(diffDays / 7) + 1))
 
   // Garantir que todas as semanas tenham uma entrada (mesmo que vazia)
-  // Isso é importante para exibir todas as semanas do período, mesmo sem aulas
+  // Isso Ã© importante para exibir todas as semanas do perÃ­odo, mesmo sem aulas
   todasSemanas.forEach((semana) => {
     if (!itensPorSemana[semana]) {
       itensPorSemana[semana] = []
@@ -855,7 +853,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Criar Novo Cronograma?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Ao criar um novo cronograma, o cronograma atual será <strong>permanentemente excluído</strong> e não poderá ser recuperado.
+                      Ao criar um novo cronograma, o cronograma atual serÃ¡ <strong>permanentemente excluÃ­do</strong> e nÃ£o poderÃ¡ ser recuperado.
                       <br />
                       <br />
                       Tem certeza que deseja continuar?
@@ -882,7 +880,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                     const supabase = createClient()
                     const { data: { session } } = await supabase.auth.getSession()
                     if (!session?.access_token) {
-                      alert('Sessão expirada. Faça login novamente.')
+                      alert('SessÃ£o expirada. FaÃ§a login novamente.')
                       return
                     }
                     const res = await fetch(`/api/cronograma/${cronogramaId}/export/pdf`, {
@@ -920,7 +918,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                     const supabase = createClient()
                     const { data: { session } } = await supabase.auth.getSession()
                     if (!session?.access_token) {
-                      alert('Sessão expirada. Faça login novamente.')
+                      alert('SessÃ£o expirada. FaÃ§a login novamente.')
                       return
                     }
                     const res = await fetch(`/api/cronograma/${cronogramaId}/export/xlsx`, {
@@ -966,17 +964,17 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Deletar Cronograma?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esta ação não pode ser desfeita. O cronograma e todos os seus dados serão <strong>permanentemente excluídos</strong>, incluindo:
+                      Esta aÃ§Ã£o nÃ£o pode ser desfeita. O cronograma e todos os seus dados serÃ£o <strong>permanentemente excluÃ­dos</strong>, incluindo:
                       <br />
                       <br />
-                      • Todas as aulas agendadas no cronograma
+                      â€¢ Todas as aulas agendadas no cronograma
                       <br />
-                      • Progresso e marcações de conclusão específicas deste cronograma
+                      â€¢ Progresso e marcaÃ§Ãµes de conclusÃ£o especÃ­ficas deste cronograma
                       <br />
-                      • Configurações e distribuição das aulas
+                      â€¢ ConfiguraÃ§Ãµes e distribuiÃ§Ã£o das aulas
                       <br />
                       <br />
-                      <strong>Importante:</strong> O <strong>histórico de aulas concluídas</strong> será <strong>preservado</strong>. Essas marcações são independentes do cronograma e não serão deletadas. Quando você criar um novo cronograma, poderá escolher excluir automaticamente as aulas já concluídas.
+                      <strong>Importante:</strong> O <strong>histÃ³rico de aulas concluÃ­das</strong> serÃ¡ <strong>preservado</strong>. Essas marcaÃ§Ãµes sÃ£o independentes do cronograma e nÃ£o serÃ£o deletadas. Quando vocÃª criar um novo cronograma, poderÃ¡ escolher excluir automaticamente as aulas jÃ¡ concluÃ­das.
                       <br />
                       <br />
                       Tem certeza que deseja continuar?
@@ -1001,7 +999,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Progresso Geral</span>
-              <span>{itensConcluidos} de {totalItens} aulas concluídas</span>
+              <span>{itensConcluidos} de {totalItens} aulas concluÃ­das</span>
             </div>
             <Progress value={progressoPercentual} />
             <p className="text-xs text-muted-foreground">
@@ -1011,15 +1009,15 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         </CardContent>
       </Card>
 
-      {/* Card de Resumo das Configurações */}
+      {/* Card de Resumo das ConfiguraÃ§Ãµes */}
       <Card>
         <CardHeader>
-          <CardTitle>Resumo da Configuração</CardTitle>
+          <CardTitle>Resumo da ConfiguraÃ§Ã£o</CardTitle>
           <Separator className="mt-2" />
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Período:</span>
+            <span className="text-muted-foreground">PerÃ­odo:</span>
             <span>
               {format(new Date(cronograma.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {' '}
               {format(new Date(cronograma.data_fim), "dd/MM/yyyy", { locale: ptBR })}
@@ -1089,7 +1087,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 3: 'Semi Extensivo',
                 4: 'Intensivo',
                 5: 'Superintensivo',
-              }[cronograma.prioridade_minima || 2] || 'Não definida'}
+              }[cronograma.prioridade_minima || 2] || 'NÃ£o definida'}
             </span>
           </div>
           <Separator />
@@ -1102,7 +1100,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           <Separator />
           {cronograma.velocidade_reproducao && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Velocidade de Reprodução:</span>
+              <span className="text-muted-foreground">Velocidade de ReproduÃ§Ã£o:</span>
               <span>{cronograma.velocidade_reproducao.toFixed(2)}x</span>
             </div>
           )}

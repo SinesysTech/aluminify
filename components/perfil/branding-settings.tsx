@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -59,7 +57,7 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                throw new Error('Sessão expirada. Faça login novamente.');
+                throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
             }
 
             const response = await fetch(`/api/tenant-branding/${empresaId}`, {
@@ -81,13 +79,13 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
 
             toast({
                 title: 'Sucesso',
-                description: 'Personalização de marca salva com sucesso',
+                description: 'PersonalizaÃ§Ã£o de marca salva com sucesso',
             });
         } catch (error) {
             console.error('Error saving branding:', error);
             toast({
                 title: 'Erro',
-                description: error instanceof Error ? error.message : 'Erro ao salvar personalização',
+                description: error instanceof Error ? error.message : 'Erro ao salvar personalizaÃ§Ã£o',
                 variant: 'destructive',
             });
             throw error;
@@ -102,7 +100,7 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                throw new Error('Sessão expirada. Faça login novamente.');
+                throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
             }
 
             const response = await fetch(`/api/tenant-branding/${empresaId}`, {
@@ -121,13 +119,13 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
 
             toast({
                 title: 'Sucesso',
-                description: 'Personalização de marca resetada para o padrão',
+                description: 'PersonalizaÃ§Ã£o de marca resetada para o padrÃ£o',
             });
         } catch (error) {
             console.error('Error resetting branding:', error);
             toast({
                 title: 'Erro',
-                description: error instanceof Error ? error.message : 'Erro ao resetar personalização',
+                description: error instanceof Error ? error.message : 'Erro ao resetar personalizaÃ§Ã£o',
                 variant: 'destructive',
             });
             throw error;

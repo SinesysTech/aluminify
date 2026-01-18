@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

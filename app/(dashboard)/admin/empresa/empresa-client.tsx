@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -43,10 +41,10 @@ export default function EmpresaClientPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sessão expirada. Faça login novamente.');
+        throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
       }
 
-      // Buscar empresa do usuário logado
+      // Buscar empresa do usuÃ¡rio logado
       const profileResponse = await fetch('/api/user/profile', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -54,7 +52,7 @@ export default function EmpresaClientPage() {
       });
 
       if (!profileResponse.ok) {
-        throw new Error('Erro ao buscar dados do usuário');
+        throw new Error('Erro ao buscar dados do usuÃ¡rio');
       }
       const userData = await profileResponse.json();
 
@@ -107,7 +105,7 @@ export default function EmpresaClientPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sessão expirada. Faça login novamente.');
+        throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
       }
 
       // Preparar payload - normalizar CNPJ antes de enviar
@@ -121,13 +119,13 @@ export default function EmpresaClientPage() {
       if (formData.cnpj && formData.cnpj.trim()) {
         const cnpjClean = formData.cnpj.replace(/\D/g, '');
         if (cnpjClean.length === 14) {
-          // Verificar se todos os dígitos são iguais
+          // Verificar se todos os dÃ­gitos sÃ£o iguais
           if (!/^(\d)\1+$/.test(cnpjClean)) {
             payload.cnpj = cnpjClean;
           } else {
             toast({
               title: 'Erro',
-              description: 'CNPJ inválido: todos os dígitos são iguais',
+              description: 'CNPJ invÃ¡lido: todos os dÃ­gitos sÃ£o iguais',
               variant: 'destructive',
             });
             setSaving(false);
@@ -136,7 +134,7 @@ export default function EmpresaClientPage() {
         } else if (cnpjClean.length > 0) {
           toast({
             title: 'Erro',
-            description: 'CNPJ deve ter 14 dígitos',
+            description: 'CNPJ deve ter 14 dÃ­gitos',
             variant: 'destructive',
           });
           setSaving(false);
@@ -189,9 +187,9 @@ export default function EmpresaClientPage() {
       <div className="container mx-auto py-8 max-w-xl">
         <Card>
           <CardHeader>
-            <CardTitle>Empresa não encontrada</CardTitle>
+            <CardTitle>Empresa nÃ£o encontrada</CardTitle>
             <CardDescription>
-              Seu usuário ainda não está vinculado a uma empresa. Para continuar, crie sua empresa.
+              Seu usuÃ¡rio ainda nÃ£o estÃ¡ vinculado a uma empresa. Para continuar, crie sua empresa.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -208,9 +206,9 @@ export default function EmpresaClientPage() {
     <div className="flex flex-col gap-8 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Configurações da Empresa</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">ConfiguraÃ§Ãµes da Empresa</h1>
           <p className="text-sm text-[#71717A]">
-            Gerencie as informações básicas da sua empresa
+            Gerencie as informaÃ§Ãµes bÃ¡sicas da sua empresa
           </p>
         </div>
       </header>
@@ -231,7 +229,7 @@ export default function EmpresaClientPage() {
             id="cnpj"
             value={formData.cnpj}
             onChange={(e) => {
-              // Normalizar para apenas dígitos e formatar
+              // Normalizar para apenas dÃ­gitos e formatar
               const digits = e.target.value.replace(/\D/g, '');
               const formatted = formatCNPJ(digits);
               setFormData({ ...formData, cnpj: formatted });
@@ -275,7 +273,7 @@ export default function EmpresaClientPage() {
 
         <div className="flex justify-end gap-2">
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
+            {saving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
           </Button>
         </div>
       </div>

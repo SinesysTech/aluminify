@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react'
+﻿'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle } from 'lucide-react'
@@ -24,7 +22,7 @@ import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-// Intervalo de refresh automático (5 minutos)
+// Intervalo de refresh automÃ¡tico (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
 
 export default function StudentDashboardClientPage() {
@@ -57,18 +55,18 @@ export default function StudentDashboardClientPage() {
         if (err instanceof Error) {
           errorMessage = err.message
 
-          // Tratamento específico para erros de autenticação
+          // Tratamento especÃ­fico para erros de autenticaÃ§Ã£o
           if ((err as DashboardServiceError).isAuthError) {
-            errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.'
+            errorMessage = 'Sua sessÃ£o expirou. Por favor, faÃ§a login novamente.'
           } else if ((err as DashboardServiceError).isNetworkError) {
             errorMessage =
-              'Erro de conexão. Verifique sua internet e tente novamente.'
+              'Erro de conexÃ£o. Verifique sua internet e tente novamente.'
           }
         }
 
         setError(errorMessage)
 
-        // Se for erro de autenticação, não mostrar dados mock
+        // Se for erro de autenticaÃ§Ã£o, nÃ£o mostrar dados mock
         if ((err as DashboardServiceError).isAuthError) {
           setData(null)
         }
@@ -85,7 +83,7 @@ export default function StudentDashboardClientPage() {
     loadDashboardData()
   }, [loadDashboardData])
 
-  // Handler para mudança de período do heatmap
+  // Handler para mudanÃ§a de perÃ­odo do heatmap
   const handleHeatmapPeriodChange = useCallback(
     (period: HeatmapPeriod) => {
       setHeatmapPeriod(period)
@@ -94,7 +92,7 @@ export default function StudentDashboardClientPage() {
     [loadDashboardData]
   )
 
-  // Refresh automático
+  // Refresh automÃ¡tico
   useEffect(() => {
     // Limpar intervalo anterior se existir
     if (refreshIntervalRef.current) {
@@ -114,7 +112,7 @@ export default function StudentDashboardClientPage() {
     }
   }, [loadDashboardData])
 
-  // Subscription Realtime para atualizar dashboard quando aulas são concluídas
+  // Subscription Realtime para atualizar dashboard quando aulas sÃ£o concluÃ­das
   useEffect(() => {
     let channel:
       | ReturnType<
@@ -146,7 +144,7 @@ export default function StudentDashboardClientPage() {
 
       if (!cronograma) return
 
-      // Subscription para mudanças em cronograma_itens
+      // Subscription para mudanÃ§as em cronograma_itens
       channel = supabaseInstance
         .channel(`dashboard-cronograma-itens-${cronograma.id}`)
         .on(
@@ -163,7 +161,7 @@ export default function StudentDashboardClientPage() {
             eventType: string
           }) => {
             console.log(
-              '[Dashboard Realtime] Mudança detectada em cronograma_itens:',
+              '[Dashboard Realtime] MudanÃ§a detectada em cronograma_itens:',
               payload
             )
             // Recarregar dados do dashboard
@@ -182,7 +180,7 @@ export default function StudentDashboardClientPage() {
     }
   }, [loadDashboardData])
 
-  // Função para refresh manual
+  // FunÃ§Ã£o para refresh manual
   const handleManualRefresh = () => {
     loadDashboardData(true)
   }
@@ -217,7 +215,7 @@ export default function StudentDashboardClientPage() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-100">
-        <p className="text-muted-foreground">Nenhum dado disponível</p>
+        <p className="text-muted-foreground">Nenhum dado disponÃ­vel</p>
       </div>
     )
   }
@@ -231,7 +229,7 @@ export default function StudentDashboardClientPage() {
         </div>
       </div>
 
-      {/* Mensagem de erro (se houver dados mas também erro) */}
+      {/* Mensagem de erro (se houver dados mas tambÃ©m erro) */}
       {error && data && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
@@ -253,18 +251,18 @@ export default function StudentDashboardClientPage() {
             isPositive: data.metrics.focusTimeDelta.startsWith('+'),
           }}
           tooltip={[
-            'Este é o tempo total de estudo no período, somando aulas que você marcou como assistidas no cronograma e o tempo registrado em listas de exercícios (sessões vinculadas a uma atividade).',
-            'O valor mostra a diferença em relação ao período anterior, ajudando você a acompanhar sua evolução.',
+            'Este Ã© o tempo total de estudo no perÃ­odo, somando aulas que vocÃª marcou como assistidas no cronograma e o tempo registrado em listas de exercÃ­cios (sessÃµes vinculadas a uma atividade).',
+            'O valor mostra a diferenÃ§a em relaÃ§Ã£o ao perÃ­odo anterior, ajudando vocÃª a acompanhar sua evoluÃ§Ã£o.',
           ]}
         />
         <MetricCard
-          label="Questões Feitas"
+          label="QuestÃµes Feitas"
           value={data.metrics.questionsAnswered}
           subtext={data.metrics.questionsAnsweredPeriod}
           icon={CheckCircle2}
           tooltip={[
-            'Este número representa a quantidade total de questões que você já resolveu no período indicado.',
-            'Resolver questões é fundamental para fixar o conteúdo e se preparar melhor para as provas.',
+            'Este nÃºmero representa a quantidade total de questÃµes que vocÃª jÃ¡ resolveu no perÃ­odo indicado.',
+            'Resolver questÃµes Ã© fundamental para fixar o conteÃºdo e se preparar melhor para as provas.',
           ]}
         />
         <MetricCard
@@ -273,9 +271,9 @@ export default function StudentDashboardClientPage() {
           showProgressCircle={true}
           progressValue={data.metrics.accuracy}
           tooltip={[
-            'Seu aproveitamento mostra a porcentagem de acertos nas questões que você resolveu.',
-            'Quanto maior o percentual, melhor você está dominando o conteúdo.',
-            'Este indicador ajuda a identificar áreas que precisam de mais estudo.',
+            'Seu aproveitamento mostra a porcentagem de acertos nas questÃµes que vocÃª resolveu.',
+            'Quanto maior o percentual, melhor vocÃª estÃ¡ dominando o conteÃºdo.',
+            'Este indicador ajuda a identificar Ã¡reas que precisam de mais estudo.',
           ]}
         />
         <MetricCard
@@ -284,8 +282,8 @@ export default function StudentDashboardClientPage() {
           subtext="Cartas revisadas"
           icon={Brain}
           tooltip={[
-            'Este número indica quantas cartas de flashcards você já revisou.',
-            'Os flashcards são uma técnica eficaz de memorização e revisão, ajudando você a consolidar conceitos importantes de forma rápida e eficiente.',
+            'Este nÃºmero indica quantas cartas de flashcards vocÃª jÃ¡ revisou.',
+            'Os flashcards sÃ£o uma tÃ©cnica eficaz de memorizaÃ§Ã£o e revisÃ£o, ajudando vocÃª a consolidar conceitos importantes de forma rÃ¡pida e eficiente.',
           ]}
         />
       </div>

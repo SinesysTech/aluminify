@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/server'
 import { InstitutionDashboardClient } from '@/components/dashboard/institution'
@@ -22,7 +20,7 @@ export default async function ProfessorDashboardPage() {
         .maybeSingle()
 
       if (!error && empresa) {
-        // Verificar se empresa está incompleta (sem CNPJ, email ou telefone)
+        // Verificar se empresa estÃ¡ incompleta (sem CNPJ, email ou telefone)
         // Campos podem ser null ou string vazia
         const cnpjVazio = !empresa.cnpj || empresa.cnpj.trim() === ''
         const emailVazio =
@@ -40,8 +38,8 @@ export default async function ProfessorDashboardPage() {
     redirect('/professor/empresa/completar')
   }
 
-  // Se é admin da empresa (ou superadmin), mostrar dashboard da instituição
-  // Caso contrário, mostrar dashboard do professor
+  // Se Ã© admin da empresa (ou superadmin), mostrar dashboard da instituiÃ§Ã£o
+  // Caso contrÃ¡rio, mostrar dashboard do professor
   if (user.isEmpresaAdmin || user.role === 'superadmin') {
     return <InstitutionDashboardClient />
   }

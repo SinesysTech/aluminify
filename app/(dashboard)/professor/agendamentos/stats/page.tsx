@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { createClient } from "@/lib/server"
+﻿import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 
 import { CalendarDays, Clock, CheckCircle, XCircle, TrendingUp } from "lucide-react"

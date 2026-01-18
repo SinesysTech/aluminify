@@ -1,6 +1,4 @@
-'use client'
-
-import React from 'react';
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -142,7 +140,7 @@ export default function EmpresaProfessoresPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Senha Temporária</Label>
+                    <Label htmlFor="password">Senha TemporÃ¡ria</Label>
                     <Input
                       id="password"
                       type="password"
@@ -158,7 +156,7 @@ export default function EmpresaProfessoresPage() {
                         setFormData({ ...formData, isAdmin: checked === true })
                       }
                     />
-                    <Label htmlFor="isAdmin">É administrador?</Label>
+                    <Label htmlFor="isAdmin">Ã‰ administrador?</Label>
                   </div>
                   <Button onClick={handleCreate}>Criar Professor</Button>
                 </div>

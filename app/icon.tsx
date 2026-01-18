@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { ImageResponse } from "next/og";
+﻿import { ImageResponse } from "next/og";
 
 export const size = 64;
 export const contentType = "image/png";
@@ -19,7 +17,7 @@ export default function Icon() {
           borderRadius: 12,
         }}
       >
-        {/* GraduationCap SVG inline - lucide-react não funciona com ImageResponse */}
+        {/* GraduationCap SVG inline - lucide-react nÃ£o funciona com ImageResponse */}
         <svg
           width="40"
           height="40"
