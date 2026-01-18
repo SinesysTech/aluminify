@@ -11,7 +11,7 @@ interface InstitutionMetricsProps {
 
 export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         label="Alunos Ativos"
         value={summary.alunosAtivos}

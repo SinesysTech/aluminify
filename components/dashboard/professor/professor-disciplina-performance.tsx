@@ -29,7 +29,7 @@ export function ProfessorDisciplinaPerformanceList({
 }: ProfessorDisciplinaPerformanceListProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <BookOpen className="h-4 w-4" />
           Performance dos Alunos
@@ -37,18 +37,18 @@ export function ProfessorDisciplinaPerformanceList({
       </CardHeader>
       <CardContent className="pt-0">
         {disciplinas.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[200px] text-center">
+          <div className="flex flex-col items-center justify-center h-48 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">
               Sem dados de performance
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              A performance dos seus alunos aparecerÃ¡ aqui
+              A performance dos seus alunos aparecerá aqui
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-[280px] pr-4">
-            <div className="space-y-4">
+          <ScrollArea className="h-80 pr-4">
+            <div className="space-y-3">
               {disciplinas.map((disciplina) => (
                 <div key={disciplina.id} className="space-y-2">
                   <div className="flex items-center justify-between">

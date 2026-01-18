@@ -126,9 +126,9 @@ export default function ProfessorDashboardClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* Header com botÃ£o de refresh */}
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="mx-auto max-w-7xl space-y-6">
+      {/* Header com botão de refresh */}
+      <div className="flex items-start justify-between gap-4">
         <ProfessorHeader professorNome={data.professorNome} />
         <Button
           onClick={handleManualRefresh}
@@ -140,9 +140,9 @@ export default function ProfessorDashboardClient() {
         </Button>
       </div>
 
-      {/* Mensagem de erro (se houver dados mas tambÃ©m erro) */}
+      {/* Mensagem de erro (se houver dados mas também erro) */}
       {error && data && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Aviso</AlertTitle>
           <AlertDescription>
@@ -151,13 +151,11 @@ export default function ProfessorDashboardClient() {
         </Alert>
       )}
 
-      {/* MÃ©tricas principais */}
+      {/* Métricas principais */}
       <ProfessorMetrics summary={data.summary} />
 
-      {/* PrÃ³ximos agendamentos (largura total) */}
-      <div className="mb-8">
-        <UpcomingAppointments appointments={data.agendamentos} />
-      </div>
+      {/* Próximos agendamentos (largura total) */}
+      <UpcomingAppointments appointments={data.agendamentos} />
 
       {/* Alunos e Performance lado a lado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

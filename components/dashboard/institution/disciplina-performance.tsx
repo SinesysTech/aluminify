@@ -27,21 +27,21 @@ function getPerformanceTextColor(score: number): string {
 export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformanceListProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4">
         <CardTitle className="text-base font-semibold">
           Performance por Disciplina
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         {disciplinas.length === 0 ? (
-          <div className="flex items-center justify-center h-[200px]">
+          <div className="flex items-center justify-center h-48">
             <p className="text-sm text-muted-foreground">
               Nenhuma disciplina com dados de performance
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-[280px] pr-4">
-            <div className="space-y-4">
+          <ScrollArea className="h-80 pr-4">
+            <div className="space-y-3">
               {disciplinas.map((disciplina) => (
                 <div key={disciplina.id} className="space-y-2">
                   <div className="flex items-center justify-between">

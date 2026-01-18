@@ -67,7 +67,7 @@ export function RankingList({
 }: RankingListProps) {
   return (
     <Card className={cn('flex flex-col h-full', className)}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4">
         <CardTitle className="text-base font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pt-0">
@@ -76,12 +76,12 @@ export function RankingList({
             <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (
-          <ScrollArea className="pr-4" style={{ maxHeight }}>
+          <ScrollArea className="h-80 pr-4">
             <div className="space-y-3">
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   {/* PosiÃ§Ã£o com Ã­cone ou nÃºmero */}
                   <div

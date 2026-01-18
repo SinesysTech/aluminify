@@ -152,9 +152,9 @@ export default function InstitutionDashboardClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Header com filtro de perÃ­odo */}
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex items-start justify-between gap-4">
         <InstitutionHeader
           empresaNome={data.empresaNome}
           totalAlunos={data.summary.totalAlunos}
@@ -185,7 +185,7 @@ export default function InstitutionDashboardClient() {
 
       {/* Mensagem de erro (se houver dados mas tambÃ©m erro) */}
       {error && data && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Aviso</AlertTitle>
           <AlertDescription>
@@ -198,16 +198,14 @@ export default function InstitutionDashboardClient() {
       <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
 
       {/* Heatmap de atividade */}
-      <div className="mb-8">
-        <ConsistencyHeatmap
-          data={data.heatmap}
-          period={period as HeatmapPeriod}
-          onPeriodChange={(p) => handlePeriodChange(p as DashboardPeriod)}
-        />
-      </div>
+      <ConsistencyHeatmap
+        data={data.heatmap}
+        period={period as HeatmapPeriod}
+        onPeriodChange={(p) => handlePeriodChange(p as DashboardPeriod)}
+      />
 
       {/* Rankings lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <StudentRankingList students={data.rankingAlunos} />
         <ProfessorRankingList professors={data.rankingProfessores} />
       </div>

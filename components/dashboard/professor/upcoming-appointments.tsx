@@ -59,25 +59,25 @@ function formatAppointmentDate(dateString: string): string {
 export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Calendar className="h-4 w-4" />
-          PrÃ³ximos Agendamentos
+          Próximos Agendamentos
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         {appointments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[200px] text-center">
+          <div className="flex flex-col items-center justify-center h-48 text-center">
             <Calendar className="h-12 w-12 text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">
               Nenhum agendamento pendente
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Seus prÃ³ximos atendimentos aparecerÃ£o aqui
+              Seus próximos atendimentos aparecerão aqui
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-[280px] pr-4">
+          <ScrollArea className="h-80 pr-4">
             <div className="space-y-3">
               {appointments.map((appointment) => {
                 const appointmentDate = parseISO(appointment.dataHora)

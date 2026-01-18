@@ -25,7 +25,7 @@ export function ProfessorMetrics({ summary }: ProfessorMetricsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         label="Alunos Atendidos"
         value={summary.alunosAtendidos}
