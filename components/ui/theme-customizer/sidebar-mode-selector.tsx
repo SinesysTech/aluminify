@@ -20,7 +20,7 @@ export function SidebarModeSelector() {
         <ToggleGroupItem
           variant="outline"
           value="centered"
-          className="data-[variant=outline]:border-l-1">
+          className="data-[variant=outline]:border-l">
           Icon
         </ToggleGroupItem>
       </ToggleGroup>

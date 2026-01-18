@@ -1,5 +1,3 @@
-import React from 'react'
-
 "use client"
 
 import type { ElementType } from "react"
