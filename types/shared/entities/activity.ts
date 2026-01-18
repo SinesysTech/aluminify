@@ -1,6 +1,6 @@
 /**
  * Tipos de Entidades do Sistema
- * 
+ *
  * Define as interfaces para as principais entidades do banco de dados
  * relacionadas a atividades, disciplinas, cursos, módulos e frentes.
  */
@@ -16,7 +16,7 @@ export interface Atividade {
   disciplina_id: string;
   curso_id?: string;
   modulo_id?: string;
-  status: 'pendente' | 'em_progresso' | 'concluida';
+  status: "pendente" | "em_progresso" | "concluida";
   dataInicio?: string;
   dataConclusao?: string;
   questoesTotais?: number;
@@ -132,7 +132,7 @@ export interface ProgressoAtividade {
   id: string;
   aluno_id: string;
   atividade_id: string;
-  status: 'nao_iniciada' | 'em_progresso' | 'concluida' | 'revisao';
+  status: "nao_iniciada" | "em_progresso" | "concluida" | "revisao";
   data_inicio?: string;
   data_conclusao?: string;
   tempo_gasto_minutos?: number;
@@ -154,63 +154,62 @@ export interface ProgressoAtividadeComDetalhes extends ProgressoAtividade {
 
 export function isAtividade(data: unknown): data is Atividade {
   return (
-    typeof data === 'object' &&
+    typeof data === "object" &&
     data !== null &&
-    'id' in data &&
-    'nome' in data &&
-    'frente_id' in data &&
-    'disciplina_id' in data
+    "id" in data &&
+    "nome" in data &&
+    "frente_id" in data &&
+    "disciplina_id" in data
   );
 }
 
 export function isDisciplina(data: unknown): data is Disciplina {
   return (
-    typeof data === 'object' &&
+    typeof data === "object" &&
     data !== null &&
-    'id' in data &&
-    'nome' in data &&
-    'curso_id' in data
+    "id" in data &&
+    "nome" in data &&
+    "curso_id" in data
   );
 }
 
 export function isCurso(data: unknown): data is Curso {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'nome' in data
+    typeof data === "object" && data !== null && "id" in data && "nome" in data
   );
 }
 
 export function isModulo(data: unknown): data is Modulo {
   return (
-    typeof data === 'object' &&
+    typeof data === "object" &&
     data !== null &&
-    'id' in data &&
-    'nome' in data &&
-    'numero_modulo' in data &&
-    'frente_id' in data
+    "id" in data &&
+    "nome" in data &&
+    "numero_modulo" in data &&
+    "frente_id" in data
   );
 }
 
 export function isFrente(data: unknown): data is Frente {
   return (
-    typeof data === 'object' &&
+    typeof data === "object" &&
     data !== null &&
-    'id' in data &&
-    'nome' in data &&
-    'disciplina_id' in data
+    "id" in data &&
+    "nome" in data &&
+    "disciplina_id" in data
   );
 }
 
-export function isProgressoAtividade(data: unknown): data is ProgressoAtividade {
+export function isProgressoAtividade(
+  data: unknown,
+): data is ProgressoAtividade {
   return (
-    typeof data === 'object' &&
+    typeof data === "object" &&
     data !== null &&
-    'id' in data &&
-    'aluno_id' in data &&
-    'atividade_id' in data &&
-    'status' in data
+    "id" in data &&
+    "aluno_id" in data &&
+    "atividade_id" in data &&
+    "status" in data
   );
 }
 
@@ -218,8 +217,8 @@ export function isProgressoAtividade(data: unknown): data is ProgressoAtividade 
 // HELPER TYPES
 // ============================================================================
 
-export type AtividadeStatus = Atividade['status'];
-export type ProgressoStatus = ProgressoAtividade['status'];
+export type AtividadeStatus = Atividade["status"];
+export type ProgressoStatus = ProgressoAtividade["status"];
 export type DificuldadePercebida = 1 | 2 | 3 | 4 | 5;
 
 // ============================================================================
@@ -236,23 +235,23 @@ export interface FiltrosAtividade {
 }
 
 export interface OrdenacaoAtividade {
-  campo: 'nome' | 'created_at' | 'updated_at' | 'status';
-  direcao: 'asc' | 'desc';
+  campo: "nome" | "created_at" | "updated_at" | "status";
+  direcao: "asc" | "desc";
 }
 
 // ============================================================================
 // SESSÃO DE ESTUDO
 // ============================================================================
 
-export type MetodoEstudo = 
-  | 'pomodoro'
-  | 'livre'
-  | 'cronometro'
-  | 'timer'
-  | 'intervalo_curto'
-  | 'intervalo_longo';
+export type MetodoEstudo =
+  | "pomodoro"
+  | "livre"
+  | "cronometro"
+  | "timer"
+  | "intervalo_curto"
+  | "intervalo_longo";
 
-export type LogPausaTipo = 'pausa' | 'retomada' | 'manual' | 'distracao';
+export type LogPausaTipo = "pausa" | "retomada" | "manual" | "distracao";
 
 export interface LogPausa {
   tipo: LogPausaTipo;
@@ -261,11 +260,11 @@ export interface LogPausa {
   fim?: string;
 }
 
-export type SessaoStatus = 
-  | 'em_andamento'
-  | 'pausada'
-  | 'finalizada'
-  | 'cancelada';
+export type SessaoStatus =
+  | "em_andamento"
+  | "pausada"
+  | "finalizada"
+  | "cancelada";
 
 export interface SessaoEstudo {
   id: string;
@@ -295,7 +294,13 @@ export interface IniciarSessaoInput {
 }
 
 export interface FinalizarSessaoInput {
-  sessao_id: string;
+  sessaoId: string;
+  fimIso?: string;
+  logPausas?: LogPausa[];
+  nivelFoco?: number;
+  status?: SessaoStatus;
+  // Legacy fields (deprecated)
+  sessao_id?: string;
   tempo_total_minutos?: number;
   tempo_efetivo_minutos?: number;
 }
@@ -319,9 +324,11 @@ export interface CalculoTempoResultado {
  * @param tipo - Tipo da atividade
  * @returns true se requer desempenho, false caso contrário
  */
-export function atividadeRequerDesempenho(tipo: string | undefined | null): boolean {
+export function atividadeRequerDesempenho(
+  tipo: string | undefined | null,
+): boolean {
   if (!tipo) return false;
   // Check simples: Apenas Revisao
   // Check qualificado: Todos os outros tipos (incluindo Conceituario)
-  return tipo !== 'Revisao';
+  return tipo !== "Revisao";
 }
