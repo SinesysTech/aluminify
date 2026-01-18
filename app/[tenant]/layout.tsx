@@ -16,7 +16,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
   const { data: empresa, error } = await supabase
     .from('empresas')
     .select('id, nome, slug')
-    .or(`slug.eq.${tenantSlug},subdomain.eq.${tenantSlug}`)
+    .eq('slug', tenantSlug)
     .eq('ativo', true)
     .maybeSingle();
 
