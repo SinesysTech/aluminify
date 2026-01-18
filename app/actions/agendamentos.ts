@@ -219,7 +219,7 @@ export async function upsertDisponibilidade(data: Disponibilidade) {
 
   const { error } = await supabase
     .from('agendamento_disponibilidade')
-    .upsert(payload)
+    .upsert(payload as any)
     .select()
 
   if (error) {
@@ -1208,7 +1208,7 @@ export async function updateConfiguracoesProfessor(
     .upsert({
       ...configData,
       professor_id: professorId
-    })
+    } as any)
     .select()
     .single()
 
@@ -1483,7 +1483,7 @@ export async function bulkUpsertDisponibilidade(items: Disponibilidade[]) {
 
   const { error } = await supabase
     .from('agendamento_disponibilidade')
-    .upsert(payload)
+    .upsert(payload as any)
 
   if (error) {
     console.error('Error bulk upserting availability:', error)
@@ -1565,7 +1565,7 @@ export async function createRecorrencia(data: Omit<Recorrencia, 'id' | 'created_
 
   const { data: result, error } = await supabase
     .from('agendamento_recorrencia')
-    .insert(payload)
+    .insert(payload as any)
     .select()
     .single()
 
@@ -1777,7 +1777,7 @@ export async function createBloqueio(data: Omit<Bloqueio, 'id' | 'created_at' | 
 
   const { data: result, error } = await supabase
     .from('agendamento_bloqueios')
-    .insert(payload)
+    .insert(payload as any)
     .select()
     .single()
 
@@ -2303,7 +2303,7 @@ export async function getProfessoresDisponiveis(empresaId?: string): Promise<Pro
   // Get all professors from the company
   const { data: professores, error } = await supabase
     .from('professores')
-    .select('id, nome_completo, email, foto_url, especialidade, bio, empresa_id')
+    .select('id, nome_completo, email, foto_url, especialidade, biografia, empresa_id')
     .eq('empresa_id', targetEmpresaId)
     .order('nome_completo', { ascending: true })
 
@@ -2419,7 +2419,7 @@ export async function getProfessoresDisponiveis(empresaId?: string): Promise<Pro
       email: professor.email || '',
       foto_url: professor.foto_url,
       especialidade: professor.especialidade,
-      bio: professor.bio,
+      bio: professor.biografia,
       empresa_id: professor.empresa_id,
       proximos_slots: proximosSlots,
       tem_disponibilidade: profRecorrencias.length > 0
@@ -2441,7 +2441,7 @@ export async function getProfessorById(professorId: string): Promise<ProfessorDi
 
   const { data: professor, error } = await supabase
     .from('professores')
-    .select('id, nome_completo, email, foto_url, especialidade, bio, empresa_id')
+    .select('id, nome_completo, email, foto_url, especialidade, biografia, empresa_id')
     .eq('id', professorId)
     .single()
 
@@ -2469,7 +2469,7 @@ export async function getProfessorById(professorId: string): Promise<ProfessorDi
     email: professor.email || '',
     foto_url: professor.foto_url,
     especialidade: professor.especialidade,
-    bio: professor.bio,
+    bio: professor.biografia,
     empresa_id: professor.empresa_id,
     proximos_slots: [],
     tem_disponibilidade: (recorrencias?.length || 0) > 0

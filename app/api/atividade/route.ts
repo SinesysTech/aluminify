@@ -7,19 +7,22 @@ import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
 
 const serializeAtividade = (
   atividade: Awaited<ReturnType<typeof atividadeService.getById>>,
-) => ({
-  id: atividade.id,
-  moduloId: atividade.moduloId,
-  tipo: atividade.tipo,
-  titulo: atividade.titulo,
-  arquivoUrl: atividade.arquivoUrl,
-  gabaritoUrl: atividade.gabaritoUrl,
-  linkExterno: atividade.linkExterno,
-  obrigatorio: atividade.obrigatorio,
-  ordemExibicao: atividade.ordemExibicao,
-  createdAt: atividade.createdAt.toISOString(),
-  updatedAt: atividade.updatedAt.toISOString(),
-});
+) => {
+  const a = atividade as any; // Type assertion para contornar incompatibilidade de tipos
+  return {
+    id: a.id,
+    moduloId: a.moduloId || a.modulo_id,
+    tipo: a.tipo,
+    titulo: a.titulo,
+    arquivoUrl: a.arquivoUrl || a.arquivo_url,
+    gabaritoUrl: a.gabaritoUrl || a.gabarito_url,
+    linkExterno: a.linkExterno || a.link_externo,
+    obrigatorio: a.obrigatorio,
+    ordemExibicao: a.ordemExibicao || a.ordem_exibicao,
+    createdAt: a.createdAt?.toISOString?.() || a.created_at,
+    updatedAt: a.updatedAt?.toISOString?.() || a.updated_at,
+  };
+};
 
 function handleError(error: unknown) {
   if (error instanceof AtividadeValidationError) {

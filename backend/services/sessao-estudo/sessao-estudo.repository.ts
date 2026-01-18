@@ -99,7 +99,7 @@ export class SessaoEstudoRepository {
     {
       const attempt = await client
         .from(this.table)
-        .insert({ ...baseInsert, modulo_id: moduloId })
+        .insert({ ...baseInsert, modulo_id: moduloId } as any)
         .select()
         .single();
       data = attempt.data;
@@ -112,7 +112,7 @@ export class SessaoEstudoRepository {
       error.message.includes("modulo_id") &&
       error.message.includes('schema cache')
     ) {
-      const attempt = await client.from(this.table).insert(baseInsert).select().single();
+      const attempt = await client.from(this.table).insert(baseInsert as any).select().single();
       data = attempt.data;
       error = attempt.error as { message: string } | null;
     }
