@@ -1,11 +1,3 @@
-/**
- * Database types generated from Supabase schema
- * This file should be regenerated when the database schema changes
- * Run: npx supabase gen types typescript --project-id YOUR_PROJECT_ID > lib/database.types.ts
- *
- * Last generated: 2026-01-18
- */
-
 export type Json =
   | string
   | number
@@ -1327,6 +1319,7 @@ export type Database = {
           data_fim_acesso: string
           data_inicio_acesso: string
           data_matricula: string
+          empresa_id: string | null
           id: string
           updated_at: string
         }
@@ -1338,6 +1331,7 @@ export type Database = {
           data_fim_acesso: string
           data_inicio_acesso?: string
           data_matricula?: string
+          empresa_id?: string | null
           id?: string
           updated_at?: string
         }
@@ -1349,6 +1343,7 @@ export type Database = {
           data_fim_acesso?: string
           data_inicio_acesso?: string
           data_matricula?: string
+          empresa_id?: string | null
           id?: string
           updated_at?: string
         }
@@ -1365,6 +1360,13 @@ export type Database = {
             columns: ["curso_id"]
             isOneToOne: false
             referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matriculas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
@@ -1873,6 +1875,7 @@ export type Database = {
             Args: { empresa_id_param: string; user_id_param: string }
             Returns: boolean
           }
+      is_empresa_owner: { Args: { empresa_id_param: string }; Returns: boolean }
       is_professor: { Args: never; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
       user_belongs_to_empresa: {
