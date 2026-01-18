@@ -41,11 +41,11 @@ import { TableSkeleton } from "@/components/ui/table-skeleton"
 const DAYS = [
   "Domingo",
   "Segunda-feira",
-  "TerÃ§a-feira",
+  "Terça-feira",
   "Quarta-feira",
   "Quinta-feira",
   "Sexta-feira",
-  "SÃ¡bado",
+  "Sábado",
 ]
 
 type AvailabilityRule = Disponibilidade
@@ -78,9 +78,9 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
       } catch (error) {
         console.error(error)
         toast({
-            title: "Erro",
-            description: "Erro ao carregar disponibilidade",
-            variant: "destructive"
+          title: "Erro",
+          description: "Erro ao carregar disponibilidade",
+          variant: "destructive"
         })
       } finally {
         setLoading(false)
@@ -118,12 +118,12 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
     try {
       for (const rule of rules) {
         await upsertDisponibilidade({
-            professor_id: professorId,
-            dia_semana: Number(rule.dia_semana),
-            hora_inicio: rule.hora_inicio,
-            hora_fim: rule.hora_fim,
-            ativo: rule.ativo,
-            ...(rule.id ? { id: rule.id } : {})
+          professor_id: professorId,
+          dia_semana: Number(rule.dia_semana),
+          hora_inicio: rule.hora_inicio,
+          hora_fim: rule.hora_fim,
+          ativo: rule.ativo,
+          ...(rule.id ? { id: rule.id } : {})
         })
       }
       toast({
@@ -132,7 +132,7 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
       })
       // Refetch to ensure IDs are updated? Or just trust UI for now.
     } catch (error) {
-       console.error(error)
+      console.error(error)
       toast({
         title: "Erro",
         description: "Erro ao salvar disponibilidade",
@@ -160,7 +160,7 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Dia da Semana</TableHead>
-              <TableHead>InÃ­cio</TableHead>
+              <TableHead>Início</TableHead>
               <TableHead>Fim</TableHead>
               <TableHead>Ativo</TableHead>
               <TableHead className="w-[50px]"></TableHead>
@@ -202,11 +202,11 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`active-${index}`}
-                        checked={rule.ativo}
-                        onCheckedChange={(checked) => handleChange(index, "ativo", checked === true)}
-                      />
+                    <Checkbox
+                      id={`active-${index}`}
+                      checked={rule.ativo}
+                      onCheckedChange={(checked) => handleChange(index, "ativo", checked === true)}
+                    />
                   </div>
                 </TableCell>
                 <TableCell>
@@ -220,15 +220,15 @@ export function AvailabilityManager({ professorId }: AvailabilityManagerProps) {
         </Table>
 
         <div className="flex justify-between">
-            <Button variant="outline" onClick={handleAddRule}>
-                <Plus className="size-4 mr-2" />
-                Adicionar HorÃ¡rio
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-                {saving && <Loader2 className="size-4 mr-2 animate-spin" />}
-                <Save className="size-4 mr-2" />
-                Salvar AlteraÃ§Ãµes
-            </Button>
+          <Button variant="outline" onClick={handleAddRule}>
+            <Plus className="size-4 mr-2" />
+            Adicionar Horário
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="size-4 mr-2 animate-spin" />}
+            <Save className="size-4 mr-2" />
+            Salvar Alterações
+          </Button>
         </div>
       </CardContent>
     </Card>
