@@ -18,7 +18,7 @@ function DataPageContainer({ children, className }: DataPageContainerProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-[var(--space-page-gap)] h-full pb-[var(--space-page-pb)]",
+        "flex flex-col gap-(--space-page-gap) h-full pb-(--space-page-pb)",
         className
       )}
     >
@@ -42,7 +42,7 @@ function DataPageHeader({ title, description, actions, className }: DataPageHead
   return (
     <header
       className={cn(
-        "flex flex-col sm:flex-row sm:items-center justify-between gap-[var(--space-section-gap)] border-b border-[#E4E4E7] pb-[var(--space-section-gap)]",
+        "flex flex-col sm:flex-row sm:items-center justify-between gap-(--space-section-gap) border-b border-[#E4E4E7] pb-(--space-section-gap)",
         className
       )}
     >
@@ -51,7 +51,7 @@ function DataPageHeader({ title, description, actions, className }: DataPageHead
         <p className="text-sm text-[#71717A]">{description}</p>
       </div>
       {actions && (
-        <div className="flex items-center gap-[var(--space-button-gap)]">
+        <div className="flex items-center gap-(--space-button-gap)">
           {actions}
         </div>
       )}
@@ -72,7 +72,7 @@ function DataPageFilters({ children, className }: DataPageFiltersProps) {
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row gap-[var(--space-filter-gap)]",
+        "flex flex-col sm:flex-row gap-(--space-filter-gap)",
         className
       )}
     >
@@ -105,14 +105,14 @@ function DataPagePagination({
   return (
     <div
       className={cn(
-        "border-t border-[#E4E4E7] px-[var(--space-pagination-x)] py-[var(--space-pagination-y)] flex items-center justify-between",
+        "border-t border-[#E4E4E7] px-(--space-pagination-x) py-(--space-pagination-y) flex items-center justify-between",
         className
       )}
     >
       <span className="text-xs text-[#71717A]">
         Mostrando <strong>{totalCount}</strong> resultados
       </span>
-      <div className="flex gap-[var(--space-button-gap)]">
+      <div className="flex gap-(--space-button-gap)">
         <button
           onClick={onPrevious}
           disabled={!canPreviousPage}
@@ -158,19 +158,19 @@ function DataPageEmptyState({
         className
       )}
     >
-      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-[var(--space-empty-icon-mb)] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
+      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-(--space-empty-icon-mb) shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
         <Icon className="w-8 h-8 text-zinc-400" strokeWidth={1} />
       </div>
 
-      <h3 className="text-lg font-semibold text-zinc-900 mb-[var(--space-empty-title-mb)]">
+      <h3 className="text-lg font-semibold text-zinc-900 mb-(--space-empty-title-mb)">
         {title}
       </h3>
-      <p className="text-sm text-[#71717A] text-center max-w-sm mb-[var(--space-empty-text-mb)] leading-relaxed">
+      <p className="text-sm text-[#71717A] text-center max-w-sm mb-(--space-empty-text-mb) leading-relaxed">
         {description}
       </p>
 
       {actions && (
-        <div className="flex items-center gap-[var(--space-empty-actions-gap)]">
+        <div className="flex items-center gap-(--space-empty-actions-gap)">
           {actions}
         </div>
       )}
@@ -206,7 +206,7 @@ interface DataPageMobileCardsProps {
 
 function DataPageMobileCards({ children, className }: DataPageMobileCardsProps) {
   return (
-    <div className={cn("block md:hidden space-y-[var(--space-section-gap)]", className)}>
+    <div className={cn("block md:hidden space-y-(--space-section-gap)", className)}>
       {children}
     </div>
   )

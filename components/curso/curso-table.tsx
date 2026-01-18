@@ -78,6 +78,16 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { format, parse } from 'date-fns'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
+import {
+  DataPageContainer,
+  DataPageHeader,
+  DataPageFilters,
+  DataPagePagination,
+  DataPageEmptyState,
+  DataPageTableWrapper,
+  DataPageMobileCards,
+  DataPagePrimaryButton,
+} from '@/components/ui/data-page'
 
 export type Curso = {
   id: string
@@ -483,8 +493,8 @@ export function CursoTable() {
   })
 
   return (
-    <div className="flex flex-col gap-8 h-full pb-10">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
+    <div className="flex flex-col gap-(--space-page-gap) h-full pb-(--space-page-pb)">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-(--space-section-gap) border-b border-[#E4E4E7] pb-(--space-section-gap)">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Cursos</h1>
           <p className="text-sm text-[#71717A]">Gerencie os cursos do sistema</p>
@@ -804,7 +814,7 @@ export function CursoTable() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-(--space-filter-gap)">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
           <input
@@ -824,7 +834,7 @@ export function CursoTable() {
       ) : table.getRowModel().rows?.length ? (
         <>
           {/* Mobile Card View */}
-          <div className="block md:hidden space-y-4">
+          <div className="block md:hidden space-y-(--space-section-gap)">
             {table.getRowModel().rows.map((row) => {
               const curso = row.original
               return (
@@ -912,16 +922,16 @@ export function CursoTable() {
         </>
       ) : (
         <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-(--space-empty-icon-mb) shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
             <BookOpen className="w-8 h-8 text-zinc-400" strokeWidth={1} />
           </div>
 
-          <h3 className="text-lg font-semibold text-zinc-900 mb-2">Nenhum curso cadastrado</h3>
-          <p className="text-sm text-[#71717A] text-center max-w-sm mb-8 leading-relaxed">
+          <h3 className="text-lg font-semibold text-zinc-900 mb-(--space-empty-title-mb)">Nenhum curso cadastrado</h3>
+          <p className="text-sm text-[#71717A] text-center max-w-sm mb-(--space-empty-text-mb) leading-relaxed">
             Sua infraestrutura está pronta. Adicione cursos manualmente para começar a organizar seu conteúdo.
           </p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-(--space-empty-actions-gap)">
             <button
               onClick={() => setCreateDialogOpen(true)}
               className="h-10 px-6 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
@@ -934,11 +944,11 @@ export function CursoTable() {
       )}
 
       {table.getRowModel().rows?.length > 0 && (
-        <div className="border-t border-[#E4E4E7] px-4 py-3 flex items-center justify-between">
+        <div className="border-t border-[#E4E4E7] px-(--space-pagination-x) py-(--space-pagination-y) flex items-center justify-between">
           <span className="text-xs text-[#71717A]">
             Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-(--space-button-gap)">
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}

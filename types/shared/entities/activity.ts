@@ -152,6 +152,17 @@ export interface ProgressoAtividadeComDetalhes extends ProgressoAtividade {
 // TYPE GUARDS
 // ============================================================================
 
+/**
+ * Determina se um tipo de atividade requer registro de desempenho (check qualificado).
+ *
+ * Check simples: Conceituario e Revisao
+ * Check qualificado: Todos os outros tipos
+ */
+export function atividadeRequerDesempenho(tipo: string | undefined | null): boolean {
+  if (!tipo) return false;
+  return tipo !== 'Conceituario' && tipo !== 'Revisao';
+}
+
 export function isAtividade(data: unknown): data is Atividade {
   return (
     typeof data === 'object' &&

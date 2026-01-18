@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, FileDown, Eye } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, FileDown, Eye, Search } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -64,14 +64,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -801,21 +793,21 @@ export function AlunoTable() {
   })
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
+    <div className="flex flex-col gap-(--space-page-gap) h-full pb-(--space-page-pb)">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-(--space-section-gap) border-b border-[#E4E4E7] pb-(--space-section-gap)">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Alunos</h1>
           <p className="text-sm text-[#71717A]">Gerencie os alunos do sistema</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-(--space-button-gap)">
           {mounted ? (
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
+                  <button className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2">
+                    <Plus className="w-5 h-5" strokeWidth={1.5} />
                     Novo Aluno
-                  </Button>
+                  </button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] md:max-w-4xl">
                     <DialogHeader>
@@ -1180,10 +1172,13 @@ export function AlunoTable() {
                 </Dialog>
             </div>
           ) : (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
               Novo Aluno
-            </Button>
+            </button>
           )}
         </div>
       </header>
@@ -1199,17 +1194,21 @@ export function AlunoTable() {
         </div>
       )}
 
-      <div className="flex items-center">
-        <Input
-          placeholder="Filtrar por nome ou email..."
-          value={(table.getColumn('fullName')?.getFilterValue() as string) ?? ''}
-          onChange={(event) => {
-            const value = event.target.value
-            table.getColumn('fullName')?.setFilterValue(value)
-            table.getColumn('email')?.setFilterValue(value)
-          }}
-          className="w-full md:max-w-sm"
-        />
+      <div className="flex flex-col sm:flex-row gap-(--space-filter-gap)">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
+          <input
+            type="text"
+            placeholder="Filtrar por nome ou email..."
+            className="w-full h-10 pl-9 pr-4 rounded-md border border-[#E4E4E7] bg-white text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] transition-all"
+            value={(table.getColumn('fullName')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => {
+              const value = event.target.value
+              table.getColumn('fullName')?.setFilterValue(value)
+              table.getColumn('email')?.setFilterValue(value)
+            }}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -1217,7 +1216,7 @@ export function AlunoTable() {
       ) : table.getRowModel().rows?.length ? (
         <>
           {/* Mobile Card View */}
-          <div className="block md:hidden space-y-3">
+          <div className="block md:hidden space-y-(--space-section-gap)">
             {table.getRowModel().rows.map((row) => {
               const aluno = row.original
               return (
@@ -1287,7 +1286,7 @@ export function AlunoTable() {
             })}
           </div>
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-lg border border-[#E4E4E7] bg-white shadow-sm overflow-hidden">
+          <div className="hidden md:block overflow-hidden flex-1">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -1325,47 +1324,48 @@ export function AlunoTable() {
           </div>
         </>
       ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Users className="h-6 w-6" />
-            </EmptyMedia>
-            <EmptyTitle>Nenhum aluno encontrado</EmptyTitle>
-            <EmptyDescription>
-              Você ainda não criou nenhum aluno. Comece criando seu primeiro aluno.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Aluno
-            </Button>
-          </EmptyContent>
-        </Empty>
+        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-(--space-empty-icon-mb) shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
+            <Users className="w-8 h-8 text-zinc-400" strokeWidth={1} />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mb-(--space-empty-title-mb)">Nenhum aluno cadastrado</h3>
+          <p className="text-sm text-[#71717A] text-center max-w-sm mb-(--space-empty-text-mb) leading-relaxed">
+            Sua infraestrutura está pronta. Adicione alunos manualmente ou importe via CSV.
+          </p>
+
+          <div className="flex items-center gap-(--space-empty-actions-gap)">
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-10 px-6 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
+              Adicionar Aluno
+            </button>
+          </div>
+        </section>
       )}
 
       {table.getRowModel().rows?.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-4">
-          <div className="text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+        <div className="border-t border-[#E4E4E7] px-(--space-pagination-x) py-(--space-pagination-y) flex items-center justify-between">
+          <span className="text-xs text-[#71717A]">
+            Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
+          </span>
+          <div className="flex gap-(--space-button-gap)">
+            <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
+              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
             >
               Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
+              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50"
             >
-              Próxima
-            </Button>
+              Próximo
+            </button>
           </div>
         </div>
       )}

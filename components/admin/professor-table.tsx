@@ -64,14 +64,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
 import { formatBRPhone, formatCPF, isValidBRPhone, isValidCPF } from '@/lib/br'
@@ -436,20 +428,20 @@ export function ProfessorTable() {
   })
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
+    <div className="flex flex-col gap-(--space-page-gap) h-full pb-(--space-page-pb)">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-(--space-section-gap) border-b border-[#E4E4E7] pb-(--space-section-gap)">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Professores</h1>
           <p className="text-sm text-[#71717A]">Gerencie os professores do sistema</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-(--space-button-gap)">
           {mounted ? (
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
+                <button className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2">
+                  <Plus className="w-5 h-5" strokeWidth={1.5} />
                   Novo Professor
-                </Button>
+                </button>
               </DialogTrigger>
               <DialogContent className="max-w-[95vw] md:max-w-4xl">
                 <DialogHeader>
@@ -597,10 +589,13 @@ export function ProfessorTable() {
               </DialogContent>
             </Dialog>
           ) : (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
               Novo Professor
-            </Button>
+            </button>
           )}
         </div>
       </header>
@@ -616,7 +611,7 @@ export function ProfessorTable() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-(--space-filter-gap)">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
           <input
@@ -638,7 +633,7 @@ export function ProfessorTable() {
       ) : table.getRowModel().rows?.length ? (
         <>
           {/* Mobile Card View */}
-          <div className="block md:hidden space-y-3">
+          <div className="block md:hidden space-y-(--space-section-gap)">
             {table.getRowModel().rows.map((row) => {
               const professor = row.original
               return (
@@ -699,7 +694,7 @@ export function ProfessorTable() {
             })}
           </div>
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-hidden flex-1 rounded-lg border border-[#E4E4E7] bg-white shadow-sm">
+          <div className="hidden md:block overflow-hidden flex-1">
             <Table className="w-full text-left text-sm">
               <TableHeader className="border-b border-[#E4E4E7]">
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -738,50 +733,51 @@ export function ProfessorTable() {
           </div>
         </>
       ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <GraduationCap className="h-6 w-6" />
-            </EmptyMedia>
-            <EmptyTitle>Nenhum professor encontrado</EmptyTitle>
-            <EmptyDescription>
-              Você ainda não criou nenhum professor. Comece criando seu primeiro professor.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Professor
-            </Button>
-          </EmptyContent>
-        </Empty>
+        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-(--space-empty-icon-mb) shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
+            <GraduationCap className="w-8 h-8 text-zinc-400" strokeWidth={1} />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mb-(--space-empty-title-mb)">Nenhum professor cadastrado</h3>
+          <p className="text-sm text-[#71717A] text-center max-w-sm mb-(--space-empty-text-mb) leading-relaxed">
+            Sua infraestrutura está pronta. Adicione professores manualmente para organizar sua equipe.
+          </p>
+
+          <div className="flex items-center gap-(--space-empty-actions-gap)">
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-10 px-6 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
+              Adicionar Professor
+            </button>
+          </div>
+        </section>
       )}
 
-      <div className="border-t border-[#E4E4E7] px-4 py-3 flex items-center justify-between">
-        <span className="text-xs text-[#71717A]">
-          Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50 h-auto"
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 h-auto"
-          >
-            Próxima
-          </Button>
+      {table.getRowModel().rows?.length > 0 && (
+        <div className="border-t border-[#E4E4E7] px-(--space-pagination-x) py-(--space-pagination-y) flex items-center justify-between">
+          <span className="text-xs text-[#71717A]">
+            Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
+          </span>
+          <div className="flex gap-(--space-button-gap)">
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+            >
+              Próximo
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Edit Dialog */}
       {mounted && editingProfessor && (
