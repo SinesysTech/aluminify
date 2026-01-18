@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -28,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -299,222 +297,179 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
   }
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Disponibilidade</CardTitle>
-          <CardDescription>Configure seus horarios de atendimento</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TableSkeleton rows={3} columns={6} />
-        </CardContent>
-      </Card>
-    )
+    return <TableSkeleton rows={3} columns={6} />
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div>
-          <CardTitle>Disponibilidade</CardTitle>
-          <CardDescription>Configure seus horarios de atendimento por dia da semana</CardDescription>
-        </div>
-        <div className="flex items-center gap-2">
-          {recorrencias.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCalendarPreview(!showCalendarPreview)}
-            >
-              {showCalendarPreview ? (
-                <>
-                  <List className="mr-2 h-4 w-4" />
-                  Lista
-                </>
-              ) : (
-                <>
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  Preview
-                </>
-              )}
-            </Button>
-          )}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()}>
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar Horario
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingId ? "Editar Disponibilidade" : "Nova Disponibilidade"}
-              </DialogTitle>
-              <DialogDescription>
-                Configure o horario de atendimento para um dia da semana
-              </DialogDescription>
-            </DialogHeader>
+    <>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? "Editar Disponibilidade" : "Nova Disponibilidade"}
+            </DialogTitle>
+            <DialogDescription>
+              Configure o horario de atendimento para um dia da semana
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="grid gap-4 py-4">
-              {/* Tipo de Servico */}
+          <div className="grid gap-4 py-4">
+            {/* Tipo de Servico */}
+            <div className="grid gap-2">
+              <Label htmlFor="tipo_servico">Tipo de Servico</Label>
+              <Select
+                value={formData.tipo_servico}
+                onValueChange={(value: "plantao" | "mentoria") =>
+                  setFormData({ ...formData, tipo_servico: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIPO_SERVICO_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Dia da Semana */}
+            <div className="grid gap-2">
+              <Label htmlFor="dia_semana">Dia da Semana</Label>
+              <Select
+                value={String(formData.dia_semana)}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, dia_semana: Number(value) })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS.map((day, i) => (
+                    <SelectItem key={i} value={String(i)}>
+                      {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Horarios */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="tipo_servico">Tipo de Servico</Label>
-                <Select
-                  value={formData.tipo_servico}
-                  onValueChange={(value: "plantao" | "mentoria") =>
-                    setFormData({ ...formData, tipo_servico: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIPO_SERVICO_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Dia da Semana */}
-              <div className="grid gap-2">
-                <Label htmlFor="dia_semana">Dia da Semana</Label>
-                <Select
-                  value={String(formData.dia_semana)}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, dia_semana: Number(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DAYS.map((day, i) => (
-                      <SelectItem key={i} value={String(i)}>
-                        {day}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Horarios */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="hora_inicio">Horario Inicio</Label>
-                  <Input
-                    id="hora_inicio"
-                    type="time"
-                    value={formData.hora_inicio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, hora_inicio: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="hora_fim">Horario Fim</Label>
-                  <Input
-                    id="hora_fim"
-                    type="time"
-                    value={formData.hora_fim}
-                    onChange={(e) =>
-                      setFormData({ ...formData, hora_fim: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Duracao do Slot */}
-              <div className="grid gap-2">
-                <Label htmlFor="duracao">Duracao de cada atendimento</Label>
-                <Select
-                  value={String(formData.duracao_slot_minutos)}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, duracao_slot_minutos: Number(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SLOT_DURATIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {formData.hora_inicio && formData.hora_fim && (
-                  <p className="text-xs text-muted-foreground">
-                    {calculateSlots(formData.hora_inicio, formData.hora_fim, formData.duracao_slot_minutos)} slots disponiveis
-                  </p>
-                )}
-              </div>
-
-              {/* Periodo de Vigencia */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="data_inicio">Data Inicio *</Label>
-                  <Input
-                    id="data_inicio"
-                    type="date"
-                    value={formData.data_inicio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, data_inicio: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="data_fim">Data Fim (opcional)</Label>
-                  <Input
-                    id="data_fim"
-                    type="date"
-                    value={formData.data_fim}
-                    onChange={(e) =>
-                      setFormData({ ...formData, data_fim: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Deixe a data fim vazia para disponibilidade indefinida
-              </p>
-
-              {/* Ativo */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="ativo"
-                  checked={formData.ativo}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, ativo: checked === true })
+                <Label htmlFor="hora_inicio">Horario Inicio</Label>
+                <Input
+                  id="hora_inicio"
+                  type="time"
+                  value={formData.hora_inicio}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hora_inicio: e.target.value })
                   }
                 />
-                <Label htmlFor="ativo">Disponibilidade ativa</Label>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="hora_fim">Horario Fim</Label>
+                <Input
+                  id="hora_fim"
+                  type="time"
+                  value={formData.hora_fim}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hora_fim: e.target.value })
+                  }
+                />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-                disabled={saving}
+            {/* Duracao do Slot */}
+            <div className="grid gap-2">
+              <Label htmlFor="duracao">Duracao de cada atendimento</Label>
+              <Select
+                value={String(formData.duracao_slot_minutos)}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, duracao_slot_minutos: Number(value) })
+                }
               >
-                Cancelar
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {editingId ? "Salvar" : "Criar"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SLOT_DURATIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={String(opt.value)}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.hora_inicio && formData.hora_fim && (
+                <p className="text-xs text-muted-foreground">
+                  {calculateSlots(formData.hora_inicio, formData.hora_fim, formData.duracao_slot_minutos)} slots disponiveis
+                </p>
+              )}
+            </div>
 
-      <CardContent>
+            {/* Periodo de Vigencia */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="data_inicio">Data Inicio *</Label>
+                <Input
+                  id="data_inicio"
+                  type="date"
+                  value={formData.data_inicio}
+                  onChange={(e) =>
+                    setFormData({ ...formData, data_inicio: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="data_fim">Data Fim (opcional)</Label>
+                <Input
+                  id="data_fim"
+                  type="date"
+                  value={formData.data_fim}
+                  onChange={(e) =>
+                    setFormData({ ...formData, data_fim: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Deixe a data fim vazia para disponibilidade indefinida
+            </p>
+
+            {/* Ativo */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="ativo"
+                checked={formData.ativo}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, ativo: checked === true })
+                }
+              />
+              <Label htmlFor="ativo">Disponibilidade ativa</Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDialogOpen(false)}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingId ? "Salvar" : "Criar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="space-y-4">
         {recorrencias.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/50">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
@@ -529,179 +484,207 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               Configurar Horarios
             </Button>
           </div>
-        ) : showCalendarPreview ? (
-          // Calendar Preview
-          <div className="space-y-4">
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-primary/40" />
-                <span>Mentoria</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-secondary/40" />
-                <span>Plantao</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-muted/30" />
-                <span>Indisponivel</span>
-              </div>
+        ) : (
+          <>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCalendarPreview(!showCalendarPreview)}
+              >
+                {showCalendarPreview ? (
+                  <>
+                    <List className="mr-2 h-4 w-4" />
+                    Lista
+                  </>
+                ) : (
+                  <>
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    Preview
+                  </>
+                )}
+              </Button>
+              <Button onClick={() => handleOpenDialog()}>
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Horario
+              </Button>
             </div>
 
-            {/* Weekly Calendar Grid */}
-            <div className="border rounded-lg overflow-hidden">
-              <div className="grid grid-cols-8 text-sm">
-                {/* Header Row */}
-                <div className="p-2 font-medium bg-muted/50 border-b border-r text-center">
-                  Hora
-                </div>
-                {DAYS_SHORT.map((day, i) => (
-                  <div
-                    key={day}
-                    className={cn(
-                      "p-2 font-medium bg-muted/50 border-b text-center",
-                      i < 6 && "border-r"
-                    )}
-                  >
-                    {day}
+            {showCalendarPreview ? (
+              // Calendar Preview
+              <div className="space-y-4">
+                {/* Legend */}
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-primary/40" />
+                    <span>Mentoria</span>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-secondary/40" />
+                    <span>Plantao</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-muted/30" />
+                    <span>Indisponivel</span>
+                  </div>
+                </div>
 
-                {/* Time Slots */}
-                {CALENDAR_HOURS.map((hour, hourIdx) => (
-                  <>
-                    <div
-                      key={`hour-${hour}`}
-                      className={cn(
-                        "p-2 text-sm text-muted-foreground border-r text-center",
-                        hourIdx < CALENDAR_HOURS.length - 1 && "border-b"
-                      )}
-                    >
-                      {hour.toString().padStart(2, "0")}:00
+                {/* Weekly Calendar Grid */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-8 text-sm">
+                    {/* Header Row */}
+                    <div className="p-2 font-medium bg-muted/50 border-b border-r text-center">
+                      Hora
                     </div>
-                    {DAYS_SHORT.map((_, dayIdx) => {
-                      const slotStyle = getSlotStyle(dayIdx, hour)
-                      return (
+                    {DAYS_SHORT.map((day, i) => (
+                      <div
+                        key={day}
+                        className={cn(
+                          "p-2 font-medium bg-muted/50 border-b text-center",
+                          i < 6 && "border-r"
+                        )}
+                      >
+                        {day}
+                      </div>
+                    ))}
+
+                    {/* Time Slots */}
+                    {CALENDAR_HOURS.map((hour, hourIdx) => (
+                      <>
                         <div
-                          key={`slot-${hour}-${dayIdx}`}
+                          key={`hour-${hour}`}
                           className={cn(
-                            "p-2 text-xs text-center transition-colors",
-                            slotStyle.bg,
-                            hourIdx < CALENDAR_HOURS.length - 1 && "border-b",
-                            dayIdx < 6 && "border-r"
+                            "p-2 text-sm text-muted-foreground border-r text-center",
+                            hourIdx < CALENDAR_HOURS.length - 1 && "border-b"
                           )}
                         >
-                          {slotStyle.text}
+                          {hour.toString().padStart(2, "0")}:00
                         </div>
-                      )
-                    })}
-                  </>
-                ))}
-              </div>
-            </div>
+                        {DAYS_SHORT.map((_, dayIdx) => {
+                          const slotStyle = getSlotStyle(dayIdx, hour)
+                          return (
+                            <div
+                              key={`slot-${hour}-${dayIdx}`}
+                              className={cn(
+                                "p-2 text-xs text-center transition-colors",
+                                slotStyle.bg,
+                                hourIdx < CALENDAR_HOURS.length - 1 && "border-b",
+                                dayIdx < 6 && "border-r"
+                              )}
+                            >
+                              {slotStyle.text}
+                            </div>
+                          )
+                        })}
+                      </>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Summary */}
-            <div className="text-sm text-muted-foreground">
-              {recorrencias.filter(r => r.ativo).length} horario(s) ativo(s) configurado(s)
-            </div>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Dia</TableHead>
-                <TableHead>Horario</TableHead>
-                <TableHead>Duracao</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Periodo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Acoes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recorrencias.map((rec) => (
-                <TableRow key={rec.id} className={!rec.ativo ? "opacity-50" : ""}>
-                  <TableCell className="font-medium">
-                    {DAYS[rec.dia_semana]}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      {rec.hora_inicio} - {rec.hora_fim}
-                    </div>
-                  </TableCell>
-                  <TableCell>{rec.duracao_slot_minutos} min</TableCell>
-                  <TableCell>
-                    <Badge variant={rec.tipo_servico === "mentoria" ? "default" : "secondary"}>
-                      {rec.tipo_servico === "mentoria" ? "Mentoria" : "Plantao"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDateRange(rec.data_inicio, rec.data_fim ?? null)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={rec.ativo ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => handleToggleAtivo(rec)}
-                    >
-                      {rec.ativo ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenDialog(rec)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Dialog
-                        open={deleteConfirmId === rec.id}
-                        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
-                      >
-                        <DialogTrigger asChild>
+                {/* Summary */}
+                <div className="text-sm text-muted-foreground">
+                  {recorrencias.filter(r => r.ativo).length} horario(s) ativo(s) configurado(s)
+                </div>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Dia</TableHead>
+                    <TableHead>Horario</TableHead>
+                    <TableHead>Duracao</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Periodo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-[100px]">Acoes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recorrencias.map((rec) => (
+                    <TableRow key={rec.id} className={!rec.ativo ? "opacity-50" : ""}>
+                      <TableCell className="font-medium">
+                        {DAYS[rec.dia_semana]}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          {rec.hora_inicio} - {rec.hora_fim}
+                        </div>
+                      </TableCell>
+                      <TableCell>{rec.duracao_slot_minutos} min</TableCell>
+                      <TableCell>
+                        <Badge variant={rec.tipo_servico === "mentoria" ? "default" : "secondary"}>
+                          {rec.tipo_servico === "mentoria" ? "Mentoria" : "Plantao"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateRange(rec.data_inicio, rec.data_fim ?? null)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={rec.ativo ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => handleToggleAtivo(rec)}
+                        >
+                          {rec.ativo ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setDeleteConfirmId(rec.id!)}
+                            onClick={() => handleOpenDialog(rec)}
                           >
-                            <Trash className="h-4 w-4 text-destructive" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Confirmar exclusao</DialogTitle>
-                            <DialogDescription>
-                              Tem certeza que deseja excluir esta disponibilidade?
-                              Esta acao nao pode ser desfeita.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <Button
-                              variant="outline"
-                              onClick={() => setDeleteConfirmId(null)}
-                            >
-                              Cancelar
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleDelete(rec.id!)}
-                            >
-                              Excluir
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          <Dialog
+                            open={deleteConfirmId === rec.id}
+                            onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+                          >
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeleteConfirmId(rec.id!)}
+                              >
+                                <Trash className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Confirmar exclusao</DialogTitle>
+                                <DialogDescription>
+                                  Tem certeza que deseja excluir esta disponibilidade?
+                                  Esta acao nao pode ser desfeita.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setDeleteConfirmId(null)}
+                                >
+                                  Cancelar
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => handleDelete(rec.id!)}
+                                >
+                                  Excluir
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </>
   )
 }
