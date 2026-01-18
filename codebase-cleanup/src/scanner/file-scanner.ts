@@ -179,6 +179,9 @@ export class FileScannerImpl implements FileScanner {
   private categorizeFile(relativePath: string, extension: string): FileCategory {
     const normalizedPath = relativePath.replace(/\\/g, '/').toLowerCase();
 
+    // Debug log (remove after fixing)
+    // console.log('Categorizing:', { relativePath, normalizedPath, extension });
+
     // Test files
     if (
       normalizedPath.includes('.test.') ||
@@ -194,7 +197,9 @@ export class FileScannerImpl implements FileScanner {
     if (
       extension === '.d.ts' ||
       normalizedPath.includes('/types/') ||
+      normalizedPath.startsWith('types/') ||
       normalizedPath.includes('/type/') ||
+      normalizedPath.startsWith('type/') ||
       normalizedPath.endsWith('types.ts') ||
       normalizedPath.endsWith('types.tsx')
     ) {
@@ -215,7 +220,9 @@ export class FileScannerImpl implements FileScanner {
     if (
       (extension === '.tsx' || extension === '.jsx') &&
       (normalizedPath.includes('/components/') ||
+       normalizedPath.startsWith('components/') ||
        normalizedPath.includes('/component/') ||
+       normalizedPath.startsWith('component/') ||
        normalizedPath.match(/\/app\/.*\/(page|layout|loading|error|not-found)\.(tsx|jsx)$/))
     ) {
       return 'component';
@@ -258,10 +265,15 @@ export class FileScannerImpl implements FileScanner {
     // Utility files
     if (
       normalizedPath.includes('/utils/') ||
+      normalizedPath.startsWith('utils/') ||
       normalizedPath.includes('/util/') ||
+      normalizedPath.startsWith('util/') ||
       normalizedPath.includes('/helpers/') ||
+      normalizedPath.startsWith('helpers/') ||
       normalizedPath.includes('/helper/') ||
+      normalizedPath.startsWith('helper/') ||
       normalizedPath.includes('/lib/') ||
+      normalizedPath.startsWith('lib/') ||
       normalizedPath.endsWith('util.ts') ||
       normalizedPath.endsWith('utils.ts') ||
       normalizedPath.endsWith('helper.ts') ||
