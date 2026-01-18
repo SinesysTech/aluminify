@@ -11,7 +11,7 @@ export type IdentifyRoleResult = {
 };
 
 export async function identifyUserRoleAction(
-  userId: string
+  userId: string,
 ): Promise<IdentifyRoleResult> {
   try {
     // Segurança: não confiar no userId vindo do cliente.
@@ -29,14 +29,14 @@ export async function identifyUserRoleAction(
     if (userId && userId !== user.id) {
       console.warn(
         `[identifyUserRoleAction] userId não corresponde ao usuário autenticado. Ignorando parâmetro.`,
-        { providedUserId: userId, authenticatedUserId: user.id }
+        { providedUserId: userId, authenticatedUserId: user.id },
       );
     }
 
     // Use o client com privilégios de service role para resolver roles com consistência
     // e (se necessário) persistir metadata sem expor isso ao browser.
     const adminClient = getDatabaseClient();
-    const roleIdentifier = createUserRoleIdentifier(adminClient as any);
+    const roleIdentifier = createUserRoleIdentifier(adminClient);
 
     const { primaryRole } = await roleIdentifier.identifyUserRoles(user.id, {
       includeDetails: false,
@@ -52,11 +52,18 @@ export async function identifyUserRoleAction(
         redirectUrl = "/professor/dashboard";
         break;
       case "aluno":
-        redirectUrl = "/aluno/dashboard";
+        // Tenta obter o slug da empresa do metadata ou params
+        // O ideal é redirecionar para uma rota que sabe resolver o tenant,
+        // mas como a rota é /[tenant]/aluno/dashboard, precisamos do slug.
+
+        // TODO: Buscar slug da empresa se não estiver no metadata
+        // Por hora, vamos redirecionar para /aluno que faz o redirect correto
+        // se o usuário tiver empresaSlug (veja app/(dashboard)/aluno/page.tsx)
+        redirectUrl = "/aluno";
         break;
       default:
         console.warn(
-          `[identifyUserRoleAction] Unknown role: ${primaryRole} for user ${user.id}`
+          `[identifyUserRoleAction] Unknown role: ${primaryRole} for user ${user.id}`,
         );
         redirectUrl = "/protected";
     }
@@ -70,7 +77,10 @@ export async function identifyUserRoleAction(
         },
       });
     } catch (persistError) {
-      console.warn("[identifyUserRoleAction] Falha ao persistir role no metadata:", persistError);
+      console.warn(
+        "[identifyUserRoleAction] Falha ao persistir role no metadata:",
+        persistError,
+      );
       // Não bloquear login por falha de persistência
     }
 
