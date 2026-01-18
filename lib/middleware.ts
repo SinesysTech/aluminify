@@ -104,6 +104,22 @@ export interface TenantContext {
   resolutionType?: "subdomain" | "custom-domain" | "slug";
 }
 
+function getSupabaseProjectRefFromUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // ex: https://wtqgfmtucqmpheghcvxo.supabase.co
+    const host = u.host.toLowerCase();
+    const suffix = ".supabase.co";
+    if (host.endsWith(suffix)) {
+      const ref = host.slice(0, -suffix.length);
+      return ref || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const host = request.headers.get("host") || "";
@@ -129,6 +145,39 @@ export async function updateSession(request: NextRequest) {
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
   const { url, anonKey } = getPublicSupabaseConfig();
+
+  // Se o browser tiver cookies de múltiplos projetos Supabase, isso pode causar
+  // inconsistência (server lendo um projeto e o client outro). Limpamos cookies
+  // "sb-*-auth-token*" que não correspondem ao projeto atual.
+  const projectRef = getSupabaseProjectRefFromUrl(url);
+  if (projectRef) {
+    const expectedPrefix = `sb-${projectRef}-auth-token`;
+    const allCookies = request.cookies.getAll();
+    const supabaseAuthCookies = allCookies.filter(
+      (c) => c.name.startsWith("sb-") && c.name.includes("-auth-token")
+    );
+    const foreignCookies = supabaseAuthCookies.filter(
+      (c) => !c.name.startsWith(expectedPrefix)
+    );
+
+    if (foreignCookies.length > 0) {
+      console.warn("[DEBUG] Middleware - removendo cookies Supabase de outro projeto", {
+        expectedPrefix,
+        foreign: foreignCookies.map((c) => c.name),
+      });
+
+      // Remover do request (para esta requisição) e do response (persistir no browser)
+      for (const c of foreignCookies) {
+        try {
+          request.cookies.delete(c.name);
+        } catch {
+          // ignore
+        }
+        supabaseResponse.cookies.set(c.name, "", { path: "/", maxAge: 0 });
+      }
+    }
+  }
+
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {

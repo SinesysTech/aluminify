@@ -48,6 +48,18 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     : ((user.user_metadata?.role as AppUserRole) || 'aluno')
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password)
 
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[AUTH DEBUG] getAuthenticatedUser: base ' + JSON.stringify({
+      userId: user.id,
+      email: user.email,
+      role,
+      isImpersonating,
+      mustChangePasswordFromMetadata: Boolean(user.user_metadata?.must_change_password),
+      metadataRole: user.user_metadata?.role,
+      metadataEmpresaId: user.user_metadata?.empresa_id,
+    }))
+  }
+
   let empresaId: string | undefined
   let empresaNome: string | undefined
   let isEmpresaAdmin: boolean | undefined
@@ -208,6 +220,26 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     if (alunoData?.must_change_password !== undefined) {
       mustChangePassword = alunoData.must_change_password
     }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AUTH DEBUG] getAuthenticatedUser: aluno mustChangePassword source ' + JSON.stringify({
+        userId: user.id,
+        email: user.email,
+        mustChangePasswordFromMetadata: Boolean(user.user_metadata?.must_change_password),
+        alunoRowMustChangePassword: alunoData?.must_change_password,
+        mustChangePasswordFinal: mustChangePassword,
+      }))
+    }
+  } else {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AUTH DEBUG] getAuthenticatedUser: non-aluno mustChangePassword final ' + JSON.stringify({
+        userId: user.id,
+        email: user.email,
+        role,
+        mustChangePasswordFromMetadata: Boolean(user.user_metadata?.must_change_password),
+        mustChangePasswordFinal: mustChangePassword,
+      }))
+    }
   }
 
   return {
@@ -245,6 +277,14 @@ export async function requireUser(options?: RequireUserOptions): Promise<AppUser
   }
 
   if (!options?.ignorePasswordRequirement && user.mustChangePassword) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AUTH DEBUG] requireUser redirect /primeiro-acesso ' + JSON.stringify({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        mustChangePassword: user.mustChangePassword,
+      }))
+    }
     redirect('/primeiro-acesso')
   }
 

@@ -28,14 +28,22 @@ export class UserRoleIdentifierService {
     const rolesSet = new Set<Exclude<AppUserRole, "empresa">>();
     const empresaIdsSet = new Set<string>();
 
+    // Buscar email/metadata do usuário (útil para fallback por email)
+    const { data: userData, error: userDataError } =
+      await this.client.auth.admin.getUserById(userId);
+    if (userDataError) {
+      console.warn("[UserRoleIdentifier] Failed to get user by id:", userDataError);
+    }
+    const userEmail = userData?.user?.email?.toLowerCase() ?? null;
+
     // Check for superadmin role first
-    const isSuperadmin = await this.checkSuperadmin(userId);
+    const isSuperadmin = await this.checkSuperadminFromUserData(userData?.user);
     if (isSuperadmin) {
       rolesSet.add("superadmin");
     }
 
     // Check for professor role
-    const professorRoles = await this.checkProfessorRoles(userId, empresaId);
+    const professorRoles = await this.checkProfessorRoles(userId, empresaId, userEmail);
     for (const role of professorRoles) {
       rolesSet.add("professor");
       empresaIdsSet.add(role.empresaId);
@@ -45,13 +53,17 @@ export class UserRoleIdentifierService {
     }
 
     // Check for aluno role
-    const alunoRoles = await this.checkAlunoRoles(userId, empresaId);
-    for (const role of alunoRoles) {
+    const alunoExists = await this.checkAlunoExists(userId, userEmail);
+    if (alunoExists) {
       rolesSet.add("aluno");
+    }
+    // Detalhes (empresa) do aluno continuam vindo por cursos/empresa_id via join table
+    const alunoRoleDetails = includeDetails
+      ? await this.checkAlunoRoleDetails(userId, empresaId)
+      : [];
+    for (const role of alunoRoleDetails) {
       empresaIdsSet.add(role.empresaId);
-      if (includeDetails) {
-        roleDetails.push(role);
-      }
+      roleDetails.push(role);
     }
 
     const roles = Array.from(rolesSet);
@@ -130,11 +142,15 @@ export class UserRoleIdentifierService {
 
     // Update user_metadata.role using admin client
     // Note: This requires the service role key which can only be used server-side
+    const userMetadata: Record<string, unknown> = {
+      role: newRole,
+    };
+    if (empresaId) {
+      userMetadata.empresa_id = empresaId;
+    }
+
     const { error } = await this.client.auth.admin.updateUserById(userId, {
-      user_metadata: {
-        role: newRole,
-        empresa_id: empresaId,
-      },
+      user_metadata: userMetadata,
     });
 
     if (error) {
@@ -165,21 +181,19 @@ export class UserRoleIdentifierService {
 
   // Private helper methods
 
-  private async checkSuperadmin(userId: string): Promise<boolean> {
-    // Check user_metadata.role for superadmin
-    const { data: userData } = await this.client.auth.admin.getUserById(userId);
-
-    if (userData?.user?.user_metadata?.role === "superadmin") {
-      return true;
-    }
-
-    // Also could check a superadmins table if one exists
-    return false;
+  private async checkSuperadminFromUserData(
+    user: { user_metadata?: Record<string, unknown> } | null | undefined
+  ): Promise<boolean> {
+    const role = user?.user_metadata?.role;
+    const isSuperadmin =
+      role === "superadmin" || user?.user_metadata?.is_superadmin === true;
+    return Boolean(isSuperadmin);
   }
 
   private async checkProfessorRoles(
     userId: string,
-    empresaId?: string
+    empresaId?: string,
+    email?: string | null
   ): Promise<UserRoleDetail[]> {
     let query = this.client
       .from("professores")
@@ -208,10 +222,45 @@ export class UserRoleIdentifierService {
         "[UserRoleIdentifier] Error checking professor roles:",
         error
       );
-      return [];
+      // Continua para fallback por email se disponível
     }
 
-    return (data || []).map(
+    const rows = (data || []) as any[];
+
+    // Fallback: algumas bases podem ter professor cadastrado por email (ou id divergente)
+    if (!rows.length && email) {
+      let emailQuery = this.client
+        .from("professores")
+        .select(
+          `
+          id,
+          empresa_id,
+          is_admin,
+          empresas!inner (
+            id,
+            nome,
+            slug
+          )
+        `
+        )
+        .eq("email", email);
+
+      if (empresaId) {
+        emailQuery = emailQuery.eq("empresa_id", empresaId);
+      }
+
+      const { data: emailData, error: emailError } = await emailQuery;
+      if (emailError) {
+        console.error(
+          "[UserRoleIdentifier] Error checking professor roles by email:",
+          emailError
+        );
+      } else {
+        rows.push(...((emailData || []) as any[]));
+      }
+    }
+
+    return rows.map(
       (row: {
         id: string;
         empresa_id: string;
@@ -234,11 +283,47 @@ export class UserRoleIdentifierService {
     );
   }
 
-  private async checkAlunoRoles(
-    userId: string,
-    empresaId?: string
-  ): Promise<UserRoleDetail[]> {
-    // Alunos are linked to empresas through alunos_cursos -> cursos -> empresa_id
+  /**
+   * Verifica se existe cadastro de aluno (tabela alunos) para este usuário.
+   * Importante: isso não garante vínculo com cursos/empresa (detalhes vêm via alunos_cursos).
+   */
+  private async checkAlunoExists(userId: string, email?: string | null): Promise<boolean> {
+    const { data: byId, error: idError } = await this.client
+      .from("alunos")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (idError) {
+      console.error("[UserRoleIdentifier] Error checking aluno by id:", idError);
+    }
+
+    if (byId?.id) {
+      return true;
+    }
+
+    if (!email) {
+      return false;
+    }
+
+    const { data: byEmail, error: emailError } = await this.client
+      .from("alunos")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (emailError) {
+      console.error("[UserRoleIdentifier] Error checking aluno by email:", emailError);
+      return false;
+    }
+
+    return Boolean(byEmail?.id);
+  }
+
+  /**
+   * Detalhes de aluno por empresa, via vínculo em cursos (alunos_cursos -> cursos -> empresas).
+   */
+  private async checkAlunoRoleDetails(userId: string, empresaId?: string): Promise<UserRoleDetail[]> {
     const query = this.client
       .from("alunos_cursos")
       .select(
@@ -259,11 +344,10 @@ export class UserRoleIdentifierService {
     const { data, error } = await query;
 
     if (error) {
-      console.error("[UserRoleIdentifier] Error checking aluno roles:", error);
+      console.error("[UserRoleIdentifier] Error checking aluno role details:", error);
       return [];
     }
 
-    // Deduplicate by empresa_id since a student may be in multiple courses of the same empresa
     const empresaMap = new Map<string, UserRoleDetail>();
 
     for (const row of data || []) {
@@ -283,7 +367,6 @@ export class UserRoleIdentifierService {
         empresas: empresaRaw,
       };
 
-      // Filter by empresaId if provided
       if (empresaId && curso.empresa_id !== empresaId) {
         continue;
       }

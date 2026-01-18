@@ -24,6 +24,7 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isDev = process.env.NODE_ENV !== 'production'
 
   const resolveErrorMessage = (err: unknown) => {
     let message: string | null = null
@@ -50,7 +51,7 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
 
     // Handle specific error codes
     if (errorCode === 'same_password' || message?.toLowerCase().includes('new password should be different')) {
-      return 'A nova senha não pode ser igual à senha temporária que você recebeu. Por favor, escolha uma senha completamente diferente.'
+      return 'A nova senha deve ser diferente da sua senha atual. Por favor, escolha uma senha diferente.'
     }
 
     if (message?.toLowerCase().includes('auth session missing') || message?.toLowerCase().includes('session')) {
@@ -117,6 +118,16 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
 
       const actualUserId = currentUser.id
 
+      // Get session token for authenticated API routes (requireAuth expects Bearer token)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) {
+        console.error('[FirstAccessForm] Erro ao obter sessão:', sessionError)
+        throw new Error('Sua sessão expirou. Faça login novamente.')
+      }
+      if (!session?.access_token) {
+        throw new Error('Sua sessão expirou. Faça login novamente.')
+      }
+
       // Step 1: Update password in Supabase Auth
       console.log('[FirstAccessForm] Atualizando senha no Supabase Auth...')
       const { error: updateError } = await supabase.auth.updateUser({
@@ -131,13 +142,23 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
 
       console.log('[FirstAccessForm] Senha atualizada no Auth com sucesso')
 
-      // Step 2: Update aluno record in database via API route (evita problemas de RLS)
-      console.log('[FirstAccessForm] Atualizando registro do aluno via API...', { userId: actualUserId })
-      try {
+      // Step 1.5: Finalizar primeiro acesso no servidor (garante flag must_change_password=false)
+      // Isso evita loops quando o estado do Auth/DB não está consistente imediatamente.
+      const { finalizeFirstAccessAction } = await import('@/app/actions/first-access-actions')
+      const finalizeResult = await finalizeFirstAccessAction()
+      if (!finalizeResult.success) {
+        throw new Error(finalizeResult.error || 'Não foi possível finalizar o primeiro acesso. Tente novamente.')
+      }
+
+      // Step 2: Se for aluno, atualizar registro no banco (evita loop de /primeiro-acesso quando a flag vem da tabela alunos)
+      if (role === 'aluno') {
+        console.log('[FirstAccessForm] Atualizando registro do aluno via API...', { userId: actualUserId })
+
         const response = await fetch(`/api/student/${actualUserId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             mustChangePassword: false,
@@ -146,37 +167,42 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
         })
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          console.error('[FirstAccessForm] Erro ao atualizar aluno via API:', errorData)
-          throw new Error(errorData.error || 'Erro ao atualizar dados do aluno')
-        }
+          // Se o aluno não existir no banco, ainda assim podemos prosseguir:
+          // o acesso será liberado pelo metadata do Auth (must_change_password=false).
+          if (response.status === 404) {
+            console.warn('[FirstAccessForm] Aluno não encontrado no banco (404). Prosseguindo com redirect.', {
+              userId: actualUserId,
+            })
+          } else {
+            const contentType = response.headers.get('content-type') || ''
+            const errorData =
+              contentType.includes('application/json')
+                ? await response.json().catch(() => ({} as Record<string, unknown>))
+                : { error: (await response.text().catch(() => '')).slice(0, 500) }
 
-        const result = await response.json()
-        console.log('[FirstAccessForm] Registro do aluno atualizado com sucesso via API:', result.data)
-      } catch (apiError) {
-        console.error('[FirstAccessForm] Erro ao chamar API de atualização:', apiError)
-        // Não lançar erro aqui - a senha já foi atualizada no Auth, que é o mais importante
-        // O flag must_change_password pode ser atualizado depois
-        console.warn('[FirstAccessForm] Continuando mesmo com erro na atualização do aluno (senha já foi atualizada)')
+            console.error('[FirstAccessForm] Erro ao atualizar aluno via API:', errorData)
+            const message =
+              typeof (errorData as any)?.error === 'string' && (errorData as any).error.trim()
+                ? (errorData as any).error
+                : 'Erro ao finalizar primeiro acesso. Tente novamente.'
+            throw new Error(message)
+          }
+        } else {
+          const result = await response.json().catch(() => null)
+          console.log('[FirstAccessForm] Registro do aluno atualizado com sucesso via API:', result?.data)
+        }
       }
 
       router.push(getDefaultRouteForRole(role))
       router.refresh()
     } catch (err) {
-      console.error('[FirstAccessForm] Erro ao atualizar senha do primeiro acesso:', err)
-      console.error('[FirstAccessForm] Tipo do erro:', typeof err)
-      
-      // Try to serialize error with all properties
-      try {
-        const errorKeys = err && typeof err === 'object' ? Object.getOwnPropertyNames(err) : []
-        const errorSerialized = JSON.stringify(err, errorKeys.length > 0 ? errorKeys : undefined, 2)
-        console.error('[FirstAccessForm] Erro serializado:', errorSerialized)
-      } catch (serializeError) {
-        console.error('[FirstAccessForm] Não foi possível serializar o erro:', serializeError)
-      }
-      
       const errorMessage = resolveErrorMessage(err)
-      console.log('[FirstAccessForm] Mensagem de erro resolvida:', errorMessage)
+      // Evitar poluir o console em erros esperados do Auth (ex.: same_password).
+      // Mantemos logs detalhados apenas em desenvolvimento.
+      if (isDev) {
+        console.error('[FirstAccessForm] Erro ao atualizar senha do primeiro acesso:', err)
+        console.log('[FirstAccessForm] Mensagem de erro resolvida:', errorMessage)
+      }
       setError(errorMessage)
     } finally {
       setIsSubmitting(false)
