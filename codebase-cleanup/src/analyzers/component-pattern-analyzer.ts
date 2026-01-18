@@ -62,6 +62,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    * Analyze a file for component-related issues
    */
   async analyze(file: FileInfo, ast: SourceFile): Promise<Issue[]> {
+    // Reset state for each file analysis
+    this.discoveredComponents = [];
+    
     const issues: Issue[] = [];
 
     // Task 7.1: Discover and categorize React components

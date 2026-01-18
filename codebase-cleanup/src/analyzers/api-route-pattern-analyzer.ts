@@ -57,6 +57,10 @@ export class APIRoutePatternAnalyzer extends BasePatternAnalyzer {
    * Analyze a file for API route-related issues
    */
   async analyze(file: FileInfo, ast: SourceFile): Promise<Issue[]> {
+    // Reset state for each file analysis
+    this.routeHandlers = [];
+    this.routeCharacteristics.clear();
+    
     const issues: Issue[] = [];
 
     // Task 9.1: Implement API route discovery

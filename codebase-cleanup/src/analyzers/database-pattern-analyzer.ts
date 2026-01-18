@@ -55,6 +55,10 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
    * Analyze a file for database-related issues
    */
   async analyze(file: FileInfo, ast: SourceFile): Promise<Issue[]> {
+    // Reset state for each file analysis
+    this.dbClientPatterns = [];
+    this.dbOperationPatterns = [];
+    
     const issues: Issue[] = [];
 
     // Task 6.1: Detect database client instantiation patterns
