@@ -9,7 +9,7 @@ import { DynamicBreadcrumb } from '@/components/layout/dynamic-breadcrumb'
 
 export function DashboardHeader() {
   return (
-    <header className="flex h-14 md:h-16 shrink-0 items-center gap-2 justify-between">
+    <header className="sticky top-0 z-10 flex h-14 md:h-16 shrink-0 items-center gap-2 justify-between bg-background border-b">
       <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator
