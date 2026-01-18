@@ -45,7 +45,7 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
+                throw new Error('Sessão expirada. Faça login novamente.');
             }
 
             const empresaResponse = await fetch(`/api/empresas/${empresaId}`, {
@@ -97,7 +97,7 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
+                throw new Error('Sessão expirada. Faça login novamente.');
             }
 
             // Preparar payload - normalizar CNPJ antes de enviar
@@ -111,13 +111,13 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
             if (formData.cnpj && formData.cnpj.trim()) {
                 const cnpjClean = formData.cnpj.replace(/\D/g, '');
                 if (cnpjClean.length === 14) {
-                    // Verificar se todos os dÃ­gitos sÃ£o iguais
+                    // Verificar se todos os dígitos são iguais
                     if (!/^(\d)\1+$/.test(cnpjClean)) {
                         payload.cnpj = cnpjClean;
                     } else {
                         toast({
                             title: 'Erro',
-                            description: 'CNPJ invÃ¡lido: todos os dÃ­gitos sÃ£o iguais',
+                            description: 'CNPJ inválido: todos os dígitos são iguais',
                             variant: 'destructive',
                         });
                         setSaving(false);
@@ -126,7 +126,7 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
                 } else if (cnpjClean.length > 0) {
                     toast({
                         title: 'Erro',
-                        description: 'CNPJ deve ter 14 dÃ­gitos',
+                        description: 'CNPJ deve ter 14 dígitos',
                         variant: 'destructive',
                     });
                     setSaving(false);
@@ -179,8 +179,8 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
             <div className="pt-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Empresa nÃ£o encontrada</CardTitle>
-                        <CardDescription>NÃ£o foi possÃ­vel carregar os dados da empresa.</CardDescription>
+                        <CardTitle>Empresa não encontrada</CardTitle>
+                        <CardDescription>Não foi possível carregar os dados da empresa.</CardDescription>
                     </CardHeader>
                 </Card>
             </div>
@@ -205,7 +205,7 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
                         id="cnpj"
                         value={formData.cnpj}
                         onChange={(e) => {
-                            // Normalizar para apenas dÃ­gitos e formatar
+                            // Normalizar para apenas dígitos e formatar
                             const digits = e.target.value.replace(/\D/g, '');
                             const formatted = formatCNPJ(digits);
                             setFormData({ ...formData, cnpj: formatted });
@@ -250,7 +250,7 @@ export function CompanySettings({ empresaId }: CompanySettingsProps) {
 
             <footer className="flex justify-end pt-4 border-t border-[#E4E4E7]">
                 <Button onClick={handleSave} className="h-10" disabled={saving}>
-                    {saving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
+                    {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
             </footer>
         </div>
