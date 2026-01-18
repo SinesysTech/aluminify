@@ -45,10 +45,10 @@ export default function ProfessorDashboardClient() {
         errorMessage = err.message
 
         if ((err as ProfessorDashboardServiceError).isAuthError) {
-          errorMessage = 'Sua sessÃ£o expirou. Por favor, faÃ§a login novamente.'
+          errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.'
         } else if ((err as ProfessorDashboardServiceError).isNetworkError) {
           errorMessage =
-            'Erro de conexÃ£o. Verifique sua internet e tente novamente.'
+            'Erro de conexão. Verifique sua internet e tente novamente.'
         }
       }
 
@@ -68,7 +68,7 @@ export default function ProfessorDashboardClient() {
     loadDashboardData()
   }, [loadDashboardData])
 
-  // Refresh automÃ¡tico
+  // Refresh automático
   useEffect(() => {
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current)
@@ -85,7 +85,7 @@ export default function ProfessorDashboardClient() {
     }
   }, [loadDashboardData])
 
-  // FunÃ§Ã£o para refresh manual
+  // Função para refresh manual
   const handleManualRefresh = () => {
     loadDashboardData(true)
   }
@@ -120,7 +120,7 @@ export default function ProfessorDashboardClient() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Nenhum dado disponÃ­vel</p>
+        <p className="text-muted-foreground">Nenhum dado disponível</p>
       </div>
     )
   }
