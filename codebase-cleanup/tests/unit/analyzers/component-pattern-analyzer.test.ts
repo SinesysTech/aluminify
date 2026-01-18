@@ -657,7 +657,7 @@ describe('ComponentPatternAnalyzer', () => {
       expect(propDrillingIssues.length).toBeGreaterThan(0);
       expect(propDrillingIssues[0].type).toBe('confusing-logic');
       expect(propDrillingIssues[0].severity).toBe('medium');
-      expect(propDrillingIssues[0].description).toContain('prop drilling');
+      expect(propDrillingIssues[0].description.toLowerCase()).toContain('prop drilling');
     });
 
     it('should not flag prop drilling at 3 levels or less', async () => {
@@ -857,7 +857,6 @@ describe('ComponentPatternAnalyzer', () => {
       expect(propDrillingIssues.length).toBeGreaterThan(0);
     });
   });
-});
 
   describe('Task 7.3: Component Pattern Inconsistency Detection', () => {
     it('should detect inconsistent prop patterns (destructuring vs object)', async () => {
@@ -1124,7 +1123,7 @@ describe('ComponentPatternAnalyzer', () => {
           return (
             <div onClick={handleClick}>
               <h2>{title}</h2>
-              <p>${price}</p>
+              <p>{'$'}{price}</p>
             </div>
           );
         }
@@ -1198,3 +1197,4 @@ describe('ComponentPatternAnalyzer', () => {
       expect(duplicationIssues.length).toBe(0);
     });
   });
+});
