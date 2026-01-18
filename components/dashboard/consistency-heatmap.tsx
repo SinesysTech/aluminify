@@ -76,10 +76,10 @@ export function ConsistencyHeatmap({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                    aria-label="Informações sobre constância de estudo"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Info"
                   >
-                    <Info className="h-4 w-4" />
+                    <Info className="h-3 w-3" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
@@ -107,12 +107,12 @@ export function ConsistencyHeatmap({
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1">
             <Button
               variant={period === 'semanal' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('semanal')}
-              className="text-xs h-7 px-3"
+              className="text-[10px] h-6 px-2"
             >
               Semanal
             </Button>
@@ -120,7 +120,7 @@ export function ConsistencyHeatmap({
               variant={period === 'mensal' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('mensal')}
-              className="text-xs h-7 px-3"
+              className="text-[10px] h-6 px-2"
             >
               Mensal
             </Button>
@@ -128,7 +128,7 @@ export function ConsistencyHeatmap({
               variant={period === 'anual' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('anual')}
-              className="text-xs h-7 px-3"
+              className="text-[10px] h-6 px-2"
             >
               Anual
             </Button>

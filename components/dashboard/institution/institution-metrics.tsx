@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { Users, Clock, CheckCircle2, TrendingUp } from 'lucide-react'
 import { MetricCard } from '@/components/dashboard/metric-card'
@@ -18,8 +18,8 @@ export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsPr
         subtext={`de ${summary.totalAlunos} total`}
         icon={Users}
         tooltip={[
-          'Alunos que tiveram alguma atividade de estudo nos Ãºltimos 30 dias.',
-          'Isso inclui assistir aulas, resolver questÃµes ou revisar flashcards.',
+          'Alunos que tiveram alguma atividade de estudo nos ultimos 30 dias.',
+          'Isso inclui assistir aulas, resolver questoes ou revisar flashcards.',
         ]}
       />
       <MetricCard
@@ -31,14 +31,14 @@ export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsPr
           isPositive: engagement.horasEstudoDelta.startsWith('+'),
         }}
         tooltip={[
-          'Total de horas de estudo de todos os alunos no perÃ­odo.',
-          'O valor mostra a variaÃ§Ã£o em relaÃ§Ã£o ao perÃ­odo anterior.',
+          'Total de horas de estudo de todos os alunos no periodo.',
+          'O valor mostra a variacao em relacao ao periodo anterior.',
         ]}
       />
       <MetricCard
-        label="Atividades ConcluÃ­das"
+        label="Atividades Concluidas"
         value={engagement.atividadesConcluidas}
-        subtext="no perÃ­odo"
+        subtext="no periodo"
         icon={CheckCircle2}
         tooltip={[
           'Quantidade de aulas marcadas como assistidas no cronograma.',
@@ -46,12 +46,12 @@ export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsPr
         ]}
       />
       <MetricCard
-        label="Taxa de ConclusÃ£o"
+        label="Taxa de Conclusao"
         value={`${engagement.taxaConclusao}%`}
         showProgressCircle={true}
         progressValue={engagement.taxaConclusao}
         tooltip={[
-          'Percentual de atividades concluÃ­das em relaÃ§Ã£o ao total programado.',
+          'Percentual de atividades concluidas em relacao ao total programado.',
           'Quanto maior, melhor o engajamento dos alunos com o cronograma.',
         ]}
       />

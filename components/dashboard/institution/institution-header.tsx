@@ -24,29 +24,27 @@ export function InstitutionHeader({
   }
 
   return (
-    <header className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10">
-          <Building2 className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-            {getGreeting()}, {empresaNome}!
-          </h1>
-          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Users className="w-4 h-4" />
-              {totalAlunos} {totalAlunos === 1 ? 'aluno' : 'alunos'}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <GraduationCap className="w-4 h-4" />
-              {totalProfessores} {totalProfessores === 1 ? 'professor' : 'professores'}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4" />
-              {totalCursos} {totalCursos === 1 ? 'curso' : 'cursos'}
-            </span>
-          </div>
+    <header className="flex items-center gap-2.5">
+      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
+        <Building2 className="w-4 h-4 text-primary" />
+      </div>
+      <div>
+        <h1 className="text-base font-semibold text-foreground leading-tight">
+          {getGreeting()}, {empresaNome}!
+        </h1>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {totalAlunos} alunos
+          </span>
+          <span className="flex items-center gap-1">
+            <GraduationCap className="w-3 h-3" />
+            {totalProfessores} professores
+          </span>
+          <span className="flex items-center gap-1">
+            <BookOpen className="w-3 h-3" />
+            {totalCursos} cursos
+          </span>
         </div>
       </div>
     </header>
