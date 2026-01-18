@@ -146,10 +146,7 @@ export default function SignUpPage() {
     >
       <div className="space-y-6">
         {/* Badge */}
-        <Badge
-          variant="secondary"
-          className="bg-blue-100 text-blue-700 hover:bg-blue-100"
-        >
+        <Badge className="border-transparent bg-primary text-primary-foreground shadow-none hover:bg-primary">
           Early Access
         </Badge>
 
