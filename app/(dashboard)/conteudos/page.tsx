@@ -1,7 +1,12 @@
-﻿import { requireUser } from '@/lib/auth'
-import ConteudosClientPage from './conteudos-client'
+﻿import { redirect } from 'next/navigation'
+import { requireUser } from '@/lib/auth'
 
-export default async function ConteudosPage() {
-  await requireUser({ allowedRoles: ['professor'] })
-  return <ConteudosClientPage />
+export default async function ConteudosRedirectPage() {
+  const user = await requireUser({ allowedRoles: ['professor'] })
+
+  if (user.empresaSlug) {
+    redirect(`/${user.empresaSlug}/conteudos`)
+  }
+
+  return <div>Erro: Professor sem empresa associada. Contate o suporte.</div>
 }

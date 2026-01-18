@@ -1,8 +1,12 @@
-﻿import { CursoTable } from '@/components/curso/curso-table'
+﻿import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 
-export default async function CursoPage() {
-  await requireUser({ allowedRoles: ['professor'] })
+export default async function CursoRedirectPage() {
+  const user = await requireUser({ allowedRoles: ['professor'] })
 
-  return <CursoTable />
+  if (user.empresaSlug) {
+    redirect(`/${user.empresaSlug}/curso`)
+  }
+
+  return <div>Erro: Professor sem empresa associada. Contate o suporte.</div>
 }
