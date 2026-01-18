@@ -1,49 +1,13 @@
-﻿import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
-import { createClient } from '@/lib/server'
-import { InstitutionDashboardClient } from '@/components/dashboard/institution'
-import { ProfessorDashboardClient } from '@/components/dashboard/professor'
 
-export default async function ProfessorDashboardPage() {
-  const user = await requireUser({ allowedRoles: ['professor', 'superadmin'] })
+export default async function ProfessorDashboardRedirectPage() {
+    const user = await requireUser({ allowedRoles: ['professor'] })
 
-  // Verificar se precisa completar cadastro da empresa
-  let shouldRedirectToComplete = false
-
-  if (user.empresaId && user.role !== 'superadmin') {
-    try {
-      const supabase = await createClient()
-      const { data: empresa, error } = await supabase
-        .from('empresas')
-        .select('cnpj, email_contato, telefone')
-        .eq('id', user.empresaId)
-        .maybeSingle()
-
-      if (!error && empresa) {
-        // Verificar se empresa estÃ¡ incompleta (sem CNPJ, email ou telefone)
-        // Campos podem ser null ou string vazia
-        const cnpjVazio = !empresa.cnpj || empresa.cnpj.trim() === ''
-        const emailVazio =
-          !empresa.email_contato || empresa.email_contato.trim() === ''
-        const telefoneVazio = !empresa.telefone || empresa.telefone.trim() === ''
-        shouldRedirectToComplete = cnpjVazio && emailVazio && telefoneVazio
-      }
-    } catch (error) {
-      console.error('Erro ao verificar empresa:', error)
-      // Continuar normalmente se houver erro
+    if (user.empresaSlug) {
+        redirect(`/${user.empresaSlug}/professor/dashboard`)
     }
-  }
 
-  if (shouldRedirectToComplete) {
-    redirect('/professor/empresa/completar')
-  }
-
-  // Se Ã© admin da empresa (ou superadmin), mostrar dashboard da instituiÃ§Ã£o
-  // Caso contrÃ¡rio, mostrar dashboard do professor
-  if (user.isEmpresaAdmin || user.role === 'superadmin') {
-    return <InstitutionDashboardClient />
-  }
-
-  return <ProfessorDashboardClient />
+    // Fallback if no slug (shouldn't happen for valid professors with company)
+    return <div>Erro: Professor sem empresa associada. Contate o suporte.</div>
 }
-
