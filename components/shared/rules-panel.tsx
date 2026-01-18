@@ -138,71 +138,73 @@ export default function RulesPanel({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-5">
-          <div className="space-y-2">
-            <Label>Tipo</Label>
-            <Select value={tipoAtividade} onValueChange={(v) => setTipoAtividade(v as TipoAtividade)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {tipoOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label>Nome Padrão</Label>
-            <Input
-              value={nomePadrao}
-              onChange={(e) => setNomePadrao(e.target.value)}
-              placeholder='Ex: "Lista de Fixação"'
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label className="mb-0">Começar no módulo</Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" aria-label="Ajuda sobre módulo inicial" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    A regra só passa a valer a partir deste módulo. Antes dele nada é gerado.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+        <div className="overflow-x-auto">
+          <div className="grid gap-4 grid-cols-5 min-w-200">
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select value={tipoAtividade} onValueChange={(v) => setTipoAtividade(v as TipoAtividade)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tipoOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Input
-              type="number"
-              value={comecarNoModulo}
-              onChange={(e) => setComecarNoModulo(e.target.value)}
-              min={1}
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label className="mb-0">Frequência (módulos)</Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" aria-label="Ajuda sobre frequência" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    Gera uma atividade a cada N módulos, contando a partir do módulo inicial. Ex.: frequência 2 gera nos módulos 1,3,5...
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="space-y-2 col-span-2">
+              <Label>Nome Padrão</Label>
+              <Input
+                value={nomePadrao}
+                onChange={(e) => setNomePadrao(e.target.value)}
+                placeholder='Ex: "Lista de Fixação"'
+              />
             </div>
-            <Input
-              type="number"
-              value={frequenciaModulos}
-              onChange={(e) => setFrequenciaModulos(e.target.value)}
-              min={1}
-            />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="mb-0 whitespace-nowrap">Começar no módulo</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" aria-label="Ajuda sobre módulo inicial" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      A regra só passa a valer a partir deste módulo. Antes dele nada é gerado.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                value={comecarNoModulo}
+                onChange={(e) => setComecarNoModulo(e.target.value)}
+                min={1}
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="mb-0 whitespace-nowrap">Frequência (módulos)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" aria-label="Ajuda sobre frequência" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      Gera uma atividade a cada N módulos, contando a partir do módulo inicial. Ex.: frequência 2 gera nos módulos 1,3,5...
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                value={frequenciaModulos}
+                onChange={(e) => setFrequenciaModulos(e.target.value)}
+                min={1}
+              />
+            </div>
           </div>
         </div>
 
@@ -292,18 +294,18 @@ export default function RulesPanel({
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{formatTipoAtividade(regra.tipoAtividade)}</Badge>
-                    <span className="font-medium">{regra.nomePadrao}</span>
+                    <Badge variant="secondary" className="leading-none">{formatTipoAtividade(regra.tipoAtividade)}</Badge>
+                    <span className="text-xs font-medium leading-none">{regra.nomePadrao}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground flex flex-wrap gap-2">
-                    <span>Frequência: a cada {regra.frequenciaModulos} módulo(s)</span>
-                    <span>Começar no módulo {regra.comecarNoModulo}</span>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+                    <span className="inline-flex items-center leading-none">Frequência: a cada {regra.frequenciaModulos} módulo(s)</span>
+                    <span className="inline-flex items-center leading-none">Começar no módulo {regra.comecarNoModulo}</span>
                     {regra.acumulativo && (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="leading-none">
                         {regra.acumulativoDesdeInicio ? 'Acumulativo (desde início)' : 'Acumulativo'}
                       </Badge>
                     )}
-                    {regra.gerarNoUltimo && <Badge variant="outline">Gera no último</Badge>}
+                    {regra.gerarNoUltimo && <Badge variant="outline" className="leading-none">Gera no último</Badge>}
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => onDelete(regra.id)}>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import {
   Accordion,
@@ -25,7 +25,7 @@ export function ModuleAccordion({ modulo, onActivityUploadSuccess }: ModuleAccor
           <div className="flex items-center justify-between w-full mr-4">
             <div className="flex items-center gap-2">
               <span className="font-medium">
-                MÃ³dulo {modulo.numero_modulo || 'N/A'}: {modulo.nome}
+                Módulo {modulo.numero_modulo || 'N/A'}: {modulo.nome}
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
