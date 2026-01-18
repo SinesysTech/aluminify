@@ -44,11 +44,11 @@ export default async function DashboardLayout({
         )}
       >
         <AppSidebar />
-        <SidebarInset className="h-svh overflow-hidden">
+        <SidebarInset>
           <DashboardHeader />
           <ImpersonationBanner />
-          {/* Main content com scroll interno */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 bg-background">
+          {/* Main content - scroll nativo do body */}
+          <div className="p-4 md:px-8 md:py-6 pb-20 md:pb-8 bg-background">
             {children}
           </div>
           <BottomNavigation />

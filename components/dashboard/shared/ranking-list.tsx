@@ -63,66 +63,48 @@ export function RankingList({
   items,
   emptyMessage = 'Nenhum item encontrado',
   className,
-  maxHeight = '240px',
+  maxHeight = '200px',
 }: RankingListProps) {
   return (
-    <Card className={cn('flex flex-col h-full shadow-sm', className)}>
+    <Card className={cn('flex flex-col', className)}>
       <CardHeader className="pb-2 pt-3 px-3">
         <CardTitle className="text-sm font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pt-0 px-3 pb-3">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center h-full min-h-[80px]">
+          <div className="flex items-center justify-center min-h-[80px]">
             <p className="text-xs text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (
-          <ScrollArea className="h-56 pr-2">
-            <div className="space-y-1">
+          <ScrollArea className="h-48 pr-2">
+            <div className="space-y-0.5">
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-2 py-1.5 px-1 rounded hover:bg-muted/50 transition-colors"
                 >
-                  {/* Posicao com icone ou numero */}
                   <div
                     className={cn(
                       'flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold border',
                       getRankBadgeColor(index)
                     )}
                   >
-                    {getRankIcon(index) || (
-                      <span>{index + 1}</span>
-                    )}
+                    {getRankIcon(index) || <span>{index + 1}</span>}
                   </div>
-
-                  {/* Avatar */}
                   <Avatar className="h-7 w-7 border">
                     <AvatarImage src={item.avatarUrl || undefined} alt={item.name} />
                     <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                       {getInitials(item.name)}
                     </AvatarFallback>
                   </Avatar>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{item.name}</p>
                     {item.secondaryValue && (
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {item.secondaryValue}
-                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">{item.secondaryValue}</p>
                     )}
                   </div>
-
-                  {/* Valor principal */}
                   <div className="text-right">
-                    <p className="text-xs font-semibold text-primary">
-                      {item.primaryValue}
-                    </p>
-                    {item.badge && (
-                      <span className="text-[9px] px-1 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        {item.badge}
-                      </span>
-                    )}
+                    <p className="text-xs font-semibold text-primary">{item.primaryValue}</p>
                   </div>
                 </div>
               ))}

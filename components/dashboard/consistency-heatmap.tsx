@@ -64,9 +64,9 @@ export function ConsistencyHeatmap({
   }
 
   return (
-    <Card className="shadow-sm">
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-center justify-between mb-3">
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <h2 className="text-foreground text-sm font-semibold">
               Constancia de Estudo
@@ -79,7 +79,7 @@ export function ConsistencyHeatmap({
                     className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                     aria-label="Informações sobre constância de estudo"
                   >
-                    <Info className="h-3 w-3" />
+                    <Info className="h-4 w-4" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
@@ -107,12 +107,12 @@ export function ConsistencyHeatmap({
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             <Button
               variant={period === 'semanal' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('semanal')}
-              className="text-[10px] h-6 px-2"
+              className="text-xs h-7 px-3"
             >
               Semanal
             </Button>
@@ -120,7 +120,7 @@ export function ConsistencyHeatmap({
               variant={period === 'mensal' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('mensal')}
-              className="text-[10px] h-6 px-2"
+              className="text-xs h-7 px-3"
             >
               Mensal
             </Button>
@@ -128,7 +128,7 @@ export function ConsistencyHeatmap({
               variant={period === 'anual' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('anual')}
-              className="text-[10px] h-6 px-2"
+              className="text-xs h-7 px-3"
             >
               Anual
             </Button>

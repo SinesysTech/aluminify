@@ -123,6 +123,12 @@ export default function FlashcardsAdminClient() {
   const [page, setPage] = React.useState(1)
   const limit = 20
 
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Dados para filtros
   const [cursos, setCursos] = React.useState<Curso[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
@@ -163,7 +169,7 @@ export default function FlashcardsAdminClient() {
       if (!(init?.body instanceof FormData)) {
         headers.set('Content-Type', 'application/json')
       }
-      headers.set('Authorization', `Bearer ${session.access_token} `)
+      headers.set('Authorization', `Bearer ${session.access_token}`)
 
       return fetch(input, {
         ...init,
@@ -305,7 +311,7 @@ export default function FlashcardsAdminClient() {
         page
       })
 
-      const res = await fetchWithAuth(`/ api / flashcards ? ${params.toString()} `)
+      const res = await fetchWithAuth(`/api/flashcards?${params.toString()}`)
 
       // Verificar o content-type e tentar parsear o JSON
       const contentType = res.headers.get('content-type')
@@ -536,7 +542,7 @@ export default function FlashcardsAdminClient() {
       setSaving(true)
       setError(null)
 
-      const res = await fetchWithAuth(`/ api / flashcards / ${selectedFlashcard.id} `, {
+      const res = await fetchWithAuth(`/api/flashcards/${selectedFlashcard.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           moduloId: formModuloId,
@@ -571,7 +577,7 @@ export default function FlashcardsAdminClient() {
       setSaving(true)
       setError(null)
 
-      const res = await fetchWithAuth(`/ api / flashcards / ${selectedFlashcard.id} `, {
+      const res = await fetchWithAuth(`/api/flashcards/${selectedFlashcard.id}`, {
         method: 'DELETE',
       })
 
@@ -599,7 +605,7 @@ export default function FlashcardsAdminClient() {
 
       // Deletar todos os flashcards selecionados
       const deletePromises = Array.from(selectedIds).map((id) =>
-        fetchWithAuth(`/ api / flashcards / ${id} `, {
+        fetchWithAuth(`/api/flashcards/${id}`, {
           method: 'DELETE',
         })
       )
@@ -701,67 +707,73 @@ export default function FlashcardsAdminClient() {
       <div className="rounded-md border p-4">
         <div className="grid gap-4 md:grid-cols-4">
           <div className="md:col-span-1">
-            <Select
-              value={disciplinaId ?? 'all'}
-              onValueChange={(value) => {
-                setDisciplinaId(value === 'all' ? undefined : value)
-                setFrenteId(undefined)
-                setModuloId(undefined)
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Disciplina" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Disciplinas</SelectItem>
-                {disciplinas.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {mounted && (
+              <Select
+                value={disciplinaId ?? 'all'}
+                onValueChange={(value) => {
+                  setDisciplinaId(value === 'all' ? undefined : value)
+                  setFrenteId(undefined)
+                  setModuloId(undefined)
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Disciplina" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Disciplinas</SelectItem>
+                  {disciplinas.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="md:col-span-1">
-            <Select
-              value={frenteId ?? 'all'}
-              onValueChange={(value) => {
-                setFrenteId(value === 'all' ? undefined : value)
-                setModuloId(undefined)
-              }}
-              disabled={!disciplinaId || loadingFrentes}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Frente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Frentes</SelectItem>
-                {frentes.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    {f.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {mounted && (
+              <Select
+                value={frenteId ?? 'all'}
+                onValueChange={(value) => {
+                  setFrenteId(value === 'all' ? undefined : value)
+                  setModuloId(undefined)
+                }}
+                disabled={!disciplinaId || loadingFrentes}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Frente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Frentes</SelectItem>
+                  {frentes.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="md:col-span-1">
-            <Select
-              value={moduloId ?? 'all'}
-              onValueChange={(value) => setModuloId(value === 'all' ? undefined : value)}
-              disabled={!frenteId || loadingModulos}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Módulo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Módulos</SelectItem>
-                {modulos.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.numero_modulo ? `Módulo ${m.numero_modulo}: ${m.nome} ` : m.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {mounted && (
+              <Select
+                value={moduloId ?? 'all'}
+                onValueChange={(value) => setModuloId(value === 'all' ? undefined : value)}
+                disabled={!frenteId || loadingModulos}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Módulo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Módulos</SelectItem>
+                  {modulos.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.numero_modulo ? `Módulo ${m.numero_modulo}: ${m.nome} ` : m.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

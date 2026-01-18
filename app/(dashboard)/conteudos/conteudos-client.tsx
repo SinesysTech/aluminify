@@ -1354,6 +1354,13 @@ export default function ConteudosClientPage() {
       router.refresh()
     } catch (err) {
       console.error('Erro ao importar:', err)
+      console.error('Erro detalhado:', {
+        object: err,
+        type: typeof err,
+        constructor: (err as any)?.constructor?.name,
+        keys: Object.keys(err as any),
+        json: JSON.stringify(err, Object.getOwnPropertyNames(err || {})),
+      })
 
       // Supabase RPC costuma retornar PostgrestError como objeto (não instanceof Error)
       // com campos: message, details, hint, code.

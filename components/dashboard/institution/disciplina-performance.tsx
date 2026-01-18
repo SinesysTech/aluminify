@@ -26,13 +26,13 @@ function getPerformanceTextColor(score: number): string {
 
 export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformanceListProps) {
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-4">
+    <Card className="h-full shadow-sm">
+      <CardHeader className="pb-3 pt-4 px-4">
         <CardTitle className="text-base font-semibold">
           Performance por Disciplina
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 px-4 pb-4">
         {disciplinas.length === 0 ? (
           <div className="flex items-center justify-center h-48">
             <p className="text-sm text-muted-foreground">
@@ -40,8 +40,8 @@ export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformance
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-80 pr-4">
-            <div className="space-y-3">
+          <ScrollArea className="h-72 pr-3">
+            <div className="space-y-4">
               {disciplinas.map((disciplina) => (
                 <div key={disciplina.id} className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -50,12 +50,12 @@ export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformance
                         {disciplina.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {disciplina.totalQuestoes} questÃµes â€¢ {disciplina.alunosAtivos} alunos
+                        {disciplina.totalQuestoes} questoes - {disciplina.alunosAtivos} alunos
                       </p>
                     </div>
                     <span
                       className={cn(
-                        'text-sm font-bold ml-2',
+                        'text-sm font-bold ml-3',
                         getPerformanceTextColor(disciplina.aproveitamento)
                       )}
                     >
