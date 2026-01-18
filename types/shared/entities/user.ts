@@ -2,7 +2,7 @@
  * Tipos de entidades de usuário compartilhados
  */
 
-export type AppUserRole = 'aluno' | 'professor' | 'superadmin' | 'empresa';
+export type AppUserRole = "aluno" | "professor" | "superadmin" | "empresa";
 
 export interface AppUser {
   id: string;
@@ -12,6 +12,7 @@ export interface AppUser {
   avatarUrl?: string;
   mustChangePassword?: boolean;
   empresaId?: string;
+  empresaSlug?: string;
   empresaNome?: string;
   isEmpresaAdmin?: boolean;
 }
@@ -112,4 +113,3 @@ export interface UpdateTeacherInput {
   photoUrl?: string | null;
   specialty?: string | null;
 }
-
