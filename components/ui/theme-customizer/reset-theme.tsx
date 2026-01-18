@@ -1,5 +1,3 @@
-import React from 'react'
-
 "use client";
 
 import { useThemeConfig } from "@/components/active-theme";

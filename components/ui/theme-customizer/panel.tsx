@@ -1,5 +1,3 @@
-import React from 'react'
-
 "use client";
 
 import { Palette } from "lucide-react";
