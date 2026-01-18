@@ -84,7 +84,7 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import { apiClient, ApiClientError } from '@/lib/api-client'
-import { format } from 'date-fns'
+import { format, parse } from 'date-fns'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
 
 export type Curso = {
@@ -709,7 +709,7 @@ export function CursoTable() {
                             <FormLabel>Data de Início</FormLabel>
                             <FormControl>
                               <DatePicker
-                                value={field.value ? new Date(field.value) : null}
+                                value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
                                 onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
                                 placeholder="dd/mm/yyyy"
                               />
@@ -726,7 +726,7 @@ export function CursoTable() {
                             <FormLabel>Data de Término</FormLabel>
                             <FormControl>
                               <DatePicker
-                                value={field.value ? new Date(field.value) : null}
+                                value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
                                 onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
                                 placeholder="dd/mm/yyyy"
                               />
