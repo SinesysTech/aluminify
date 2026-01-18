@@ -26,7 +26,7 @@ function ProgressCircle({ value }: { value: number }) {
   const offset = circumference - (value / 100) * circumference
 
   return (
-    <div className="relative size-5 shrink-0">
+    <div className="relative size-6 shrink-0">
       <svg className="size-full" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
         <circle
           cx="18"
@@ -67,14 +67,14 @@ export function MetricCard({
 }: MetricCardProps) {
   return (
     <Card>
-      <CardContent className="px-3 py-2.5">
-        <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 text-muted-foreground mb-1.5">
           {showProgressCircle ? (
             <ProgressCircle value={progressValue} />
           ) : Icon ? (
             <Icon className="h-4 w-4 shrink-0" />
           ) : null}
-          <span className="text-xs font-medium truncate">{label}</span>
+          <span className="text-sm font-medium">{label}</span>
           {tooltip && (
             <TooltipProvider delayDuration={200}>
               <Tooltip>
@@ -82,13 +82,12 @@ export function MetricCard({
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                    aria-label={`Info sobre ${label}`}
                   >
-                    <Info className="h-3 w-3" />
+                    <Info className="h-3.5 w-3.5" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
-                  <div className="text-xs">
+                  <div className="text-sm">
                     {Array.isArray(tooltip) ? tooltip.map((p, i) => <p key={i}>{p}</p>) : <p>{tooltip}</p>}
                   </div>
                 </TooltipContent>
@@ -96,13 +95,13 @@ export function MetricCard({
             </TooltipProvider>
           )}
         </div>
-        <p className="text-foreground text-xl font-bold leading-none">{value}</p>
+        <p className="text-foreground text-2xl font-bold leading-none">{value}</p>
         {trend ? (
-          <p className={cn('text-[11px] mt-0.5', trend.isPositive ? 'text-emerald-500' : 'text-red-400')}>
+          <p className={cn('text-sm mt-1', trend.isPositive ? 'text-emerald-500' : 'text-red-400')}>
             {trend.isPositive ? '+' : ''}{trend.value}
           </p>
         ) : subtext ? (
-          <p className="text-muted-foreground text-[11px] mt-0.5">{subtext}</p>
+          <p className="text-muted-foreground text-sm mt-1">{subtext}</p>
         ) : null}
       </CardContent>
     </Card>
