@@ -59,22 +59,35 @@ interface ThemeConfigContextType {
 
 const ThemeConfigContext = createContext<ThemeConfigContextType | undefined>(undefined);
 
-export function ThemeConfigProvider({ children }: { children: React.ReactNode }) {
+// ... imports
+
+interface ActiveThemeProviderProps {
+  children: React.ReactNode;
+  initialTheme?: Partial<ExtendedThemeConfig>;
+}
+
+export function ThemeConfigProvider({ children, initialTheme }: ActiveThemeProviderProps) {
   const [theme, setThemeState] = useState<ExtendedThemeConfig>(() => {
-    if (typeof window === 'undefined') return DEFAULT_THEME;
+    // If we have an initial theme (e.g. from cookies), start with it
+    const base = {
+      ...DEFAULT_THEME,
+      ...(initialTheme || {}),
+    } as ExtendedThemeConfig;
+
+    if (typeof window === 'undefined') return base;
 
     const saved = localStorage.getItem('theme-config');
-    if (!saved) return DEFAULT_THEME;
+    if (!saved) return base;
 
     try {
       const parsed = JSON.parse(saved);
       return {
-        ...DEFAULT_THEME,
+        ...base,
         ...parsed,
       } as ExtendedThemeConfig;
     } catch (error) {
       console.error('Failed to parse saved theme:', error);
-      return DEFAULT_THEME;
+      return base;
     }
   });
 
@@ -117,13 +130,13 @@ export function ThemeConfigProvider({ children }: { children: React.ReactNode })
   const resetBrandingToDefaults = () => {
     const cssManager = getCSSPropertiesManager();
     cssManager.resetToDefaults();
-    
+
     const resetTheme: ExtendedThemeConfig = {
       ...DEFAULT_THEME,
       activeBranding: undefined,
       customPresets: undefined,
     };
-    
+
     setTheme(resetTheme);
   };
 
@@ -132,12 +145,19 @@ export function ThemeConfigProvider({ children }: { children: React.ReactNode })
     localStorage.setItem('theme-config', JSON.stringify(theme));
   }, [theme]);
 
+  // Initial application on mount to ensure CSS matches state
+  useEffect(() => {
+    applyThemeToCSS(theme);
+  }, []);
+
   return (
     <ThemeConfigContext.Provider value={{ theme, setTheme, loadTenantBranding, applyBrandingToTheme, resetBrandingToDefaults }}>
       {children}
     </ThemeConfigContext.Provider>
   );
 }
+
+export const ActiveThemeProvider = ThemeConfigProvider;
 
 export function useThemeConfig() {
   const context = useContext(ThemeConfigContext);

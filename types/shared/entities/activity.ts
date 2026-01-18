@@ -268,29 +268,39 @@ export type SessaoStatus =
 
 export interface SessaoEstudo {
   id: string;
-  aluno_id: string;
+  alunoId: string;
+  moduloId?: string | null;
+  disciplinaId?: string | null;
+  frenteId?: string | null;
+  atividadeRelacionadaId?: string | null;
+  metodoEstudo: MetodoEstudo;
+  inicio: string;
+  fim?: string | null;
+  tempoTotalBrutoSegundos?: number | null;
+  tempoTotalLiquidoSegundos?: number | null;
+  logPausas?: LogPausa[] | null;
+  status: SessaoStatus;
+  nivelFoco?: number | null;
+  createdAt: string;
+  updatedAt?: string;
+
+  // Legacy fields (deprecated)
+  aluno_id?: string;
   modulo_id?: string | null;
   disciplina_id?: string | null;
   frente_id?: string | null;
   atividade_relacionada_id?: string | null;
-  metodo_estudo: MetodoEstudo;
-  inicio: string;
-  fim?: string | null;
-  tempo_total_minutos?: number | null;
-  tempo_efetivo_minutos?: number | null;
-  pausas?: LogPausa[] | null;
-  status: SessaoStatus;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface IniciarSessaoInput {
-  aluno_id: string;
-  modulo_id?: string | null;
-  disciplina_id?: string | null;
-  frente_id?: string | null;
-  atividade_relacionada_id?: string | null;
-  metodo_estudo: MetodoEstudo;
+  moduloId?: string | null;
+  disciplinaId?: string | null;
+  frenteId?: string | null;
+  atividadeRelacionadaId?: string | null;
+  metodoEstudo: MetodoEstudo;
+  inicioIso?: string;
 }
 
 export interface FinalizarSessaoInput {
