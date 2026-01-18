@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -27,6 +27,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -107,11 +108,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [showCalendarPreview, setShowCalendarPreview] = useState(false)
 
-  useEffect(() => {
-    fetchRecorrencias()
-  }, [professorId])
-
-  async function fetchRecorrencias() {
+  const fetchRecorrencias = useCallback(async () => {
     try {
       setLoading(true)
       const data = await getRecorrencias(professorId)
@@ -126,7 +123,11 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
     } finally {
       setLoading(false)
     }
-  }
+  }, [professorId])
+
+  useEffect(() => {
+    fetchRecorrencias()
+  }, [fetchRecorrencias])
 
   const handleOpenDialog = (recorrencia?: Recorrencia) => {
     if (recorrencia) {
