@@ -72,20 +72,20 @@ export function MetricCard({
   tooltip,
 }: MetricCardProps) {
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-5 lg:p-6">
-        <div className="flex flex-col gap-2 sm:gap-3 min-w-0">
+    <Card className="shadow-sm">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex flex-col gap-1.5 min-w-0">
           <div className="flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground min-w-0 flex-1 overflow-hidden">
+            <div className="flex items-center gap-1.5 text-muted-foreground min-w-0 flex-1 overflow-hidden">
               {showProgressCircle ? (
                 <div className="shrink-0">
                   <ProgressCircle value={progressValue} />
                 </div>
               ) : Icon ? (
-                <Icon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                <Icon className="h-4 w-4 shrink-0" />
               ) : null}
               <div className="flex items-center gap-1 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium break-words leading-tight">
+                <p className="text-xs font-medium break-words leading-tight">
                   {label}
                 </p>
                 {tooltip && (
@@ -95,9 +95,9 @@ export function MetricCard({
                         <button
                           type="button"
                           className="text-muted-foreground hover:text-foreground transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                          aria-label={`InformaÃ§Ãµes sobre ${label}`}
+                          aria-label={`Informacoes sobre ${label}`}
                         >
-                          <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <Info className="h-3 w-3" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent
@@ -122,13 +122,13 @@ export function MetricCard({
               </div>
             </div>
           </div>
-          <p className="text-foreground tracking-tight text-xl sm:text-2xl lg:text-3xl font-bold break-words leading-none">
+          <p className="text-foreground tracking-tight text-lg sm:text-xl font-bold break-words leading-none">
             {value}
           </p>
           {trend ? (
             <p
               className={cn(
-                'text-xs sm:text-sm font-medium leading-tight',
+                'text-[11px] font-medium leading-tight',
                 trend.isPositive
                   ? 'text-emerald-500'
                   : 'text-red-400'
@@ -138,11 +138,11 @@ export function MetricCard({
               {trend.value}
             </p>
           ) : subtext ? (
-            <p className="text-muted-foreground text-xs sm:text-sm font-medium leading-tight">
+            <p className="text-muted-foreground text-[11px] font-medium leading-tight">
               {subtext}
             </p>
           ) : (
-            <p className="text-muted-foreground text-xs sm:text-sm font-medium invisible">
+            <p className="text-muted-foreground text-[11px] font-medium invisible">
               Placeholder
             </p>
           )}

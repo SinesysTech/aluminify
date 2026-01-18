@@ -35,11 +35,11 @@ function getInitials(name: string): string {
 function getRankIcon(position: number) {
   switch (position) {
     case 0:
-      return <Trophy className="h-4 w-4 text-yellow-500" />
+      return <Trophy className="h-3 w-3 text-yellow-500" />
     case 1:
-      return <Medal className="h-4 w-4 text-gray-400" />
+      return <Medal className="h-3 w-3 text-gray-400" />
     case 2:
-      return <Award className="h-4 w-4 text-amber-600" />
+      return <Award className="h-3 w-3 text-amber-600" />
     default:
       return null
   }
@@ -63,30 +63,30 @@ export function RankingList({
   items,
   emptyMessage = 'Nenhum item encontrado',
   className,
-  maxHeight = '320px',
+  maxHeight = '240px',
 }: RankingListProps) {
   return (
-    <Card className={cn('flex flex-col h-full', className)}>
-      <CardHeader className="pb-4">
-        <CardTitle className="text-base font-semibold">{title}</CardTitle>
+    <Card className={cn('flex flex-col h-full shadow-sm', className)}>
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="text-sm font-semibold">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 pt-0">
+      <CardContent className="flex-1 pt-0 px-3 pb-3">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center h-full min-h-[120px]">
-            <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+          <div className="flex items-center justify-center h-full min-h-[80px]">
+            <p className="text-xs text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (
-          <ScrollArea className="h-80 pr-4">
-            <div className="space-y-3">
+          <ScrollArea className="h-56 pr-2">
+            <div className="space-y-1">
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
                 >
-                  {/* PosiÃ§Ã£o com Ã­cone ou nÃºmero */}
+                  {/* Posicao com icone ou numero */}
                   <div
                     className={cn(
-                      'flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border',
+                      'flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold border',
                       getRankBadgeColor(index)
                     )}
                   >
@@ -96,18 +96,18 @@ export function RankingList({
                   </div>
 
                   {/* Avatar */}
-                  <Avatar className="h-9 w-9 border">
+                  <Avatar className="h-7 w-7 border">
                     <AvatarImage src={item.avatarUrl || undefined} alt={item.name} />
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                       {getInitials(item.name)}
                     </AvatarFallback>
                   </Avatar>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.name}</p>
+                    <p className="text-xs font-medium truncate">{item.name}</p>
                     {item.secondaryValue && (
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-[10px] text-muted-foreground truncate">
                         {item.secondaryValue}
                       </p>
                     )}
@@ -115,11 +115,11 @@ export function RankingList({
 
                   {/* Valor principal */}
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-primary">
+                    <p className="text-xs font-semibold text-primary">
                       {item.primaryValue}
                     </p>
                     {item.badge && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                      <span className="text-[9px] px-1 py-0.5 rounded-full bg-muted text-muted-foreground">
                         {item.badge}
                       </span>
                     )}

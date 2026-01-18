@@ -152,9 +152,9 @@ export default function InstitutionDashboardClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      {/* Header com filtro de perÃ­odo */}
-      <div className="flex items-start justify-between gap-4">
+    <div className="space-y-4">
+      {/* Header com filtro de periodo */}
+      <div className="flex items-start justify-between gap-3">
         <InstitutionHeader
           empresaNome={data.empresaNome}
           totalAlunos={data.summary.totalAlunos}
@@ -163,8 +163,8 @@ export default function InstitutionDashboardClient() {
         />
         <div className="flex items-center gap-2">
           <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="PerÃ­odo" />
+            <SelectTrigger className="w-[120px] h-8 text-xs">
+              <SelectValue placeholder="Periodo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="semanal">Semanal</SelectItem>
@@ -176,14 +176,14 @@ export default function InstitutionDashboardClient() {
             onClick={handleManualRefresh}
             variant="outline"
             size="icon"
-            className="shrink-0"
+            className="shrink-0 h-8 w-8"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
-      {/* Mensagem de erro (se houver dados mas tambÃ©m erro) */}
+      {/* Mensagem de erro (se houver dados mas tambem erro) */}
       {error && data && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -194,7 +194,7 @@ export default function InstitutionDashboardClient() {
         </Alert>
       )}
 
-      {/* MÃ©tricas principais */}
+      {/* Metricas principais */}
       <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
 
       {/* Heatmap de atividade */}
@@ -205,7 +205,7 @@ export default function InstitutionDashboardClient() {
       />
 
       {/* Rankings lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <StudentRankingList students={data.rankingAlunos} />
         <ProfessorRankingList professors={data.rankingProfessores} />
       </div>
