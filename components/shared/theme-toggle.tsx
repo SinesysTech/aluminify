@@ -1,7 +1,9 @@
 ﻿'use client'
 
+import * as React from 'react'
+
 import { Moon, Sun } from 'lucide-react'
-import { useThemeContext } from '@/components/providers/theme-provider'
+import { useTheme } from 'next-themes'
 import { SidebarMenuButton } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -12,7 +14,16 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ iconOnly = false, className }: ThemeToggleProps) {
-  const { theme, toggleTheme, mounted } = useThemeContext()
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+  }
 
   if (!mounted) {
     if (iconOnly) {
@@ -36,6 +47,8 @@ export function ThemeToggle({ iconOnly = false, className }: ThemeToggleProps) {
     )
   }
 
+  const currentTheme = resolvedTheme || theme
+
   if (iconOnly) {
     return (
       <Button
@@ -43,9 +56,9 @@ export function ThemeToggle({ iconOnly = false, className }: ThemeToggleProps) {
         size="icon"
         onClick={toggleTheme}
         className={cn("size-9", className)}
-        aria-label={theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
+        aria-label={currentTheme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
       >
-        {theme === 'dark' ? (
+        {currentTheme === 'dark' ? (
           <Sun className="size-4" />
         ) : (
           <Moon className="size-4" />
@@ -58,15 +71,15 @@ export function ThemeToggle({ iconOnly = false, className }: ThemeToggleProps) {
     <SidebarMenuButton
       size="default"
       onClick={toggleTheme}
-      tooltip={theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
-      aria-label={theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
+      tooltip={currentTheme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
+      aria-label={currentTheme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
     >
-      {theme === 'dark' ? (
+      {currentTheme === 'dark' ? (
         <Sun className="size-4" />
       ) : (
         <Moon className="size-4" />
       )}
-      <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
+      <span>{currentTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
     </SidebarMenuButton>
   )
 }
