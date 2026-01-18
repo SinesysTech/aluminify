@@ -152,19 +152,19 @@ export default function InstitutionDashboardClient() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header com filtro de periodo */}
-      <div className="flex items-center justify-between gap-3">
+    <div className="space-y-5">
+      {/* Header com filtro de período */}
+      <div className="flex items-center justify-between gap-4">
         <InstitutionHeader
           empresaNome={data.empresaNome}
           totalAlunos={data.summary.totalAlunos}
           totalProfessores={data.summary.totalProfessores}
           totalCursos={data.summary.totalCursos}
         />
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
-            <SelectTrigger className="w-[100px] h-7 text-xs">
-              <SelectValue placeholder="Periodo" />
+            <SelectTrigger className="w-[110px] h-8 text-sm">
+              <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="semanal">Semanal</SelectItem>
@@ -176,9 +176,9 @@ export default function InstitutionDashboardClient() {
             onClick={handleManualRefresh}
             variant="outline"
             size="icon"
-            className="shrink-0 h-7 w-7"
+            className="shrink-0 h-8 w-8"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>

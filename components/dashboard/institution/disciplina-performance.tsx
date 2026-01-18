@@ -1,8 +1,7 @@
-﻿'use client'
+'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Progress } from '@/components/ui/progress'
 import type { DisciplinaPerformance } from '@/types/dashboard-institution'
 import { cn } from '@/lib/utils'
 
@@ -27,35 +26,35 @@ function getPerformanceTextColor(score: number): string {
 export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformanceListProps) {
   return (
     <Card>
-      <CardHeader className="pb-2 pt-3 px-3">
+      <CardHeader className="pb-3 pt-4 px-4">
         <CardTitle className="text-sm font-semibold">
           Performance por Disciplina
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0 px-3 pb-3">
+      <CardContent className="pt-0 px-4 pb-4">
         {disciplinas.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[80px]">
-            <p className="text-xs text-muted-foreground">
-              Nenhuma disciplina com dados
+          <div className="flex items-center justify-center min-h-[100px]">
+            <p className="text-sm text-muted-foreground">
+              Nenhuma disciplina com dados de performance
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-48 pr-2">
-            <div className="space-y-2.5">
+          <ScrollArea className="h-52 pr-3">
+            <div className="space-y-3">
               {disciplinas.map((disciplina) => (
-                <div key={disciplina.id} className="space-y-1">
+                <div key={disciplina.id} className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{disciplina.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {disciplina.totalQuestoes} questoes - {disciplina.alunosAtivos} alunos
+                      <p className="text-sm font-medium truncate">{disciplina.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {disciplina.totalQuestoes} questões · {disciplina.alunosAtivos} alunos
                       </p>
                     </div>
-                    <span className={cn('text-xs font-bold ml-2', getPerformanceTextColor(disciplina.aproveitamento))}>
+                    <span className={cn('text-sm font-bold ml-3', getPerformanceTextColor(disciplina.aproveitamento))}>
                       {disciplina.aproveitamento}%
                     </span>
                   </div>
-                  <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
                       className={cn('h-full transition-all', getPerformanceColor(disciplina.aproveitamento))}
                       style={{ width: `${disciplina.aproveitamento}%` }}
