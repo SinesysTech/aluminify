@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import type { HeatmapDay } from '@/types/dashboard'
@@ -16,10 +16,10 @@ interface ConsistencyHeatmapProps {
   onPeriodChange?: (period: HeatmapPeriod) => void
 }
 
-export function ConsistencyHeatmap({ 
-  data, 
+export function ConsistencyHeatmap({
+  data,
   period: externalPeriod,
-  onPeriodChange 
+  onPeriodChange
 }: ConsistencyHeatmapProps) {
   const [internalPeriod, setInternalPeriod] = useState<HeatmapPeriod>('anual')
   const period = externalPeriod ?? internalPeriod
@@ -31,7 +31,6 @@ export function ConsistencyHeatmap({
     onPeriodChange?.(newPeriod)
   }
 
-  // Função para determinar a classe de cor baseada na intensidade
   const getIntensityClass = (intensity: number) => {
     switch (intensity) {
       case 0:
@@ -49,7 +48,6 @@ export function ConsistencyHeatmap({
     }
   }
 
-  // Calcular número de colunas baseado no período
   const getGridCols = () => {
     switch (period) {
       case 'semanal':
@@ -65,42 +63,27 @@ export function ConsistencyHeatmap({
 
   return (
     <Card>
-      <CardContent className="p-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-foreground text-sm font-semibold">
-              Constancia de Estudo
-            </h2>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold">Constância de Estudo</h2>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Info"
                   >
-                    <Info className="h-3 w-3" />
+                    <Info className="h-3.5 w-3.5" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  align="start"
-                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                  sideOffset={8}
-                >
+                <TooltipContent side="right" align="start" className="max-w-xs">
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este gráfico mostra sua frequência de estudo ao longo do tempo. Cada quadrado representa um dia,
-                      e a intensidade da cor indica quanto tempo você estudou naquele dia.
+                      Este gráfico mostra sua frequência de estudo ao longo do tempo.
                     </p>
                     <p>
                       Cores mais escuras significam mais tempo de estudo.
-                    </p>
-                    <p>
-                      Você pode alternar entre visualização semanal, mensal ou anual para ver diferentes períodos.
-                    </p>
-                    <p>
-                      Manter uma constância regular é fundamental para o aprendizado eficaz.
                     </p>
                   </div>
                 </TooltipContent>
@@ -112,7 +95,7 @@ export function ConsistencyHeatmap({
               variant={period === 'semanal' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('semanal')}
-              className="text-[10px] h-6 px-2"
+              className="text-xs h-7 px-2.5"
             >
               Semanal
             </Button>
@@ -120,7 +103,7 @@ export function ConsistencyHeatmap({
               variant={period === 'mensal' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('mensal')}
-              className="text-[10px] h-6 px-2"
+              className="text-xs h-7 px-2.5"
             >
               Mensal
             </Button>
@@ -128,30 +111,27 @@ export function ConsistencyHeatmap({
               variant={period === 'anual' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handlePeriodChange('anual')}
-              className="text-[10px] h-6 px-2"
+              className="text-xs h-7 px-2.5"
             >
               Anual
             </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <div className="overflow-x-auto">
-            <div className={cn('grid gap-1 min-w-max', getGridCols())}>
-              {data.map((day, index) => (
-                <div
-                  key={`${day.date}-${index}`}
-                  className={cn(
-                    'aspect-square rounded-[2px]',
-                    getIntensityClass(day.intensity)
-                  )}
-                  title={`${day.date} - Intensidade: ${day.intensity}`}
-                />
-              ))}
-            </div>
+        <div className="overflow-x-auto">
+          <div className={cn('grid gap-1 min-w-max', getGridCols())}>
+            {data.map((day, index) => (
+              <div
+                key={`${day.date}-${index}`}
+                className={cn(
+                  'aspect-square rounded-[2px]',
+                  getIntensityClass(day.intensity)
+                )}
+                title={`${day.date} - Intensidade: ${day.intensity}`}
+              />
+            ))}
           </div>
         </div>
       </CardContent>
     </Card>
   )
 }
-
