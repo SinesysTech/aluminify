@@ -95,6 +95,8 @@ export class ServicePatternAnalyzer extends BasePatternAnalyzer {
     const importedServices: string[] = [];
 
     for (const importDecl of imports) {
+      // Cast to ImportDeclaration to access getModuleSpecifierValue
+      if (!Node.isImportDeclaration(importDecl)) continue;
       const moduleSpecifier = importDecl.getModuleSpecifierValue();
       
       // Check if this import is from another service
@@ -119,6 +121,8 @@ export class ServicePatternAnalyzer extends BasePatternAnalyzer {
 
     // Get named exports
     for (const exportDecl of exports) {
+      // Cast to ExportDeclaration to access getNamedExports
+      if (!Node.isExportDeclaration(exportDecl)) continue;
       const namedExports = exportDecl.getNamedExports();
       for (const namedExport of namedExports) {
         exportedNames.push(namedExport.getName());
@@ -256,6 +260,8 @@ export class ServicePatternAnalyzer extends BasePatternAnalyzer {
     };
 
     for (const importDecl of imports) {
+      // Cast to ImportDeclaration to access import methods
+      if (!Node.isImportDeclaration(importDecl)) continue;
       const moduleSpecifier = importDecl.getModuleSpecifierValue();
       
       // Only analyze service imports
@@ -516,6 +522,8 @@ Circular dependencies are a serious architectural issue that should be resolved 
     const classes = this.getClassDeclarations(ast);
     for (const cls of classes) {
       if (this.isExported(cls)) {
+        // Cast to ClassDeclaration to access getConstructors
+        if (!Node.isClassDeclaration(cls)) continue;
         const constructors = cls.getConstructors();
         if (constructors.length > 0) {
           initPatterns.hasConstructor = true;
@@ -797,6 +805,8 @@ Circular dependencies are a serious architectural issue that should be resolved 
         continue;
       }
 
+      // Cast to ClassDeclaration to access getMethods
+      if (!Node.isClassDeclaration(cls)) continue;
       const methods = cls.getMethods();
       let passThroughMethodCount = 0;
       

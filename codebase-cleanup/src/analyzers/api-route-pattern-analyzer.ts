@@ -116,6 +116,8 @@ export class APIRoutePatternAnalyzer extends BasePatternAnalyzer {
       const varName = this.getNodeName(varDecl);
       
       if (varName && httpMethods.includes(varName.toUpperCase())) {
+        // Cast to VariableDeclaration to access getInitializer
+        if (!Node.isVariableDeclaration(varDecl)) continue;
         const initializer = varDecl.getInitializer();
         
         if (initializer && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface FirstAccessFormProps {
   userId: string
@@ -36,7 +37,7 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
       if ('code' in err && typeof err.code === 'string') {
         errorCode = err.code
       }
-      
+
       // Get message
       if ('message' in err && typeof err.message === 'string') {
         message = err.message
@@ -48,6 +49,9 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
     } else if (typeof err === 'string') {
       message = err
     }
+
+    // DEBUG: Log the resolved error details to help investigate the "same password" issue
+    console.warn('[FirstAccessForm] Error details:', { errorCode, message, originalError: err })
 
     // Handle specific error codes
     if (errorCode === 'same_password' || message?.toLowerCase().includes('new password should be different')) {
@@ -98,9 +102,9 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
     try {
       // Verify current user session
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
-      
+
       if (userError) {
-        console.error('[FirstAccessForm] Erro ao obter usuário atual:', userError)
+        console.warn('[FirstAccessForm] Erro ao obter usuário atual:', userError)
         throw new Error('Sua sessão expirou. Faça login novamente.')
       }
 
@@ -136,7 +140,7 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
       })
 
       if (updateError) {
-        console.error('[FirstAccessForm] Erro ao atualizar senha no Auth:', updateError)
+        console.warn('[FirstAccessForm] Erro ao atualizar senha no Auth:', updateError)
         throw updateError
       }
 
@@ -154,42 +158,45 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
       if (role === 'aluno') {
         console.log('[FirstAccessForm] Atualizando registro do aluno via API...', { userId: actualUserId })
 
-        const response = await fetch(`/api/student/${actualUserId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            mustChangePassword: false,
-            temporaryPassword: null,
-          }),
-        })
+        try {
+          const response = await fetch(`/api/student/${actualUserId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              mustChangePassword: false,
+              temporaryPassword: null,
+            }),
+          })
 
-        if (!response.ok) {
-          // Se o aluno não existir no banco, ainda assim podemos prosseguir:
-          // o acesso será liberado pelo metadata do Auth (must_change_password=false).
-          if (response.status === 404) {
-            console.warn('[FirstAccessForm] Aluno não encontrado no banco (404). Prosseguindo com redirect.', {
-              userId: actualUserId,
-            })
+          if (!response.ok) {
+            // Se o aluno não existir no banco, ainda assim podemos prosseguir:
+            // o acesso será liberado pelo metadata do Auth (must_change_password=false).
+            if (response.status === 404) {
+              console.warn('[FirstAccessForm] Aluno não encontrado no banco (404). Prosseguindo com redirect.', {
+                userId: actualUserId,
+              })
+            } else {
+              const contentType = response.headers.get('content-type') || ''
+              const errorData =
+                contentType.includes('application/json')
+                  ? await response.json().catch(() => ({} as Record<string, unknown>))
+                  : { error: (await response.text().catch(() => '')).slice(0, 500) }
+
+              // Não bloquear o fluxo: a senha e as flags principais já foram tratadas no servidor.
+              console.warn('[FirstAccessForm] Erro ao atualizar aluno via API (prosseguindo):', {
+                status: response.status,
+                errorData,
+              })
+            }
           } else {
-            const contentType = response.headers.get('content-type') || ''
-            const errorData =
-              contentType.includes('application/json')
-                ? await response.json().catch(() => ({} as Record<string, unknown>))
-                : { error: (await response.text().catch(() => '')).slice(0, 500) }
-
-            console.error('[FirstAccessForm] Erro ao atualizar aluno via API:', errorData)
-            const message =
-              typeof (errorData as any)?.error === 'string' && (errorData as any).error.trim()
-                ? (errorData as any).error
-                : 'Erro ao finalizar primeiro acesso. Tente novamente.'
-            throw new Error(message)
+            const result = await response.json().catch(() => null)
+            console.log('[FirstAccessForm] Registro do aluno atualizado com sucesso via API:', result?.data)
           }
-        } else {
-          const result = await response.json().catch(() => null)
-          console.log('[FirstAccessForm] Registro do aluno atualizado com sucesso via API:', result?.data)
+        } catch (apiError) {
+          console.warn('[FirstAccessForm] Erro ao chamar API de atualização (prosseguindo):', apiError)
         }
       }
 
@@ -204,6 +211,7 @@ export function FirstAccessForm({ userId, role }: FirstAccessFormProps) {
         console.log('[FirstAccessForm] Mensagem de erro resolvida:', errorMessage)
       }
       setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }

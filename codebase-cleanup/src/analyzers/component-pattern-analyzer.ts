@@ -145,6 +145,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       const className = this.getNodeName(classDecl);
       if (!className) continue;
 
+      // Cast to ClassDeclaration for type safety
+      if (!Node.isClassDeclaration(classDecl)) continue;
+
       // Check if this class extends React.Component or React.PureComponent
       if (this.isReactClassComponent(classDecl)) {
         const componentInfo: ComponentInfo = {
@@ -192,6 +195,8 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       const varName = this.getNodeName(varDecl);
       if (!varName) continue;
 
+      // Cast to VariableDeclaration to access getInitializer
+      if (!Node.isVariableDeclaration(varDecl)) continue;
       const initializer = varDecl.getInitializer();
       if (!initializer || !Node.isArrowFunction(initializer)) continue;
 

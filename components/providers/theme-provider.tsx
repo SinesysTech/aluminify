@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useTheme } from '@/hooks/use-theme'
 import { ThemeConfigProvider } from '@/components/active-theme'
+import { Toaster } from '@/components/ui/sonner'
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -10,11 +11,11 @@ type ThemeProviderProps = {
 
 const ThemeContext = React.createContext<
   | {
-      theme: 'light' | 'dark'
-      setTheme: (theme: 'light' | 'dark' | ((prev: 'light' | 'dark') => 'light' | 'dark')) => void
-      toggleTheme: () => void
-      mounted: boolean
-    }
+    theme: 'light' | 'dark'
+    setTheme: (theme: 'light' | 'dark' | ((prev: 'light' | 'dark') => 'light' | 'dark')) => void
+    toggleTheme: () => void
+    mounted: boolean
+  }
   | undefined
 >(undefined)
 
@@ -25,6 +26,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     <ThemeContext.Provider value={theme}>
       <ThemeConfigProvider>
         {children}
+        <Toaster />
       </ThemeConfigProvider>
     </ThemeContext.Provider>
   )

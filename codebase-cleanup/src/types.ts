@@ -337,7 +337,7 @@ export interface CleanupPlan {
 /**
  * Interface for cleanup planning
  */
-export interface CleanupPlanner {
+export interface ICleanupPlanner {
   generatePlan(classified: ClassifiedIssues, patterns: IssuePattern[]): CleanupPlan;
   orderTasks(tasks: CleanupTask[]): CleanupTask[];
   detectDependencies(tasks: CleanupTask[]): TaskDependency[];

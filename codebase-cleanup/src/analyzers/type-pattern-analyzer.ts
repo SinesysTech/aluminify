@@ -154,6 +154,8 @@ export class TypePatternAnalyzer extends BasePatternAnalyzer {
     // Track type usage in variable declarations
     const variableDeclarations = this.getVariableDeclarations(ast);
     for (const varDecl of variableDeclarations) {
+      // Cast to VariableDeclaration to access getTypeNode
+      if (!Node.isVariableDeclaration(varDecl)) continue;
       const typeNode = varDecl.getTypeNode();
       if (typeNode) {
         const typeName = this.extractTypeName(typeNode);
@@ -179,7 +181,9 @@ export class TypePatternAnalyzer extends BasePatternAnalyzer {
     for (const func of functions) {
       const parameters = this.getFunctionParameters(func);
       for (const param of parameters) {
-        const typeNode = param.getTypeNode?.();
+        // Cast to ParameterDeclaration to access getTypeNode
+        if (!Node.isParameterDeclaration(param)) continue;
+        const typeNode = param.getTypeNode();
         if (typeNode) {
           const typeName = this.extractTypeName(typeNode);
           if (typeName) {
@@ -194,7 +198,12 @@ export class TypePatternAnalyzer extends BasePatternAnalyzer {
       }
 
       // Track return type usage
-      const returnTypeNode = func.getReturnTypeNode?.();
+      // Check if this is a function-like node with getReturnTypeNode
+      let returnTypeNode: Node | undefined;
+      if (Node.isFunctionDeclaration(func) || Node.isArrowFunction(func) || 
+          Node.isFunctionExpression(func) || Node.isMethodDeclaration(func)) {
+        returnTypeNode = func.getReturnTypeNode();
+      }
       if (returnTypeNode) {
         const typeName = this.extractTypeName(returnTypeNode);
         if (typeName) {

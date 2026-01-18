@@ -13,6 +13,7 @@ import type {
   Severity,
   IssueType,
   IssueCategory,
+  EffortLevel,
 } from '../types.js';
 
 /**

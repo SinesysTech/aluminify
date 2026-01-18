@@ -8,7 +8,7 @@
  */
 
 import {
-  CleanupPlanner as ICleanupPlanner,
+  ICleanupPlanner,
   CleanupPlan,
   CleanupTask,
   CleanupPhase,

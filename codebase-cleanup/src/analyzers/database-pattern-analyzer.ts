@@ -378,6 +378,8 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
     
     for (const varDecl of variableDeclarations) {
       const varName = this.getNodeName(varDecl);
+      // Cast to VariableDeclaration to access getTypeNode
+      if (!Node.isVariableDeclaration(varDecl)) continue;
       const typeNode = varDecl.getTypeNode();
       
       if (varName && typeNode) {
@@ -408,6 +410,8 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
     // Check for 'any' type usage in database operations
     for (const varDecl of variableDeclarations) {
       const varText = varDecl.getText();
+      // Cast to VariableDeclaration to access getTypeNode and getInitializer
+      if (!Node.isVariableDeclaration(varDecl)) continue;
       const typeNode = varDecl.getTypeNode();
       
       // Check if this is a database operation result with 'any' type
@@ -564,6 +568,8 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
       
       // Check for .rpc() calls with string concatenation or template literals
       if (callText.includes('.rpc(')) {
+        // Cast to CallExpression to access getArguments
+        if (!Node.isCallExpression(call)) continue;
         const args = call.getArguments();
         
         for (const arg of args) {
@@ -851,7 +857,7 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Get arrow functions from the AST
    */
-  private getArrowFunctions(ast: SourceFile): ArrowFunction[] {
+  protected getArrowFunctions(ast: SourceFile): ArrowFunction[] {
     const arrowFunctions: ArrowFunction[] = [];
     
     ast.forEachDescendant((node) => {
@@ -866,7 +872,7 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Get function expressions from the AST
    */
-  private getFunctionExpressions(ast: SourceFile): FunctionExpression[] {
+  protected getFunctionExpressions(ast: SourceFile): FunctionExpression[] {
     const functionExpressions: FunctionExpression[] = [];
     
     ast.forEachDescendant((node) => {

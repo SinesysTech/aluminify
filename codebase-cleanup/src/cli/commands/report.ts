@@ -50,7 +50,6 @@ export const reportCommand = new Command('report')
         issuesBySeverity: new Map(),
         analysisTimestamp: new Date(data.summary.analysisTimestamp || Date.now()),
         analysisDuration: data.summary.analysisDuration || 0,
-        issues: data.issues || [],
       };
 
       const classified: ClassifiedIssues = {

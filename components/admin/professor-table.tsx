@@ -64,7 +64,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Empty,
   EmptyContent,
@@ -437,23 +436,22 @@ export function ProfessorTable() {
   })
 
   return (
-    <div className="w-full space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Professores</CardTitle>
-              <CardDescription>Gerencie os professores do sistema</CardDescription>
-            </div>
-            {mounted ? (
-              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo Professor
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[95vw] md:max-w-4xl">
+    <div className="flex flex-col gap-4 h-full">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Professores</h1>
+          <p className="text-sm text-[#71717A]">Gerencie os professores do sistema</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {mounted ? (
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Professor
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] md:max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Criar Professor</DialogTitle>
                     <DialogDescription>
@@ -597,183 +595,186 @@ export function ProfessorTable() {
                     </form>
                   </Form>
                 </DialogContent>
-              </Dialog>
-            ) : (
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Professor
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-          {successMessage && (
-            <div className="mb-4 rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
-              {successMessage}
-            </div>
-          )}
-          <div className="flex items-center py-4">
-            <Input
-              placeholder="Filtrar por nome ou email..."
-              value={(table.getColumn('fullName')?.getFilterValue() as string) ?? ''}
-              onChange={(event) => {
-                const value = event.target.value
-                table.getColumn('fullName')?.setFilterValue(value)
-                table.getColumn('email')?.setFilterValue(value)
-              }}
-              className="max-w-sm"
-            />
-          </div>
-          {loading ? (
-            <TableSkeleton rows={5} columns={7} />
-          ) : table.getRowModel().rows?.length ? (
-            <>
-              {/* Mobile Card View */}
-              <div className="block md:hidden space-y-3">
-                {table.getRowModel().rows.map((row) => {
-                  const professor = row.original
-                  return (
-                    <Card key={row.id} className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{professor.fullName}</h3>
-                            <p className="text-sm text-muted-foreground">{professor.email}</p>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Abrir menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleEdit(professor)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(professor)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          {professor.specialty && (
-                            <div>
-                              <span className="text-muted-foreground">Especialidade: </span>
-                              <span>{professor.specialty}</span>
-                            </div>
-                          )}
-                          {professor.phone && (
-                            <div>
-                              <span className="text-muted-foreground">Telefone: </span>
-                              <span>{professor.phone}</span>
-                            </div>
-                          )}
-                          {professor.cpf && (
-                            <div>
-                              <span className="text-muted-foreground">CPF: </span>
-                              <span>{professor.cpf}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  )
-                })}
-              </div>
-              {/* Desktop Table View */}
-              <div className="hidden md:block rounded-md border">
-                <Table>
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                            </TableHead>
-                          )
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+            </Dialog>
           ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <GraduationCap className="h-6 w-6" />
-                </EmptyMedia>
-                <EmptyTitle>Nenhum professor encontrado</EmptyTitle>
-                <EmptyDescription>
-                  Você ainda não criou nenhum professor. Comece criando seu primeiro professor.
-                </EmptyDescription>
-              </EmptyHeader>
-              <EmptyContent>
-                <Button onClick={() => setCreateDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Professor
-                </Button>
-              </EmptyContent>
-            </Empty>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Professor
+            </Button>
           )}
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Próxima
-            </Button>
+        </div>
+      </header>
+
+      {error && (
+        <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="flex items-center">
+        <Input
+          placeholder="Filtrar por nome ou email..."
+          value={(table.getColumn('fullName')?.getFilterValue() as string) ?? ''}
+          onChange={(event) => {
+            const value = event.target.value
+            table.getColumn('fullName')?.setFilterValue(value)
+            table.getColumn('email')?.setFilterValue(value)
+          }}
+          className="w-full md:max-w-sm"
+        />
+      </div>
+
+      {loading ? (
+        <TableSkeleton rows={5} columns={7} />
+      ) : table.getRowModel().rows?.length ? (
+        <>
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {table.getRowModel().rows.map((row) => {
+              const professor = row.original
+              return (
+                <div key={row.id} className="rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{professor.fullName}</h3>
+                        <p className="text-sm text-muted-foreground">{professor.email}</p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Abrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEdit(professor)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(professor)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {professor.specialty && (
+                        <div>
+                          <span className="text-muted-foreground">Especialidade: </span>
+                          <span>{professor.specialty}</span>
+                        </div>
+                      )}
+                      {professor.phone && (
+                        <div>
+                          <span className="text-muted-foreground">Telefone: </span>
+                          <span>{professor.phone}</span>
+                        </div>
+                      )}
+                      {professor.cpf && (
+                        <div>
+                          <span className="text-muted-foreground">CPF: </span>
+                          <span>{professor.cpf}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </CardContent>
-      </Card>
+          {/* Desktop Table View */}
+          <div className="hidden md:block rounded-lg border border-[#E4E4E7] bg-white shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      ) : (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <GraduationCap className="h-6 w-6" />
+            </EmptyMedia>
+            <EmptyTitle>Nenhum professor encontrado</EmptyTitle>
+            <EmptyDescription>
+              Você ainda não criou nenhum professor. Comece criando seu primeiro professor.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Professor
+            </Button>
+          </EmptyContent>
+        </Empty>
+      )}
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} registro(s) encontrado(s).
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Próxima
+          </Button>
+        </div>
+      </div>
 
       {/* Edit Dialog */}
       {mounted && editingProfessor && (

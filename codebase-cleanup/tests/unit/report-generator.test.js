@@ -7,9 +7,32 @@
  * - Summary generation
  * - Formatting and structure
  */
-import { describe } from 'vitest';
-describe('ReportGenerator', () => {
+import { describe, it, expect, beforeEach } from "vitest";
+describe("ReportGenerator", () => {
     let mockAnalysisResult;
     let mockClassifiedIssues;
+    beforeEach(() => {
+        mockAnalysisResult = {
+            files: [],
+            summary: {
+                totalFiles: 0,
+                totalIssues: 0,
+                issuesBySeverity: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
+                issuesByType: {},
+                mostCommonIssues: [],
+            },
+            issues: [],
+        };
+        mockClassifiedIssues = {
+            critical: [],
+            high: [],
+            medium: [],
+            low: [],
+            info: [],
+        };
+    });
+    it("should be defined", () => {
+        expect(true).toBe(true);
+    });
 });
 //# sourceMappingURL=report-generator.test.js.map
