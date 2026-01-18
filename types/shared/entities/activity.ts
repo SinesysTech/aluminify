@@ -152,17 +152,6 @@ export interface ProgressoAtividadeComDetalhes extends ProgressoAtividade {
 // TYPE GUARDS
 // ============================================================================
 
-/**
- * Determina se um tipo de atividade requer registro de desempenho (check qualificado).
- *
- * Check simples: Conceituario e Revisao
- * Check qualificado: Todos os outros tipos
- */
-export function atividadeRequerDesempenho(tipo: string | undefined | null): boolean {
-  if (!tipo) return false;
-  return tipo !== 'Conceituario' && tipo !== 'Revisao';
-}
-
 export function isAtividade(data: unknown): data is Atividade {
   return (
     typeof data === 'object' &&
@@ -321,14 +310,15 @@ export interface CalculoTempoResultado {
 
 /**
  * Determina se uma atividade requer registro de desempenho (check qualificado)
- * 
+ *
  * Check Simples (sem modal): Apenas Revisao
  * Check Qualificado (com modal): Todos os outros tipos
- * 
+ *
  * @param tipo - Tipo da atividade
  * @returns true se requer desempenho, false caso contrário
  */
-export function atividadeRequerDesempenho(tipo: string): boolean {
+export function atividadeRequerDesempenho(tipo: string | undefined | null): boolean {
+  if (!tipo) return false;
   // Check simples: Apenas Revisao
   // Check qualificado: Todos os outros tipos (incluindo Conceituario)
   return tipo !== 'Revisao';
