@@ -218,13 +218,15 @@ export default function ConteudosClientPage() {
           setError('Acesso negado. Apenas professores podem acessar esta página.')
         }
       } catch (err) {
-        console.error('Erro ao verificar permissões:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-        })
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const errorObj = err as Record<string, unknown>;
+        console.error('--- DEBUG: Erro ao verificar permissões ---');
+        console.error('Mensagem:', errorMsg);
+        console.error('Detalhes:', errorObj?.details);
+        console.error('Hint:', errorObj?.hint);
+        console.error('Código:', errorObj?.code);
+        console.error('Tipo:', typeof err);
+        console.error('-------------------------------------------');
         setIsProfessor(false)
       }
     }
@@ -244,13 +246,15 @@ export default function ConteudosClientPage() {
         if (error) throw error
         setDisciplinas(data || [])
       } catch (err) {
-        console.error('Erro ao carregar disciplinas:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-        })
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const errorObj = err as Record<string, unknown>;
+        console.error('--- DEBUG: Erro ao carregar disciplinas ---');
+        console.error('Mensagem:', errorMsg);
+        console.error('Detalhes:', errorObj?.details);
+        console.error('Hint:', errorObj?.hint);
+        console.error('Código:', errorObj?.code);
+        console.error('Tipo:', typeof err);
+        console.error('-------------------------------------------');
         setError('Erro ao carregar disciplinas')
       }
     }
@@ -311,13 +315,14 @@ export default function ConteudosClientPage() {
           setDisciplinaSelecionada('')
         }
       } catch (err) {
-        console.error('Erro ao carregar disciplinas do curso:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-        })
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const errorObj = err as Record<string, unknown>;
+        console.error('--- DEBUG: Erro ao carregar disciplinas do curso ---');
+        console.error('Mensagem:', errorMsg);
+        console.error('Detalhes:', errorObj?.details);
+        console.error('Hint:', errorObj?.hint);
+        console.error('Código:', errorObj?.code);
+        console.error('----------------------------------------------------');
         setDisciplinasDoCurso([])
         setDisciplinaSelecionada('')
       }
@@ -434,13 +439,14 @@ export default function ConteudosClientPage() {
         }
         setRegras(body.data || [])
       } catch (err) {
-        console.error('Erro ao carregar regras:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-        })
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const errorObj = err as Record<string, unknown>;
+        console.error('--- DEBUG: Erro ao carregar regras ---');
+        console.error('Mensagem:', errorMsg);
+        console.error('Detalhes:', errorObj?.details);
+        console.error('Hint:', errorObj?.hint);
+        console.error('Código:', errorObj?.code);
+        console.error('--------------------------------------');
         setError(err instanceof Error ? err.message : 'Erro ao carregar regras de atividades')
       }
     }
@@ -529,15 +535,15 @@ export default function ConteudosClientPage() {
             .map((f) => ({ id: f.id, nome: f.nome, disciplina_id: f.disciplina_id, curso_id: f.curso_id }))
         )
       } catch (err) {
-        console.error('Erro ao carregar frentes:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-          disciplinaSelecionada,
-          cursoSelecionado,
-        })
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const errorObj = err as Record<string, unknown>;
+        console.error('--- DEBUG: Erro ao carregar frentes ---');
+        console.error('Mensagem:', errorMsg);
+        console.error('Detalhes:', errorObj?.details);
+        console.error('Hint:', errorObj?.hint);
+        console.error('Código:', errorObj?.code);
+        console.error('Contexto:', { disciplinaSelecionada, cursoSelecionado });
+        console.error('---------------------------------------');
         setError('Erro ao carregar frentes. Verifique se a disciplina e o curso estão corretos.')
       } finally {
         setIsLoadingContent(false)
@@ -601,14 +607,15 @@ export default function ConteudosClientPage() {
           setAtividadesPorModulo({})
         }
       } catch (err) {
-        console.error('Erro ao carregar módulos e aulas:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-          frenteSelecionada,
-        })
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const errorObj = err as Record<string, unknown>;
+        console.error('--- DEBUG: Erro ao carregar módulos e aulas ---');
+        console.error('Mensagem:', errorMsg);
+        console.error('Detalhes:', errorObj?.details);
+        console.error('Hint:', errorObj?.hint);
+        console.error('Código:', errorObj?.code);
+        console.error('Contexto:', { frenteSelecionada });
+        console.error('-----------------------------------------------');
         setError('Erro ao carregar conteúdo')
       } finally {
         setIsLoadingContent(false)

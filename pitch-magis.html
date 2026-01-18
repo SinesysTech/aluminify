@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Magis | Investor Deck 2026</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              magis: {
+                cream: "#ECE3D2", // Fundo Off-White (Papel)
+                green: "#003D2A", // Verde Institucional (Texto/Borda)
+                dark: "#041102", // Preto Esverdeado
+                orange: "#E26B0A", // Laranja Ação/Lucro
+                surface: "rgba(255, 255, 255, 0.5)",
+              },
+            },
+            fontFamily: {
+              sans: ["Plus Jakarta Sans", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+            boxShadow: {
+              magis: "0 20px 40px -10px rgba(0, 61, 42, 0.15)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* --- ESTRUTURA DE SCROLL SNAP --- */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        background-color: #ece3d2;
+        color: #003d2a;
+      }
+
+      .deck-container {
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+      }
+
+      .slide {
+        scroll-snap-align: start;
+        height: 100vh;
+        width: 100%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      /* --- BACKGROUND VIVO (BLUEPRINT) --- */
+      .blueprint-bg {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .sketch-path {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        opacity: 0;
+        animation: sketch-cycle 15s linear infinite;
+        stroke: #003d2a; /* Traço Verde Magis */
+      }
+
+      .delay-0 {
+        animation-delay: 0s;
+      }
+      .delay-5 {
+        animation-delay: 5s;
+      }
+
+      @keyframes sketch-cycle {
+        0% {
+          stroke-dashoffset: 1000;
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.1;
+        } /* Opacidade sutil */
+        40% {
+          stroke-dashoffset: 0;
+          opacity: 0.1;
+        }
+        60% {
+          opacity: 0.1;
+        }
+        80% {
+          opacity: 0;
+        }
+        100% {
+          stroke-dashoffset: 1000;
+          opacity: 0;
+        }
+      }
+
+      /* --- UI ELEMENTS --- */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 61, 42, 0.1);
+        box-shadow: 0 12px 32px 0 rgba(0, 61, 42, 0.08);
+      }
+
+      .highlight-text {
+        color: #e26b0a; /* Laranja Magis */
+        position: relative;
+        display: inline-block;
+      }
+
+      /* Sublinhado animado */
+      .highlight-text::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: #e26b0a;
+        opacity: 0.3;
+        transform: skew(-12deg);
+      }
+
+      /* Animações de Entrada */
+      .reveal-up {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .slide:hover .reveal-up {
+        /* Trigger simples ao focar no slide */
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .d-1 {
+        transition-delay: 100ms;
+      }
+      .d-2 {
+        transition-delay: 200ms;
+      }
+      .d-3 {
+        transition-delay: 300ms;
+      }
+      .d-4 {
+        transition-delay: 400ms;
+      }
+
+      /* Utilitários */
+      .mono-tag {
+        font-family: "JetBrains Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blueprint-bg">
+      <div
+        class="absolute inset-0"
+        style="
+          background-image: radial-gradient(#003d2a 1px, transparent 1px);
+          background-size: 40px 40px;
+          opacity: 0.08;
+        "
+      ></div>
+
+      <svg
+        class="absolute inset-0 w-full h-full"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g
+          stroke-width="1.5"
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            class="sketch-path delay-0"
+            transform="translate(100, 100) scale(1)"
+            d="M10,10 L110,10 L110,160 L10,160 Z M60,10 L60,160 M10,140 L110,140"
+          />
+          <path
+            class="sketch-path delay-5"
+            transform="translate(1200, 500) scale(1.5)"
+            d="M20,60 L20,100 M60,60 L60,100 M20,60 L60,60 L60,20 L20,20 Z"
+          />
+        </g>
+      </svg>
+      <div
+        class="absolute inset-0 bg-linear-to-br from-magis-cream/50 via-transparent to-magis-cream/90"
+      ></div>
+    </div>
+
+    <div class="deck-container">
+      <section class="slide">
+        <div class="text-center max-w-5xl px-6 relative z-10">
+          <div class="reveal-up mb-8 flex justify-center">
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+              <rect
+                x="10"
+                y="40"
+                width="20"
+                height="50"
+                rx="10"
+                transform="rotate(-30 10 40)"
+                fill="#E26B0A"
+              />
+              <rect
+                x="40"
+                y="40"
+                width="20"
+                height="50"
+                rx="10"
+                transform="rotate(-30 40 40)"
+                fill="#E26B0A"
+              />
+              <rect
+                x="70"
+                y="40"
+                width="20"
+                height="35"
+                rx="10"
+                transform="rotate(-30 70 40)"
+                fill="#E26B0A"
+              />
+            </svg>
+          </div>
+
+          <div class="reveal-up d-1">
+            <span
+              class="mono-tag border border-magis-green/30 text-magis-green/70 px-4 py-2 rounded-full mb-8 inline-block"
+              >INVESTOR DECK 2026</span
+            >
+          </div>
+
+          <h1
+            class="reveal-up d-2 text-7xl md:text-9xl font-extrabold tracking-tight text-magis-green mb-4 leading-[0.9]"
+          >
+            magis
+          </h1>
+
+          <p
+            class="reveal-up d-3 text-2xl md:text-4xl font-bold text-magis-green/90 max-w-3xl mx-auto leading-tight"
+          >
+            O Sistema Operacional da <br />
+            <span class="highlight-text">Marcenaria Brasileira.</span>
+          </p>
+
+          <p
+            class="reveal-up d-4 mt-8 text-magis-green/60 font-mono text-sm max-w-lg mx-auto"
+          >
+            Transformando 250.000 artesãos informais em empreendedores digitais.
+          </p>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div
+          class="grid md:grid-cols-2 gap-16 max-w-7xl px-6 w-full items-center"
+        >
+          <div class="reveal-up">
+            <span
+              class="mono-tag bg-red-100 text-red-900 px-3 py-1 rounded mb-6 inline-block"
+              >THE PAIN</span
+            >
+            <h2
+              class="text-5xl md:text-6xl font-bold mb-6 text-magis-green leading-tight"
+            >
+              A morte pelo <br />
+              <span
+                class="text-red-600 decoration-red-300 underline decoration-4 underline-offset-4"
+                >"Achismo Financeiro"</span
+              >
+            </h2>
+            <p
+              class="text-xl text-magis-green/80 mb-8 leading-relaxed font-medium"
+            >
+              O marceneiro é um mestre na madeira, mas um aprendiz nos números.
+              80% operam no caos: vendem muito, precificam errado e quebram
+              trabalhando 14h por dia.
+            </p>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="border-l-4 border-red-500 pl-4">
+                <span class="block text-4xl font-bold text-magis-green"
+                  >250k+</span
+                >
+                <span class="text-xs font-bold uppercase text-magis-green/50"
+                  >Negócios no Brasil</span
+                >
+              </div>
+              <div class="border-l-4 border-magis-orange pl-4">
+                <span class="block text-4xl font-bold text-magis-green"
+                  >80%</span
+                >
+                <span class="text-xs font-bold uppercase text-magis-green/50"
+                  >Sem Gestão</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="reveal-up d-2 relative">
+            <div
+              class="glass-card p-10 rounded-3xl relative z-10 rotate-1 border-red-200 bg-white/80"
+            >
+              <div
+                class="font-mono text-xs text-red-400 mb-4 uppercase font-bold tracking-widest"
+              >
+                REALIDADE ATUAL
+              </div>
+              <ul
+                class="space-y-4 font-handwriting text-magis-dark opacity-80 text-lg"
+              >
+                <li class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-red-500"
+                    >close</span
+                  >
+                  <span>Orçamento no WhatsApp (perde histórico)</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-red-500"
+                    >close</span
+                  >
+                  <span>Preço "de cabeça" (prejuízo invisível)</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-red-500"
+                    >close</span
+                  >
+                  <span>Calote por falta de contrato</span>
+                </li>
+              </ul>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="max-w-7xl px-6 w-full text-center">
+          <span
+            class="reveal-up mono-tag bg-magis-orange/10 text-magis-orange px-3 py-1 rounded mb-8 inline-block"
+            >THE OPPORTUNITY</span
+          >
+
+          <h2
+            class="reveal-up d-1 text-5xl md:text-7xl font-bold mb-16 text-magis-green leading-tight"
+          >
+            Um Oceano Azul de <br />
+            <span class="text-magis-orange">Pó de Serra</span>
+          </h2>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <div
+              class="reveal-up d-2 bg-white rounded-3xl p-8 border border-magis-green/10 shadow-magis text-left relative overflow-hidden group hover:-translate-y-2 transition-transform duration-500"
+            >
+              <div
+                class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+              >
+                <span class="material-symbols-rounded text-8xl text-magis-green"
+                  >bar_chart</span
+                >
+              </div>
+              <span class="mono-tag text-magis-green/50">TAM (Brasil)</span>
+              <div class="text-6xl font-extrabold text-magis-green mt-4 mb-2">
+                R$ 15B
+              </div>
+              <p class="text-sm text-magis-green/70 font-medium">
+                Mercado anual de móveis sob medida.
+              </p>
+            </div>
+
+            <div
+              class="reveal-up d-3 bg-magis-green rounded-3xl p-8 border border-magis-green/10 shadow-magis text-left relative overflow-hidden group hover:-translate-y-2 transition-transform duration-500 text-magis-cream"
+            >
+              <div
+                class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+              >
+                <span
+                  class="material-symbols-rounded text-8xl text-magis-orange"
+                  >groups</span
+                >
+              </div>
+              <span class="mono-tag text-white/50">SAM (Profissionais)</span>
+              <div class="text-6xl font-extrabold text-magis-orange mt-4 mb-2">
+                500k
+              </div>
+              <p class="text-sm text-white/70 font-medium">
+                Marceneiros, montadores e fabricantes.
+              </p>
+            </div>
+
+            <div
+              class="reveal-up d-4 glass-card rounded-3xl p-8 border-2 border-dashed border-magis-orange/30 text-left hover:-translate-y-2 transition-transform duration-500"
+            >
+              <span class="mono-tag text-magis-orange">O GAP DE MERCADO</span>
+              <div class="text-3xl font-bold text-magis-green mt-4 mb-4">
+                Gestão vs. Desenho
+              </div>
+              <p
+                class="text-sm text-magis-green/80 font-medium leading-relaxed"
+              >
+                Softwares atuais focam apenas no 3D (Promob). <br />
+                <strong>Ninguém resolve a dor do dinheiro.</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div
+          class="grid md:grid-cols-12 gap-12 max-w-7xl px-6 w-full items-center"
+        >
+          <div class="md:col-span-5 reveal-up">
+            <span
+              class="mono-tag bg-magis-green text-magis-cream px-3 py-1 rounded mb-6 inline-block"
+              >THE PRODUCT</span
+            >
+            <h2 class="text-5xl font-bold mb-6 text-magis-green leading-tight">
+              Não é mágica.<br />
+              É <span class="text-magis-orange">Método.</span>
+            </h2>
+            <p class="text-lg text-magis-green/70 mb-8">
+              O Magis é o CFO de bolso que fala a língua da oficina.
+            </p>
+
+            <ul class="space-y-6">
+              <li
+                class="flex items-center gap-4 p-4 bg-white/50 rounded-xl border border-magis-green/5"
+              >
+                <div class="bg-magis-green text-magis-cream p-2 rounded-lg">
+                  <span class="material-symbols-rounded">calculate</span>
+                </div>
+                <div>
+                  <strong class="block text-magis-green text-lg"
+                    >Precificação Automática</strong
+                  >
+                  <span class="text-sm text-magis-green/60"
+                    >Materiais + Hora/Homem em segundos.</span
+                  >
+                </div>
+              </li>
+              <li
+                class="flex items-center gap-4 p-4 bg-white/50 rounded-xl border border-magis-green/5"
+              >
+                <div class="bg-magis-green text-magis-cream p-2 rounded-lg">
+                  <span class="material-symbols-rounded">gavel</span>
+                </div>
+                <div>
+                  <strong class="block text-magis-green text-lg"
+                    >Contratos Jurídicos</strong
+                  >
+                  <span class="text-sm text-magis-green/60"
+                    >Blinda contra calotes com 1 clique.</span
+                  >
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="md:col-span-7 reveal-up d-2">
+            <div class="glass-card rounded-3xl p-8 relative overflow-hidden">
+              <div
+                class="absolute top-0 right-0 bg-magis-orange text-white text-xs font-bold px-4 py-2 rounded-bl-xl z-10 font-mono"
+              >
+                FLOW MAGIS
+              </div>
+
+              <div class="flex items-center justify-between gap-4 mt-4">
+                <div class="flex-1 text-center opacity-50">
+                  <div
+                    class="bg-magis-cream w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3 border border-magis-green/10"
+                  >
+                    <span
+                      class="material-symbols-rounded text-3xl text-magis-green"
+                      >inventory_2</span
+                    >
+                  </div>
+                  <span class="text-xs font-bold uppercase text-magis-green"
+                    >Materiais</span
+                  >
+                </div>
+
+                <div class="flex-1 relative">
+                  <div
+                    class="h-1 bg-magis-green/10 w-full absolute top-1/2 -translate-y-1/2"
+                  ></div>
+                  <div
+                    class="bg-magis-green text-white w-20 h-20 rounded-2xl flex flex-col items-center justify-center mx-auto relative z-10 shadow-xl border-4 border-magis-cream"
+                  >
+                    <span class="font-bold text-xl tracking-tighter"
+                      >magis</span
+                    >
+                  </div>
+                </div>
+
+                <div class="flex-1 text-center">
+                  <div
+                    class="bg-magis-orange text-white w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3 shadow-lg transform scale-110"
+                  >
+                    <span class="material-symbols-rounded text-3xl"
+                      >attach_money</span
+                    >
+                  </div>
+                  <span class="text-xs font-bold uppercase text-magis-green"
+                    >Lucro Real</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="max-w-6xl px-6 w-full">
+          <div class="text-center mb-16 reveal-up">
+            <span
+              class="mono-tag bg-magis-dark text-white px-3 py-1 rounded mb-6 inline-block"
+              >BUSINESS MODEL</span
+            >
+            <h2 class="text-5xl font-bold text-magis-green">
+              SaaS B2B + Setup
+            </h2>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-8">
+            <div
+              class="reveal-up d-1 bg-white p-8 rounded-3xl border-t-8 border-magis-green shadow-magis"
+            >
+              <span class="mono-tag text-magis-green/50 mb-4 block"
+                >RECORRÊNCIA</span
+              >
+              <h3 class="text-2xl font-bold text-magis-green mb-2">
+                Assinatura
+              </h3>
+              <div
+                class="text-5xl font-bold text-magis-green mb-4 tracking-tight"
+              >
+                R$ 297<span class="text-sm text-magis-green/40 font-normal"
+                  >/avg</span
+                >
+              </div>
+              <p class="text-sm text-magis-green/70">
+                Planos de R$ 225 a R$ 1.910.
+              </p>
+            </div>
+
+            <div
+              class="reveal-up d-2 bg-magis-green p-8 rounded-3xl border-t-8 border-magis-orange shadow-magis text-white"
+            >
+              <span class="mono-tag text-white/50 mb-4 block"
+                >CASH UPFRONT</span
+              >
+              <h3 class="text-2xl font-bold text-white mb-2">
+                Setup & Onboarding
+              </h3>
+              <div
+                class="text-5xl font-bold text-magis-orange mb-4 tracking-tight"
+              >
+                R$ 2k+
+              </div>
+              <p class="text-sm text-white/70">
+                Consultoria de implementação paga antecipadamente.
+              </p>
+            </div>
+
+            <div
+              class="reveal-up d-3 glass-card p-8 rounded-3xl border-t-8 border-slate-400 opacity-80"
+            >
+              <span class="mono-tag text-magis-green/50 mb-4 block"
+                >ROADMAP (2027)</span
+              >
+              <h3 class="text-2xl font-bold text-magis-green mb-2">
+                Marketplace
+              </h3>
+              <div
+                class="text-5xl font-bold text-magis-green mb-4 tracking-tight"
+              >
+                % Take
+              </div>
+              <p class="text-sm text-magis-green/70">
+                O "Uber da Marcenaria". Conexão de mão de obra.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div
+          class="grid md:grid-cols-2 gap-16 max-w-6xl px-6 w-full items-center"
+        >
+          <div class="reveal-up text-left">
+            <span
+              class="mono-tag bg-magis-orange text-white px-3 py-1 rounded mb-8 inline-block"
+              >THE ASK</span
+            >
+            <h2
+              class="text-7xl md:text-9xl font-extrabold text-magis-green mb-2 tracking-tighter"
+            >
+              R$ 2M
+            </h2>
+            <p class="text-3xl text-magis-green/60 font-medium mb-10">
+              Por 15% Equity
+            </p>
+
+            <div
+              class="bg-white px-6 py-4 rounded-xl inline-block border border-magis-green/10 shadow-sm"
+            >
+              <span
+                class="block text-xs font-bold text-magis-green uppercase tracking-wide opacity-50"
+                >Runway Projetado</span
+              >
+              <span class="text-2xl font-bold text-magis-orange font-mono"
+                >18 Meses</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="reveal-up d-2 bg-white/50 p-10 rounded-3xl border border-magis-green/5"
+          >
+            <h3
+              class="text-lg font-bold text-magis-green mb-8 uppercase tracking-widest border-b border-magis-green/10 pb-4"
+            >
+              Alocação de Recursos
+            </h3>
+            <div class="space-y-8">
+              <div>
+                <div
+                  class="flex justify-between text-lg font-bold text-magis-green mb-2"
+                >
+                  <span>Produto & Tech</span>
+                  <span>40%</span>
+                </div>
+                <div
+                  class="w-full bg-magis-green/10 rounded-full h-3 overflow-hidden"
+                >
+                  <div class="bg-magis-green h-full rounded-full w-[40%]"></div>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="flex justify-between text-lg font-bold text-magis-green mb-2"
+                >
+                  <span>Growth & Sales</span>
+                  <span>30%</span>
+                </div>
+                <div
+                  class="w-full bg-magis-green/10 rounded-full h-3 overflow-hidden"
+                >
+                  <div
+                    class="bg-magis-orange h-full rounded-full w-[30%]"
+                  ></div>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="flex justify-between text-lg font-bold text-magis-green mb-2"
+                >
+                  <span>Ops & CS</span>
+                  <span>30%</span>
+                </div>
+                <div
+                  class="w-full bg-magis-green/10 rounded-full h-3 overflow-hidden"
+                >
+                  <div class="bg-magis-dark h-full rounded-full w-[30%]"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide bg-magis-dark text-magis-cream">
+        <div class="text-center max-w-5xl px-6">
+          <div class="reveal-up mb-12 opacity-20 flex justify-center">
+            <svg
+              width="60"
+              height="60"
+              viewBox="0 0 100 100"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect
+                x="10"
+                y="40"
+                width="20"
+                height="50"
+                rx="10"
+                transform="rotate(-30 10 40)"
+              />
+              <rect
+                x="40"
+                y="40"
+                width="20"
+                height="50"
+                rx="10"
+                transform="rotate(-30 40 40)"
+              />
+              <rect
+                x="70"
+                y="40"
+                width="20"
+                height="35"
+                rx="10"
+                transform="rotate(-30 70 40)"
+              />
+            </svg>
+          </div>
+
+          <h2
+            class="reveal-up d-1 text-4xl md:text-6xl font-bold leading-tight mb-16"
+          >
+            "Não estamos apenas construindo um app.<br />
+            Estamos organizando a maior rede de
+            <span class="text-magis-orange">marcenarias profissionais</span> da
+            América Latina."
+          </h2>
+
+          <div
+            class="reveal-up d-2 flex flex-col md:flex-row justify-center gap-12 text-lg text-white/50 font-mono"
+          >
+            <p class="hover:text-white transition-colors cursor-pointer">
+              edvaldo@magistecnologia.com.br
+            </p>
+            <p>Belo Horizonte, MG</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
