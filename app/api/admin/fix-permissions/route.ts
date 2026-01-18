@@ -17,7 +17,7 @@ export async function GET() {
     if (error) throw error;
 
     let updatedCount = 0;
-    let errors = [];
+    const errors = [];
 
     for (const user of users) {
       // Verificar se é professor
