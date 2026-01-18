@@ -31,7 +31,7 @@ export function ConsistencyHeatmap({
     onPeriodChange?.(newPeriod)
   }
 
-  // FunÃ§Ã£o para determinar a classe de cor baseada na intensidade
+  // Função para determinar a classe de cor baseada na intensidade
   const getIntensityClass = (intensity: number) => {
     switch (intensity) {
       case 0:
@@ -49,7 +49,7 @@ export function ConsistencyHeatmap({
     }
   }
 
-  // Calcular nÃºmero de colunas baseado no perÃ­odo
+  // Calcular número de colunas baseado no período
   const getGridCols = () => {
     switch (period) {
       case 'semanal':
@@ -69,7 +69,7 @@ export function ConsistencyHeatmap({
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-foreground text-base md:text-lg font-semibold">
-              ConstÃ¢ncia de Estudo
+              Constância de Estudo
             </h2>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
@@ -77,7 +77,7 @@ export function ConsistencyHeatmap({
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                    aria-label="InformaÃ§Ãµes sobre constÃ¢ncia de estudo"
+                    aria-label="Informações sobre constância de estudo"
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -90,17 +90,17 @@ export function ConsistencyHeatmap({
                 >
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este grÃ¡fico mostra sua frequÃªncia de estudo ao longo do tempo. Cada quadrado representa um dia,
-                      e a intensidade da cor indica quanto tempo vocÃª estudou naquele dia.
+                      Este gráfico mostra sua frequência de estudo ao longo do tempo. Cada quadrado representa um dia,
+                      e a intensidade da cor indica quanto tempo você estudou naquele dia.
                     </p>
                     <p>
                       Cores mais escuras significam mais tempo de estudo.
                     </p>
                     <p>
-                      VocÃª pode alternar entre visualizaÃ§Ã£o semanal, mensal ou anual para ver diferentes perÃ­odos.
+                      Você pode alternar entre visualização semanal, mensal ou anual para ver diferentes períodos.
                     </p>
                     <p>
-                      Manter uma constÃ¢ncia regular Ã© fundamental para o aprendizado eficaz.
+                      Manter uma constância regular é fundamental para o aprendizado eficaz.
                     </p>
                   </div>
                 </TooltipContent>

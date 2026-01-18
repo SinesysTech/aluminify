@@ -46,7 +46,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                    aria-label="InformaÃ§Ãµes sobre o progresso do cronograma"
+                    aria-label="Informações sobre o progresso do cronograma"
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -59,14 +59,14 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
                 >
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este indicador mostra o percentual de aulas do seu cronograma que vocÃª jÃ¡ completou.
+                      Este indicador mostra o percentual de aulas do seu cronograma que você já completou.
                     </p>
                     <p>
-                      O cÃ¡lculo considera todas as aulas previstas no seu cronograma de estudos e quantas
-                      delas vocÃª jÃ¡ marcou como concluÃ­das.
+                      O cálculo considera todas as aulas previstas no seu cronograma de estudos e quantas
+                      delas você já marcou como concluídas.
                     </p>
                     <p>
-                      Quanto maior o percentual, mais prÃ³ximo vocÃª estÃ¡ de finalizar todo o conteÃºdo planejado.
+                      Quanto maior o percentual, mais próximo você está de finalizar todo o conteúdo planejado.
                     </p>
                   </div>
                 </TooltipContent>
@@ -78,7 +78,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
             </span>
           </div>
           <p className="text-muted-foreground text-sm md:text-base">
-            VocÃª completou {value}% do cronograma previsto.
+            Você completou {value}% do cronograma previsto.
           </p>
           <div className="w-full bg-muted rounded-full h-2.5">
             <div

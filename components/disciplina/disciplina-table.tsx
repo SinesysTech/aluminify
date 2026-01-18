@@ -374,20 +374,20 @@ export function DisciplinaTable() {
   }, [filterValue, table])
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
+    <div className="flex flex-col gap-(--space-page-gap) h-full pb-(--space-page-pb)">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-(--space-section-gap) border-b border-[#E4E4E7] pb-(--space-section-gap)">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Disciplinas</h1>
           <p className="text-sm text-[#71717A]">Gerencie as disciplinas do sistema</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-(--space-button-gap)">
           {mounted ? (
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
+                <button className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2">
+                  <Plus className="w-5 h-5" strokeWidth={1.5} />
                   Nova Disciplina
-                </Button>
+                </button>
               </DialogTrigger>
               <DialogContent className="max-w-[95vw] md:max-w-lg">
                 <DialogHeader>
@@ -432,10 +432,13 @@ export function DisciplinaTable() {
               </DialogContent>
             </Dialog>
           ) : (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
               Nova Disciplina
-            </Button>
+            </button>
           )}
         </div>
       </header>
@@ -451,7 +454,7 @@ export function DisciplinaTable() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-(--space-filter-gap)">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
           <input
