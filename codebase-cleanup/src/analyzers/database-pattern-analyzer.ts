@@ -237,13 +237,11 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
     // Look for error handling patterns in the surrounding code
     let current: Node | undefined = call;
     let depth = 0;
-    const maxDepth = 5; // Don't traverse too far up
+    const maxDepth = 8; // Increased to find error handling further up
 
     while (current && depth < maxDepth) {
       const parent = current.getParent();
       if (!parent) break;
-
-      const parentText = parent.getText();
 
       // Check for try-catch blocks
       if (Node.isTryStatement(parent)) {
@@ -254,15 +252,32 @@ export class DatabasePatternAnalyzer extends BasePatternAnalyzer {
       if (Node.isVariableDeclaration(parent)) {
         const varText = parent.getText();
         if (varText.includes('error') && varText.includes('{')) {
-          // Check if error is actually used
-          const scope = parent.getParent()?.getParent(); // Get the block scope
-          if (scope) {
-            const scopeText = scope.getText();
-            // Look for error handling after the declaration
-            if (scopeText.includes('if') && scopeText.includes('error')) {
+          // Check if error is actually used in the containing block
+          const varStatement = parent.getParent(); // VariableDeclarationList
+          const varDeclarationList = varStatement?.getParent(); // VariableStatement
+          const block = varDeclarationList?.getParent(); // Block or SourceFile
+          
+          if (block) {
+            const blockText = block.getText();
+            const afterDeclaration = blockText.substring(blockText.indexOf(varText) + varText.length);
+            
+            // Look for error handling patterns after the declaration
+            if (afterDeclaration.match(/if\s*\(\s*error\s*\)/)) {
               return true;
             }
-            if (scopeText.includes('throw') && scopeText.includes('error')) {
+            if (afterDeclaration.match(/if\s*\(\s*!?\s*error\s*\)/)) {
+              return true;
+            }
+            if (afterDeclaration.includes('throw error')) {
+              return true;
+            }
+            if (afterDeclaration.includes('throw new Error')) {
+              return true;
+            }
+            if (afterDeclaration.includes('console.error(error)')) {
+              return true;
+            }
+            if (afterDeclaration.includes('return error')) {
               return true;
             }
           }
