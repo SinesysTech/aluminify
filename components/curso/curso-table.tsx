@@ -75,14 +75,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { format, parse } from 'date-fns'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
@@ -491,7 +483,7 @@ export function CursoTable() {
   })
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-8 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Cursos</h1>
@@ -501,10 +493,10 @@ export function CursoTable() {
           {mounted ? (
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
+                <button className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2">
+                  <Plus className="w-5 h-5" strokeWidth={1.5} />
                   Novo Curso
-                </Button>
+                </button>
               </DialogTrigger>
               <DialogContent className="max-w-[95vw] md:max-w-4xl">
                 <DialogHeader>
@@ -790,10 +782,13 @@ export function CursoTable() {
               </DialogContent>
             </Dialog>
           ) : (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
               Novo Curso
-            </Button>
+            </button>
           )}
         </div>
       </header>
@@ -809,7 +804,7 @@ export function CursoTable() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
           <input
@@ -829,7 +824,7 @@ export function CursoTable() {
       ) : table.getRowModel().rows?.length ? (
         <>
           {/* Mobile Card View */}
-          <div className="block md:hidden space-y-3">
+          <div className="block md:hidden space-y-4">
             {table.getRowModel().rows.map((row) => {
               const curso = row.original
               return (
@@ -877,7 +872,7 @@ export function CursoTable() {
             })}
           </div>
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-hidden flex-1 rounded-lg border border-[#E4E4E7] bg-white shadow-sm">
+          <div className="hidden md:block overflow-hidden flex-1">
             <Table className="w-full text-left text-sm">
               <TableHeader className="border-b border-[#E4E4E7]">
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -916,23 +911,26 @@ export function CursoTable() {
           </div>
         </>
       ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <BookOpen className="h-6 w-6" />
-            </EmptyMedia>
-            <EmptyTitle>Nenhum curso encontrado</EmptyTitle>
-            <EmptyDescription>
-              Você ainda não criou nenhum curso. Comece criando seu primeiro curso.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Curso
-            </Button>
-          </EmptyContent>
-        </Empty>
+        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
+            <BookOpen className="w-8 h-8 text-zinc-400" strokeWidth={1} />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">Nenhum curso cadastrado</h3>
+          <p className="text-sm text-[#71717A] text-center max-w-sm mb-8 leading-relaxed">
+            Sua infraestrutura está pronta. Adicione cursos manualmente para começar a organizar seu conteúdo.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-10 px-6 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" strokeWidth={1.5} />
+              Adicionar Curso
+            </button>
+          </div>
+        </section>
       )}
 
       {table.getRowModel().rows?.length > 0 && (
@@ -941,24 +939,20 @@ export function CursoTable() {
             Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
           </span>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50 h-auto"
+              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
             >
               Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 h-auto"
+              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50"
             >
-              Próxima
-            </Button>
+              Próximo
+            </button>
           </div>
         </div>
       )}
