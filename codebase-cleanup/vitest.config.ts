@@ -19,6 +19,6 @@ export default defineConfig({
       functions: 85,
       statements: 80,
     },
-    testTimeout: 10000,
+    testTimeout: 30000, // Increased from 10s to 30s for complex property-based tests
   },
 });

@@ -16,7 +16,7 @@ export default async function TenantLoginPage({ params }: TenantLoginPageProps) 
   const { data: empresa, error } = await supabase
     .from('empresas')
     .select('id, nome, slug, logo_url')
-    .or(`slug.eq.${tenantSlug},subdomain.eq.${tenantSlug}`)
+    .eq('slug', tenantSlug)
     .eq('ativo', true)
     .maybeSingle();
 

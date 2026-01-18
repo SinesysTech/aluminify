@@ -1,7 +1,12 @@
-﻿import { SegmentoTable } from '@/components/segmento/segmento-table'
+﻿import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 
-export default async function SegmentoPage() {
-  await requireUser({ allowedRoles: ['professor'] })
-  return <SegmentoTable />
+export default async function SegmentoRedirectPage() {
+  const user = await requireUser({ allowedRoles: ['professor'] })
+
+  if (user.empresaSlug) {
+    redirect(`/${user.empresaSlug}/segmento`)
+  }
+
+  return <div>Erro: Professor sem empresa associada. Contate o suporte.</div>
 }
