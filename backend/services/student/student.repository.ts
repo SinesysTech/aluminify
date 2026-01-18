@@ -34,13 +34,13 @@ const COURSE_LINK_TABLE = "alunos_cursos";
 const COURSES_TABLE = "cursos";
 
 // Use generated Database types instead of manual definitions
-type StudentRow = Database['public']['Tables']['alunos']['Row'];
-type StudentInsert = Database['public']['Tables']['alunos']['Insert'];
-type StudentUpdate = Database['public']['Tables']['alunos']['Update'];
+type StudentRow = Database["public"]["Tables"]["alunos"]["Row"];
+type StudentInsert = Database["public"]["Tables"]["alunos"]["Insert"];
+type StudentUpdate = Database["public"]["Tables"]["alunos"]["Update"];
 
 /**
  * Map database row to domain object
- * 
+ *
  * Demonstrates proper handling of nullable fields from the database:
  * - nome_completo: string | null → fullName: string | null
  * - cpf: string | null → cpf: string | null
@@ -51,17 +51,17 @@ type StudentUpdate = Database['public']['Tables']['alunos']['Update'];
  * - numero_matricula: string | null → enrollmentNumber: string | null
  * - instagram: string | null → instagram: string | null
  * - twitter: string | null → twitter: string | null
- * 
+ *
  * Best Practices:
  * - Preserve null values (don't convert to undefined or empty strings)
  * - Use ternary operator for type conversions (e.g., string to Date)
  * - Handle null explicitly when converting types
- * 
+ *
  * For more information, see: docs/TYPESCRIPT_SUPABASE_GUIDE.md#nullable-fields
  */
 function mapRow(
   row: StudentRow,
-  courses: StudentCourseSummary[] = []
+  courses: StudentCourseSummary[] = [],
 ): Student {
   // Cast para acessar empresa_id (será gerado após migration)
   const rowWithEmpresa = row as StudentRow & { empresa_id?: string | null };
@@ -106,7 +106,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     if (params?.query) {
       const q = params.query;
       queryBuilder = queryBuilder.or(
-        `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`
+        `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
       );
     }
 
@@ -130,7 +130,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     if (params?.query) {
       const q = params.query;
       dataQuery = dataQuery.or(
-        `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`
+        `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
       );
     }
 
@@ -211,7 +211,7 @@ export class StudentRepositoryImpl implements StudentRepository {
   }
 
   async findByEnrollmentNumber(
-    enrollmentNumber: string
+    enrollmentNumber: string,
   ): Promise<Student | null> {
     const { data, error } = await this.client
       .from(TABLE)
@@ -221,7 +221,7 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     if (error) {
       throw new Error(
-        `Failed to fetch student by enrollment number: ${error.message}`
+        `Failed to fetch student by enrollment number: ${error.message}`,
       );
     }
 
@@ -237,7 +237,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     // O ID deve sempre ser fornecido (vem do auth.users criado no service)
     if (!payload.id) {
       throw new Error(
-        "Student ID is required. User must be created in auth.users first."
+        "Student ID is required. User must be created in auth.users first.",
       );
     }
 
@@ -261,7 +261,7 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     const { data, error } = await this.client
       .from(TABLE)
-      .insert(insertData)
+      .upsert(insertData)
       .select("*")
       .single();
 
@@ -365,7 +365,7 @@ export class StudentRepositoryImpl implements StudentRepository {
   }
 
   private async fetchCourses(
-    studentIds: string[]
+    studentIds: string[],
   ): Promise<Map<string, StudentCourseSummary[]>> {
     const map = new Map<string, StudentCourseSummary[]>();
     if (!studentIds.length) {
@@ -382,7 +382,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     }
 
     const courseIds = Array.from(
-      new Set((links ?? []).map((link) => link.curso_id))
+      new Set((links ?? []).map((link) => link.curso_id)),
     );
     if (!courseIds.length) {
       return map;
@@ -401,7 +401,7 @@ export class StudentRepositoryImpl implements StudentRepository {
       (courses ?? []).map((course) => [
         course.id,
         { id: course.id, name: course.nome },
-      ])
+      ]),
     );
 
     (links ?? []).forEach((link) => {
@@ -428,7 +428,7 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     if (cursosError) {
       throw new Error(
-        `Failed to fetch courses by empresa: ${cursosError.message}`
+        `Failed to fetch courses by empresa: ${cursosError.message}`,
       );
     }
 
@@ -446,14 +446,14 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     if (alunosCursosError) {
       throw new Error(
-        `Failed to fetch students by empresa: ${alunosCursosError.message}`
+        `Failed to fetch students by empresa: ${alunosCursosError.message}`,
       );
     }
 
     const alunoIds = Array.from(
       new Set(
-        (alunosCursos ?? []).map((ac: { aluno_id: string }) => ac.aluno_id)
-      )
+        (alunosCursos ?? []).map((ac: { aluno_id: string }) => ac.aluno_id),
+      ),
     );
 
     if (!alunoIds.length) {
@@ -475,7 +475,7 @@ export class StudentRepositoryImpl implements StudentRepository {
 
   private async setCourses(
     studentId: string,
-    courseIds: string[]
+    courseIds: string[],
   ): Promise<void> {
     const { error: deleteError } = await this.client
       .from(COURSE_LINK_TABLE)
@@ -484,7 +484,7 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     if (deleteError) {
       throw new Error(
-        `Failed to clear student courses: ${deleteError.message}`
+        `Failed to clear student courses: ${deleteError.message}`,
       );
     }
 
@@ -502,7 +502,7 @@ export class StudentRepositoryImpl implements StudentRepository {
       .insert(rows);
     if (insertError) {
       throw new Error(
-        `Failed to link student to courses: ${insertError.message}`
+        `Failed to link student to courses: ${insertError.message}`,
       );
     }
   }

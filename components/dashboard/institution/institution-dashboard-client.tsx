@@ -59,6 +59,8 @@ export default function InstitutionDashboardClient() {
 
           if ((err as InstitutionDashboardServiceError).isAuthError) {
             errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.'
+          } else if ((err as InstitutionDashboardServiceError).isForbidden) {
+            errorMessage = 'Você não tem permissão de administrador da instituição para acessar este dashboard.'
           } else if ((err as InstitutionDashboardServiceError).isNetworkError) {
             errorMessage =
               'Erro de conexão. Verifique sua internet e tente novamente.'

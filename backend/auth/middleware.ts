@@ -41,7 +41,9 @@ export async function getAuthUser(
     const isSuperAdmin =
       role === "superadmin" || user.user_metadata?.is_superadmin === true;
     const empresaId = user.user_metadata?.empresa_id as string | undefined;
-    const isEmpresaAdmin = user.user_metadata?.is_empresa_admin === true;
+    const isEmpresaAdmin =
+      user.user_metadata?.is_empresa_admin === true ||
+      user.user_metadata?.is_empresa_admin === "true";
 
     console.log("[Auth] User authenticated:", {
       id: user.id,
