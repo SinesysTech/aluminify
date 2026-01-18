@@ -1352,61 +1352,50 @@ export default function ConteudosClientPage() {
 
       // Forçar refresh da página para atualizar seletores
       router.refresh()
-    } catch (err) {
-      console.error('Erro ao importar:', err)
-      console.error('Erro detalhado:', {
-        object: err,
-        type: typeof err,
-        constructor: (err as any)?.constructor?.name,
-        keys: Object.keys(err as any),
-        json: JSON.stringify(err, Object.getOwnPropertyNames(err || {})),
-      })
+    } catch (err: any) {
+      console.error('Erro ao importar cronograma:', err)
 
-      // Supabase RPC costuma retornar PostgrestError como objeto (não instanceof Error)
-      // com campos: message, details, hint, code.
-      const formatUnknownError = (e: unknown) => {
-        if (typeof e === 'string') return e
-        if (e instanceof Error) return e.message || 'Erro ao importar cronograma'
-
-        if (e && typeof e === 'object') {
-          // Algumas libs retornam erros com props não-enumeráveis, e o console mostra "{}".
-          const obj = e as Record<string, unknown>
-          const get = (k: string) => Reflect.get(e as object, k) as unknown
-          const getString = (v: unknown) => (typeof v === 'string' ? v : v != null ? String(v) : undefined)
-
-          const message =
-            getString(get('message') ?? obj.message) ||
-            getString(get('error_description') ?? obj.error_description) ||
-            getString(get('error') ?? obj.error) ||
-            'Erro ao importar cronograma'
-
-          const details = getString(get('details') ?? obj.details)
-          const hint = getString(get('hint') ?? obj.hint)
-          const code = getString(get('code') ?? obj.code)
-
-          // Tenta também inspecionar propriedades não-enumeráveis
-          const allProps = Object.getOwnPropertyNames(e)
-            .filter((k) => k !== 'stack')
-            .slice(0, 12)
-          const propsPreview =
-            allProps.length > 0
-              ? `props: ${allProps
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .map((k) => `${k}=${getString((obj as any)[k]) ?? '[obj]'}`)
-                .join(', ')}`
-              : null
-
-          if (process.env.NODE_ENV === 'development') {
-            return [message, details, hint, code, propsPreview].filter(Boolean).join(' | ')
-          }
-
-          return message
+      // Log detalhado para debug
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          console.dir(err, { depth: null, colors: true })
+        } catch (e) {
+          console.log('Erro ao inspecionar objeto de erro:', e)
         }
-
-        return 'Erro ao importar cronograma'
       }
 
-      setError(formatUnknownError(err))
+      let errorMessage = 'Erro ao importar cronograma'
+
+      if (typeof err === 'string') {
+        errorMessage = err
+      } else if (err?.message) {
+        // Supabase PostgrestError usually has a message property
+        errorMessage = err.message
+        if (err.details) errorMessage += ` (${err.details})`
+        if (err.hint) errorMessage += ` - Dica: ${err.hint}`
+      } else if (err?.error_description) {
+        errorMessage = err.error_description
+      } else {
+        // Fallback para objetos estranhos ou vazios
+        try {
+          errorMessage = JSON.stringify(err)
+          if (errorMessage === '{}') errorMessage = 'Erro desconhecido (objeto vazio retornado)'
+        } catch {
+          errorMessage = 'Erro desconhecido ao importar'
+        }
+      }
+
+      // Tratamento específico para erros comuns
+      if (errorMessage.includes('Failed to fetch')) {
+        errorMessage = 'Erro de conexão. Verifique sua internet ou se o servidor está online.'
+      } else if (errorMessage.includes('p_curso_id é obrigatório')) {
+        errorMessage = 'Erro interno: ID do curso não foi enviado corretamente.'
+      } else if (errorMessage.includes('row level security policy')) {
+        errorMessage = 'Erro de permissão: Você não tem acesso para realizar esta operação.'
+      }
+
+      console.error('Mensagem de erro final p/ usuário:', errorMessage)
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
