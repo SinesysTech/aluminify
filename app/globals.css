@@ -13,8 +13,8 @@
     --popover-foreground: 240 10% 3.9%;
     
     --primary: 240 5.9% 10%;
-    /* No modo claro, queremos foreground do primary sempre preto */
-    --primary-foreground: 240 10% 3.9%;
+    /* No modo claro, o primary é escuro, então o foreground precisa ser claro */
+    --primary-foreground: 0 0% 98%;
     
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
