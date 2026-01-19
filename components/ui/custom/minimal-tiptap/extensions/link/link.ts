@@ -33,7 +33,7 @@ export const Link = TiptapLink.extend({
   },
 
   addOptions() {
-    const parentOptions = (this.parent?.() ?? {}) as Record<string, unknown>;
+    const parentOptions = this.parent?.();
     return {
       ...parentOptions,
       defaultProtocol: "https",
@@ -45,12 +45,12 @@ export const Link = TiptapLink.extend({
       HTMLAttributes: {
         class: "link",
       },
-      validate: parentOptions?.validate ?? (() => true),
+      validate: parentOptions?.validate ?? ((_url: string) => true),
       isAllowedUri:
         parentOptions?.isAllowedUri ??
         ((url: string, ctx: { defaultValidate: (url: string) => boolean }) =>
           ctx.defaultValidate(url)),
-      shouldAutoLink: parentOptions?.shouldAutoLink ?? (() => true),
+      shouldAutoLink: parentOptions?.shouldAutoLink ?? ((_url: string) => true),
     };
   },
 
