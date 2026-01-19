@@ -23,7 +23,7 @@ describe('FileScannerImpl', () => {
     // Clean up test directory
     try {
       await fs.rm(testDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors
     }
   });
@@ -135,7 +135,7 @@ describe('FileScannerImpl', () => {
       
       try {
         await fs.symlink(targetFile, linkFile);
-      } catch (error) {
+      } catch (_error) {
         // Skip test if symlinks are not supported (e.g., Windows without admin)
         console.log('Skipping symlink test - symlinks not supported');
         return;
@@ -156,12 +156,12 @@ describe('FileScannerImpl', () => {
       const subDir = path.join(testDir, 'subdir');
       await fs.mkdir(subDir, { recursive: true });
       await fs.writeFile(path.join(subDir, 'file.ts'), 'content');
-      
+
       const linkDir = path.join(testDir, 'link-to-subdir');
-      
+
       try {
         await fs.symlink(subDir, linkDir, 'dir');
-      } catch (error) {
+      } catch (_error) {
         // Skip test if symlinks are not supported
         console.log('Skipping symlink test - symlinks not supported');
         return;
@@ -501,7 +501,7 @@ describe('FileScannerImpl', () => {
         // Create circular symlinks: dir1/link -> dir2, dir2/link -> dir1
         await fs.symlink(dir2, path.join(dir1, 'link-to-dir2'), 'dir');
         await fs.symlink(dir1, path.join(dir2, 'link-to-dir1'), 'dir');
-      } catch (error) {
+      } catch (_error) {
         console.log('Skipping circular symlink test - symlinks not supported');
         return;
       }
@@ -667,7 +667,7 @@ describe('FileScannerImpl', () => {
       // Create a symlink to a non-existent file
       try {
         await fs.symlink(targetFile, linkFile);
-      } catch (error) {
+      } catch (_error) {
         console.log('Skipping broken symlink test - symlinks not supported');
         return;
       }

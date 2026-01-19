@@ -26,7 +26,6 @@ export const Link = TiptapLink.extend({
 
   addOptions() {
     const parentOptions = this.parent?.();
-
     return {
       ...parentOptions,
       // TipTap expects these options as required in newer typings
@@ -48,7 +47,7 @@ export const Link = TiptapLink.extend({
       HTMLAttributes: {
         class: "link",
       },
-    };
+    } as ReturnType<(typeof TiptapLink)["config"]["addOptions"]>;
   },
 
   addProseMirrorPlugins() {
