@@ -109,7 +109,14 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey
-}: any) {
+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  React.ComponentProps<"div"> & {
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    indicator?: "line" | "dot" | "dashed";
+    nameKey?: string;
+    labelKey?: string;
+  }) {
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -147,7 +154,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
+        "border-border/50 bg-background grid min-w-32 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
         className
       )}>
       {!nestLabel ? tooltipLabel : null}
@@ -227,7 +234,11 @@ function ChartLegendContent({
   payload,
   verticalAlign = "bottom",
   nameKey
-}: any) {
+}: React.ComponentProps<"div"> &
+  Pick<React.ComponentProps<typeof RechartsPrimitive.Legend>, "payload" | "verticalAlign"> & {
+    hideIcon?: boolean;
+    nameKey?: string;
+  }) {
   const { config } = useChart();
 
   if (!payload?.length) {
