@@ -92,7 +92,7 @@ export function ProfessorSelector({ professores }: ProfessorSelectorProps) {
             </EmptyMedia>
             <EmptyTitle>Nenhum resultado</EmptyTitle>
             <EmptyDescription>
-              Nenhum professor encontrado com "{searchTerm}"
+              Nenhum professor encontrado com &quot;{searchTerm}&quot;
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
