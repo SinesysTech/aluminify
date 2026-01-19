@@ -3,17 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import { BrandCustomizationManager } from "@/backend/services/brand-customization";
 import { getPublicSupabaseConfig } from "@/lib/supabase-public-env";
 
-interface RouteContext {
-  params: Promise<{ empresaId: string }>;
-}
-
 /**
  * GET /api/tenant-branding/[empresaId]/public - Load public tenant branding
  * Allows unauthenticated access for login/signup pages
  */
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ empresaId: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ empresaId: string }> },
 ) {
   try {
     const { empresaId } = await params;
@@ -51,7 +47,7 @@ export async function GET(
     console.error("Error loading public tenant branding:", error);
     return NextResponse.json(
       { error: "Failed to load tenant branding configuration" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
