@@ -13,15 +13,15 @@ import { TipoAtividade, StatusAtividade } from "../enums";
 
 export interface Atividade {
   id: string;
-  nome: string; // Database column 'titulo' mapped to 'nome' in some places, but service uses 'titulo'
-  titulo: string; // Service uses 'titulo'
-  modulo_id: string;
-  moduloId: string; // CamelCase version
+  nome?: string; // Opt-in, some parts of the system use 'nome'
+  titulo: string; // Required, matches DB 'titulo'
+  modulo_id?: string;
+  moduloId: string;
   tipo: TipoAtividade;
-  frente_id: string;
-  disciplina_id: string;
+  frente_id?: string;
+  disciplina_id?: string;
   curso_id?: string;
-  status: StatusAtividade;
+  status?: StatusAtividade | string; // Optional because it comes from progress
   arquivo_url?: string | null;
   arquivoUrl?: string | null;
   gabarito_url?: string | null;
@@ -29,12 +29,12 @@ export interface Atividade {
   link_externo?: string | null;
   linkExterno?: string | null;
   obrigatorio: boolean;
-  ordem_exibicao: number;
+  ordem_exibicao?: number | null;
   ordemExibicao: number;
   dataInicio?: string;
   dataConclusao?: string;
-  questoesTotais?: number;
-  questoesAcertos?: number;
+  questoesTotais?: number | null;
+  questoesAcertos?: number | null;
   dificuldadePercebida?: number | null;
   anotacoesPessoais?: string | null;
   descricao?: string;

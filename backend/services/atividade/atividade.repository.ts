@@ -1,11 +1,11 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from "@supabase/supabase-js";
 import {
   Atividade,
   CreateAtividadeInput,
   UpdateAtividadeInput,
   TipoAtividade,
   AtividadeComProgressoEHierarquia,
-} from './atividade.types';
+} from "./atividade.types";
 
 export interface AtividadeRepository {
   listByModulo(moduloId: string): Promise<Atividade[]>;
@@ -14,11 +14,13 @@ export interface AtividadeRepository {
   create(input: CreateAtividadeInput): Promise<Atividade>;
   update(id: string, payload: UpdateAtividadeInput): Promise<Atividade>;
   delete(id: string): Promise<void>;
-  listByAlunoMatriculas(alunoId: string): Promise<AtividadeComProgressoEHierarquia[]>;
+  listByAlunoMatriculas(
+    alunoId: string,
+  ): Promise<AtividadeComProgressoEHierarquia[]>;
 }
 
-const TABLE = 'atividades';
-const MODULO_TABLE = 'modulos';
+const TABLE = "atividades";
+const MODULO_TABLE = "modulos";
 
 type AtividadeRow = {
   id: string;
@@ -38,17 +40,25 @@ type AtividadeRow = {
 export function mapRow(row: AtividadeRow): Atividade {
   return {
     id: row.id,
-    moduloId: row.modulo_id,
-    tipo: row.tipo,
     titulo: row.titulo,
+    nome: row.titulo, // Map titulo to nome for compatibility
+    moduloId: row.modulo_id,
+    modulo_id: row.modulo_id,
+    tipo: row.tipo,
     arquivoUrl: row.arquivo_url,
+    arquivo_url: row.arquivo_url,
     gabaritoUrl: row.gabarito_url,
+    gabarito_url: row.gabarito_url,
     linkExterno: row.link_externo,
-    obrigatorio: row.obrigatorio,
-    ordemExibicao: row.ordem_exibicao,
+    link_externo: row.link_externo,
+    obrigatorio: row.obrigatorio ?? true,
+    ordemExibicao: row.ordem_exibicao ?? 0,
+    ordem_exibicao: row.ordem_exibicao,
     createdBy: row.created_by,
     createdAt: new Date(row.created_at),
+    created_at: row.created_at,
     updatedAt: new Date(row.updated_at),
+    updated_at: row.updated_at,
   };
 }
 
@@ -60,10 +70,10 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
   async listByModulo(moduloId: string): Promise<Atividade[]> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .eq('modulo_id', moduloId)
-      .order('ordem_exibicao', { ascending: true })
-      .order('created_at', { ascending: true });
+      .select("*")
+      .eq("modulo_id", moduloId)
+      .order("ordem_exibicao", { ascending: true })
+      .order("created_at", { ascending: true });
 
     if (error) {
       throw new Error(`Failed to list activities by module: ${error.message}`);
@@ -76,11 +86,13 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
     // Primeiro buscar todos os módulos da frente
     const { data: modulos, error: modulosError } = await this.client
       .from(MODULO_TABLE)
-      .select('id')
-      .eq('frente_id', frenteId);
+      .select("id")
+      .eq("frente_id", frenteId);
 
     if (modulosError) {
-      throw new Error(`Failed to fetch modules by frente: ${modulosError.message}`);
+      throw new Error(
+        `Failed to fetch modules by frente: ${modulosError.message}`,
+      );
     }
 
     if (!modulos || modulos.length === 0) {
@@ -92,10 +104,10 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
     // Depois buscar todas as atividades desses módulos
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .in('modulo_id', moduloIds)
-      .order('ordem_exibicao', { ascending: true })
-      .order('created_at', { ascending: true });
+      .select("*")
+      .in("modulo_id", moduloIds)
+      .order("ordem_exibicao", { ascending: true })
+      .order("created_at", { ascending: true });
 
     if (error) {
       throw new Error(`Failed to list activities by frente: ${error.message}`);
@@ -105,7 +117,11 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
   }
 
   async findById(id: string): Promise<Atividade | null> {
-    const { data, error } = await this.client.from(TABLE).select('*').eq('id', id).maybeSingle();
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to fetch activity: ${error.message}`);
@@ -127,7 +143,7 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
         obrigatorio: input.obrigatorio ?? true,
         ordem_exibicao: input.ordemExibicao ?? 0,
       })
-      .select('*')
+      .select("*")
       .single();
 
     if (error) {
@@ -167,8 +183,8 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
     const { data, error } = await this.client
       .from(TABLE)
       .update(updateData)
-      .eq('id', id)
-      .select('*')
+      .eq("id", id)
+      .select("*")
       .single();
 
     if (error) {
@@ -179,20 +195,19 @@ export class AtividadeRepositoryImpl implements AtividadeRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.client
-      .from(TABLE)
-      .delete()
-      .eq('id', id);
+    const { error } = await this.client.from(TABLE).delete().eq("id", id);
 
     if (error) {
       throw new Error(`Failed to delete activity: ${error.message}`);
     }
   }
 
-  async listByAlunoMatriculas(alunoId: string): Promise<AtividadeComProgressoEHierarquia[]> {
+  async listByAlunoMatriculas(
+    alunoId: string,
+  ): Promise<AtividadeComProgressoEHierarquia[]> {
     // Importar helper dinamicamente para evitar dependência circular
-    const { listByAlunoMatriculasHelper } = await import('./atividade.repository-helper');
+    const { listByAlunoMatriculasHelper } =
+      await import("./atividade.repository-helper");
     return listByAlunoMatriculasHelper(this.client, alunoId);
   }
 }
-

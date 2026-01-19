@@ -20,17 +20,25 @@ export class AtividadeService {
     // Converter dados do cache para formato Atividade completo
     return cached.map((a) => ({
       id: a.id,
-      moduloId: a.moduloId,
-      tipo: a.tipo as TipoAtividade,
       titulo: a.titulo,
+      nome: a.titulo,
+      moduloId: a.moduloId,
+      modulo_id: a.moduloId,
+      tipo: a.tipo as TipoAtividade,
       arquivoUrl: a.arquivoUrl,
+      arquivo_url: a.arquivoUrl,
       gabaritoUrl: a.gabaritoUrl,
+      gabarito_url: a.gabaritoUrl,
       linkExterno: a.linkExterno,
+      link_externo: a.linkExterno,
       obrigatorio: a.obrigatorio,
       ordemExibicao: a.ordemExibicao,
-      createdBy: null, // Não cacheado (não é usado frequentemente)
+      ordem_exibicao: a.ordemExibicao,
+      createdBy: null,
       createdAt: new Date(a.createdAt),
+      created_at: a.createdAt,
       updatedAt: new Date(a.updatedAt),
+      updated_at: a.updatedAt,
     }));
   }
 

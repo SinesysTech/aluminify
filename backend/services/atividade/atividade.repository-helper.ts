@@ -1,8 +1,12 @@
 // Helper function para listar atividades do aluno
 // Este arquivo será usado pelo repository
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import { AtividadeComProgressoEHierarquia, Atividade, TipoAtividade } from './atividade.types';
+import { SupabaseClient } from "@supabase/supabase-js";
+import {
+  AtividadeComProgressoEHierarquia,
+  Atividade,
+  TipoAtividade,
+} from "./atividade.types";
 
 type AtividadeRow = {
   id: string;
@@ -22,17 +26,25 @@ type AtividadeRow = {
 function mapRow(row: AtividadeRow): Atividade {
   return {
     id: row.id,
-    moduloId: row.modulo_id,
-    tipo: row.tipo,
     titulo: row.titulo,
+    nome: row.titulo, // Map titulo to nome for compatibility
+    moduloId: row.modulo_id,
+    modulo_id: row.modulo_id,
+    tipo: row.tipo,
     arquivoUrl: row.arquivo_url,
+    arquivo_url: row.arquivo_url,
     gabaritoUrl: row.gabarito_url,
+    gabarito_url: row.gabarito_url,
     linkExterno: row.link_externo,
-    obrigatorio: row.obrigatorio,
-    ordemExibicao: row.ordem_exibicao,
+    link_externo: row.link_externo,
+    obrigatorio: row.obrigatorio ?? true,
+    ordemExibicao: row.ordem_exibicao ?? 0,
+    ordem_exibicao: row.ordem_exibicao,
     createdBy: row.created_by,
     createdAt: new Date(row.created_at),
+    created_at: row.created_at,
     updatedAt: new Date(row.updated_at),
+    updated_at: row.updated_at,
   };
 }
 
@@ -42,12 +54,14 @@ export async function listByAlunoMatriculasHelper(
 ): Promise<AtividadeComProgressoEHierarquia[]> {
   // 1. Buscar cursos do aluno através da tabela alunos_cursos (mesmo método do cronograma)
   const { data: alunosCursos, error: alunosCursosError } = await client
-    .from('alunos_cursos')
-    .select('curso_id')
-    .eq('aluno_id', alunoId);
+    .from("alunos_cursos")
+    .select("curso_id")
+    .eq("aluno_id", alunoId);
 
   if (alunosCursosError) {
-    throw new Error(`Failed to fetch alunos_cursos: ${alunosCursosError.message}`);
+    throw new Error(
+      `Failed to fetch alunos_cursos: ${alunosCursosError.message}`,
+    );
   }
 
   if (!alunosCursos || alunosCursos.length === 0) {
@@ -58,9 +72,9 @@ export async function listByAlunoMatriculasHelper(
 
   // 2. Buscar cursos_disciplinas para esses cursos
   const { data: cursosDisciplinas, error: cdError } = await client
-    .from('cursos_disciplinas')
-    .select('disciplina_id, curso_id')
-    .in('curso_id', cursoIds);
+    .from("cursos_disciplinas")
+    .select("disciplina_id, curso_id")
+    .in("curso_id", cursoIds);
 
   if (cdError) {
     throw new Error(`Failed to fetch cursos_disciplinas: ${cdError.message}`);
@@ -70,17 +84,19 @@ export async function listByAlunoMatriculasHelper(
     return [];
   }
 
-  const disciplinaIds = [...new Set(cursosDisciplinas.map((cd) => cd.disciplina_id))];
+  const disciplinaIds = [
+    ...new Set(cursosDisciplinas.map((cd) => cd.disciplina_id)),
+  ];
 
   // 3. Buscar frentes dessas disciplinas (considerar curso_id e null)
   const { data: frentes, error: frentesError } = await client
-    .from('frentes')
-    .select('id, nome, disciplina_id, curso_id')
-    .in('disciplina_id', disciplinaIds)
+    .from("frentes")
+    .select("id, nome, disciplina_id, curso_id")
+    .in("disciplina_id", disciplinaIds)
     .or(
-      cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
-        (cursoIds.length > 0 ? ',' : '') +
-        'curso_id.is.null',
+      cursoIds.map((cid) => `curso_id.eq.${cid}`).join(",") +
+        (cursoIds.length > 0 ? "," : "") +
+        "curso_id.is.null",
     );
 
   if (frentesError) {
@@ -100,10 +116,10 @@ export async function listByAlunoMatriculasHelper(
 
   // 4. Buscar módulos dessas frentes
   const { data: modulos, error: modulosError } = await client
-    .from('modulos')
-    .select('id, nome, numero_modulo, frente_id')
-    .in('frente_id', frenteIds)
-    .order('numero_modulo', { ascending: true, nullsFirst: false });
+    .from("modulos")
+    .select("id, nome, numero_modulo, frente_id")
+    .in("frente_id", frenteIds)
+    .order("numero_modulo", { ascending: true, nullsFirst: false });
 
   if (modulosError) {
     throw new Error(`Failed to fetch modulos: ${modulosError.message}`);
@@ -117,10 +133,10 @@ export async function listByAlunoMatriculasHelper(
 
   // 5. Buscar atividades desses módulos
   const { data: atividades, error: atividadesError } = await client
-    .from('atividades')
-    .select('*')
-    .in('modulo_id', moduloIds)
-    .order('ordem_exibicao', { ascending: true, nullsFirst: false });
+    .from("atividades")
+    .select("*")
+    .in("modulo_id", moduloIds)
+    .order("ordem_exibicao", { ascending: true, nullsFirst: false });
 
   if (atividadesError) {
     throw new Error(`Failed to fetch atividades: ${atividadesError.message}`);
@@ -133,10 +149,12 @@ export async function listByAlunoMatriculasHelper(
   // 6. Buscar progresso do aluno para essas atividades (incluindo campos de desempenho)
   const atividadeIds = atividades.map((a) => a.id);
   const { data: progressos, error: progressosError } = await client
-    .from('progresso_atividades')
-    .select('atividade_id, status, data_inicio, data_conclusao, questoes_totais, questoes_acertos, dificuldade_percebida, anotacoes_pessoais')
-    .eq('aluno_id', alunoId)
-    .in('atividade_id', atividadeIds);
+    .from("progresso_atividades")
+    .select(
+      "atividade_id, status, data_inicio, data_conclusao, questoes_totais, questoes_acertos, dificuldade_percebida, anotacoes_pessoais",
+    )
+    .eq("aluno_id", alunoId)
+    .in("atividade_id", atividadeIds);
 
   if (progressosError) {
     throw new Error(`Failed to fetch progressos: ${progressosError.message}`);
@@ -159,9 +177,9 @@ export async function listByAlunoMatriculasHelper(
 
   // 7. Buscar disciplinas
   const { data: disciplinas, error: discError } = await client
-    .from('disciplinas')
-    .select('id, nome')
-    .in('id', disciplinaIds);
+    .from("disciplinas")
+    .select("id, nome")
+    .in("id", disciplinaIds);
 
   if (discError) {
     throw new Error(`Failed to fetch disciplinas: ${discError.message}`);
@@ -171,9 +189,9 @@ export async function listByAlunoMatriculasHelper(
 
   // 8. Buscar cursos
   const { data: cursos, error: cursosError } = await client
-    .from('cursos')
-    .select('id, nome')
-    .in('id', cursoIds);
+    .from("cursos")
+    .select("id, nome")
+    .in("id", cursoIds);
 
   if (cursosError) {
     throw new Error(`Failed to fetch cursos: ${cursosError.message}`);
@@ -184,7 +202,7 @@ export async function listByAlunoMatriculasHelper(
   // 9. Mapear tudo junto
   const modulosMap = new Map(modulos.map((m) => [m.id, m]));
   const frentesMap = new Map(frentesFiltradas.map((f) => [f.id, f]));
-  
+
   // Criar mapa curso-disciplina
   const cursoDisciplinaMap = new Map<string, string[]>();
   cursosDisciplinas.forEach((cd) => {
@@ -211,7 +229,7 @@ export async function listByAlunoMatriculasHelper(
     // Encontrar o curso que tem essa disciplina
     let cursoId: string | null = null;
     let cursoNome: string | null = null;
-    
+
     for (const [cid, discIds] of cursoDisciplinaMap.entries()) {
       if (discIds.includes(frente.disciplina_id)) {
         cursoId = cid;
@@ -247,8 +265,12 @@ export async function listByAlunoMatriculasHelper(
       cursoNome,
       cursoId,
       progressoStatus: progresso?.status || null,
-      progressoDataInicio: progresso?.dataInicio ? new Date(progresso.dataInicio) : null,
-      progressoDataConclusao: progresso?.dataConclusao ? new Date(progresso.dataConclusao) : null,
+      progressoDataInicio: progresso?.dataInicio
+        ? new Date(progresso.dataInicio)
+        : null,
+      progressoDataConclusao: progresso?.dataConclusao
+        ? new Date(progresso.dataConclusao)
+        : null,
       // Campos de desempenho
       questoesTotais: progresso?.questoesTotais ?? null,
       questoesAcertos: progresso?.questoesAcertos ?? null,
@@ -278,4 +300,3 @@ export async function listByAlunoMatriculasHelper(
 
   return resultado;
 }
-
