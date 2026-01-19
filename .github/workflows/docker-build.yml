@@ -13,8 +13,8 @@ on:
       - develop
 
 env:
-  REGISTRY: docker.io
-  IMAGE_NAME: sinesystec/aluminify
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:

@@ -1,26 +1,31 @@
 /**
  * Backward Compatibility Analyzer
- * 
+ *
  * Analyzes code for backward compatibility patterns that may no longer be needed.
- * 
+ *
  * Detects:
  * - Version checks and feature flags for deprecated features
  * - Polyfills and shims that are no longer needed
  * - Migration code that has completed its purpose
  * - Dual implementations supporting old and new patterns
- * 
+ *
  * Validates Requirements: 1.2, 13.1, 13.2, 13.3, 13.4
  */
 
-import { SourceFile, Node, SyntaxKind } from 'ts-morph';
-import { BasePatternAnalyzer } from './pattern-analyzer.js';
-import type { FileInfo, Issue, FileCategory } from '../types.js';
+import { SourceFile, Node } from "ts-morph";
+import { BasePatternAnalyzer } from "./pattern-analyzer.js";
+import type { FileInfo, Issue, FileCategory } from "../types.js";
 
 /**
  * Pattern for tracking backward compatibility code
  */
 interface CompatibilityPattern {
-  type: 'version-check' | 'feature-flag' | 'polyfill' | 'migration' | 'dual-implementation';
+  type:
+    | "version-check"
+    | "feature-flag"
+    | "polyfill"
+    | "migration"
+    | "dual-implementation";
   node: Node;
   file: string;
   description: string;
@@ -30,7 +35,7 @@ interface CompatibilityPattern {
  * Analyzer for backward compatibility patterns
  */
 export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
-  readonly name = 'BackwardCompatibilityAnalyzer';
+  readonly name = "BackwardCompatibilityAnalyzer";
 
   private compatibilityPatterns: CompatibilityPattern[] = [];
 
@@ -38,7 +43,7 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
    * Get supported file types for this analyzer
    */
   getSupportedFileTypes(): FileCategory[] {
-    return ['component', 'api-route', 'service', 'util', 'middleware', 'other'];
+    return ["component", "api-route", "service", "util", "middleware", "other"];
   }
 
   /**
@@ -98,29 +103,33 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
         /deprecated.*version/,
       ];
 
-      const hasVersionCheck = versionPatterns.some(pattern => pattern.test(conditionText));
+      const hasVersionCheck = versionPatterns.some((pattern) =>
+        pattern.test(conditionText),
+      );
 
       if (hasVersionCheck) {
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'version-check',
+          type: "version-check",
           node: conditional,
           file: file.relativePath,
-          description: 'Version check detected',
+          description: "Version check detected",
         });
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'medium',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: conditional,
-            description: 'Version check detected. This may be supporting an old version that is no longer needed.',
-            recommendation: 'Review if this version check is still necessary. If the minimum supported version has been updated, this check can be removed. Document the reason if the check must remain.',
-            estimatedEffort: 'small',
-            tags: ['backward-compatibility', 'version-check', 'legacy'],
-          })
+            description:
+              "Version check detected. This may be supporting an old version that is no longer needed.",
+            recommendation:
+              "Review if this version check is still necessary. If the minimum supported version has been updated, this check can be removed. Document the reason if the check must remain.",
+            estimatedEffort: "small",
+            tags: ["backward-compatibility", "version-check", "legacy"],
+          }),
         );
       }
     }
@@ -157,34 +166,38 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
         /experimental/,
         /beta.*feature/,
         /deprecated.*feature/,
-        /\bff_/,  // Common feature flag prefix
+        /\bff_/, // Common feature flag prefix
         /feature_/,
         /flag_/,
       ];
 
-      const hasFeatureFlag = featureFlagPatterns.some(pattern => pattern.test(conditionText));
+      const hasFeatureFlag = featureFlagPatterns.some((pattern) =>
+        pattern.test(conditionText),
+      );
 
       if (hasFeatureFlag) {
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'feature-flag',
+          type: "feature-flag",
           node: conditional,
           file: file.relativePath,
-          description: 'Feature flag detected',
+          description: "Feature flag detected",
         });
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'medium',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: conditional,
-            description: 'Feature flag detected. This may be controlling a feature that should now be permanently enabled or removed.',
-            recommendation: 'Review if this feature flag is still needed. If the feature is stable and should be permanently enabled, remove the flag and the conditional logic. If the feature is deprecated, remove both branches.',
-            estimatedEffort: 'small',
-            tags: ['backward-compatibility', 'feature-flag', 'conditional'],
-          })
+            description:
+              "Feature flag detected. This may be controlling a feature that should now be permanently enabled or removed.",
+            recommendation:
+              "Review if this feature flag is still needed. If the feature is stable and should be permanently enabled, remove the flag and the conditional logic. If the feature is deprecated, remove both branches.",
+            estimatedEffort: "small",
+            tags: ["backward-compatibility", "feature-flag", "conditional"],
+          }),
         );
       }
     }
@@ -227,29 +240,33 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
         /object\.values/,
       ];
 
-      const isPolyfill = polyfillPatterns.some(pattern => pattern.test(importText));
+      const isPolyfill = polyfillPatterns.some((pattern) =>
+        pattern.test(importText),
+      );
 
       if (isPolyfill) {
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'polyfill',
+          type: "polyfill",
           node: importDecl,
           file: file.relativePath,
-          description: 'Polyfill import detected',
+          description: "Polyfill import detected",
         });
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'low',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "low",
+            category: "general",
             file: file.relativePath,
             node: importDecl,
-            description: 'Polyfill or shim import detected. This may no longer be needed if the minimum supported environment has been updated.',
-            recommendation: 'Check if this polyfill is still necessary based on your target browsers/Node.js versions. Modern environments may natively support these features. Use tools like caniuse.com or node.green to verify.',
-            estimatedEffort: 'small',
-            tags: ['backward-compatibility', 'polyfill', 'modernization'],
-          })
+            description:
+              "Polyfill or shim import detected. This may no longer be needed if the minimum supported environment has been updated.",
+            recommendation:
+              "Check if this polyfill is still necessary based on your target browsers/Node.js versions. Modern environments may natively support these features. Use tools like caniuse.com or node.green to verify.",
+            estimatedEffort: "small",
+            tags: ["backward-compatibility", "polyfill", "modernization"],
+          }),
         );
       }
     }
@@ -263,39 +280,50 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
 
     for (const func of functions) {
       const funcText = func.getText();
-      const funcName = this.getNodeName(func) || '';
+      const funcName = this.getNodeName(func) || "";
 
       // Look for polyfill-style implementations
       const polyfillIndicators = [
-        /if\s*\(\s*!.*\.prototype\./,  // if (!Array.prototype.includes)
-        /typeof.*===\s*['"]undefined['"]/,  // typeof Promise === 'undefined'
-        /\|\|\s*function/,  // window.Promise || function
-        /window\.\w+\s*=\s*window\.\w+\s*\|\|/,  // window.Promise = window.Promise ||
+        /if\s*\(\s*!.*\.prototype\./, // if (!Array.prototype.includes)
+        /typeof.*===\s*['"]undefined['"]/, // typeof Promise === 'undefined'
+        /\|\|\s*function/, // window.Promise || function
+        /window\.\w+\s*=\s*window\.\w+\s*\|\|/, // window.Promise = window.Promise ||
       ];
 
-      const looksLikePolyfill = polyfillIndicators.some(pattern => pattern.test(funcText));
+      const looksLikePolyfill = polyfillIndicators.some((pattern) =>
+        pattern.test(funcText),
+      );
 
-      if (looksLikePolyfill || funcName.toLowerCase().includes('polyfill') || funcName.toLowerCase().includes('shim')) {
+      if (
+        looksLikePolyfill ||
+        funcName.toLowerCase().includes("polyfill") ||
+        funcName.toLowerCase().includes("shim")
+      ) {
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'polyfill',
+          type: "polyfill",
           node: func,
           file: file.relativePath,
-          description: 'Manual polyfill implementation detected',
+          description: "Manual polyfill implementation detected",
         });
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'medium',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: func,
-            description: `Manual polyfill implementation detected${funcName ? ` in '${funcName}'` : ''}. This may no longer be needed for modern environments.`,
-            recommendation: 'Verify if this polyfill is still necessary. If supporting only modern browsers/Node.js versions, native implementations should be available. Consider removing or documenting why it must remain.',
-            estimatedEffort: 'small',
-            tags: ['backward-compatibility', 'polyfill', 'manual-implementation'],
-          })
+            description: `Manual polyfill implementation detected${funcName ? ` in '${funcName}'` : ""}. This may no longer be needed for modern environments.`,
+            recommendation:
+              "Verify if this polyfill is still necessary. If supporting only modern browsers/Node.js versions, native implementations should be available. Consider removing or documenting why it must remain.",
+            estimatedEffort: "small",
+            tags: [
+              "backward-compatibility",
+              "polyfill",
+              "manual-implementation",
+            ],
+          }),
         );
       }
     }
@@ -334,21 +362,25 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
         /backward.*compat/,
       ];
 
-      const isMigrationComment = migrationPatterns.some(pattern => pattern.test(commentText));
+      const isMigrationComment = migrationPatterns.some((pattern) =>
+        pattern.test(commentText),
+      );
 
       if (isMigrationComment) {
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'medium',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: comment.node,
-            description: 'Migration-related comment detected. This suggests temporary code that may be ready for removal.',
-            recommendation: 'Review if the migration is complete. If the old system is no longer in use, remove the migration code. If still needed, update the comment with a clear timeline or condition for removal.',
-            estimatedEffort: 'medium',
-            tags: ['backward-compatibility', 'migration', 'temporary'],
-          })
+            description:
+              "Migration-related comment detected. This suggests temporary code that may be ready for removal.",
+            recommendation:
+              "Review if the migration is complete. If the old system is no longer in use, remove the migration code. If still needed, update the comment with a clear timeline or condition for removal.",
+            estimatedEffort: "medium",
+            tags: ["backward-compatibility", "migration", "temporary"],
+          }),
         );
       }
     }
@@ -360,28 +392,30 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
     ];
 
     for (const func of functions) {
-      const funcName = this.getNodeName(func) || '';
+      const funcName = this.getNodeName(func) || "";
       const funcNameLower = funcName.toLowerCase();
 
       const migrationNamePatterns = [
-        'migrate',
-        'migration',
-        'legacy',
-        'deprecated',
-        'old',
-        'temporary',
-        'transitional',
-        'compat',
-        'compatibility',
-        'fallback',
+        "migrate",
+        "migration",
+        "legacy",
+        "deprecated",
+        "old",
+        "temporary",
+        "transitional",
+        "compat",
+        "compatibility",
+        "fallback",
       ];
 
-      const hasMigrationName = migrationNamePatterns.some(pattern => funcNameLower.includes(pattern));
+      const hasMigrationName = migrationNamePatterns.some((pattern) =>
+        funcNameLower.includes(pattern),
+      );
 
       if (hasMigrationName) {
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'migration',
+          type: "migration",
           node: func,
           file: file.relativePath,
           description: `Migration function '${funcName}' detected`,
@@ -389,16 +423,17 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'medium',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: func,
             description: `Function '${funcName}' appears to be migration-related code. This may be temporary code that can be removed.`,
-            recommendation: 'Verify if this migration function is still needed. Check if all data/code has been migrated to the new system. If complete, remove this function and its callers.',
-            estimatedEffort: 'medium',
-            tags: ['backward-compatibility', 'migration', 'function'],
-          })
+            recommendation:
+              "Verify if this migration function is still needed. Check if all data/code has been migrated to the new system. If complete, remove this function and its callers.",
+            estimatedEffort: "medium",
+            tags: ["backward-compatibility", "migration", "function"],
+          }),
         );
       }
     }
@@ -407,35 +442,38 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
     const variables = this.getVariableDeclarations(ast);
 
     for (const variable of variables) {
-      const varName = this.getNodeName(variable) || '';
+      const varName = this.getNodeName(variable) || "";
       const varNameLower = varName.toLowerCase();
 
       const migrationNamePatterns = [
-        'migrate',
-        'migration',
-        'legacy',
-        'deprecated',
-        'old',
-        'temporary',
-        'temp',
-        'transitional',
+        "migrate",
+        "migration",
+        "legacy",
+        "deprecated",
+        "old",
+        "temporary",
+        "temp",
+        "transitional",
       ];
 
-      const hasMigrationName = migrationNamePatterns.some(pattern => varNameLower.includes(pattern));
+      const hasMigrationName = migrationNamePatterns.some((pattern) =>
+        varNameLower.includes(pattern),
+      );
 
       if (hasMigrationName && this.isExported(variable)) {
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'low',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "low",
+            category: "general",
             file: file.relativePath,
             node: variable,
             description: `Exported variable '${varName}' appears to be migration-related. This may be temporary code.`,
-            recommendation: 'Review if this variable is still needed. If the migration is complete, remove it and update all references.',
-            estimatedEffort: 'small',
-            tags: ['backward-compatibility', 'migration', 'variable'],
-          })
+            recommendation:
+              "Review if this variable is still needed. If the migration is complete, remove it and update all references.",
+            estimatedEffort: "small",
+            tags: ["backward-compatibility", "migration", "variable"],
+          }),
         );
       }
     }
@@ -469,12 +507,12 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
 
       // Extract base name by removing common suffixes
       const baseName = funcName
-        .replace(/Old$/i, '')
-        .replace(/New$/i, '')
-        .replace(/Legacy$/i, '')
-        .replace(/V\d+$/i, '')
-        .replace(/Version\d+$/i, '')
-        .replace(/Deprecated$/i, '');
+        .replace(/Old$/i, "")
+        .replace(/New$/i, "")
+        .replace(/Legacy$/i, "")
+        .replace(/V\d+$/i, "")
+        .replace(/Version\d+$/i, "")
+        .replace(/Deprecated$/i, "");
 
       if (baseName !== funcName) {
         if (!functionGroups.has(baseName)) {
@@ -485,30 +523,35 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
     }
 
     // Check for groups with multiple implementations
-    for (const [baseName, funcs] of functionGroups) {
+    for (const [_baseName, funcs] of functionGroups) {
       if (funcs.length > 1) {
-        const funcNames = funcs.map(f => this.getNodeName(f)).filter(Boolean);
+        const funcNames = funcs.map((f) => this.getNodeName(f)).filter(Boolean);
 
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'dual-implementation',
+          type: "dual-implementation",
           node: funcs[0],
           file: file.relativePath,
-          description: `Dual implementation detected: ${funcNames.join(', ')}`,
+          description: `Dual implementation detected: ${funcNames.join(", ")}`,
         });
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'high',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "high",
+            category: "general",
             file: file.relativePath,
             node: funcs[0],
-            description: `Dual implementation detected: ${funcNames.join(', ')}. Multiple versions of the same functionality suggest backward compatibility code.`,
-            recommendation: 'Consolidate to a single implementation. If the old version is no longer needed, remove it and update all callers. If both are needed, document why and when the old version can be removed.',
-            estimatedEffort: 'medium',
-            tags: ['backward-compatibility', 'dual-implementation', 'consolidation'],
-          })
+            description: `Dual implementation detected: ${funcNames.join(", ")}. Multiple versions of the same functionality suggest backward compatibility code.`,
+            recommendation:
+              "Consolidate to a single implementation. If the old version is no longer needed, remove it and update all callers. If both are needed, document why and when the old version can be removed.",
+            estimatedEffort: "medium",
+            tags: [
+              "backward-compatibility",
+              "dual-implementation",
+              "consolidation",
+            ],
+          }),
         );
       }
     }
@@ -533,29 +576,37 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
         /prefer.*old/,
       ];
 
-      const hasDualImplPattern = dualImplPatterns.some(pattern => pattern.test(conditionText));
+      const hasDualImplPattern = dualImplPatterns.some((pattern) =>
+        pattern.test(conditionText),
+      );
 
       if (hasDualImplPattern) {
         // Track this pattern
         this.compatibilityPatterns.push({
-          type: 'dual-implementation',
+          type: "dual-implementation",
           node: conditional,
           file: file.relativePath,
-          description: 'Conditional dual implementation detected',
+          description: "Conditional dual implementation detected",
         });
 
         issues.push(
           this.createIssue({
-            type: 'backward-compatibility',
-            severity: 'medium',
-            category: 'general',
+            type: "backward-compatibility",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: conditional,
-            description: 'Conditional logic switching between old and new implementations detected. This adds complexity and may no longer be needed.',
-            recommendation: 'Review if both code paths are still necessary. If the old implementation is no longer used, remove it and simplify the logic. Document the reason if both paths must remain.',
-            estimatedEffort: 'medium',
-            tags: ['backward-compatibility', 'dual-implementation', 'conditional'],
-          })
+            description:
+              "Conditional logic switching between old and new implementations detected. This adds complexity and may no longer be needed.",
+            recommendation:
+              "Review if both code paths are still necessary. If the old implementation is no longer used, remove it and simplify the logic. Document the reason if both paths must remain.",
+            estimatedEffort: "medium",
+            tags: [
+              "backward-compatibility",
+              "dual-implementation",
+              "conditional",
+            ],
+          }),
         );
       }
     }
@@ -575,7 +626,7 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
     const fullText = ast.getFullText();
 
     // Traverse all nodes to find comments
-    ast.forEachDescendant(node => {
+    ast.forEachDescendant((node) => {
       const leadingComments = node.getLeadingCommentRanges();
       for (const range of leadingComments) {
         const text = fullText.substring(range.getPos(), range.getEnd());
@@ -596,9 +647,13 @@ export class BackwardCompatibilityAnalyzer extends BasePatternAnalyzer {
    * Get function body as a node
    */
   private getFunctionBody(func: Node): Node | undefined {
-    const funcWithBody = func as any;
-    if (funcWithBody.getBody && typeof funcWithBody.getBody === 'function') {
-      return funcWithBody.getBody();
+    if (
+      Node.isFunctionDeclaration(func) ||
+      Node.isMethodDeclaration(func) ||
+      Node.isArrowFunction(func) ||
+      Node.isFunctionExpression(func)
+    ) {
+      return func.getBody();
     }
     return undefined;
   }

@@ -106,7 +106,7 @@ docker buildx build --platform linux/amd64,linux/arm64 -t sinesystec/aluminify:l
 Para builds de produção com output standalone:
 
 ```bash
-DOCKER_BUILD=true docker build -t sinesystec/aluminify:prod .
+DOCKER_BUILD=true docker build --build-arg DOCKER_BUILD=true -t sinesystec/aluminify:prod .
 ```
 
 ## Execução Local

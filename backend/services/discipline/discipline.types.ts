@@ -5,7 +5,9 @@ export interface Discipline {
   updatedAt: Date;
 }
 
-// Duplicate removed
+export interface CreateDisciplineInput {
+  name: string;
+}
 
 export interface UpdateDisciplineInput {
   name?: string;
@@ -13,6 +15,6 @@ export interface UpdateDisciplineInput {
 
 export interface CreateDisciplineInput {
   name: string;
-  empresaId: string;
+  empresaId?: string | null;
   createdBy?: string;
 }

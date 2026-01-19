@@ -20,7 +20,7 @@ export class UserRoleIdentifierService {
    */
   async identifyUserRoles(
     userId: string,
-    options: IdentifyRolesOptions = {}
+    options: IdentifyRolesOptions = {},
   ): Promise<UserRoleIdentification> {
     const { empresaId, includeDetails = true } = options;
 
@@ -32,7 +32,10 @@ export class UserRoleIdentifierService {
     const { data: userData, error: userDataError } =
       await this.client.auth.admin.getUserById(userId);
     if (userDataError) {
-      console.warn("[UserRoleIdentifier] Failed to get user by id:", userDataError);
+      console.warn(
+        "[UserRoleIdentifier] Failed to get user by id:",
+        userDataError,
+      );
     }
     const userEmail = userData?.user?.email?.toLowerCase() ?? null;
 
@@ -43,7 +46,11 @@ export class UserRoleIdentifierService {
     }
 
     // Check for professor role
-    const professorRoles = await this.checkProfessorRoles(userId, empresaId, userEmail);
+    const professorRoles = await this.checkProfessorRoles(
+      userId,
+      empresaId,
+      userEmail,
+    );
     for (const role of professorRoles) {
       rolesSet.add("professor");
       empresaIdsSet.add(role.empresaId);
@@ -84,7 +91,7 @@ export class UserRoleIdentifierService {
    */
   async getUserPrimaryRole(
     userId: string,
-    empresaId?: string
+    empresaId?: string,
   ): Promise<Exclude<AppUserRole, "empresa">> {
     const identification = await this.identifyUserRoles(userId, {
       empresaId,
@@ -98,7 +105,7 @@ export class UserRoleIdentifierService {
    */
   async validateUserBelongsToTenant(
     userId: string,
-    empresaId: string
+    empresaId: string,
   ): Promise<{
     valid: boolean;
     roles: Array<Exclude<AppUserRole, "empresa">>;
@@ -122,7 +129,7 @@ export class UserRoleIdentifierService {
   async switchUserRole(
     userId: string,
     newRole: AppUserRole,
-    empresaId?: string
+    empresaId?: string,
   ): Promise<SwitchRoleResult> {
     // Validate that user has the requested role
     const identification = await this.identifyUserRoles(userId, {
@@ -182,7 +189,7 @@ export class UserRoleIdentifierService {
   // Private helper methods
 
   private async checkSuperadminFromUserData(
-    user: { user_metadata?: Record<string, unknown> } | null | undefined
+    user: { user_metadata?: Record<string, unknown> } | null | undefined,
   ): Promise<boolean> {
     const role = user?.user_metadata?.role;
     const isSuperadmin =
@@ -193,7 +200,7 @@ export class UserRoleIdentifierService {
   private async checkProfessorRoles(
     userId: string,
     empresaId?: string,
-    email?: string | null
+    email?: string | null,
   ): Promise<UserRoleDetail[]> {
     let query = this.client
       .from("professores")
@@ -207,7 +214,7 @@ export class UserRoleIdentifierService {
           nome,
           slug
         )
-      `
+      `,
       )
       .eq("id", userId);
 
@@ -220,12 +227,12 @@ export class UserRoleIdentifierService {
     if (error) {
       console.error(
         "[UserRoleIdentifier] Error checking professor roles:",
-        error
+        error,
       );
       // Continua para fallback por email se disponível
     }
 
-    const rows = (data || []) as any[];
+    const rows = (data || []) as UserRoleDetail[];
 
     // Fallback: algumas bases podem ter professor cadastrado por email (ou id divergente)
     if (!rows.length && email) {
@@ -241,7 +248,7 @@ export class UserRoleIdentifierService {
             nome,
             slug
           )
-        `
+        `,
         )
         .eq("email", email);
 
@@ -253,10 +260,10 @@ export class UserRoleIdentifierService {
       if (emailError) {
         console.error(
           "[UserRoleIdentifier] Error checking professor roles by email:",
-          emailError
+          emailError,
         );
       } else {
-        rows.push(...((emailData || []) as any[]));
+        rows.push(...((emailData || []) as UserRoleDetail[]));
       }
     }
 
@@ -279,7 +286,7 @@ export class UserRoleIdentifierService {
           empresaSlug: empresa.slug,
           isAdmin: row.is_admin,
         };
-      }
+      },
     );
   }
 
@@ -287,7 +294,10 @@ export class UserRoleIdentifierService {
    * Verifica se existe cadastro de aluno (tabela alunos) para este usuário.
    * Importante: isso não garante vínculo com cursos/empresa (detalhes vêm via alunos_cursos).
    */
-  private async checkAlunoExists(userId: string, email?: string | null): Promise<boolean> {
+  private async checkAlunoExists(
+    userId: string,
+    email?: string | null,
+  ): Promise<boolean> {
     const { data: byId, error: idError } = await this.client
       .from("alunos")
       .select("id")
@@ -295,7 +305,10 @@ export class UserRoleIdentifierService {
       .maybeSingle();
 
     if (idError) {
-      console.error("[UserRoleIdentifier] Error checking aluno by id:", idError);
+      console.error(
+        "[UserRoleIdentifier] Error checking aluno by id:",
+        idError,
+      );
     }
 
     if (byId?.id) {
@@ -313,7 +326,10 @@ export class UserRoleIdentifierService {
       .maybeSingle();
 
     if (emailError) {
-      console.error("[UserRoleIdentifier] Error checking aluno by email:", emailError);
+      console.error(
+        "[UserRoleIdentifier] Error checking aluno by email:",
+        emailError,
+      );
       return false;
     }
 
@@ -323,7 +339,10 @@ export class UserRoleIdentifierService {
   /**
    * Detalhes de aluno por empresa, via vínculo em cursos (alunos_cursos -> cursos -> empresas).
    */
-  private async checkAlunoRoleDetails(userId: string, empresaId?: string): Promise<UserRoleDetail[]> {
+  private async checkAlunoRoleDetails(
+    userId: string,
+    empresaId?: string,
+  ): Promise<UserRoleDetail[]> {
     const query = this.client
       .from("alunos_cursos")
       .select(
@@ -337,14 +356,17 @@ export class UserRoleIdentifierService {
             slug
           )
         )
-      `
+      `,
       )
       .eq("aluno_id", userId);
 
     const { data, error } = await query;
 
     if (error) {
-      console.error("[UserRoleIdentifier] Error checking aluno role details:", error);
+      console.error(
+        "[UserRoleIdentifier] Error checking aluno role details:",
+        error,
+      );
       return [];
     }
 
@@ -385,7 +407,7 @@ export class UserRoleIdentifierService {
   }
 
   private determinePrimaryRole(
-    roles: Array<Exclude<AppUserRole, "empresa">>
+    roles: Array<Exclude<AppUserRole, "empresa">>,
   ): Exclude<AppUserRole, "empresa"> {
     // Priority: superadmin > professor > aluno
     if (roles.includes("superadmin")) {
@@ -406,7 +428,7 @@ export class UserRoleIdentifierService {
  * Create a user role identifier service instance
  */
 export function createUserRoleIdentifier(
-  client: SupabaseClient
+  client: SupabaseClient,
 ): UserRoleIdentifierService {
   return new UserRoleIdentifierService(client);
 }

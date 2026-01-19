@@ -49,6 +49,7 @@ try {
 } catch {
     Write-Host "Docker Buildx not available. Building for current platform only..." -ForegroundColor Yellow
     docker build `
+        --build-arg DOCKER_BUILD=true `
         -t $FULL_IMAGE_NAME `
         -t "${IMAGE_NAME}:latest" `
         .

@@ -58,6 +58,7 @@ if docker buildx version &> /dev/null; then
 else
     echo -e "${YELLOW}Docker Buildx not available. Building for current platform only...${NC}"
     docker build \
+        --build-arg DOCKER_BUILD=true \
         -t "${FULL_IMAGE_NAME}" \
         -t "${IMAGE_NAME}:latest" \
         .

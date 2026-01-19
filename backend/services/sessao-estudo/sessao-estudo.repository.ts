@@ -103,7 +103,7 @@ export class SessaoEstudoRepository {
     {
       const attempt = await client
         .from(this.table)
-        .insert({ ...baseInsert, modulo_id: moduloId } as any)
+        .insert({ ...baseInsert, modulo_id: moduloId } as _SessaoEstudoInsert)
         .select()
         .single();
       data = attempt.data;
@@ -118,7 +118,7 @@ export class SessaoEstudoRepository {
     ) {
       const attempt = await client
         .from(this.table)
-        .insert(baseInsert as any)
+        .insert(baseInsert as _SessaoEstudoInsert)
         .select()
         .single();
       data = attempt.data;

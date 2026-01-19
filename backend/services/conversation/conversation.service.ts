@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/server';
+import { createClient } from "@/lib/server";
 import type {
   Conversation,
   ChatMessage,
@@ -7,7 +7,7 @@ import type {
   ListConversationsRequest,
   DeleteConversationRequest,
   GetActiveConversationRequest,
-} from './conversation.types';
+} from "./conversation.types";
 
 // Helper function to map database conversation to Conversation type
 interface ConversationRow {
@@ -26,11 +26,14 @@ interface ConversationRow {
 function mapConversation(data: ConversationRow): Conversation {
   return {
     ...data,
-    messages: (data.messages && typeof data.messages === 'object' && Array.isArray(data.messages))
-      ? (data.messages as unknown as ChatMessage[])
-      : null,
-    created_at: data.created_at || '1970-01-01T00:00:00.000Z',
-    updated_at: data.updated_at || '1970-01-01T00:00:00.000Z',
+    messages:
+      data.messages &&
+      typeof data.messages === "object" &&
+      Array.isArray(data.messages)
+        ? (data.messages as unknown as ChatMessage[])
+        : null,
+    created_at: data.created_at || "1970-01-01T00:00:00.000Z",
+    updated_at: data.updated_at || "1970-01-01T00:00:00.000Z",
     is_active: data.is_active ?? true,
   } as Conversation;
 }
@@ -39,101 +42,123 @@ export class ConversationService {
   /**
    * Criar nova conversa
    */
-  async createConversation(request: CreateConversationRequest): Promise<Conversation> {
+  async createConversation(
+    request: CreateConversationRequest,
+  ): Promise<Conversation> {
     const supabase = await createClient();
 
     // Gerar session_id único
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const { data, error } = await supabase
-      .from('chat_conversations')
+      .from("chat_conversations")
       .insert({
         user_id: request.userId,
         session_id: sessionId,
-        title: request.title || 'Nova Conversa',
+        title: request.title || "Nova Conversa",
         is_active: true, // Nova conversa sempre começa ativa
       })
       .select()
       .single();
 
     if (error) {
-      console.error('[Conversation Service] Error creating conversation:', error);
+      console.error(
+        "[Conversation Service] Error creating conversation:",
+        error,
+      );
       throw new Error(`Failed to create conversation: ${error.message}`);
     }
 
     if (!data) {
-      throw new Error('Failed to create conversation: No data returned');
+      throw new Error("Failed to create conversation: No data returned");
     }
 
-    console.log('[Conversation Service] ✅ Conversation created:', data.id);
-    
+    console.log("[Conversation Service] ✅ Conversation created:", data.id);
+
     type ConversationRow = {
-      id: string
-      user_id: string
-      session_id: string
-      title: string
-      messages: unknown
-      is_active: boolean | null
-      created_at: string | null
-      updated_at: string | null
-    }
+      id: string;
+      user_id: string;
+      session_id: string;
+      title: string;
+      messages: unknown;
+      is_active: boolean | null;
+      created_at: string | null;
+      updated_at: string | null;
+    };
     return mapConversation(data as ConversationRow);
   }
 
   /**
    * Listar conversas do usuário
    */
-  async listConversations(request: ListConversationsRequest): Promise<Conversation[]> {
+  async listConversations(
+    request: ListConversationsRequest,
+  ): Promise<Conversation[]> {
     const supabase = await createClient();
 
     let query = supabase
-      .from('chat_conversations')
-      .select('*')
-      .eq('user_id', request.userId)
-      .order('updated_at', { ascending: false });
+      .from("chat_conversations")
+      .select("*")
+      .eq("user_id", request.userId)
+      .order("updated_at", { ascending: false });
 
     if (request.limit) {
       query = query.limit(request.limit);
     }
 
     if (request.offset) {
-      query = query.range(request.offset, request.offset + (request.limit || 10) - 1);
+      query = query.range(
+        request.offset,
+        request.offset + (request.limit || 10) - 1,
+      );
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('[Conversation Service] Error listing conversations:', error);
+      console.error(
+        "[Conversation Service] Error listing conversations:",
+        error,
+      );
       throw new Error(`Failed to list conversations: ${error.message}`);
     }
 
-    console.log('[Conversation Service] 📋 Listed', data?.length || 0, 'conversations');
+    console.log(
+      "[Conversation Service] 📋 Listed",
+      data?.length || 0,
+      "conversations",
+    );
     return (data || []).map(mapConversation);
   }
 
   /**
    * Obter conversa ativa do usuário
    */
-  async getActiveConversation(request: GetActiveConversationRequest): Promise<Conversation | null> {
+  async getActiveConversation(
+    request: GetActiveConversationRequest,
+  ): Promise<Conversation | null> {
     const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('chat_conversations')
-      .select('*')
-      .eq('user_id', request.userId)
-      .eq('is_active', true)
+      .from("chat_conversations")
+      .select("*")
+      .eq("user_id", request.userId)
+      .eq("is_active", true)
       .maybeSingle();
 
     if (error) {
-      console.error('[Conversation Service] Error getting active conversation:', error);
+      console.error(
+        "[Conversation Service] Error getting active conversation:",
+        error,
+      );
       throw new Error(`Failed to get active conversation: ${error.message}`);
     }
 
     if (data) {
-      console.log('[Conversation Service] ✅ Active conversation:', data.id);
+      console.log("[Conversation Service] ✅ Active conversation:", data.id);
       return mapConversation(data);
     } else {
-      console.log('[Conversation Service] ℹ️  No active conversation found');
+      console.log("[Conversation Service] ℹ️  No active conversation found");
       return null;
     }
   }
@@ -141,18 +166,24 @@ export class ConversationService {
   /**
    * Obter conversa por ID
    */
-  async getConversationById(id: string, userId: string): Promise<Conversation | null> {
+  async getConversationById(
+    id: string,
+    userId: string,
+  ): Promise<Conversation | null> {
     const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('chat_conversations')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', userId)
+      .from("chat_conversations")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (error) {
-      console.error('[Conversation Service] Error getting conversation:', error);
+      console.error(
+        "[Conversation Service] Error getting conversation:",
+        error,
+      );
       throw new Error(`Failed to get conversation: ${error.message}`);
     }
 
@@ -162,7 +193,9 @@ export class ConversationService {
   /**
    * Atualizar conversa
    */
-  async updateConversation(request: UpdateConversationRequest): Promise<Conversation> {
+  async updateConversation(
+    request: UpdateConversationRequest,
+  ): Promise<Conversation> {
     const supabase = await createClient();
 
     const updates: Record<string, unknown> = {};
@@ -172,7 +205,7 @@ export class ConversationService {
       if (trimmedTitle.length > 0) {
         updates.title = trimmedTitle;
       } else {
-        throw new Error('Title cannot be empty');
+        throw new Error("Title cannot be empty");
       }
     }
 
@@ -182,43 +215,62 @@ export class ConversationService {
 
     // Verificar se há campos para atualizar
     if (Object.keys(updates).length === 0) {
-      console.log('[Conversation Service] No fields to update, returning existing conversation');
-      const existing = await this.getConversationById(request.id, request.userId);
+      console.log(
+        "[Conversation Service] No fields to update, returning existing conversation",
+      );
+      const existing = await this.getConversationById(
+        request.id,
+        request.userId,
+      );
       if (!existing) {
-        throw new Error('Conversation not found');
+        throw new Error("Conversation not found");
       }
       return existing;
     }
 
-    console.log('[Conversation Service] Updating conversation:', request.id, 'with:', updates);
+    console.log(
+      "[Conversation Service] Updating conversation:",
+      request.id,
+      "with:",
+      updates,
+    );
 
     const { data, error } = await supabase
-      .from('chat_conversations')
+      .from("chat_conversations")
       .update(updates)
-      .eq('id', request.id)
-      .eq('user_id', request.userId)
+      .eq("id", request.id)
+      .eq("user_id", request.userId)
       .select()
       .single();
 
     if (error) {
-      console.error('[Conversation Service] Error updating conversation:', error);
-      console.error('[Conversation Service] Error details:', JSON.stringify(error, null, 2));
+      console.error(
+        "[Conversation Service] Error updating conversation:",
+        error,
+      );
+      console.error(
+        "[Conversation Service] Error details:",
+        JSON.stringify(error, null, 2),
+      );
       throw new Error(`Failed to update conversation: ${error.message}`);
     }
 
     if (!data) {
-      console.error('[Conversation Service] No data returned after update');
-      throw new Error('Conversation not found or unauthorized');
+      console.error("[Conversation Service] No data returned after update");
+      throw new Error("Conversation not found or unauthorized");
     }
 
-    console.log('[Conversation Service] ✅ Conversation updated:', data.id);
+    console.log("[Conversation Service] ✅ Conversation updated:", data.id);
     return mapConversation(data);
   }
 
   /**
    * Marcar conversa como ativa (desmarca outras)
    */
-  async setActiveConversation(id: string, userId: string): Promise<Conversation> {
+  async setActiveConversation(
+    id: string,
+    userId: string,
+  ): Promise<Conversation> {
     return this.updateConversation({
       id,
       userId,
@@ -233,17 +285,20 @@ export class ConversationService {
     const supabase = await createClient();
 
     const { error } = await supabase
-      .from('chat_conversations')
+      .from("chat_conversations")
       .delete()
-      .eq('id', request.id)
-      .eq('user_id', request.userId);
+      .eq("id", request.id)
+      .eq("user_id", request.userId);
 
     if (error) {
-      console.error('[Conversation Service] Error deleting conversation:', error);
+      console.error(
+        "[Conversation Service] Error deleting conversation:",
+        error,
+      );
       throw new Error(`Failed to delete conversation: ${error.message}`);
     }
 
-    console.log('[Conversation Service] 🗑️  Conversation deleted:', request.id);
+    console.log("[Conversation Service] 🗑️  Conversation deleted:", request.id);
   }
 
   /**
@@ -256,7 +311,9 @@ export class ConversationService {
 
     // Se não houver, criar nova
     if (!active) {
-      console.log('[Conversation Service] No active conversation, creating new one');
+      console.log(
+        "[Conversation Service] No active conversation, creating new one",
+      );
       active = await this.createConversation({ userId });
     }
 
@@ -266,7 +323,11 @@ export class ConversationService {
   /**
    * Atualiza o histórico completo da conversa (JSONB)
    */
-  async updateConversationHistory(conversationId: string, userId: string, history: ChatMessage[]): Promise<void> {
+  async updateConversationHistory(
+    conversationId: string,
+    userId: string,
+    history: ChatMessage[],
+  ): Promise<void> {
     const supabase = await createClient();
 
     // `history` é persistido em JSONB. O tipo `Json` do Supabase é bem estrito e não aceita `ChatMessage[]` diretamente.
@@ -274,35 +335,47 @@ export class ConversationService {
     const payload = {
       conversation_id: conversationId,
       user_id: userId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      history: history as unknown as any,
+      history: history as any,
     };
 
     const { error } = await supabase
-      .from('chat_conversation_history')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .upsert(payload as any, { onConflict: 'conversation_id' });
+      .from("chat_conversation_history")
+      .upsert(payload as any, { onConflict: "conversation_id" });
 
     if (error) {
-      console.error('[Conversation Service] Error updating conversation history:', error);
-      throw new Error(`Failed to update conversation history: ${error.message}`);
+      console.error(
+        "[Conversation Service] Error updating conversation history:",
+        error,
+      );
+      throw new Error(
+        `Failed to update conversation history: ${error.message}`,
+      );
     }
 
-    console.log('[Conversation Service] ✅ Conversation history saved:', conversationId);
+    console.log(
+      "[Conversation Service] ✅ Conversation history saved:",
+      conversationId,
+    );
   }
 
-  async getConversationHistory(conversationId: string, userId: string): Promise<ChatMessage[]> {
+  async getConversationHistory(
+    conversationId: string,
+    userId: string,
+  ): Promise<ChatMessage[]> {
     const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('chat_conversation_history')
-      .select('history')
-      .eq('conversation_id', conversationId)
-      .eq('user_id', userId)
+      .from("chat_conversation_history")
+      .select("history")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (error) {
-      console.error('[Conversation Service] Error fetching conversation history:', error);
+      console.error(
+        "[Conversation Service] Error fetching conversation history:",
+        error,
+      );
       throw new Error(`Failed to fetch conversation history: ${error.message}`);
     }
 

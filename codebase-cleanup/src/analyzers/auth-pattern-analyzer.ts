@@ -1,9 +1,9 @@
 /**
  * Auth Pattern Analyzer
- * 
+ *
  * Analyzes authentication and authorization patterns in the codebase
  * to identify inconsistencies, redundancies, and unnecessary complexity.
- * 
+ *
  * Detects:
  * - Multiple auth client instantiation patterns
  * - Inconsistent permission checking approaches
@@ -12,9 +12,9 @@
  * - Unnecessary auth wrapper functions
  */
 
-import { SourceFile, Node, SyntaxKind, CallExpression, FunctionDeclaration, ArrowFunction, FunctionExpression } from 'ts-morph';
-import { BasePatternAnalyzer } from './pattern-analyzer.js';
-import type { FileInfo, Issue, FileCategory } from '../types.js';
+import { SourceFile, Node, ArrowFunction } from "ts-morph";
+import { BasePatternAnalyzer } from "./pattern-analyzer.js";
+import type { FileInfo, Issue, FileCategory } from "../types.js";
 
 /**
  * Pattern for tracking auth client instantiation
@@ -29,7 +29,7 @@ interface AuthClientPattern {
  * Pattern for tracking permission checks
  */
 interface PermissionCheckPattern {
-  type: 'role' | 'permission' | 'custom';
+  type: "role" | "permission" | "custom";
   node: Node;
   file: string;
 }
@@ -38,7 +38,7 @@ interface PermissionCheckPattern {
  * Pattern for tracking session management
  */
 interface SessionPattern {
-  type: 'cookie' | 'token' | 'supabase' | 'custom';
+  type: "cookie" | "token" | "supabase" | "custom";
   node: Node;
   file: string;
 }
@@ -47,7 +47,7 @@ interface SessionPattern {
  * Analyzer for authentication and authorization patterns
  */
 export class AuthPatternAnalyzer extends BasePatternAnalyzer {
-  readonly name = 'AuthPatternAnalyzer';
+  readonly name = "AuthPatternAnalyzer";
 
   private authClientPatterns: AuthClientPattern[] = [];
   private permissionCheckPatterns: PermissionCheckPattern[] = [];
@@ -57,7 +57,7 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
    * Get supported file types for this analyzer
    */
   getSupportedFileTypes(): FileCategory[] {
-    return ['api-route', 'service', 'middleware', 'util'];
+    return ["api-route", "service", "middleware", "util"];
   }
 
   /**
@@ -92,21 +92,21 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
 
     // Common auth client creation patterns
     const authClientPatterns = [
-      'createClient',
-      'getSupabaseClient',
-      'initSupabase',
-      'createSupabaseClient',
-      'getAuthClient',
-      'initAuth',
-      'createAuthClient',
-      'supabaseClient',
-      'getClient',
-      'initClient',
+      "createClient",
+      "getSupabaseClient",
+      "initSupabase",
+      "createSupabaseClient",
+      "getAuthClient",
+      "initAuth",
+      "createAuthClient",
+      "supabaseClient",
+      "getClient",
+      "initClient",
     ];
 
     for (const call of callExpressions) {
       const callText = call.getText();
-      
+
       // Check if this is an auth client creation call
       for (const pattern of authClientPatterns) {
         if (callText.includes(pattern)) {
@@ -118,20 +118,23 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
           });
 
           // If we've seen multiple different patterns, flag as inconsistent
-          const uniquePatterns = new Set(this.authClientPatterns.map(p => p.functionName));
+          const uniquePatterns = new Set(
+            this.authClientPatterns.map((p) => p.functionName),
+          );
           if (uniquePatterns.size > 1) {
             issues.push(
               this.createIssue({
-                type: 'inconsistent-pattern',
-                severity: 'medium',
-                category: 'authentication',
+                type: "inconsistent-pattern",
+                severity: "medium",
+                category: "authentication",
                 file: file.relativePath,
                 node: call,
-                description: `Inconsistent auth client instantiation pattern detected. Found ${uniquePatterns.size} different patterns: ${Array.from(uniquePatterns).join(', ')}`,
-                recommendation: 'Standardize auth client creation to use a single pattern across the codebase. Consider creating a centralized auth client factory function.',
-                estimatedEffort: 'medium',
-                tags: ['auth', 'inconsistency', 'client-instantiation'],
-              })
+                description: `Inconsistent auth client instantiation pattern detected. Found ${uniquePatterns.size} different patterns: ${Array.from(uniquePatterns).join(", ")}`,
+                recommendation:
+                  "Standardize auth client creation to use a single pattern across the codebase. Consider creating a centralized auth client factory function.",
+                estimatedEffort: "medium",
+                tags: ["auth", "inconsistency", "client-instantiation"],
+              }),
             );
           }
           break;
@@ -169,27 +172,50 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
    * Detect inconsistent permission checking patterns
    * Validates Requirements: 2.2
    */
-  private detectInconsistentPermissionChecks(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectInconsistentPermissionChecks(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
     const callExpressions = this.getCallExpressions(ast);
 
     // Permission checking patterns
-    const roleCheckPatterns = ['checkRole', 'hasRole', 'isRole', 'role ===', 'role =='];
-    const permissionCheckPatterns = ['checkPermission', 'hasPermission', 'can', 'permissions.includes'];
-    const customCheckPatterns = ['checkAuth', 'isAuthorized', 'authorize', 'verifyAccess'];
+    const roleCheckPatterns = [
+      "checkRole",
+      "hasRole",
+      "isRole",
+      "role ===",
+      "role ==",
+    ];
+    const permissionCheckPatterns = [
+      "checkPermission",
+      "hasPermission",
+      "can",
+      "permissions.includes",
+    ];
+    const customCheckPatterns = [
+      "checkAuth",
+      "isAuthorized",
+      "authorize",
+      "verifyAccess",
+    ];
 
     for (const call of callExpressions) {
       const callText = call.getText();
-      
+
       // Identify the type of permission check
-      let checkType: 'role' | 'permission' | 'custom' | null = null;
-      
-      if (roleCheckPatterns.some(pattern => callText.includes(pattern))) {
-        checkType = 'role';
-      } else if (permissionCheckPatterns.some(pattern => callText.includes(pattern))) {
-        checkType = 'permission';
-      } else if (customCheckPatterns.some(pattern => callText.includes(pattern))) {
-        checkType = 'custom';
+      let checkType: "role" | "permission" | "custom" | null = null;
+
+      if (roleCheckPatterns.some((pattern) => callText.includes(pattern))) {
+        checkType = "role";
+      } else if (
+        permissionCheckPatterns.some((pattern) => callText.includes(pattern))
+      ) {
+        checkType = "permission";
+      } else if (
+        customCheckPatterns.some((pattern) => callText.includes(pattern))
+      ) {
+        checkType = "custom";
       }
 
       if (checkType) {
@@ -200,20 +226,23 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
         });
 
         // If we've seen multiple different check types, flag as inconsistent
-        const uniqueCheckTypes = new Set(this.permissionCheckPatterns.map(p => p.type));
+        const uniqueCheckTypes = new Set(
+          this.permissionCheckPatterns.map((p) => p.type),
+        );
         if (uniqueCheckTypes.size > 1) {
           issues.push(
             this.createIssue({
-              type: 'inconsistent-pattern',
-              severity: 'high',
-              category: 'authentication',
+              type: "inconsistent-pattern",
+              severity: "high",
+              category: "authentication",
               file: file.relativePath,
               node: call,
-              description: `Inconsistent permission checking approach detected. Found ${uniqueCheckTypes.size} different approaches: ${Array.from(uniqueCheckTypes).join(', ')}`,
-              recommendation: 'Standardize permission checking to use a single approach (either role-based, permission-based, or a custom unified approach). This improves maintainability and reduces security risks.',
-              estimatedEffort: 'medium',
-              tags: ['auth', 'permissions', 'inconsistency', 'security'],
-            })
+              description: `Inconsistent permission checking approach detected. Found ${uniqueCheckTypes.size} different approaches: ${Array.from(uniqueCheckTypes).join(", ")}`,
+              recommendation:
+                "Standardize permission checking to use a single approach (either role-based, permission-based, or a custom unified approach). This improves maintainability and reduces security risks.",
+              estimatedEffort: "medium",
+              tags: ["auth", "permissions", "inconsistency", "security"],
+            }),
           );
         }
       }
@@ -226,30 +255,40 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
    * Detect inconsistent session management
    * Validates Requirements: 2.4
    */
-  private detectInconsistentSessionManagement(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectInconsistentSessionManagement(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
     const callExpressions = this.getCallExpressions(ast);
 
     // Session management patterns
-    const cookiePatterns = ['cookies()', 'getCookie', 'setCookie', 'cookie.'];
-    const tokenPatterns = ['getToken', 'setToken', 'token', 'jwt', 'bearer'];
-    const supabasePatterns = ['getSession', 'setSession', 'session.user', 'auth.getUser'];
-    const customPatterns = ['getAuth', 'setAuth', 'authSession'];
+    const cookiePatterns = ["cookies()", "getCookie", "setCookie", "cookie."];
+    const tokenPatterns = ["getToken", "setToken", "token", "jwt", "bearer"];
+    const supabasePatterns = [
+      "getSession",
+      "setSession",
+      "session.user",
+      "auth.getUser",
+    ];
+    const customPatterns = ["getAuth", "setAuth", "authSession"];
 
     for (const call of callExpressions) {
       const callText = call.getText();
-      
+
       // Identify the type of session management
-      let sessionType: 'cookie' | 'token' | 'supabase' | 'custom' | null = null;
-      
-      if (cookiePatterns.some(pattern => callText.includes(pattern))) {
-        sessionType = 'cookie';
-      } else if (tokenPatterns.some(pattern => callText.includes(pattern))) {
-        sessionType = 'token';
-      } else if (supabasePatterns.some(pattern => callText.includes(pattern))) {
-        sessionType = 'supabase';
-      } else if (customPatterns.some(pattern => callText.includes(pattern))) {
-        sessionType = 'custom';
+      let sessionType: "cookie" | "token" | "supabase" | "custom" | null = null;
+
+      if (cookiePatterns.some((pattern) => callText.includes(pattern))) {
+        sessionType = "cookie";
+      } else if (tokenPatterns.some((pattern) => callText.includes(pattern))) {
+        sessionType = "token";
+      } else if (
+        supabasePatterns.some((pattern) => callText.includes(pattern))
+      ) {
+        sessionType = "supabase";
+      } else if (customPatterns.some((pattern) => callText.includes(pattern))) {
+        sessionType = "custom";
       }
 
       if (sessionType) {
@@ -260,20 +299,23 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
         });
 
         // If we've seen multiple different session types, flag as inconsistent
-        const uniqueSessionTypes = new Set(this.sessionPatterns.map(p => p.type));
+        const uniqueSessionTypes = new Set(
+          this.sessionPatterns.map((p) => p.type),
+        );
         if (uniqueSessionTypes.size > 1) {
           issues.push(
             this.createIssue({
-              type: 'inconsistent-pattern',
-              severity: 'high',
-              category: 'authentication',
+              type: "inconsistent-pattern",
+              severity: "high",
+              category: "authentication",
               file: file.relativePath,
               node: call,
-              description: `Inconsistent session management detected. Found ${uniqueSessionTypes.size} different approaches: ${Array.from(uniqueSessionTypes).join(', ')}`,
-              recommendation: 'Standardize session management to use a single approach. For Supabase projects, prefer using Supabase\'s built-in session management.',
-              estimatedEffort: 'large',
-              tags: ['auth', 'session', 'inconsistency', 'security'],
-            })
+              description: `Inconsistent session management detected. Found ${uniqueSessionTypes.size} different approaches: ${Array.from(uniqueSessionTypes).join(", ")}`,
+              recommendation:
+                "Standardize session management to use a single approach. For Supabase projects, prefer using Supabase's built-in session management.",
+              estimatedEffort: "large",
+              tags: ["auth", "session", "inconsistency", "security"],
+            }),
           );
         }
       }
@@ -286,11 +328,17 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
    * Detect redundant auth middleware
    * Validates Requirements: 2.3
    */
-  private detectRedundantAuthMiddleware(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectRedundantAuthMiddleware(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // Only check middleware files
-    if (file.category !== 'middleware' && !file.relativePath.includes('middleware')) {
+    if (
+      file.category !== "middleware" &&
+      !file.relativePath.includes("middleware")
+    ) {
       return issues;
     }
 
@@ -305,21 +353,25 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
 
     for (const func of functions) {
       const funcText = func.getText();
-      
+
       // Check if this function performs auth checks
       const authKeywords = [
-        'auth',
-        'authenticate',
-        'authorize',
-        'checkAuth',
-        'verifyAuth',
-        'getUser',
-        'getSession',
-        'checkPermission',
-        'checkRole',
+        "auth",
+        "authenticate",
+        "authorize",
+        "checkAuth",
+        "verifyAuth",
+        "getUser",
+        "getSession",
+        "checkPermission",
+        "checkRole",
       ];
 
-      if (authKeywords.some(keyword => funcText.toLowerCase().includes(keyword.toLowerCase()))) {
+      if (
+        authKeywords.some((keyword) =>
+          funcText.toLowerCase().includes(keyword.toLowerCase()),
+        )
+      ) {
         authMiddlewareFunctions.push(func);
       }
     }
@@ -329,16 +381,17 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
       for (const func of authMiddlewareFunctions) {
         issues.push(
           this.createIssue({
-            type: 'code-duplication',
-            severity: 'medium',
-            category: 'authentication',
+            type: "code-duplication",
+            severity: "medium",
+            category: "authentication",
             file: file.relativePath,
             node: func,
             description: `Redundant auth middleware detected. Found ${authMiddlewareFunctions.length} auth middleware functions in the same file.`,
-            recommendation: 'Consolidate auth middleware into a single, reusable function. Consider creating a composable middleware pattern if different auth checks are needed.',
-            estimatedEffort: 'small',
-            tags: ['auth', 'middleware', 'duplication'],
-          })
+            recommendation:
+              "Consolidate auth middleware into a single, reusable function. Consider creating a composable middleware pattern if different auth checks are needed.",
+            estimatedEffort: "small",
+            tags: ["auth", "middleware", "duplication"],
+          }),
         );
       }
     }
@@ -354,7 +407,10 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
    * Detect simple pass-through auth wrapper functions
    * Validates Requirements: 2.5
    */
-  private detectUnnecessaryAuthAdapters(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectUnnecessaryAuthAdapters(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     const functions = [
@@ -364,7 +420,7 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
     ];
 
     for (const func of functions) {
-      const funcText = func.getText();
+      const _funcText = func.getText();
       const funcName = this.getNodeName(func);
 
       // Skip if no name or not auth-related
@@ -376,16 +432,17 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
       if (this.isPassThroughWrapper(func)) {
         issues.push(
           this.createIssue({
-            type: 'unnecessary-adapter',
-            severity: 'low',
-            category: 'authentication',
+            type: "unnecessary-adapter",
+            severity: "low",
+            category: "authentication",
             file: file.relativePath,
             node: func,
             description: `Unnecessary auth adapter detected: "${funcName}". This function appears to be a simple pass-through wrapper that adds no meaningful value.`,
-            recommendation: 'Remove this wrapper function and call the underlying auth function directly. This reduces code complexity and improves maintainability.',
-            estimatedEffort: 'trivial',
-            tags: ['auth', 'adapter', 'unnecessary', 'wrapper'],
-          })
+            recommendation:
+              "Remove this wrapper function and call the underlying auth function directly. This reduces code complexity and improves maintainability.",
+            estimatedEffort: "trivial",
+            tags: ["auth", "adapter", "unnecessary", "wrapper"],
+          }),
         );
       }
     }
@@ -398,22 +455,22 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
    */
   private isAuthRelated(name: string): boolean {
     const authKeywords = [
-      'auth',
-      'authenticate',
-      'authorize',
-      'login',
-      'logout',
-      'session',
-      'user',
-      'permission',
-      'role',
-      'access',
-      'token',
-      'credential',
+      "auth",
+      "authenticate",
+      "authorize",
+      "login",
+      "logout",
+      "session",
+      "user",
+      "permission",
+      "role",
+      "access",
+      "token",
+      "credential",
     ];
 
     const lowerName = name.toLowerCase();
-    return authKeywords.some(keyword => lowerName.includes(keyword));
+    return authKeywords.some((keyword) => lowerName.includes(keyword));
   }
 
   /**
@@ -424,11 +481,11 @@ export class AuthPatternAnalyzer extends BasePatternAnalyzer {
 
     // Get the function body
     let body: Node | undefined;
-    
+
     if (Node.isFunctionDeclaration(func) || Node.isFunctionExpression(func)) {
-      body = (func as FunctionDeclaration | FunctionExpression).getBody();
+      body = (func as any).getBody();
     } else if (Node.isArrowFunction(func)) {
-      body = (func as ArrowFunction).getBody();
+      const _arrowBody = (func as ArrowFunction).getBody();
     }
 
     if (!body) {

@@ -271,8 +271,7 @@ export class ProfessorAnalyticsService {
     client: ReturnType<typeof getDatabaseClient>,
   ): Promise<number> {
     const { data: respostas } = await client
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from("respostas_questoes" as any)
+      .from("respostas_questoes")
       .select("correta")
       .eq("aluno_id", alunoId);
 
@@ -377,10 +376,8 @@ export class ProfessorAnalyticsService {
     const performance: ProfessorDisciplinaPerformance[] = [];
 
     for (const disciplina of disciplinas) {
-      // Buscar respostas dos alunos para questões desta disciplina
       const { data: respostas } = await client
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from("respostas_questoes" as any)
+        .from("respostas_questoes")
         .select(
           `
           correta,

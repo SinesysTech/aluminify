@@ -1,30 +1,27 @@
 /**
  * Adapter Pattern Analyzer
- * 
+ *
  * Analyzes adapter patterns in the codebase to identify unnecessary
  * abstraction layers and pass-through wrappers that add no meaningful value.
- * 
+ *
  * Detects:
  * - Single-method wrappers that just delegate to another function
  * - Pass-through functions with no error handling, validation, or transformation
  * - Redundant abstraction layers that increase complexity without benefit
  * - Adapters that exist solely for historical reasons
- * 
+ *
  * Validates Requirements: 1.4, 14.1, 14.2, 14.4
  */
 
-import { 
-  SourceFile, 
-  Node, 
-  SyntaxKind, 
-  CallExpression, 
-  FunctionDeclaration, 
-  ArrowFunction, 
+import {
+  SourceFile,
+  Node,
+  CallExpression,
+  ArrowFunction,
   FunctionExpression,
-  MethodDeclaration 
-} from 'ts-morph';
-import { BasePatternAnalyzer } from './pattern-analyzer.js';
-import type { FileInfo, Issue, FileCategory } from '../types.js';
+} from "ts-morph";
+import { BasePatternAnalyzer } from "./pattern-analyzer.js";
+import type { FileInfo, Issue, FileCategory } from "../types.js";
 
 /**
  * Pattern for tracking wrapper functions
@@ -41,7 +38,7 @@ interface WrapperPattern {
  * Analyzer for adapter and wrapper patterns
  */
 export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
-  readonly name = 'AdapterPatternAnalyzer';
+  readonly name = "AdapterPatternAnalyzer";
 
   private wrapperPatterns: WrapperPattern[] = [];
 
@@ -49,7 +46,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Get supported file types for this analyzer
    */
   getSupportedFileTypes(): FileCategory[] {
-    return ['api-route', 'service', 'util', 'middleware'];
+    return ["api-route", "service", "util", "middleware"];
   }
 
   /**
@@ -72,7 +69,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Detect all wrapper functions and abstraction layers
    * Analyzes function bodies to detect pass-through behavior
    * Identifies adapters that add no meaningful value
-   * 
+   *
    * Validates Requirements: 1.4, 14.1, 14.2, 14.4
    */
   private detectWrapperFunctions(file: FileInfo, ast: SourceFile): Issue[] {
@@ -89,7 +86,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
     for (const func of functions) {
       // Get function name
       const funcName = this.getFunctionName(func);
-      if (!funcName || funcName === 'anonymous') {
+      if (!funcName || funcName === "anonymous") {
         continue;
       }
 
@@ -102,20 +99,26 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
       // Analyze the function to determine if it's a wrapper
       const wrapperAnalysis = this.analyzeWrapperFunction(func, funcName, body);
 
-      if (wrapperAnalysis.isWrapper && wrapperAnalysis.addedValue.length === 0) {
+      if (
+        wrapperAnalysis.isWrapper &&
+        wrapperAnalysis.addedValue.length === 0
+      ) {
         // This is an unnecessary adapter - it wraps another function but adds no value
         issues.push(
           this.createIssue({
-            type: 'unnecessary-adapter',
-            severity: 'medium',
-            category: 'general',
+            type: "unnecessary-adapter",
+            severity: "medium",
+            category: "general",
             file: file.relativePath,
             node: func,
             description: `Function '${funcName}' is an unnecessary adapter that adds no meaningful value. It simply delegates to '${wrapperAnalysis.wrappedFunction}' without adding error handling, validation, transformation, or other logic.`,
-            recommendation: this.generateRemovalRecommendation(funcName, wrapperAnalysis.wrappedFunction),
-            estimatedEffort: 'small',
-            tags: ['adapter', 'unnecessary', 'wrapper', 'simplification'],
-          })
+            recommendation: this.generateRemovalRecommendation(
+              funcName,
+              wrapperAnalysis.wrappedFunction,
+            ),
+            estimatedEffort: "small",
+            tags: ["adapter", "unnecessary", "wrapper", "simplification"],
+          }),
         );
 
         // Track this wrapper pattern
@@ -126,26 +129,29 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
           file: file.relativePath,
           addedValue: wrapperAnalysis.addedValue,
         });
-      } else if (wrapperAnalysis.isWrapper && wrapperAnalysis.addedValue.length > 0) {
+      } else if (
+        wrapperAnalysis.isWrapper &&
+        wrapperAnalysis.addedValue.length > 0
+      ) {
         // This is a wrapper that adds some value, but we should document it
         // Only flag if the added value is minimal (e.g., just parameter renaming)
-        const minimalValue = wrapperAnalysis.addedValue.every(value => 
-          value.includes('parameter') || value.includes('rename')
+        const minimalValue = wrapperAnalysis.addedValue.every(
+          (value) => value.includes("parameter") || value.includes("rename"),
         );
 
         if (minimalValue) {
           issues.push(
             this.createIssue({
-              type: 'unnecessary-adapter',
-              severity: 'low',
-              category: 'general',
+              type: "unnecessary-adapter",
+              severity: "low",
+              category: "general",
               file: file.relativePath,
               node: func,
-              description: `Function '${funcName}' is a thin wrapper around '${wrapperAnalysis.wrappedFunction}' that adds minimal value (${wrapperAnalysis.addedValue.join(', ')}). Consider if this abstraction is necessary.`,
-              recommendation: `Evaluate if the wrapper function '${funcName}' is necessary. It only adds: ${wrapperAnalysis.addedValue.join(', ')}. If this abstraction doesn't provide significant value, consider removing it and calling '${wrapperAnalysis.wrappedFunction}' directly.`,
-              estimatedEffort: 'trivial',
-              tags: ['adapter', 'thin-wrapper', 'minimal-value'],
-            })
+              description: `Function '${funcName}' is a thin wrapper around '${wrapperAnalysis.wrappedFunction}' that adds minimal value (${wrapperAnalysis.addedValue.join(", ")}). Consider if this abstraction is necessary.`,
+              recommendation: `Evaluate if the wrapper function '${funcName}' is necessary. It only adds: ${wrapperAnalysis.addedValue.join(", ")}. If this abstraction doesn't provide significant value, consider removing it and calling '${wrapperAnalysis.wrappedFunction}' directly.`,
+              estimatedEffort: "trivial",
+              tags: ["adapter", "thin-wrapper", "minimal-value"],
+            }),
           );
         }
       }
@@ -158,13 +164,13 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Analyze a function to determine if it's a wrapper and what value it adds
    */
   private analyzeWrapperFunction(
-    func: Node, 
-    funcName: string, 
-    body: Node
-  ): { 
-    isWrapper: boolean; 
-    wrappedFunction: string; 
-    addedValue: string[] 
+    func: Node,
+    funcName: string,
+    body: Node,
+  ): {
+    isWrapper: boolean;
+    wrappedFunction: string;
+    addedValue: string[];
   } {
     const bodyText = body.getText();
     const statements = this.getFunctionStatements(body);
@@ -181,88 +187,91 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
     // Check if this looks like a wrapper
     if (statements.length > 3) {
       // Too many statements - likely doing more than just wrapping
-      return { isWrapper: false, wrappedFunction: '', addedValue: [] };
+      return { isWrapper: false, wrappedFunction: "", addedValue: [] };
     }
 
     if (callExpressions.length === 0) {
       // No function calls - not a wrapper
-      return { isWrapper: false, wrappedFunction: '', addedValue: [] };
+      return { isWrapper: false, wrappedFunction: "", addedValue: [] };
     }
 
     // Find the main delegated call
     const mainCall = this.findMainDelegatedCall(statements, callExpressions);
     if (!mainCall) {
-      return { isWrapper: false, wrappedFunction: '', addedValue: [] };
+      return { isWrapper: false, wrappedFunction: "", addedValue: [] };
     }
 
     const wrappedFunction = this.extractFunctionName(mainCall);
     if (!wrappedFunction) {
-      return { isWrapper: false, wrappedFunction: '', addedValue: [] };
+      return { isWrapper: false, wrappedFunction: "", addedValue: [] };
     }
 
     // Now analyze what value this wrapper adds
     const funcParams = this.getFunctionParameters(func);
-    const funcParamNames = funcParams.map(p => this.getNodeName(p)).filter(Boolean) as string[];
+    const funcParamNames = funcParams
+      .map((p) => this.getNodeName(p))
+      .filter(Boolean) as string[];
 
     // Check for error handling
     if (this.hasErrorHandling(body, bodyText)) {
-      addedValue.push('error handling');
+      addedValue.push("error handling");
     }
 
     // Check for validation
     if (this.hasValidation(body, bodyText)) {
-      addedValue.push('input validation');
+      addedValue.push("input validation");
     }
 
     // Check for data transformation
     if (this.hasDataTransformation(body, bodyText, mainCall)) {
-      addedValue.push('data transformation');
+      addedValue.push("data transformation");
     }
 
     // Check for logging
     if (this.hasLogging(bodyText)) {
-      addedValue.push('logging');
+      addedValue.push("logging");
     }
 
     // Check for caching
     if (this.hasCaching(bodyText)) {
-      addedValue.push('caching');
+      addedValue.push("caching");
     }
 
     // Check for retry logic
     if (this.hasRetryLogic(bodyText)) {
-      addedValue.push('retry logic');
+      addedValue.push("retry logic");
     }
 
     // Check for authentication/authorization
     if (this.hasAuthLogic(bodyText)) {
-      addedValue.push('authentication/authorization');
+      addedValue.push("authentication/authorization");
     }
 
     // Check for parameter transformation (beyond simple pass-through)
     if (this.hasParameterTransformation(funcParamNames, mainCall, bodyText)) {
-      addedValue.push('parameter transformation');
+      addedValue.push("parameter transformation");
     }
 
     // Check for default values or parameter enrichment
     if (this.hasParameterEnrichment(funcParamNames, mainCall, bodyText)) {
-      addedValue.push('parameter enrichment');
+      addedValue.push("parameter enrichment");
     }
 
     // Check if parameters are just passed through unchanged
     const isSimplePassThrough = this.isSimpleParameterPassThrough(
-      funcParamNames, 
-      mainCall, 
-      statements.length
+      funcParamNames,
+      mainCall,
+      statements.length,
     );
 
     // It's a wrapper if:
     // 1. It has few statements
     // 2. It calls another function
     // 3. It mostly just passes parameters through
-    const isWrapper = statements.length <= 3 && 
-                     callExpressions.length >= 1 && 
-                     (isSimplePassThrough || addedValue.length === 0);
+    const isWrapper =
+      statements.length <= 3 &&
+      callExpressions.length >= 1 &&
+      (isSimplePassThrough || addedValue.length === 0);
 
     return { isWrapper, wrappedFunction, addedValue };
   }
@@ -271,7 +280,10 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Find the main delegated call in a function
    * This is typically the call in a return statement or the only call expression
    */
-  private findMainDelegatedCall(statements: Node[], callExpressions: CallExpression[]): CallExpression | null {
+  private findMainDelegatedCall(
+    statements: Node[],
+    callExpressions: CallExpression[],
+  ): CallExpression | null {
     // If there's only one call, that's the main one
     if (callExpressions.length === 1) {
       return callExpressions[0];
@@ -349,20 +361,20 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   private hasErrorHandling(body: Node, bodyText: string): boolean {
     // Check for try-catch blocks
-    const hasTryCatch = bodyText.includes('try') && bodyText.includes('catch');
+    const hasTryCatch = bodyText.includes("try") && bodyText.includes("catch");
     if (hasTryCatch) return true;
 
     // Check for error checking (if (error) or if (!result))
-    const hasErrorCheck = /if\s*\(\s*error\s*\)/.test(bodyText) ||
-                         /if\s*\(\s*!.*\)/.test(bodyText);
+    const hasErrorCheck =
+      /if\s*\(\s*error\s*\)/.test(bodyText) || /if\s*\(\s*!.*\)/.test(bodyText);
     if (hasErrorCheck) return true;
 
     // Check for .catch() handlers
-    const hasCatchHandler = bodyText.includes('.catch(');
+    const hasCatchHandler = bodyText.includes(".catch(");
     if (hasCatchHandler) return true;
 
     // Check for throw statements
-    const hasThrow = bodyText.includes('throw');
+    const hasThrow = bodyText.includes("throw");
     if (hasThrow) return true;
 
     return false;
@@ -374,60 +386,76 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
   private hasValidation(body: Node, bodyText: string): boolean {
     // Check for validation patterns
     const validationPatterns = [
-      /if\s*\(\s*!.*\)/,  // if (!param)
+      /if\s*\(\s*!.*\)/, // if (!param)
       /if\s*\(.*===.*\)/, // if (param === value)
       /if\s*\(.*!==.*\)/, // if (param !== value)
-      /if\s*\(.*<.*\)/,   // if (param < value)
-      /if\s*\(.*>.*\)/,   // if (param > value)
-      /\.validate\(/,     // .validate()
-      /\.check\(/,        // .check()
-      /\.assert\(/,       // .assert()
-      /typeof.*===/,      // typeof check
-      /instanceof/,       // instanceof check
-      /Array\.isArray/,   // Array.isArray()
+      /if\s*\(.*<.*\)/, // if (param < value)
+      /if\s*\(.*>.*\)/, // if (param > value)
+      /\.validate\(/, // .validate()
+      /\.check\(/, // .check()
+      /\.assert\(/, // .assert()
+      /typeof.*===/, // typeof check
+      /instanceof/, // instanceof check
+      /Array\.isArray/, // Array.isArray()
     ];
 
-    return validationPatterns.some(pattern => pattern.test(bodyText));
+    return validationPatterns.some((pattern) => pattern.test(bodyText));
   }
 
   /**
    * Check if the function has data transformation logic
    */
-  private hasDataTransformation(body: Node, bodyText: string, mainCall: CallExpression): boolean {
+  private hasDataTransformation(
+    body: Node,
+    bodyText: string,
+    mainCall: CallExpression,
+  ): boolean {
     // Check for transformation methods
     const transformationMethods = [
-      '.map(',
-      '.filter(',
-      '.reduce(',
-      '.transform(',
-      '.convert(',
-      'Object.assign(',
-      'Object.keys(',
-      'Object.values(',
-      'Object.entries(',
-      'JSON.parse(',
-      'JSON.stringify(',
-      '.toString(',
-      '.toUpperCase(',
-      '.toLowerCase(',
-      '.trim(',
-      '.split(',
-      '.join(',
+      ".map(",
+      ".filter(",
+      ".reduce(",
+      ".transform(",
+      ".convert(",
+      "Object.assign(",
+      "Object.keys(",
+      "Object.values(",
+      "Object.entries(",
+      "JSON.parse(",
+      "JSON.stringify(",
+      ".toString(",
+      ".toUpperCase(",
+      ".toLowerCase(",
+      ".trim(",
+      ".split(",
+      ".join(",
     ];
 
     // Check if transformation happens before or after the main call
     const mainCallText = mainCall.getText();
     const beforeCall = bodyText.substring(0, bodyText.indexOf(mainCallText));
-    const afterCall = bodyText.substring(bodyText.indexOf(mainCallText) + mainCallText.length);
+    const afterCall = bodyText.substring(
+      bodyText.indexOf(mainCallText) + mainCallText.length,
+    );
 
-    const hasTransformationBefore = transformationMethods.some(method => beforeCall.includes(method));
-    const hasTransformationAfter = transformationMethods.some(method => afterCall.includes(method));
+    const hasTransformationBefore = transformationMethods.some((method) =>
+      beforeCall.includes(method),
+    );
+    const hasTransformationAfter = transformationMethods.some((method) =>
+      afterCall.includes(method),
+    );
 
     // Check for object spreading with additional properties (not just parameter spreading)
     // Pattern: { ...result, newProp: value } or { ...obj, prop: value }
-    const hasObjectSpreadWithNewProps = /\{[^}]*\.\.\.[^}]*,[^}]+\}/.test(afterCall);
+    const hasObjectSpreadWithNewProps = /\{[^}]*\.\.\.[^}]*,[^}]+\}/.test(
+      afterCall,
+    );
 
-    return hasTransformationBefore || hasTransformationAfter || hasObjectSpreadWithNewProps;
+    return (
+      hasTransformationBefore ||
+      hasTransformationAfter ||
+      hasObjectSpreadWithNewProps
+    );
   }
 
   /**
@@ -435,16 +463,16 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   private hasLogging(bodyText: string): boolean {
     const loggingPatterns = [
-      'console.',
-      'logger.',
-      'log(',
-      'debug(',
-      'info(',
-      'warn(',
-      'error(',
+      "console.",
+      "logger.",
+      "log(",
+      "debug(",
+      "info(",
+      "warn(",
+      "error(",
     ];
 
-    return loggingPatterns.some(pattern => bodyText.includes(pattern));
+    return loggingPatterns.some((pattern) => bodyText.includes(pattern));
   }
 
   /**
@@ -452,16 +480,18 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   private hasCaching(bodyText: string): boolean {
     const cachingPatterns = [
-      'cache',
-      'memoize',
-      'localStorage',
-      'sessionStorage',
-      'redis',
-      'getItem',
-      'setItem',
+      "cache",
+      "memoize",
+      "localStorage",
+      "sessionStorage",
+      "redis",
+      "getItem",
+      "setItem",
     ];
 
-    return cachingPatterns.some(pattern => bodyText.toLowerCase().includes(pattern));
+    return cachingPatterns.some((pattern) =>
+      bodyText.toLowerCase().includes(pattern),
+    );
   }
 
   /**
@@ -469,15 +499,15 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   private hasRetryLogic(bodyText: string): boolean {
     const retryPatterns = [
-      'retry',
-      'attempt',
-      'while',
-      'for',
-      'maxRetries',
-      'retryCount',
+      "retry",
+      "attempt",
+      "while",
+      "for",
+      "maxRetries",
+      "retryCount",
     ];
 
-    return retryPatterns.some(pattern => bodyText.includes(pattern));
+    return retryPatterns.some((pattern) => bodyText.includes(pattern));
   }
 
   /**
@@ -503,18 +533,18 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
       /hasRole\s*\(/,
     ];
 
-    return authCheckPatterns.some(pattern => pattern.test(bodyText));
+    return authCheckPatterns.some((pattern) => pattern.test(bodyText));
   }
 
   /**
    * Check if the function has parameter transformation
    */
   private hasParameterTransformation(
-    funcParamNames: string[], 
-    mainCall: CallExpression, 
-    bodyText: string
+    funcParamNames: string[],
+    mainCall: CallExpression,
+    bodyText: string,
   ): boolean {
-    const callArgs = mainCall.getArguments();
+    const _callArgs = mainCall.getArguments();
     const callText = mainCall.getText();
 
     // Check if parameters are transformed before being passed
@@ -527,7 +557,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
 
       // Look for transformations in the body before the call
       const beforeCall = bodyText.substring(0, bodyText.indexOf(callText));
-      if (beforeCall.includes(paramName) && beforeCall.includes('=')) {
+      if (beforeCall.includes(paramName) && beforeCall.includes("=")) {
         return true;
       }
     }
@@ -539,9 +569,9 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Check if the function enriches parameters with default values or additional data
    */
   private hasParameterEnrichment(
-    funcParamNames: string[], 
-    mainCall: CallExpression, 
-    bodyText: string
+    funcParamNames: string[],
+    mainCall: CallExpression,
+    bodyText: string,
   ): boolean {
     const callArgs = mainCall.getArguments();
 
@@ -551,7 +581,8 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
     }
 
     // Check for default value assignments
-    const hasDefaultValues = /=.*\|\|/.test(bodyText) || /=.*\?\?/.test(bodyText);
+    const hasDefaultValues =
+      /=.*\|\|/.test(bodyText) || /=.*\?\?/.test(bodyText);
     if (hasDefaultValues) {
       return true;
     }
@@ -569,9 +600,9 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Check if parameters are simply passed through unchanged
    */
   private isSimpleParameterPassThrough(
-    funcParamNames: string[], 
+    funcParamNames: string[],
     mainCall: CallExpression,
-    statementCount: number
+    statementCount: number,
   ): boolean {
     // If there are no parameters, check if it's still a simple wrapper
     if (funcParamNames.length === 0) {
@@ -579,7 +610,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
       return statementCount <= 2;
     }
 
-    const callArgs = mainCall.getArguments();
+    const _callArgs = mainCall.getArguments();
     const callText = mainCall.getText();
 
     // Count how many function parameters appear in the call
@@ -593,7 +624,8 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
 
     // If most parameters (>70%) are passed through and there are few statements,
     // it's likely a simple pass-through
-    const passThrough = paramsInCall >= funcParamNames.length * 0.7 && statementCount <= 2;
+    const passThrough =
+      paramsInCall >= funcParamNames.length * 0.7 && statementCount <= 2;
 
     return passThrough;
   }
@@ -601,11 +633,16 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Generate a recommendation for removing an unnecessary adapter
    */
-  private generateRemovalRecommendation(funcName: string, wrappedFunction: string): string {
-    return `Remove the wrapper function '${funcName}' and call '${wrappedFunction}' directly. ` +
+  private generateRemovalRecommendation(
+    funcName: string,
+    wrappedFunction: string,
+  ): string {
+    return (
+      `Remove the wrapper function '${funcName}' and call '${wrappedFunction}' directly. ` +
       `This adapter adds no meaningful value (no error handling, validation, transformation, logging, or other logic) ` +
       `and only increases code complexity. Direct calls to '${wrappedFunction}' will be clearer and easier to maintain. ` +
-      `If this wrapper was created for future extensibility, consider adding it back when actual logic is needed (YAGNI principle).`;
+      `If this wrapper was created for future extensibility, consider adding it back when actual logic is needed (YAGNI principle).`
+    );
   }
 
   // ============================================================================
@@ -617,13 +654,13 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   protected getArrowFunctions(ast: SourceFile): ArrowFunction[] {
     const arrowFunctions: ArrowFunction[] = [];
-    
+
     ast.forEachDescendant((node) => {
       if (Node.isArrowFunction(node)) {
         arrowFunctions.push(node);
       }
     });
-    
+
     return arrowFunctions;
   }
 
@@ -632,13 +669,13 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   protected getFunctionExpressions(ast: SourceFile): FunctionExpression[] {
     const functionExpressions: FunctionExpression[] = [];
-    
+
     ast.forEachDescendant((node) => {
       if (Node.isFunctionExpression(node)) {
         functionExpressions.push(node);
       }
     });
-    
+
     return functionExpressions;
   }
 
@@ -649,7 +686,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
     if (Node.isFunctionDeclaration(func) || Node.isFunctionExpression(func)) {
       return func.getBody();
     }
-    
+
     if (Node.isArrowFunction(func)) {
       const body = func.getBody();
       return body;
@@ -658,7 +695,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
     if (Node.isMethodDeclaration(func)) {
       return func.getBody();
     }
-    
+
     return undefined;
   }
 
@@ -667,20 +704,20 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   protected getFunctionName(func: Node): string {
     if (Node.isFunctionDeclaration(func)) {
-      return func.getName() || 'anonymous';
+      return func.getName() || "anonymous";
     }
 
     if (Node.isMethodDeclaration(func)) {
       return func.getName();
     }
-    
+
     if (Node.isFunctionExpression(func) || Node.isArrowFunction(func)) {
       // Try to get the name from the parent variable declaration
       const parent = func.getParent();
       if (Node.isVariableDeclaration(parent)) {
         return parent.getName();
       }
-      
+
       // Try to get from property assignment
       if (Node.isPropertyAssignment(parent)) {
         return parent.getName();
@@ -690,11 +727,11 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
       if (Node.isPropertyDeclaration(parent)) {
         return parent.getName();
       }
-      
-      return 'anonymous';
+
+      return "anonymous";
     }
-    
-    return 'unknown';
+
+    return "unknown";
   }
 
   /**
@@ -704,7 +741,7 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
     if (Node.isBlock(body)) {
       return body.getStatements();
     }
-    
+
     // For arrow functions with expression bodies
     return [body];
   }
@@ -714,19 +751,19 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    */
   protected getCallExpressionsFromNode(node: Node): CallExpression[] {
     const calls: CallExpression[] = [];
-    
+
     // Check if the node itself is a call expression (for arrow function expression bodies)
     if (Node.isCallExpression(node)) {
       calls.push(node);
     }
-    
+
     // Also check descendants
     node.forEachDescendant((descendant) => {
       if (Node.isCallExpression(descendant)) {
         calls.push(descendant);
       }
     });
-    
+
     return calls;
   }
 
@@ -734,13 +771,15 @@ export class AdapterPatternAnalyzer extends BasePatternAnalyzer {
    * Get parameters from a function
    */
   protected getFunctionParameters(func: Node): Node[] {
-    if (Node.isFunctionDeclaration(func) || 
-        Node.isFunctionExpression(func) || 
-        Node.isArrowFunction(func) ||
-        Node.isMethodDeclaration(func)) {
+    if (
+      Node.isFunctionDeclaration(func) ||
+      Node.isFunctionExpression(func) ||
+      Node.isArrowFunction(func) ||
+      Node.isMethodDeclaration(func)
+    ) {
       return func.getParameters();
     }
-    
+
     return [];
   }
 }

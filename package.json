@@ -96,6 +96,7 @@
     "harden-react-markdown": "^1.1.5",
     "ical-generator": "^10.0.0",
     "input-otp": "^1.4.2",
+    "ioredis": "^5.9.2",
     "katex": "^0.16.25",
     "libphonenumber-js": "^1.12.31",
     "lowlight": "^3.3.0",

@@ -1,8 +1,8 @@
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from "@/backend/clients/database";
 // DificuldadePercebida imported but unused - kept for future use
-import { cacheService } from '@/backend/services/cache';
-import { calculateNextReview, isValidFeedback } from './srs-algorithm';
-import type { FeedbackValue } from './srs-algorithm.types';
+import { cacheService } from "@/backend/services/cache";
+import { calculateNextReview, isValidFeedback } from "./srs-algorithm";
+import type { FeedbackValue } from "./srs-algorithm.types";
 import type {
   ProgressoFlashcard,
   CursoRow,
@@ -10,7 +10,7 @@ import type {
   FlashcardRow as _FlashcardRow,
   ModuloComFrenteRow,
   ModuloWithNestedRelations,
-} from './flashcards.query-types';
+} from "./flashcards.query-types";
 
 /**
  * Formata erros do Supabase para facilitar debug
@@ -19,23 +19,23 @@ function formatSupabaseError(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-  
-  if (typeof error === 'object' && error !== null) {
+
+  if (typeof error === "object" && error !== null) {
     const supabaseError = error as Record<string, unknown>;
     const message = supabaseError.message;
     const details = supabaseError.details;
     const hint = supabaseError.hint;
     const code = supabaseError.code;
-    
+
     const parts: string[] = [];
     if (code) parts.push(`[${code}]`);
     if (message) parts.push(String(message));
     if (details) parts.push(`Detalhes: ${String(details)}`);
     if (hint) parts.push(`Hint: ${String(hint)}`);
-    
-    return parts.length > 0 ? parts.join(' - ') : JSON.stringify(error);
+
+    return parts.length > 0 ? parts.join(" - ") : JSON.stringify(error);
   }
-  
+
   return String(error);
 }
 
@@ -69,7 +69,7 @@ export type FlashcardReviewItem = {
   dataProximaRevisao?: string | null;
 };
 
-export type FlashcardsReviewScope = 'all' | 'completed';
+export type FlashcardsReviewScope = "all" | "completed";
 
 export type FlashcardAdmin = {
   id: string;
@@ -115,13 +115,13 @@ export type ListFlashcardsFilters = {
   search?: string;
   page?: number;
   limit?: number;
-  orderBy?: 'created_at' | 'pergunta';
-  orderDirection?: 'asc' | 'desc';
+  orderBy?: "created_at" | "pergunta";
+  orderDirection?: "asc" | "desc";
 };
 
 export class FlashcardsService {
   private client = getDatabaseClient();
-  private readonly FLASHCARDS_IMAGES_BUCKET = 'flashcards-images';
+  private readonly FLASHCARDS_IMAGES_BUCKET = "flashcards-images";
   private readonly FLASHCARDS_SIGNED_URL_TTL_SECONDS = 60 * 30; // 30 min
   /**
    * Pool máximo de flashcards buscados do banco para montar uma sessão de revisão.
@@ -136,47 +136,59 @@ export class FlashcardsService {
   private readonly REVIEW_CANDIDATE_POOL = 2000;
 
   private normalizeName(value?: string | null): string {
-    return (value ?? '').trim().toLowerCase();
+    return (value ?? "").trim().toLowerCase();
   }
 
   private async ensureProfessor(userId: string) {
     const { data, error } = await this.client
-      .from('professores')
-      .select('id')
-      .eq('id', userId)
+      .from("professores")
+      .select("id")
+      .eq("id", userId)
       .maybeSingle();
 
     if (error || !data) {
-      throw new Error('Apenas professores podem realizar esta ação.');
+      throw new Error("Apenas professores podem realizar esta ação.");
     }
   }
 
   /**
    * Invalidar cache de flashcards baseado na hierarquia
    */
-  private async invalidateFlashcardCache(disciplinaId?: string, frenteId?: string, moduloId?: string): Promise<void> {
+  private async invalidateFlashcardCache(
+    disciplinaId?: string,
+    frenteId?: string,
+    moduloId?: string,
+  ): Promise<void> {
     const keys: string[] = [];
-    
+
     // Invalidar todos os caches relacionados
     if (moduloId) {
       // Buscar todas as chaves possíveis para este módulo (diferentes páginas/ordens)
       // Como não podemos fazer pattern matching, vamos invalidar as mais comuns
-      keys.push(`cache:flashcards:modulo:${moduloId}:page:1:limit:50:order:created_at:desc`);
+      keys.push(
+        `cache:flashcards:modulo:${moduloId}:page:1:limit:50:order:created_at:desc`,
+      );
     }
     if (frenteId) {
-      keys.push(`cache:flashcards:frente:${frenteId}:page:1:limit:50:order:created_at:desc`);
+      keys.push(
+        `cache:flashcards:frente:${frenteId}:page:1:limit:50:order:created_at:desc`,
+      );
     }
     if (disciplinaId) {
-      keys.push(`cache:flashcards:disciplina:${disciplinaId}:page:1:limit:50:order:created_at:desc`);
+      keys.push(
+        `cache:flashcards:disciplina:${disciplinaId}:page:1:limit:50:order:created_at:desc`,
+      );
     }
-    
+
     // Invalidar cache geral também
     keys.push(`cache:flashcards:page:1:limit:50:order:created_at:desc`);
-    
+
     await cacheService.delMany(keys);
   }
 
-  private async createSignedImageUrl(path?: string | null): Promise<string | null> {
+  private async createSignedImageUrl(
+    path?: string | null,
+  ): Promise<string | null> {
     const objectPath = path?.trim();
     if (!objectPath) return null;
     try {
@@ -190,11 +202,14 @@ export class FlashcardsService {
     }
   }
 
-  async importFlashcards(rows: FlashcardImportRow[], userId: string): Promise<FlashcardImportResult> {
+  async importFlashcards(
+    rows: FlashcardImportRow[],
+    userId: string,
+  ): Promise<FlashcardImportResult> {
     await this.ensureProfessor(userId);
 
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
-      throw new Error('Nenhuma linha recebida para importação.');
+      throw new Error("Nenhuma linha recebida para importação.");
     }
 
     const normalizedRows = rows
@@ -215,8 +230,8 @@ export class FlashcardsService {
     const errors: { line: number; message: string }[] = [];
 
     // Se o formato novo (com moduloId) está sendo usado, processar diretamente
-    const isNewFormat = normalizedRows.some(r => r.moduloId);
-    
+    const isNewFormat = normalizedRows.some((r) => r.moduloId);
+
     if (isNewFormat) {
       // Formato novo: moduloId já vem do frontend
       for (const row of normalizedRows) {
@@ -229,11 +244,12 @@ export class FlashcardsService {
         }
 
         // Validar se o módulo existe antes de inserir
-        const { data: moduloExists, error: moduloCheckError } = await this.client
-          .from('modulos')
-          .select('id, empresa_id')
-          .eq('id', row.moduloId)
-          .maybeSingle();
+        const { data: moduloExists, error: moduloCheckError } =
+          await this.client
+            .from("modulos")
+            .select("id, empresa_id")
+            .eq("id", row.moduloId)
+            .maybeSingle();
 
         if (moduloCheckError) {
           errors.push({
@@ -251,7 +267,8 @@ export class FlashcardsService {
           continue;
         }
 
-        const moduloEmpresaId = (moduloExists as { empresa_id?: string | null }).empresa_id ?? null;
+        const moduloEmpresaId =
+          (moduloExists as { empresa_id?: string | null }).empresa_id ?? null;
         if (!moduloEmpresaId) {
           errors.push({
             line: row._index,
@@ -260,12 +277,14 @@ export class FlashcardsService {
           continue;
         }
 
-        const { error: insertError } = await this.client.from('flashcards').insert({
-          modulo_id: row.moduloId,
-          empresa_id: moduloEmpresaId,
-          pergunta: row.pergunta,
-          resposta: row.resposta,
-        });
+        const { error: insertError } = await this.client
+          .from("flashcards")
+          .insert({
+            modulo_id: row.moduloId,
+            empresa_id: moduloEmpresaId,
+            pergunta: row.pergunta,
+            resposta: row.resposta,
+          });
 
         if (insertError) {
           errors.push({
@@ -283,8 +302,8 @@ export class FlashcardsService {
 
     // Formato antigo: buscar disciplina, frente e módulo
     const { data: disciplinas, error: discError } = await this.client
-      .from('disciplinas')
-      .select('id, nome');
+      .from("disciplinas")
+      .select("id, nome");
     if (discError) {
       throw new Error(`Erro ao buscar disciplinas: ${discError.message}`);
     }
@@ -295,11 +314,13 @@ export class FlashcardsService {
 
     for (const row of normalizedRows) {
       const disciplinaKey = this.normalizeName(row.disciplina);
-      const disciplina = disciplinaKey ? disciplinaMap.get(disciplinaKey) : null;
+      const disciplina = disciplinaKey
+        ? disciplinaMap.get(disciplinaKey)
+        : null;
       if (!disciplina) {
         errors.push({
           line: row._index,
-          message: `Disciplina não encontrada: ${row.disciplina || '(vazia)'}`,
+          message: `Disciplina não encontrada: ${row.disciplina || "(vazia)"}`,
         });
         continue;
       }
@@ -313,10 +334,10 @@ export class FlashcardsService {
       }
 
       const { data: frentes, error: frenteError } = await this.client
-        .from('frentes')
-        .select('id, nome')
-        .eq('disciplina_id', disciplina.id)
-        .ilike('nome', row.frente);
+        .from("frentes")
+        .select("id, nome")
+        .eq("disciplina_id", disciplina.id)
+        .ilike("nome", row.frente);
 
       if (frenteError) {
         errors.push({
@@ -338,10 +359,10 @@ export class FlashcardsService {
       }
 
       const { data: modulo, error: moduloError } = await this.client
-        .from('modulos')
-        .select('id, empresa_id')
-        .eq('frente_id', frente.id)
-        .eq('numero_modulo', row.moduloNumero ?? 0)
+        .from("modulos")
+        .select("id, empresa_id")
+        .eq("frente_id", frente.id)
+        .eq("numero_modulo", row.moduloNumero ?? 0)
         .maybeSingle();
 
       if (moduloError) {
@@ -360,7 +381,8 @@ export class FlashcardsService {
         continue;
       }
 
-      const moduloEmpresaId = (modulo as { empresa_id?: string | null }).empresa_id ?? null;
+      const moduloEmpresaId =
+        (modulo as { empresa_id?: string | null }).empresa_id ?? null;
       if (!moduloEmpresaId) {
         errors.push({
           line: row._index,
@@ -369,12 +391,14 @@ export class FlashcardsService {
         continue;
       }
 
-      const { error: insertError } = await this.client.from('flashcards').insert({
-        modulo_id: modulo.id,
-        empresa_id: moduloEmpresaId,
-        pergunta: row.pergunta,
-        resposta: row.resposta,
-      });
+      const { error: insertError } = await this.client
+        .from("flashcards")
+        .insert({
+          modulo_id: modulo.id,
+          empresa_id: moduloEmpresaId,
+          pergunta: row.pergunta,
+          resposta: row.resposta,
+        });
 
       if (insertError) {
         errors.push({
@@ -402,15 +426,20 @@ export class FlashcardsService {
   private async fetchProgressMap(alunoId: string, flashcardIds: string[]) {
     if (!flashcardIds.length) return new Map<string, ProgressoFlashcard>();
     const { data, error } = await this.client
-      .from('progresso_flashcards')
-      .select('*')
-      .eq('aluno_id', alunoId)
-      .in('flashcard_id', flashcardIds);
+      .from("progresso_flashcards")
+      .select("*")
+      .eq("aluno_id", alunoId)
+      .in("flashcard_id", flashcardIds);
     if (error) {
-      console.warn('[flashcards] erro ao buscar progresso', error);
+      console.warn("[flashcards] erro ao buscar progresso", error);
       return new Map<string, ProgressoFlashcard>();
     }
-    return new Map((data ?? []).map((p) => [p.flashcard_id as string, p as ProgressoFlashcard]));
+    return new Map(
+      (data ?? []).map((p) => [
+        p.flashcard_id as string,
+        p as ProgressoFlashcard,
+      ]),
+    );
   }
 
   /**
@@ -421,22 +450,22 @@ export class FlashcardsService {
    */
   private async fetchCompletedModuloIds(alunoId: string): Promise<Set<string>> {
     const { data, error } = await this.client
-      .from('progresso_atividades')
-      .select('atividade_id, atividades(modulo_id)')
-      .eq('aluno_id', alunoId)
-      .eq('status', 'Concluido');
+      .from("progresso_atividades")
+      .select("atividade_id, atividades(modulo_id)")
+      .eq("aluno_id", alunoId)
+      .eq("status", "Concluido");
 
     if (error) {
-      console.warn('[flashcards] erro ao buscar módulos concluídos', error);
+      console.warn("[flashcards] erro ao buscar módulos concluídos", error);
       return new Set<string>();
     }
 
     // Type assertion needed: Supabase doesn't infer join types automatically
     // The query joins progresso_atividades with atividades table to get modulo_id
     type ProgressoWithAtividade = {
-      atividade_id: string
-      atividades: { modulo_id: string } | null
-    }
+      atividade_id: string;
+      atividades: { modulo_id: string } | null;
+    };
 
     const moduloIds = new Set<string>();
     for (const row of data ?? []) {
@@ -455,12 +484,12 @@ export class FlashcardsService {
     modo: string,
     filters?: { cursoId?: string; frenteId?: string; moduloId?: string },
     excludeIds?: string[],
-    scope: FlashcardsReviewScope = 'all',
+    scope: FlashcardsReviewScope = "all",
   ): Promise<FlashcardReviewItem[]> {
     const now = new Date();
-    
+
     // Modo personalizado: usar filtros fornecidos
-    if (modo === 'personalizado') {
+    if (modo === "personalizado") {
       if (!filters?.moduloId) {
         return []; // Módulo é obrigatório para modo personalizado
       }
@@ -468,30 +497,32 @@ export class FlashcardsService {
       // Validar que o usuário tem acesso ao curso/frente/módulo
       // 1. Verificar se o módulo pertence a uma frente do curso
       const { data: moduloData, error: moduloError } = await this.client
-        .from('modulos')
-        .select('id, frente_id, curso_id, frentes(id, disciplina_id, curso_id)')
-        .eq('id', filters.moduloId)
+        .from("modulos")
+        .select("id, frente_id, curso_id, frentes(id, disciplina_id, curso_id)")
+        .eq("id", filters.moduloId)
         .maybeSingle();
 
       if (moduloError || !moduloData) {
-        throw new Error(`Módulo não encontrado: ${moduloError?.message || 'Módulo inválido'}`);
+        throw new Error(
+          `Módulo não encontrado: ${moduloError?.message || "Módulo inválido"}`,
+        );
       }
 
       // Type assertion needed: Supabase doesn't infer join types automatically
       // The query joins modulos with frentes table to get frente details
       type ModuloWithFrente = {
-        id: string
-        frente_id: string
-        curso_id: string
-        frentes: { id: string; disciplina_id: string; curso_id: string } | null
-      }
+        id: string;
+        frente_id: string;
+        curso_id: string;
+        frentes: { id: string; disciplina_id: string; curso_id: string } | null;
+      };
       const _typedModulo = moduloData as unknown as ModuloWithFrente;
 
       // 2. Verificar se é professor ou aluno
       const { data: professorData } = await this.client
-        .from('professores')
-        .select('id')
-        .eq('id', alunoId)
+        .from("professores")
+        .select("id")
+        .eq("id", alunoId)
         .maybeSingle();
 
       const isProfessor = !!professorData;
@@ -503,14 +534,14 @@ export class FlashcardsService {
       if (isProfessor) {
         // Professores: verificar se o curso foi criado por eles
         // Para superadmin, vamos permitir acesso a todos (verificação será feita via RLS)
-        const frente = moduloData.frentes as ModuloRow['frentes'];
+        const frente = moduloData.frentes as ModuloRow["frentes"];
         const cursoIdParaVerificar = frente?.curso_id || moduloData.curso_id;
 
         if (cursoIdParaVerificar) {
           const { data: cursoData } = await this.client
-            .from('cursos')
-            .select('id, created_by')
-            .eq('id', cursoIdParaVerificar)
+            .from("cursos")
+            .select("id, created_by")
+            .eq("id", cursoIdParaVerificar)
             .maybeSingle();
 
           // Professor pode acessar se criou o curso (RLS também vai validar)
@@ -521,34 +552,40 @@ export class FlashcardsService {
         }
       } else {
         // Alunos: verificar se estão matriculados no curso
-        const { data: alunosCursos, error: alunosCursosError } = await this.client
-          .from('alunos_cursos')
-          .select('curso_id')
-          .eq('aluno_id', alunoId);
+        const { data: alunosCursos, error: alunosCursosError } =
+          await this.client
+            .from("alunos_cursos")
+            .select("curso_id")
+            .eq("aluno_id", alunoId);
 
         if (alunosCursosError) {
-          throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
+          throw new Error(
+            `Erro ao buscar cursos do aluno: ${alunosCursosError.message}`,
+          );
         }
 
-        cursoIds = alunosCursos?.map((ac: { curso_id: string }) => ac.curso_id) || [];
-        const frente = moduloData.frentes as ModuloRow['frentes'];
+        cursoIds =
+          alunosCursos?.map((ac: { curso_id: string }) => ac.curso_id) || [];
+        const frente = moduloData.frentes as ModuloRow["frentes"];
 
         // Verificar se o módulo pertence a um curso do aluno (via frente ou módulo)
         cursoValido = Boolean(
           (frente?.curso_id && cursoIds.includes(frente.curso_id)) ||
-          (moduloData.curso_id && cursoIds.includes(moduloData.curso_id))
+          (moduloData.curso_id && cursoIds.includes(moduloData.curso_id)),
         );
       }
 
       if (!cursoValido) {
-        throw new Error('Você não tem acesso a este módulo');
+        throw new Error("Você não tem acesso a este módulo");
       }
 
       // Buscar flashcards do módulo
       const { data: flashcards, error: cardsError } = await this.client
-        .from('flashcards')
-        .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)')
-        .eq('modulo_id', filters.moduloId)
+        .from("flashcards")
+        .select(
+          "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)",
+        )
+        .eq("modulo_id", filters.moduloId)
         .limit(this.REVIEW_CANDIDATE_POOL);
 
       if (cardsError) {
@@ -560,8 +597,12 @@ export class FlashcardsService {
         moduloId: c.modulo_id as string,
         pergunta: c.pergunta as string,
         resposta: c.resposta as string,
-        perguntaImagemPath: (c as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null,
-        respostaImagemPath: (c as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null,
+        perguntaImagemPath:
+          (c as unknown as { pergunta_imagem_path?: string | null })
+            .pergunta_imagem_path ?? null,
+        respostaImagemPath:
+          (c as unknown as { resposta_imagem_path?: string | null })
+            .resposta_imagem_path ?? null,
         importancia: Array.isArray(c.modulos)
           ? (c.modulos as ModuloRow[])[0]?.importancia
           : (c.modulos as ModuloRow | undefined)?.importancia,
@@ -590,19 +631,29 @@ export class FlashcardsService {
         const progress = progressMap.get(c.id);
         return {
           ...c,
-          importancia: c.importancia !== null && c.importancia !== undefined ? String(c.importancia) : null,
+          importancia:
+            c.importancia !== null && c.importancia !== undefined
+              ? String(c.importancia)
+              : null,
           dataProximaRevisao: progress?.data_proxima_revisao ?? null,
         };
       });
       const signed = await Promise.all(
         sessionCards.map(async (c) => {
-          const perguntaImagemUrl = await this.createSignedImageUrl((c as unknown as { perguntaImagemPath?: string | null }).perguntaImagemPath ?? null);
-          const respostaImagemUrl = await this.createSignedImageUrl((c as unknown as { respostaImagemPath?: string | null }).respostaImagemPath ?? null);
-          const { perguntaImagemPath, respostaImagemPath, ...rest } = c as unknown as {
-            perguntaImagemPath?: string | null;
-            respostaImagemPath?: string | null;
-            [key: string]: unknown;
-          };
+          const perguntaImagemUrl = await this.createSignedImageUrl(
+            (c as unknown as { perguntaImagemPath?: string | null })
+              .perguntaImagemPath ?? null,
+          );
+          const respostaImagemUrl = await this.createSignedImageUrl(
+            (c as unknown as { respostaImagemPath?: string | null })
+              .respostaImagemPath ?? null,
+          );
+          const { perguntaImagemPath, respostaImagemPath, ...rest } =
+            c as unknown as {
+              perguntaImagemPath?: string | null;
+              respostaImagemPath?: string | null;
+              [key: string]: unknown;
+            };
           return {
             ...(rest as unknown as FlashcardReviewItem),
             perguntaImagemUrl,
@@ -612,164 +663,232 @@ export class FlashcardsService {
       );
       return signed;
     }
-    
+
     // Modos automáticos: buscar cursos do aluno ou professor
     // Verificar se é professor ou aluno
     const { data: professorData } = await this.client
-      .from('professores')
-      .select('id')
-      .eq('id', alunoId)
+      .from("professores")
+      .select("id")
+      .eq("id", alunoId)
       .maybeSingle();
-    
+
     const isProfessor = !!professorData;
     let cursoIds: string[] = [];
-    
+
     if (isProfessor) {
       // Professores: buscar todos os cursos (ou cursos criados por eles)
       console.log(`[flashcards] Usuário é professor, buscando todos os cursos`);
       const { data: todosCursos, error: cursosError } = await this.client
-        .from('cursos')
-        .select('id');
-      
+        .from("cursos")
+        .select("id");
+
       if (cursosError) {
-        console.error('[flashcards] Erro ao buscar cursos do professor:', cursosError);
+        console.error(
+          "[flashcards] Erro ao buscar cursos do professor:",
+          cursosError,
+        );
         throw new Error(`Erro ao buscar cursos: ${cursosError.message}`);
       }
-      
+
       cursoIds = (todosCursos ?? []).map((c: CursoRow) => c.id);
-      console.log(`[flashcards] Professor tem acesso a ${cursoIds.length} cursos`);
+      console.log(
+        `[flashcards] Professor tem acesso a ${cursoIds.length} cursos`,
+      );
     } else {
       // Alunos: buscar cursos matriculados
       console.log(`[flashcards] Usuário é aluno, buscando cursos matriculados`);
       const { data: alunosCursos, error: alunosCursosError } = await this.client
-        .from('alunos_cursos')
-        .select('curso_id')
-        .eq('aluno_id', alunoId);
-      
+        .from("alunos_cursos")
+        .select("curso_id")
+        .eq("aluno_id", alunoId);
+
       if (alunosCursosError) {
-        throw new Error(`Erro ao buscar cursos do aluno: ${alunosCursosError.message}`);
+        throw new Error(
+          `Erro ao buscar cursos do aluno: ${alunosCursosError.message}`,
+        );
       }
-      
+
       if (!alunosCursos || alunosCursos.length === 0) {
         console.warn(`[flashcards] Aluno sem cursos matriculados`);
         return []; // Aluno sem cursos matriculados
       }
-      
+
       cursoIds = alunosCursos.map((ac: { curso_id: string }) => ac.curso_id);
-      console.log(`[flashcards] Aluno matriculado em ${cursoIds.length} cursos`);
+      console.log(
+        `[flashcards] Aluno matriculado em ${cursoIds.length} cursos`,
+      );
     }
-    
+
     if (cursoIds.length === 0) {
       console.warn(`[flashcards] Nenhum curso encontrado para o usuário`);
       return [];
     }
-    
+
     // 2. Buscar disciplinas dos cursos
     const { data: cursosDisciplinas, error: cdError } = await this.client
-      .from('cursos_disciplinas')
-      .select('disciplina_id')
-      .in('curso_id', cursoIds);
-    
+      .from("cursos_disciplinas")
+      .select("disciplina_id")
+      .in("curso_id", cursoIds);
+
     if (cdError) {
       throw new Error(`Erro ao buscar disciplinas: ${cdError.message}`);
     }
-    
+
     if (!cursosDisciplinas || cursosDisciplinas.length === 0) {
       return []; // Cursos sem disciplinas
     }
-    
-    const disciplinaIds = [...new Set(cursosDisciplinas.map((cd: { disciplina_id: string }) => cd.disciplina_id))];
-    
+
+    const disciplinaIds = [
+      ...new Set(
+        cursosDisciplinas.map(
+          (cd: { disciplina_id: string }) => cd.disciplina_id,
+        ),
+      ),
+    ];
+
     // 3. Buscar frentes das disciplinas (que pertencem aos cursos)
     // Regra importante:
     // - Alunos: SOMENTE frentes vinculadas aos cursos em que estão matriculados (curso_id != null e pertence ao aluno)
     // - Professores/superadmin: podem ver também frentes "globais" (curso_id is null)
     const { data: frentesData, error: frentesError } = await this.client
-      .from('frentes')
-      .select('id')
-      .in('disciplina_id', disciplinaIds)
+      .from("frentes")
+      .select("id")
+      .in("disciplina_id", disciplinaIds)
       .or(
         isProfessor
-          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') +
-              (cursoIds.length > 0 ? ',' : '') +
-              'curso_id.is.null'
-          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(','),
+          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(",") +
+              (cursoIds.length > 0 ? "," : "") +
+              "curso_id.is.null"
+          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(","),
       );
-    
+
     if (frentesError) {
       throw new Error(`Erro ao buscar frentes: ${frentesError.message}`);
     }
-    
+
     if (!frentesData || frentesData.length === 0) {
       return []; // Sem frentes
     }
-    
+
     const frenteIds = frentesData.map((f: { id: string }) => f.id);
-    
+
     // 4. Buscar módulos das frentes (considerando curso)
     let moduloIds: string[] = [];
 
-    if (modo === 'mais_cobrados') {
+    if (modo === "mais_cobrados") {
       // Para "mais_cobrados", buscar módulos com importancia = 'Alta'
-      console.log(`[flashcards] Modo "mais_cobrados": buscando módulos com importancia = 'Alta'`);
-      console.log(`[flashcards] Frente IDs: ${frenteIds.length}, Curso IDs: ${cursoIds.length}`);
-      
+      console.log(
+        `[flashcards] Modo "mais_cobrados": buscando módulos com importancia = 'Alta'`,
+      );
+      console.log(
+        `[flashcards] Frente IDs: ${frenteIds.length}, Curso IDs: ${cursoIds.length}`,
+      );
+
       // Buscar todos os módulos das frentes com importancia = 'Alta'
       // Usar uma abordagem mais simples: buscar todos e filtrar no código se necessário
       const { data: todosModulos, error: todosModulosError } = await this.client
-        .from('modulos')
-        .select('id, importancia, frente_id, curso_id')
-        .in('frente_id', frenteIds)
-        .eq('importancia', 'Alta');
-      
+        .from("modulos")
+        .select("id, importancia, frente_id, curso_id")
+        .in("frente_id", frenteIds)
+        .eq("importancia", "Alta");
+
       if (todosModulosError) {
-        console.error('[flashcards] Erro ao buscar módulos prioritários:', todosModulosError);
-        console.error('[flashcards] Detalhes do erro:', JSON.stringify(todosModulosError, null, 2));
-        throw new Error(`Erro ao buscar módulos prioritários: ${todosModulosError.message}`);
+        console.error(
+          "[flashcards] Erro ao buscar módulos prioritários:",
+          todosModulosError,
+        );
+        console.error(
+          "[flashcards] Detalhes do erro:",
+          JSON.stringify(todosModulosError, null, 2),
+        );
+        throw new Error(
+          `Erro ao buscar módulos prioritários: ${todosModulosError.message}`,
+        );
       }
-      
+
       // Filtrar módulos que pertencem aos cursos do usuário.
       // - Alunos: curso_id DEVE pertencer aos cursos do aluno (sem globais)
       // - Professores: permitir também módulos globais (curso_id null)
-      const modulosFiltrados = (todosModulos ?? []).filter((m: { id: string; curso_id: string | null; importancia: string | null }) => {
-        if (!m.curso_id) return isProfessor; // Módulos globais apenas para professor
-        return cursoIds.includes(m.curso_id);
-      });
-      
-      console.log(`[flashcards] Modo "mais_cobrados": encontrados ${modulosFiltrados.length} módulos com importancia = 'Alta' (de ${todosModulos?.length ?? 0} total)`);
+      const modulosFiltrados = (todosModulos ?? []).filter(
+        (m: {
+          id: string;
+          curso_id: string | null;
+          importancia: string | null;
+        }) => {
+          if (!m.curso_id) return isProfessor; // Módulos globais apenas para professor
+          return cursoIds.includes(m.curso_id);
+        },
+      );
+
+      console.log(
+        `[flashcards] Modo "mais_cobrados": encontrados ${modulosFiltrados.length} módulos com importancia = 'Alta' (de ${todosModulos?.length ?? 0} total)`,
+      );
       if (modulosFiltrados.length > 0) {
-        console.log(`[flashcards] Primeiros módulos encontrados:`, modulosFiltrados.slice(0, 3).map((m: { id: string; importancia: string | null; curso_id: string | null }) => ({ id: m.id, importancia: m.importancia, curso_id: m.curso_id })));
+        console.log(
+          `[flashcards] Primeiros módulos encontrados:`,
+          modulosFiltrados
+            .slice(0, 3)
+            .map(
+              (m: {
+                id: string;
+                importancia: string | null;
+                curso_id: string | null;
+              }) => ({
+                id: m.id,
+                importancia: m.importancia,
+                curso_id: m.curso_id,
+              }),
+            ),
+        );
       }
       moduloIds = modulosFiltrados.map((m: { id: string }) => m.id);
-      
+
       if (moduloIds.length === 0) {
-        console.warn('[flashcards] Nenhum módulo com importancia = "Alta" encontrado para os cursos do aluno');
-        console.warn(`[flashcards] Frente IDs usados: ${frenteIds.join(', ')}`);
-        console.warn(`[flashcards] Curso IDs usados: ${cursoIds.join(', ')}`);
-        console.warn(`[flashcards] Total de módulos encontrados (antes do filtro): ${todosModulos?.length ?? 0}`);
+        console.warn(
+          '[flashcards] Nenhum módulo com importancia = "Alta" encontrado para os cursos do aluno',
+        );
+        console.warn(`[flashcards] Frente IDs usados: ${frenteIds.join(", ")}`);
+        console.warn(`[flashcards] Curso IDs usados: ${cursoIds.join(", ")}`);
+        console.warn(
+          `[flashcards] Total de módulos encontrados (antes do filtro): ${todosModulos?.length ?? 0}`,
+        );
       }
-    } else if (modo === 'conteudos_basicos') {
+    } else if (modo === "conteudos_basicos") {
       // Para "conteudos_basicos", buscar módulos com importancia = 'Base'
-      console.log(`[flashcards] Modo "conteudos_basicos": buscando módulos com importancia = 'Base'`);
-      console.log(`[flashcards] Frente IDs: ${frenteIds.length}, Curso IDs: ${cursoIds.length}`);
+      console.log(
+        `[flashcards] Modo "conteudos_basicos": buscando módulos com importancia = 'Base'`,
+      );
+      console.log(
+        `[flashcards] Frente IDs: ${frenteIds.length}, Curso IDs: ${cursoIds.length}`,
+      );
 
       const { data: todosModulos, error: todosModulosError } = await this.client
-        .from('modulos')
-        .select('id, importancia, frente_id, curso_id')
-        .in('frente_id', frenteIds)
-        .eq('importancia', 'Base');
+        .from("modulos")
+        .select("id, importancia, frente_id, curso_id")
+        .in("frente_id", frenteIds)
+        .eq("importancia", "Base");
 
       if (todosModulosError) {
-        console.error('[flashcards] Erro ao buscar módulos básicos:', todosModulosError);
-        console.error('[flashcards] Detalhes do erro:', JSON.stringify(todosModulosError, null, 2));
-        throw new Error(`Erro ao buscar módulos básicos: ${todosModulosError.message}`);
+        console.error(
+          "[flashcards] Erro ao buscar módulos básicos:",
+          todosModulosError,
+        );
+        console.error(
+          "[flashcards] Detalhes do erro:",
+          JSON.stringify(todosModulosError, null, 2),
+        );
+        throw new Error(
+          `Erro ao buscar módulos básicos: ${todosModulosError.message}`,
+        );
       }
 
-      const modulosFiltrados = (todosModulos ?? []).filter((m: { id: string; curso_id: string | null }) => {
-        // Alunos: sem globais. Professores: globais ok.
-        if (!m.curso_id) return isProfessor;
-        return cursoIds.includes(m.curso_id);
-      });
+      const modulosFiltrados = (todosModulos ?? []).filter(
+        (m: { id: string; curso_id: string | null }) => {
+          // Alunos: sem globais. Professores: globais ok.
+          if (!m.curso_id) return isProfessor;
+          return cursoIds.includes(m.curso_id);
+        },
+      );
 
       console.log(
         `[flashcards] Modo "conteudos_basicos": encontrados ${modulosFiltrados.length} módulos com importancia = 'Base' (de ${todosModulos?.length ?? 0} total)`,
@@ -778,134 +897,178 @@ export class FlashcardsService {
       moduloIds = modulosFiltrados.map((m: { id: string }) => m.id);
 
       if (moduloIds.length === 0) {
-        console.warn('[flashcards] Nenhum módulo com importancia = "Base" encontrado para os cursos do usuário');
+        console.warn(
+          '[flashcards] Nenhum módulo com importancia = "Base" encontrado para os cursos do usuário',
+        );
       }
-    } else if (modo === 'mais_errados') {
-      console.log(`[flashcards] Modo "mais_errados": buscando flashcards com feedback baixo`);
-      
+    } else if (modo === "mais_errados") {
+      console.log(
+        `[flashcards] Modo "mais_errados": buscando flashcards com feedback baixo`,
+      );
+
       // Buscar flashcards com feedback baixo (1 = Errei, 2 = Parcial, 3 = Dificil)
       // Primeiro, buscar todos os módulos das frentes do aluno/professor
       let modulosQuery = this.client
-        .from('modulos')
-        .select('id, importancia, frente_id, curso_id')
-        .in('frente_id', frenteIds);
-      
+        .from("modulos")
+        .select("id, importancia, frente_id, curso_id")
+        .in("frente_id", frenteIds);
+
       // Alunos: apenas módulos dos cursos do aluno (sem globais). Professores: incluir globais.
       if (cursoIds.length > 0) {
         const orCondition = isProfessor
-          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null'
-          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',');
+          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(",") +
+            ",curso_id.is.null"
+          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(",");
         modulosQuery = modulosQuery.or(orCondition);
       }
-      
+
       const { data: todosModulos, error: modulosError } = await modulosQuery;
       if (modulosError) {
         throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
       }
-      
-      const todosModuloIds = (todosModulos ?? []).map((m: { id: string }) => m.id);
-      console.log(`[flashcards] Modo "mais_errados": encontrados ${todosModuloIds.length} módulos totais`);
-      
+
+      const todosModuloIds = (todosModulos ?? []).map(
+        (m: { id: string }) => m.id,
+      );
+      console.log(
+        `[flashcards] Modo "mais_errados": encontrados ${todosModuloIds.length} módulos totais`,
+      );
+
       if (todosModuloIds.length === 0) {
-        console.warn(`[flashcards] Nenhum módulo encontrado para buscar flashcards`);
+        console.warn(
+          `[flashcards] Nenhum módulo encontrado para buscar flashcards`,
+        );
         moduloIds = [];
       } else {
         // Buscar flashcards desses módulos que têm feedback baixo
-        const { data: progressosFlashcards, error: progFlashError } = await this.client
-          .from('progresso_flashcards')
-          .select('flashcard_id, ultimo_feedback')
-          .eq('aluno_id', alunoId)
-          .in('ultimo_feedback', [1, 2, 3]); // 1=Errei, 2=Parcial, 3=Dificil
-        
+        const { data: progressosFlashcards, error: progFlashError } =
+          await this.client
+            .from("progresso_flashcards")
+            .select("flashcard_id, ultimo_feedback")
+            .eq("aluno_id", alunoId)
+            .in("ultimo_feedback", [1, 2, 3]); // 1=Errei, 2=Parcial, 3=Dificil
+
         if (progFlashError) {
-          console.error('[flashcards] Erro ao buscar progresso de flashcards:', progFlashError);
-          throw new Error(`Erro ao buscar progresso de flashcards: ${progFlashError.message}`);
+          console.error(
+            "[flashcards] Erro ao buscar progresso de flashcards:",
+            progFlashError,
+          );
+          throw new Error(
+            `Erro ao buscar progresso de flashcards: ${progFlashError.message}`,
+          );
         }
-        
+
         const flashcardIdsComErro = (progressosFlashcards ?? [])
-          .filter((p) => p.ultimo_feedback === 1 || p.ultimo_feedback === 2 || p.ultimo_feedback === 3)
+          .filter(
+            (p) =>
+              p.ultimo_feedback === 1 ||
+              p.ultimo_feedback === 2 ||
+              p.ultimo_feedback === 3,
+          )
           .map((p) => p.flashcard_id as string);
-        
-        console.log(`[flashcards] Modo "mais_errados": encontrados ${flashcardIdsComErro.length} flashcards com feedback baixo`);
-        
+
+        console.log(
+          `[flashcards] Modo "mais_errados": encontrados ${flashcardIdsComErro.length} flashcards com feedback baixo`,
+        );
+
         if (flashcardIdsComErro.length > 0) {
           // Buscar módulos desses flashcards
           const { data: flashcards, error: cardsError } = await this.client
-            .from('flashcards')
-            .select('id, modulo_id')
-            .in('id', flashcardIdsComErro);
-          
+            .from("flashcards")
+            .select("id, modulo_id")
+            .in("id", flashcardIdsComErro);
+
           if (cardsError) {
             throw new Error(`Erro ao buscar flashcards: ${cardsError.message}`);
           }
-          
+
           const moduloIdsDosFlashcards = Array.from(
-            new Set((flashcards ?? []).map((f: { modulo_id: string | null }) => f.modulo_id).filter((id): id is string => Boolean(id)))
+            new Set(
+              (flashcards ?? [])
+                .map((f: { modulo_id: string | null }) => f.modulo_id)
+                .filter((id): id is string => Boolean(id)),
+            ),
           );
-          
+
           // Filtrar apenas módulos que estão nas frentes do aluno/professor
-          moduloIds = moduloIdsDosFlashcards.filter((id) => todosModuloIds.includes(id));
-          console.log(`[flashcards] Modo "mais_errados": ${moduloIds.length} módulos com flashcards com erro`);
+          moduloIds = moduloIdsDosFlashcards.filter((id) =>
+            todosModuloIds.includes(id),
+          );
+          console.log(
+            `[flashcards] Modo "mais_errados": ${moduloIds.length} módulos com flashcards com erro`,
+          );
         } else {
           // Se não houver flashcards com erro, usar todos os módulos (fallback)
-          console.log(`[flashcards] Modo "mais_errados": nenhum flashcard com erro encontrado, usando todos os módulos`);
+          console.log(
+            `[flashcards] Modo "mais_errados": nenhum flashcard com erro encontrado, usando todos os módulos`,
+          );
           moduloIds = todosModuloIds;
         }
       }
     } else {
       // Modo revisao_geral ou outros: buscar todos os módulos das frentes do aluno
       let modulosQuery = this.client
-        .from('modulos')
-        .select('id, importancia, frente_id, curso_id')
-        .in('frente_id', frenteIds);
-      
+        .from("modulos")
+        .select("id, importancia, frente_id, curso_id")
+        .in("frente_id", frenteIds);
+
       // Alunos: apenas módulos dos cursos do aluno (sem globais). Professores: incluir globais.
       if (cursoIds.length > 0) {
         const orCondition = isProfessor
-          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',') + ',curso_id.is.null'
-          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(',');
+          ? cursoIds.map((cid) => `curso_id.eq.${cid}`).join(",") +
+            ",curso_id.is.null"
+          : cursoIds.map((cid) => `curso_id.eq.${cid}`).join(",");
         modulosQuery = modulosQuery.or(orCondition);
       }
-      
+
       const { data: modulosData, error: modulosError } = await modulosQuery;
       if (modulosError) {
         throw new Error(`Erro ao buscar módulos: ${modulosError.message}`);
       }
       moduloIds = (modulosData ?? []).map((m: { id: string }) => m.id);
-      
+
       // Modo revisao_geral: buscar módulos de flashcards já vistos OU módulos com atividades concluídas
-      if (modo === 'revisao_geral') {
+      if (modo === "revisao_geral") {
         // 1. Buscar flashcards já vistos
         const { data: progFlash, error: progFlashError } = await this.client
-          .from('progresso_flashcards')
-          .select('flashcard_id')
-          .eq('aluno_id', alunoId);
+          .from("progresso_flashcards")
+          .select("flashcard_id")
+          .eq("aluno_id", alunoId);
         if (progFlashError) {
-          console.warn('[flashcards] erro ao buscar progresso para revisao_geral', progFlashError);
+          console.warn(
+            "[flashcards] erro ao buscar progresso para revisao_geral",
+            progFlashError,
+          );
         }
-        const flashcardIdsVistos = (progFlash ?? []).map((p) => p.flashcard_id as string);
+        const flashcardIdsVistos = (progFlash ?? []).map(
+          (p) => p.flashcard_id as string,
+        );
         let moduloIdsVisited: string[] = [];
         if (flashcardIdsVistos.length) {
           const { data: cardsVisitados } = await this.client
-            .from('flashcards')
-            .select('id, modulo_id')
-            .in('id', flashcardIdsVistos);
+            .from("flashcards")
+            .select("id, modulo_id")
+            .in("id", flashcardIdsVistos);
           moduloIdsVisited = Array.from(
             new Set((cardsVisitados ?? []).map((c) => c.modulo_id as string)),
           );
         }
-        
+
         // 2. Buscar módulos com atividades concluídas
-        const { data: atividadesConcluidas, error: atividadesError } = await this.client
-          .from('progresso_atividades')
-          .select('atividade_id, atividades(modulo_id)')
-          .eq('aluno_id', alunoId)
-          .eq('status', 'Concluido');
-        
+        const { data: atividadesConcluidas, error: atividadesError } =
+          await this.client
+            .from("progresso_atividades")
+            .select("atividade_id, atividades(modulo_id)")
+            .eq("aluno_id", alunoId)
+            .eq("status", "Concluido");
+
         if (atividadesError) {
-          console.warn('[flashcards] erro ao buscar atividades concluídas para revisao_geral', atividadesError);
+          console.warn(
+            "[flashcards] erro ao buscar atividades concluídas para revisao_geral",
+            atividadesError,
+          );
         }
-        
+
         interface AtividadeRow {
           atividade_id: string | null;
           atividades: { modulo_id?: string | null } | null;
@@ -918,19 +1081,21 @@ export class FlashcardsService {
                 const atividades = a.atividades;
                 return atividades?.modulo_id;
               })
-              .filter((id): id is string => Boolean(id))
-          )
+              .filter((id): id is string => Boolean(id)),
+          ),
         );
-        
+
         // 3. Combinar módulos de flashcards vistos + módulos com atividades concluídas
         const moduloIdsCombinados = Array.from(
-          new Set([...moduloIdsVisited, ...moduloIdsConcluidos])
+          new Set([...moduloIdsVisited, ...moduloIdsConcluidos]),
         );
-        
+
         // 4. Se houver módulos combinados, filtrar apenas esses. Caso contrário, usar todos os módulos já buscados
         if (moduloIdsCombinados.length > 0) {
           // Filtrar apenas os módulos que estão nas frentes do aluno E foram visitados/concluídos
-          moduloIds = moduloIds.filter((id) => moduloIdsCombinados.includes(id));
+          moduloIds = moduloIds.filter((id) =>
+            moduloIdsCombinados.includes(id),
+          );
         }
         // Se moduloIdsCombinados estiver vazio, usar todos os módulos já buscados (moduloIds permanece como está)
       }
@@ -942,40 +1107,54 @@ export class FlashcardsService {
     }
 
     // Aplicar filtro por escopo (apenas para alunos; professor não tem noção de "módulo concluído")
-    if (scope === 'completed' && !isProfessor && modo !== 'personalizado') {
+    if (scope === "completed" && !isProfessor && modo !== "personalizado") {
       const completed = await this.fetchCompletedModuloIds(alunoId);
       if (completed.size === 0) {
-        console.log('[flashcards] scope=completed: aluno sem módulos concluídos');
+        console.log(
+          "[flashcards] scope=completed: aluno sem módulos concluídos",
+        );
         return [];
       }
       const before = moduloIds.length;
       moduloIds = moduloIds.filter((id) => completed.has(id));
-      console.log(`[flashcards] scope=completed: módulos filtrados ${before} -> ${moduloIds.length}`);
+      console.log(
+        `[flashcards] scope=completed: módulos filtrados ${before} -> ${moduloIds.length}`,
+      );
       if (moduloIds.length === 0) {
         return [];
       }
     }
 
-    console.log(`[flashcards] Buscando flashcards para ${moduloIds.length} módulos (modo: ${modo})`);
+    console.log(
+      `[flashcards] Buscando flashcards para ${moduloIds.length} módulos (modo: ${modo})`,
+    );
     const { data: flashcards, error: cardsError } = await this.client
-      .from('flashcards')
-      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)')
-      .in('modulo_id', moduloIds)
+      .from("flashcards")
+      .select(
+        "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)",
+      )
+      .in("modulo_id", moduloIds)
       .limit(this.REVIEW_CANDIDATE_POOL);
 
     if (cardsError) {
-      console.error('[flashcards] Erro ao buscar flashcards:', cardsError);
+      console.error("[flashcards] Erro ao buscar flashcards:", cardsError);
       throw new Error(`Erro ao buscar flashcards: ${cardsError.message}`);
     }
 
-    console.log(`[flashcards] Encontrados ${flashcards?.length ?? 0} flashcards`);
+    console.log(
+      `[flashcards] Encontrados ${flashcards?.length ?? 0} flashcards`,
+    );
     const cards = (flashcards ?? []).map((c) => ({
       id: c.id as string,
       moduloId: c.modulo_id as string,
       pergunta: c.pergunta as string,
       resposta: c.resposta as string,
-      perguntaImagemPath: (c as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null,
-      respostaImagemPath: (c as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null,
+      perguntaImagemPath:
+        (c as unknown as { pergunta_imagem_path?: string | null })
+          .pergunta_imagem_path ?? null,
+      respostaImagemPath:
+        (c as unknown as { resposta_imagem_path?: string | null })
+          .resposta_imagem_path ?? null,
       importancia: Array.isArray(c.modulos)
         ? (c.modulos as ModuloRow[])[0]?.importancia
         : (c.modulos as ModuloRow | undefined)?.importancia,
@@ -987,7 +1166,7 @@ export class FlashcardsService {
     );
 
     // Para modo "mais_errados" (UTI), aplicar distribuição ponderada
-    if (modo === 'mais_errados') {
+    if (modo === "mais_errados") {
       // Separar cards por feedback
       const cardsPorFeedback: { [key: number]: typeof cards } = {
         1: [], // Errei
@@ -1020,7 +1199,7 @@ export class FlashcardsService {
 
       // Distribuição: 5 Errei, 3 Parcial, 2 Dificil
       const selecionados: typeof cards = [];
-      
+
       // Embaralhar cada grupo
       const erreiShuffled = this.shuffle(cardsPorFeedback[1]);
       const parcialShuffled = this.shuffle(cardsPorFeedback[2]);
@@ -1028,10 +1207,10 @@ export class FlashcardsService {
 
       // Adicionar 5 de "Errei"
       selecionados.push(...erreiShuffled.slice(0, 5));
-      
+
       // Adicionar 3 de "Parcial"
       selecionados.push(...parcialShuffled.slice(0, 3));
-      
+
       // Adicionar 2 de "Dificil"
       selecionados.push(...dificilShuffled.slice(0, 2));
 
@@ -1048,7 +1227,9 @@ export class FlashcardsService {
         });
 
         const idsSelecionados = new Set(selecionados.map((c) => c.id));
-        const cardsDisponiveis = cardsNovos.filter((c) => !idsSelecionados.has(c.id));
+        const cardsDisponiveis = cardsNovos.filter(
+          (c) => !idsSelecionados.has(c.id),
+        );
         const shuffledNovos = this.shuffle(cardsDisponiveis);
         selecionados.push(...shuffledNovos.slice(0, 10 - selecionados.length));
       }
@@ -1059,19 +1240,29 @@ export class FlashcardsService {
         const progress = progressMap.get(c.id);
         return {
           ...c,
-          importancia: c.importancia !== null && c.importancia !== undefined ? String(c.importancia) : null,
+          importancia:
+            c.importancia !== null && c.importancia !== undefined
+              ? String(c.importancia)
+              : null,
           dataProximaRevisao: progress?.data_proxima_revisao ?? null,
         };
       });
       const signed = await Promise.all(
         sessionCards.map(async (c) => {
-          const perguntaImagemUrl = await this.createSignedImageUrl((c as unknown as { perguntaImagemPath?: string | null }).perguntaImagemPath ?? null);
-          const respostaImagemUrl = await this.createSignedImageUrl((c as unknown as { respostaImagemPath?: string | null }).respostaImagemPath ?? null);
-          const { perguntaImagemPath, respostaImagemPath, ...rest } = c as unknown as {
-            perguntaImagemPath?: string | null;
-            respostaImagemPath?: string | null;
-            [key: string]: unknown;
-          };
+          const perguntaImagemUrl = await this.createSignedImageUrl(
+            (c as unknown as { perguntaImagemPath?: string | null })
+              .perguntaImagemPath ?? null,
+          );
+          const respostaImagemUrl = await this.createSignedImageUrl(
+            (c as unknown as { respostaImagemPath?: string | null })
+              .respostaImagemPath ?? null,
+          );
+          const { perguntaImagemPath, respostaImagemPath, ...rest } =
+            c as unknown as {
+              perguntaImagemPath?: string | null;
+              respostaImagemPath?: string | null;
+              [key: string]: unknown;
+            };
           return {
             ...(rest as unknown as FlashcardReviewItem),
             perguntaImagemUrl,
@@ -1097,21 +1288,36 @@ export class FlashcardsService {
       return !nextDate || nextDate <= now;
     });
 
-    console.log(`[flashcards] Modo "${modo}": ${dueCards.length} flashcards "due" de ${cards.length} total`);
+    console.log(
+      `[flashcards] Modo "${modo}": ${dueCards.length} flashcards "due" de ${cards.length} total`,
+    );
     const shuffled = this.shuffle(dueCards);
     const sessionCards = shuffled.slice(0, 10).map((c) => {
       const progress = progressMap.get(c.id);
       return {
         ...c,
-        importancia: c.importancia !== null && c.importancia !== undefined ? String(c.importancia) : null,
+        importancia:
+          c.importancia !== null && c.importancia !== undefined
+            ? String(c.importancia)
+            : null,
         dataProximaRevisao: progress?.data_proxima_revisao ?? null,
       };
     });
     const signed = await Promise.all(
       sessionCards.map(async (c) => {
-        const perguntaImagemUrl = await this.createSignedImageUrl((c as unknown as { perguntaImagemPath?: string | null }).perguntaImagemPath ?? null);
-        const respostaImagemUrl = await this.createSignedImageUrl((c as unknown as { respostaImagemPath?: string | null }).respostaImagemPath ?? null);
-        const { perguntaImagemPath, respostaImagemPath, ...rest } = c as unknown as {
+        const perguntaImagemUrl = await this.createSignedImageUrl(
+          (c as unknown as { perguntaImagemPath?: string | null })
+            .perguntaImagemPath ?? null,
+        );
+        const respostaImagemUrl = await this.createSignedImageUrl(
+          (c as unknown as { respostaImagemPath?: string | null })
+            .respostaImagemPath ?? null,
+        );
+        const {
+          perguntaImagemPath: _p,
+          respostaImagemPath: _r,
+          ...rest
+        } = c as unknown as {
           perguntaImagemPath?: string | null;
           respostaImagemPath?: string | null;
           [key: string]: unknown;
@@ -1123,19 +1329,21 @@ export class FlashcardsService {
         };
       }),
     );
-    console.log(`[flashcards] Retornando ${signed.length} flashcards para revisão`);
+    console.log(
+      `[flashcards] Retornando ${signed.length} flashcards para revisão`,
+    );
     return signed;
   }
 
   /**
    * Registra feedback do aluno sobre um flashcard
-   * 
+   *
    * Valores de feedback:
    * 1 = Errei o item
    * 2 = Acertei parcialmente
    * 3 = Acertei com dificuldade
    * 4 = Acertei com facilidade
-   * 
+   *
    * Esses feedbacks serão usados para alimentar os algoritmos de:
    * - Mais Cobrados
    * - Revisão Geral
@@ -1143,18 +1351,20 @@ export class FlashcardsService {
    */
   async sendFeedback(alunoId: string, cardId: string, feedback: number) {
     if (!isValidFeedback(feedback)) {
-      throw new Error('Feedback inválido. Use 1, 2, 3 ou 4.');
+      throw new Error("Feedback inválido. Use 1, 2, 3 ou 4.");
     }
 
     const { data: existing, error } = await this.client
-      .from('progresso_flashcards')
-      .select('*')
-      .eq('aluno_id', alunoId)
-      .eq('flashcard_id', cardId)
+      .from("progresso_flashcards")
+      .select("*")
+      .eq("aluno_id", alunoId)
+      .eq("flashcard_id", cardId)
       .maybeSingle();
 
     if (error) {
-      throw new Error(`Erro ao buscar progresso do flashcard: ${error.message}`);
+      throw new Error(
+        `Erro ao buscar progresso do flashcard: ${error.message}`,
+      );
     }
 
     // Usar algoritmo SRS para calcular próxima revisão
@@ -1179,9 +1389,9 @@ export class FlashcardsService {
     };
 
     const { data: upserted, error: upsertError } = await this.client
-      .from('progresso_flashcards')
-      .upsert(payload, { onConflict: 'aluno_id,flashcard_id' })
-      .select('*')
+      .from("progresso_flashcards")
+      .upsert(payload, { onConflict: "aluno_id,flashcard_id" })
+      .select("*")
       .maybeSingle();
 
     if (upsertError) {
@@ -1191,34 +1401,44 @@ export class FlashcardsService {
     return upserted;
   }
 
-  async listAll(filters: ListFlashcardsFilters = {}, userId: string): Promise<{
+  async listAll(
+    filters: ListFlashcardsFilters = {},
+    userId: string,
+  ): Promise<{
     data: FlashcardAdmin[];
     total: number;
   }> {
-    console.log('[flashcards] listAll chamado com filtros:', JSON.stringify(filters, null, 2));
-    console.log('[flashcards] userId:', userId);
-    
+    console.log(
+      "[flashcards] listAll chamado com filtros:",
+      JSON.stringify(filters, null, 2),
+    );
+    console.log("[flashcards] userId:", userId);
+
     await this.ensureProfessor(userId);
 
     // Não cachear se houver busca por texto (resultados podem variar)
     const hasSearch = !!filters.search;
-    
+
     // Criar chave de cache baseada nos filtros (sem search)
     if (!hasSearch) {
-      const cacheKeyParts = ['cache:flashcards'];
-      if (filters.disciplinaId) cacheKeyParts.push(`disciplina:${filters.disciplinaId}`);
+      const cacheKeyParts = ["cache:flashcards"];
+      if (filters.disciplinaId)
+        cacheKeyParts.push(`disciplina:${filters.disciplinaId}`);
       if (filters.frenteId) cacheKeyParts.push(`frente:${filters.frenteId}`);
       if (filters.moduloId) cacheKeyParts.push(`modulo:${filters.moduloId}`);
       const page = filters.page || 1;
       const limit = filters.limit || 50;
       cacheKeyParts.push(`page:${page}`, `limit:${limit}`);
-      const orderBy = filters.orderBy || 'created_at';
-      const orderDirection = filters.orderDirection || 'desc';
+      const orderBy = filters.orderBy || "created_at";
+      const orderDirection = filters.orderDirection || "desc";
       cacheKeyParts.push(`order:${orderBy}:${orderDirection}`);
-      
-      const cacheKey = cacheKeyParts.join(':');
-      
-      const cached = await cacheService.get<{ data: FlashcardAdmin[]; total: number }>(cacheKey);
+
+      const cacheKey = cacheKeyParts.join(":");
+
+      const cached = await cacheService.get<{
+        data: FlashcardAdmin[];
+        total: number;
+      }>(cacheKey);
       if (cached !== null) {
         return cached;
       }
@@ -1226,87 +1446,106 @@ export class FlashcardsService {
 
     // Primeiro, buscar módulos filtrados se necessário
     let moduloIds: string[] | null = null;
-    
+
     if (filters.moduloId) {
       moduloIds = [filters.moduloId];
     } else if (filters.frenteId) {
-      console.log('[flashcards] Buscando módulos da frente:', filters.frenteId);
-      
+      console.log("[flashcards] Buscando módulos da frente:", filters.frenteId);
+
       const { data: modulosData, error: modulosError } = await this.client
-        .from('modulos')
-        .select('id')
-        .eq('frente_id', filters.frenteId);
-      
+        .from("modulos")
+        .select("id")
+        .eq("frente_id", filters.frenteId);
+
       if (modulosError) {
-        console.error('[flashcards] Erro completo ao buscar módulos da frente:', JSON.stringify(modulosError, null, 2));
+        console.error(
+          "[flashcards] Erro completo ao buscar módulos da frente:",
+          JSON.stringify(modulosError, null, 2),
+        );
         const errorMsg = formatSupabaseError(modulosError);
-        console.error('[flashcards] Erro formatado:', errorMsg);
+        console.error("[flashcards] Erro formatado:", errorMsg);
         throw new Error(`Erro ao buscar módulos da frente: ${errorMsg}`);
       }
-      
-      console.log('[flashcards] Módulos encontrados:', modulosData?.length || 0);
+
+      console.log(
+        "[flashcards] Módulos encontrados:",
+        modulosData?.length || 0,
+      );
       moduloIds = modulosData?.map((m) => m.id as string) || [];
-      console.log('[flashcards] IDs dos módulos:', moduloIds);
-      
+      console.log("[flashcards] IDs dos módulos:", moduloIds);
+
       if (moduloIds.length === 0) {
         // Frente sem módulos - retornar vazio
-        console.log('[flashcards] Frente sem módulos, retornando vazio');
+        console.log("[flashcards] Frente sem módulos, retornando vazio");
         return { data: [], total: 0 };
       }
     } else if (filters.disciplinaId) {
       // Buscar frentes da disciplina
       const { data: frentesData, error: frentesError } = await this.client
-        .from('frentes')
-        .select('id')
-        .eq('disciplina_id', filters.disciplinaId);
-      
+        .from("frentes")
+        .select("id")
+        .eq("disciplina_id", filters.disciplinaId);
+
       if (frentesError) {
-        throw new Error(`Erro ao buscar frentes da disciplina: ${frentesError.message}`);
+        throw new Error(
+          `Erro ao buscar frentes da disciplina: ${frentesError.message}`,
+        );
       }
-      
+
       const frenteIds = frentesData?.map((f) => f.id as string) || [];
-      
+
       if (frenteIds.length > 0) {
         const { data: modulosData, error: modulosError } = await this.client
-          .from('modulos')
-          .select('id')
-          .in('frente_id', frenteIds);
-        
+          .from("modulos")
+          .select("id")
+          .in("frente_id", frenteIds);
+
         if (modulosError) {
-          throw new Error(`Erro ao buscar módulos das frentes: ${modulosError.message}`);
+          throw new Error(
+            `Erro ao buscar módulos das frentes: ${modulosError.message}`,
+          );
         }
-        
+
         moduloIds = modulosData?.map((m) => m.id as string) || [];
       }
     }
 
     // Construir query de flashcards
-    console.log('[flashcards] Construindo query de flashcards');
-    console.log('[flashcards] moduloIds:', moduloIds);
-    
+    console.log("[flashcards] Construindo query de flashcards");
+    console.log("[flashcards] moduloIds:", moduloIds);
+
     let query = this.client
-      .from('flashcards')
-      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at', { count: 'exact' });
+      .from("flashcards")
+      .select(
+        "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at",
+        { count: "exact" },
+      );
 
     if (moduloIds !== null) {
       if (moduloIds.length === 0) {
         // Nenhum módulo encontrado, retornar vazio
-        console.log('[flashcards] Nenhum módulo encontrado, retornando vazio');
+        console.log("[flashcards] Nenhum módulo encontrado, retornando vazio");
         return { data: [], total: 0 };
       }
-      console.log('[flashcards] Aplicando filtro de módulos:', moduloIds.length, 'módulos');
-      query = query.in('modulo_id', moduloIds);
+      console.log(
+        "[flashcards] Aplicando filtro de módulos:",
+        moduloIds.length,
+        "módulos",
+      );
+      query = query.in("modulo_id", moduloIds);
     }
 
     if (filters.search) {
       const searchTerm = `%${filters.search}%`;
-      console.log('[flashcards] Aplicando busca:', searchTerm);
-      query = query.or(`pergunta.ilike.${searchTerm},resposta.ilike.${searchTerm}`);
+      console.log("[flashcards] Aplicando busca:", searchTerm);
+      query = query.or(
+        `pergunta.ilike.${searchTerm},resposta.ilike.${searchTerm}`,
+      );
     }
 
-    const orderBy = filters.orderBy || 'created_at';
-    const orderDirection = filters.orderDirection || 'desc';
-    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+    const orderBy = filters.orderBy || "created_at";
+    const orderDirection = filters.orderDirection || "desc";
+    query = query.order(orderBy, { ascending: orderDirection === "asc" });
 
     const page = filters.page || 1;
     const limit = filters.limit || 50;
@@ -1315,20 +1554,29 @@ export class FlashcardsService {
 
     query = query.range(from, to);
 
-    console.log('[flashcards] Executando query de flashcards...');
+    console.log("[flashcards] Executando query de flashcards...");
     const { data: flashcardsData, error, count } = await query;
 
     if (error) {
-      console.error('[flashcards] Erro completo na query de flashcards:', JSON.stringify(error, null, 2));
-      console.error('[flashcards] Filtros aplicados:', JSON.stringify(filters, null, 2));
-      console.error('[flashcards] Módulos IDs:', moduloIds);
+      console.error(
+        "[flashcards] Erro completo na query de flashcards:",
+        JSON.stringify(error, null, 2),
+      );
+      console.error(
+        "[flashcards] Filtros aplicados:",
+        JSON.stringify(filters, null, 2),
+      );
+      console.error("[flashcards] Módulos IDs:", moduloIds);
       const errorMsg = formatSupabaseError(error);
-      console.error('[flashcards] Erro formatado:', errorMsg);
+      console.error("[flashcards] Erro formatado:", errorMsg);
       throw new Error(`Erro ao listar flashcards: ${errorMsg}`);
     }
-    
-    console.log('[flashcards] Flashcards encontrados:', flashcardsData?.length || 0);
-    console.log('[flashcards] Total:', count);
+
+    console.log(
+      "[flashcards] Flashcards encontrados:",
+      flashcardsData?.length || 0,
+    );
+    console.log("[flashcards] Total:", count);
 
     if (!flashcardsData || flashcardsData.length === 0) {
       return { data: [], total: count || 0 };
@@ -1343,17 +1591,26 @@ export class FlashcardsService {
       return { data: [], total: count || 0 };
     }
 
-    console.log('[flashcards] Buscando módulos com relacionamentos para', moduloIdsFromFlashcards.length, 'módulos');
-    console.log('[flashcards] IDs dos módulos a buscar:', moduloIdsFromFlashcards);
-    
+    console.log(
+      "[flashcards] Buscando módulos com relacionamentos para",
+      moduloIdsFromFlashcards.length,
+      "módulos",
+    );
+    console.log(
+      "[flashcards] IDs dos módulos a buscar:",
+      moduloIdsFromFlashcards,
+    );
+
     let modulosData: ModuloComFrenteRow[] | null = null;
     let modulosError: unknown = null;
 
     try {
-      console.log('[flashcards] Executando query de módulos com relacionamentos...');
-      
+      console.log(
+        "[flashcards] Executando query de módulos com relacionamentos...",
+      );
+
       const result = await this.client
-        .from('modulos')
+        .from("modulos")
         .select(
           `
           id,
@@ -1371,51 +1628,75 @@ export class FlashcardsService {
           )
         `,
         )
-        .in('id', moduloIdsFromFlashcards);
-      
+        .in("id", moduloIdsFromFlashcards);
+
       modulosData = result.data as ModuloComFrenteRow[] | null;
       modulosError = result.error;
-      
+
       if (modulosError) {
-        console.error('[flashcards] Erro na query de módulos:', JSON.stringify(modulosError, null, 2));
-        console.error('[flashcards] Tipo do erro:', typeof modulosError);
-        console.error('[flashcards] Erro é objeto?', typeof modulosError === 'object');
+        console.error(
+          "[flashcards] Erro na query de módulos:",
+          JSON.stringify(modulosError, null, 2),
+        );
+        console.error("[flashcards] Tipo do erro:", typeof modulosError);
+        console.error(
+          "[flashcards] Erro é objeto?",
+          typeof modulosError === "object",
+        );
       } else {
-        console.log('[flashcards] Módulos com relacionamentos encontrados:', modulosData?.length || 0);
+        console.log(
+          "[flashcards] Módulos com relacionamentos encontrados:",
+          modulosData?.length || 0,
+        );
         if (modulosData && modulosData.length > 0) {
-          console.log('[flashcards] Primeiro módulo exemplo:', JSON.stringify(modulosData[0], null, 2).substring(0, 500));
+          console.log(
+            "[flashcards] Primeiro módulo exemplo:",
+            JSON.stringify(modulosData[0], null, 2).substring(0, 500),
+          );
         }
       }
     } catch (err) {
-      console.error('[flashcards] Exceção ao buscar módulos (catch):', err);
-      console.error('[flashcards] Tipo da exceção:', typeof err);
+      console.error("[flashcards] Exceção ao buscar módulos (catch):", err);
+      console.error("[flashcards] Tipo da exceção:", typeof err);
       if (err instanceof Error) {
-        console.error('[flashcards] Mensagem da exceção:', err.message);
-        console.error('[flashcards] Stack da exceção:', err.stack);
+        console.error("[flashcards] Mensagem da exceção:", err.message);
+        console.error("[flashcards] Stack da exceção:", err.stack);
       }
       modulosError = err;
     }
 
     if (modulosError) {
-      console.error('[flashcards] Erro completo ao buscar módulos:', JSON.stringify(modulosError, null, 2));
-      console.error('[flashcards] Módulos IDs buscados:', moduloIdsFromFlashcards);
-      
+      console.error(
+        "[flashcards] Erro completo ao buscar módulos:",
+        JSON.stringify(modulosError, null, 2),
+      );
+      console.error(
+        "[flashcards] Módulos IDs buscados:",
+        moduloIdsFromFlashcards,
+      );
+
       const errorMsg = formatSupabaseError(modulosError);
-      console.error('[flashcards] Erro formatado:', errorMsg);
-      
+      console.error("[flashcards] Erro formatado:", errorMsg);
+
       // Criar mensagem de erro mais clara
       let finalErrorMessage = `Erro ao buscar módulos: ${errorMsg}`;
-      
+
       // Se o erro for sobre relacionamentos faltando, dar mensagem mais específica
-      if (errorMsg.includes('inner') || errorMsg.includes('relation') || errorMsg.includes('foreign key')) {
+      if (
+        errorMsg.includes("inner") ||
+        errorMsg.includes("relation") ||
+        errorMsg.includes("foreign key")
+      ) {
         finalErrorMessage = `Erro ao buscar relacionamentos dos módulos. Verifique se todos os módulos têm frente e disciplina associadas. Detalhes: ${errorMsg}`;
       }
-      
+
       throw new Error(finalErrorMessage);
     }
-    
+
     if (!modulosData || modulosData.length === 0) {
-      console.warn('[flashcards] Nenhum módulo encontrado com relacionamentos, mas havia flashcards. Isso pode indicar problema de integridade de dados.');
+      console.warn(
+        "[flashcards] Nenhum módulo encontrado com relacionamentos, mas havia flashcards. Isso pode indicar problema de integridade de dados.",
+      );
       // Retornar vazio ao invés de erro, pois pode ser que os módulos foram deletados
       return { data: [], total: count || 0 };
     }
@@ -1428,15 +1709,20 @@ export class FlashcardsService {
           // IMPORTANTE: Verificar se disciplinas foi carregado, não apenas disciplina_id
           const frentes = Array.isArray(m.frentes) ? m.frentes[0] : m.frentes;
           if (!m || !frentes) return false;
-          
+
           interface FrenteComDisciplina {
-            disciplinas?: { id: string; nome: string } | { id: string; nome: string }[];
+            disciplinas?:
+              | { id: string; nome: string }
+              | { id: string; nome: string }[];
             [key: string]: unknown;
           }
           // Verificar se a disciplina foi realmente carregada (não apenas a foreign key)
-          const frentesWithDisciplina = frentes as unknown as FrenteComDisciplina;
+          const frentesWithDisciplina =
+            frentes as unknown as FrenteComDisciplina;
           const disciplinasData = frentesWithDisciplina?.disciplinas;
-          const disciplina = Array.isArray(disciplinasData) ? disciplinasData[0] : disciplinasData;
+          const disciplina = Array.isArray(disciplinasData)
+            ? disciplinasData[0]
+            : disciplinasData;
           return disciplina && disciplina.id && disciplina.nome;
         })
         .map((m: ModuloComFrenteRow) => {
@@ -1444,18 +1730,23 @@ export class FlashcardsService {
           // Acessar disciplinas do objeto frentes (estrutura retornada pela query SQL)
           // Supabase pode retornar como objeto único ou array, tratar ambos os casos
           interface FrenteComDisciplina {
-            disciplinas?: { id: string; nome: string } | { id: string; nome: string }[];
+            disciplinas?:
+              | { id: string; nome: string }
+              | { id: string; nome: string }[];
             [key: string]: unknown;
           }
-          const frentesWithDisciplina = frentes as unknown as FrenteComDisciplina;
+          const frentesWithDisciplina =
+            frentes as unknown as FrenteComDisciplina;
           const disciplinasData = frentesWithDisciplina?.disciplinas;
-          const disciplina = Array.isArray(disciplinasData) ? disciplinasData[0] : disciplinasData;
-          
+          const disciplina = Array.isArray(disciplinasData)
+            ? disciplinasData[0]
+            : disciplinasData;
+
           // Garantir que temos a disciplina carregada (já filtrado acima, mas double-check para type safety)
           if (!disciplina || !disciplina.id || !disciplina.nome) {
             throw new Error(`Disciplina não carregada para módulo ${m.id}`);
           }
-          
+
           return [
             m.id,
             {
@@ -1486,9 +1777,13 @@ export class FlashcardsService {
           id: item.id,
           modulo_id: item.modulo_id as string,
           pergunta: item.pergunta,
-          pergunta_imagem_path: (item as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null,
+          pergunta_imagem_path:
+            (item as unknown as { pergunta_imagem_path?: string | null })
+              .pergunta_imagem_path ?? null,
           resposta: item.resposta,
-          resposta_imagem_path: (item as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null,
+          resposta_imagem_path:
+            (item as unknown as { resposta_imagem_path?: string | null })
+              .resposta_imagem_path ?? null,
           created_at: item.created_at as string,
           modulo,
         };
@@ -1502,18 +1797,19 @@ export class FlashcardsService {
 
     // Armazenar no cache se não houver busca
     if (!hasSearch) {
-      const cacheKeyParts = ['cache:flashcards'];
-      if (filters.disciplinaId) cacheKeyParts.push(`disciplina:${filters.disciplinaId}`);
+      const cacheKeyParts = ["cache:flashcards"];
+      if (filters.disciplinaId)
+        cacheKeyParts.push(`disciplina:${filters.disciplinaId}`);
       if (filters.frenteId) cacheKeyParts.push(`frente:${filters.frenteId}`);
       if (filters.moduloId) cacheKeyParts.push(`modulo:${filters.moduloId}`);
       const page = filters.page || 1;
       const limit = filters.limit || 50;
       cacheKeyParts.push(`page:${page}`, `limit:${limit}`);
-      const orderBy = filters.orderBy || 'created_at';
-      const orderDirection = filters.orderDirection || 'desc';
+      const orderBy = filters.orderBy || "created_at";
+      const orderDirection = filters.orderDirection || "desc";
       cacheKeyParts.push(`order:${orderBy}:${orderDirection}`);
-      
-      const cacheKey = cacheKeyParts.join(':');
+
+      const cacheKey = cacheKeyParts.join(":");
       await cacheService.set(cacheKey, result, 900); // TTL: 15 minutos
     }
 
@@ -1524,9 +1820,11 @@ export class FlashcardsService {
     await this.ensureProfessor(userId);
 
     const { data: flashcard, error } = await this.client
-      .from('flashcards')
-      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at')
-      .eq('id', id)
+      .from("flashcards")
+      .select(
+        "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at",
+      )
+      .eq("id", id)
       .maybeSingle();
 
     if (error) {
@@ -1539,7 +1837,7 @@ export class FlashcardsService {
 
     // Buscar módulo com relacionamentos
     const { data: modulo, error: moduloGetError } = await this.client
-      .from('modulos')
+      .from("modulos")
       .select(
         `
         id,
@@ -1555,15 +1853,21 @@ export class FlashcardsService {
         )
       `,
       )
-      .eq('id', flashcard.modulo_id ?? '')
+      .eq("id", flashcard.modulo_id ?? "")
       .maybeSingle();
 
     if (moduloGetError || !modulo || !flashcard.modulo_id) {
-      throw new Error(`Erro ao buscar módulo: ${moduloGetError?.message || 'Módulo não encontrado'}`);
+      throw new Error(
+        `Erro ao buscar módulo: ${moduloGetError?.message || "Módulo não encontrado"}`,
+      );
     }
 
-    const perguntaPath = (flashcard as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null;
-    const respostaPath = (flashcard as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null;
+    const perguntaPath =
+      (flashcard as unknown as { pergunta_imagem_path?: string | null })
+        .pergunta_imagem_path ?? null;
+    const respostaPath =
+      (flashcard as unknown as { resposta_imagem_path?: string | null })
+        .resposta_imagem_path ?? null;
     const perguntaUrl = await this.createSignedImageUrl(perguntaPath);
     const respostaUrl = await this.createSignedImageUrl(respostaPath);
 
@@ -1580,51 +1884,58 @@ export class FlashcardsService {
       modulo: {
         id: (modulo as unknown as ModuloWithNestedRelations).id,
         nome: (modulo as unknown as ModuloWithNestedRelations).nome,
-        numero_modulo: (modulo as unknown as ModuloWithNestedRelations).numero_modulo,
+        numero_modulo: (modulo as unknown as ModuloWithNestedRelations)
+          .numero_modulo,
         frente: {
           id: (modulo as unknown as ModuloWithNestedRelations).frentes.id,
           nome: (modulo as unknown as ModuloWithNestedRelations).frentes.nome,
           disciplina: {
-            id: (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.id,
-            nome: (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.nome,
+            id: (modulo as unknown as ModuloWithNestedRelations).frentes
+              .disciplinas.id,
+            nome: (modulo as unknown as ModuloWithNestedRelations).frentes
+              .disciplinas.nome,
           },
         },
       },
     };
   }
 
-  async create(input: CreateFlashcardInput, userId: string): Promise<FlashcardAdmin> {
+  async create(
+    input: CreateFlashcardInput,
+    userId: string,
+  ): Promise<FlashcardAdmin> {
     await this.ensureProfessor(userId);
 
     if (!input.moduloId || !input.pergunta?.trim() || !input.resposta?.trim()) {
-      throw new Error('Módulo, pergunta e resposta são obrigatórios.');
+      throw new Error("Módulo, pergunta e resposta são obrigatórios.");
     }
 
     // Verificar se módulo existe
     const { data: moduloCheck, error: moduloCheckError } = await this.client
-      .from('modulos')
-      .select('id, empresa_id')
-      .eq('id', input.moduloId)
+      .from("modulos")
+      .select("id, empresa_id")
+      .eq("id", input.moduloId)
       .maybeSingle();
 
     if (moduloCheckError || !moduloCheck) {
-      throw new Error('Módulo não encontrado.');
+      throw new Error("Módulo não encontrado.");
     }
 
-    const moduloEmpresaId = (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;
+    const moduloEmpresaId =
+      (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;
     if (!moduloEmpresaId) {
-      throw new Error('Módulo sem empresa_id (dados inconsistentes).');
+      throw new Error("Módulo sem empresa_id (dados inconsistentes).");
     }
 
     const { data: flashcard, error } = await this.client
-      .from('flashcards')
+      .from("flashcards")
       .insert({
         modulo_id: input.moduloId,
         empresa_id: moduloEmpresaId,
         pergunta: input.pergunta.trim(),
         resposta: input.resposta.trim(),
       })
-      .select('id, modulo_id, pergunta, resposta, created_at')
+      .select("id, modulo_id, pergunta, resposta, created_at")
       .single();
 
     if (error) {
@@ -1633,11 +1944,11 @@ export class FlashcardsService {
 
     // Buscar módulo com relacionamentos
     if (!flashcard.modulo_id) {
-      throw new Error('Flashcard sem módulo associado');
+      throw new Error("Flashcard sem módulo associado");
     }
 
     const { data: modulo, error: moduloFetchError } = await this.client
-      .from('modulos')
+      .from("modulos")
       .select(
         `
         id,
@@ -1653,11 +1964,13 @@ export class FlashcardsService {
         )
       `,
       )
-      .eq('id', flashcard.modulo_id)
+      .eq("id", flashcard.modulo_id)
       .maybeSingle();
 
     if (moduloFetchError || !modulo) {
-      throw new Error(`Erro ao buscar módulo: ${moduloFetchError?.message || 'Módulo não encontrado'}`);
+      throw new Error(
+        `Erro ao buscar módulo: ${moduloFetchError?.message || "Módulo não encontrado"}`,
+      );
     }
 
     const result: FlashcardAdmin = {
@@ -1669,13 +1982,16 @@ export class FlashcardsService {
       modulo: {
         id: (modulo as unknown as ModuloWithNestedRelations).id,
         nome: (modulo as unknown as ModuloWithNestedRelations).nome,
-        numero_modulo: (modulo as unknown as ModuloWithNestedRelations).numero_modulo,
+        numero_modulo: (modulo as unknown as ModuloWithNestedRelations)
+          .numero_modulo,
         frente: {
           id: (modulo as unknown as ModuloWithNestedRelations).frentes.id,
           nome: (modulo as unknown as ModuloWithNestedRelations).frentes.nome,
           disciplina: {
-            id: (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.id,
-            nome: (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.nome,
+            id: (modulo as unknown as ModuloWithNestedRelations).frentes
+              .disciplinas.id,
+            nome: (modulo as unknown as ModuloWithNestedRelations).frentes
+              .disciplinas.nome,
           },
         },
       },
@@ -1685,36 +2001,46 @@ export class FlashcardsService {
     await this.invalidateFlashcardCache(
       (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.id,
       (modulo as unknown as ModuloWithNestedRelations).frentes.id,
-      flashcard.modulo_id as string
+      flashcard.modulo_id as string,
     );
 
     return result;
   }
 
-  async update(id: string, input: UpdateFlashcardInput, userId: string): Promise<FlashcardAdmin> {
+  async update(
+    id: string,
+    input: UpdateFlashcardInput,
+    userId: string,
+  ): Promise<FlashcardAdmin> {
     await this.ensureProfessor(userId);
 
     // Verificar se flashcard existe
     const existing = await this.getById(id, userId);
     if (!existing) {
-      throw new Error('Flashcard não encontrado.');
+      throw new Error("Flashcard não encontrado.");
     }
 
-    const updateData: { modulo_id?: string; empresa_id?: string; pergunta?: string; resposta?: string } = {};
+    const updateData: {
+      modulo_id?: string;
+      empresa_id?: string;
+      pergunta?: string;
+      resposta?: string;
+    } = {};
     if (input.moduloId !== undefined) {
       // Verificar se novo módulo existe
       const { data: moduloCheck, error: moduloCheckError } = await this.client
-        .from('modulos')
-        .select('id, empresa_id')
-        .eq('id', input.moduloId)
+        .from("modulos")
+        .select("id, empresa_id")
+        .eq("id", input.moduloId)
         .maybeSingle();
 
       if (moduloCheckError || !moduloCheck) {
-        throw new Error('Módulo não encontrado.');
+        throw new Error("Módulo não encontrado.");
       }
-      const moduloEmpresaId = (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;
+      const moduloEmpresaId =
+        (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;
       if (!moduloEmpresaId) {
-        throw new Error('Módulo sem empresa_id (dados inconsistentes).');
+        throw new Error("Módulo sem empresa_id (dados inconsistentes).");
       }
       updateData.modulo_id = input.moduloId;
       // Manter empresa_id do flashcard alinhado ao módulo
@@ -1722,13 +2048,13 @@ export class FlashcardsService {
     }
     if (input.pergunta !== undefined) {
       if (!input.pergunta.trim()) {
-        throw new Error('Pergunta não pode estar vazia.');
+        throw new Error("Pergunta não pode estar vazia.");
       }
       updateData.pergunta = input.pergunta.trim();
     }
     if (input.resposta !== undefined) {
       if (!input.resposta.trim()) {
-        throw new Error('Resposta não pode estar vazia.');
+        throw new Error("Resposta não pode estar vazia.");
       }
       updateData.resposta = input.resposta.trim();
     }
@@ -1738,10 +2064,10 @@ export class FlashcardsService {
     }
 
     const { data: flashcard, error } = await this.client
-      .from('flashcards')
+      .from("flashcards")
       .update(updateData)
-      .eq('id', id)
-      .select('id, modulo_id, pergunta, resposta, created_at')
+      .eq("id", id)
+      .select("id, modulo_id, pergunta, resposta, created_at")
       .single();
 
     if (error) {
@@ -1750,7 +2076,7 @@ export class FlashcardsService {
 
     // Buscar módulo com relacionamentos
     const { data: modulo, error: moduloFetchError } = await this.client
-      .from('modulos')
+      .from("modulos")
       .select(
         `
         id,
@@ -1766,11 +2092,13 @@ export class FlashcardsService {
         )
       `,
       )
-      .eq('id', flashcard.modulo_id ?? '')
+      .eq("id", flashcard.modulo_id ?? "")
       .maybeSingle();
 
     if (moduloFetchError || !modulo || !flashcard.modulo_id) {
-      throw new Error(`Erro ao buscar módulo: ${moduloFetchError?.message || 'Módulo não encontrado'}`);
+      throw new Error(
+        `Erro ao buscar módulo: ${moduloFetchError?.message || "Módulo não encontrado"}`,
+      );
     }
 
     const result = {
@@ -1782,13 +2110,16 @@ export class FlashcardsService {
       modulo: {
         id: (modulo as unknown as ModuloWithNestedRelations).id,
         nome: (modulo as unknown as ModuloWithNestedRelations).nome,
-        numero_modulo: (modulo as unknown as ModuloWithNestedRelations).numero_modulo,
+        numero_modulo: (modulo as unknown as ModuloWithNestedRelations)
+          .numero_modulo,
         frente: {
           id: (modulo as unknown as ModuloWithNestedRelations).frentes.id,
           nome: (modulo as unknown as ModuloWithNestedRelations).frentes.nome,
           disciplina: {
-            id: (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.id,
-            nome: (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.nome,
+            id: (modulo as unknown as ModuloWithNestedRelations).frentes
+              .disciplinas.id,
+            nome: (modulo as unknown as ModuloWithNestedRelations).frentes
+              .disciplinas.nome,
           },
         },
       },
@@ -1798,12 +2129,16 @@ export class FlashcardsService {
     await this.invalidateFlashcardCache(
       (modulo as unknown as ModuloWithNestedRelations).frentes.disciplinas.id,
       (modulo as unknown as ModuloWithNestedRelations).frentes.id,
-      flashcard.modulo_id
+      flashcard.modulo_id,
     );
-    
+
     // Se mudou de módulo, invalidar também o módulo antigo
     if (input.moduloId && input.moduloId !== existing.modulo_id) {
-      await this.invalidateFlashcardCache(undefined, undefined, existing.modulo_id);
+      await this.invalidateFlashcardCache(
+        undefined,
+        undefined,
+        existing.modulo_id,
+      );
     }
 
     return result;
@@ -1815,33 +2150,39 @@ export class FlashcardsService {
     // Verificar se flashcard existe
     const existing = await this.getById(id, userId);
     if (!existing) {
-      throw new Error('Flashcard não encontrado.');
+      throw new Error("Flashcard não encontrado.");
     }
 
     // Verificar se há progresso associado
     const { data: progresso, error: progressoError } = await this.client
-      .from('progresso_flashcards')
-      .select('id')
-      .eq('flashcard_id', id)
+      .from("progresso_flashcards")
+      .select("id")
+      .eq("flashcard_id", id)
       .limit(1);
 
     if (progressoError) {
-      console.warn('[flashcards] Erro ao verificar progresso:', progressoError);
+      console.warn("[flashcards] Erro ao verificar progresso:", progressoError);
     }
 
     if (progresso && progresso.length > 0) {
       // Deletar progresso também (cascade)
       const { error: deleteProgressoError } = await this.client
-        .from('progresso_flashcards')
+        .from("progresso_flashcards")
         .delete()
-        .eq('flashcard_id', id);
+        .eq("flashcard_id", id);
 
       if (deleteProgressoError) {
-        console.warn('[flashcards] Erro ao deletar progresso:', deleteProgressoError);
+        console.warn(
+          "[flashcards] Erro ao deletar progresso:",
+          deleteProgressoError,
+        );
       }
     }
 
-    const { error } = await this.client.from('flashcards').delete().eq('id', id);
+    const { error } = await this.client
+      .from("flashcards")
+      .delete()
+      .eq("id", id);
 
     if (error) {
       throw new Error(`Erro ao deletar flashcard: ${error.message}`);
@@ -1851,7 +2192,7 @@ export class FlashcardsService {
     await this.invalidateFlashcardCache(
       existing.modulo.frente.disciplina.id,
       existing.modulo.frente.id,
-      existing.modulo_id
+      existing.modulo_id,
     );
   }
 }

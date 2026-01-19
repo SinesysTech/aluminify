@@ -1,9 +1,9 @@
 /**
  * Component Pattern Analyzer
- * 
+ *
  * Analyzes React component structure and patterns in the codebase to identify
  * component quality issues and inconsistencies.
- * 
+ *
  * Detects:
  * - React function components
  * - React class components
@@ -15,16 +15,23 @@
  * - Components mixing concerns (UI + data fetching + business logic)
  */
 
-import { SourceFile, Node, SyntaxKind, FunctionDeclaration, ArrowFunction, ClassDeclaration, VariableDeclaration } from 'ts-morph';
-import { BasePatternAnalyzer } from './pattern-analyzer.js';
-import type { FileInfo, Issue, FileCategory } from '../types.js';
+import {
+  SourceFile,
+  Node,
+  FunctionDeclaration,
+  ArrowFunction,
+  ClassDeclaration,
+  VariableDeclaration,
+} from "ts-morph";
+import { BasePatternAnalyzer } from "./pattern-analyzer.js";
+import type { FileInfo, Issue, FileCategory } from "../types.js";
 
 /**
  * Information about a discovered React component
  */
 interface ComponentInfo {
   name: string;
-  type: 'function' | 'class' | 'arrow';
+  type: "function" | "class" | "arrow";
   node: Node;
   file: string;
   isExported: boolean;
@@ -47,7 +54,7 @@ interface PropChain {
  * Analyzer for React component patterns
  */
 export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
-  readonly name = 'ComponentPatternAnalyzer';
+  readonly name = "ComponentPatternAnalyzer";
 
   private discoveredComponents: ComponentInfo[] = [];
 
@@ -55,7 +62,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    * Get supported file types for this analyzer
    */
   getSupportedFileTypes(): FileCategory[] {
-    return ['component'];
+    return ["component"];
   }
 
   /**
@@ -64,7 +71,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   async analyze(file: FileInfo, ast: SourceFile): Promise<Issue[]> {
     // Reset state for each file analysis
     this.discoveredComponents = [];
-    
+
     const issues: Issue[] = [];
 
     // Task 7.1: Discover and categorize React components
@@ -118,7 +125,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       if (this.isReactComponent(func, funcName)) {
         const componentInfo: ComponentInfo = {
           name: funcName,
-          type: 'function',
+          type: "function",
           node: func,
           file: file.relativePath,
           isExported: this.isExported(func),
@@ -155,7 +162,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       if (this.isReactClassComponent(classDecl)) {
         const componentInfo: ComponentInfo = {
           name: className,
-          type: 'class',
+          type: "class",
           node: classDecl,
           file: file.relativePath,
           isExported: this.isExported(classDecl),
@@ -170,16 +177,16 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
         // Modern React prefers function components with hooks
         issues.push(
           this.createIssue({
-            type: 'legacy-code',
-            severity: 'low',
-            category: 'components',
+            type: "legacy-code",
+            severity: "low",
+            category: "components",
             file: file.relativePath,
             node: classDecl,
             description: `Class component '${className}' detected. Modern React development favors function components with hooks for better code reuse and simpler patterns.`,
             recommendation: `Consider refactoring '${className}' to a function component using hooks (useState, useEffect, etc.). This improves code readability and enables better composition with custom hooks.`,
-            estimatedEffort: 'medium',
-            tags: ['component', 'class-component', 'modernization', 'hooks'],
-          })
+            estimatedEffort: "medium",
+            tags: ["component", "class-component", "modernization", "hooks"],
+          }),
         );
       }
     }
@@ -190,7 +197,10 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Discover React arrow function components (variable declarations with arrow functions)
    */
-  private discoverArrowFunctionComponents(file: FileInfo, ast: SourceFile): Issue[] {
+  private discoverArrowFunctionComponents(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
     const variableDeclarations = this.getVariableDeclarations(ast);
 
@@ -207,7 +217,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       if (this.isReactComponent(initializer, varName)) {
         const componentInfo: ComponentInfo = {
           name: varName,
-          type: 'arrow',
+          type: "arrow",
           node: varDecl,
           file: file.relativePath,
           isExported: this.isExported(varDecl),
@@ -255,13 +265,13 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     if (!heritage) return false;
 
     const heritageText = heritage.getText();
-    
+
     // Check if extends React.Component, React.PureComponent, Component, or PureComponent
     return (
-      heritageText.includes('React.Component') ||
-      heritageText.includes('React.PureComponent') ||
-      heritageText === 'Component' ||
-      heritageText === 'PureComponent'
+      heritageText.includes("React.Component") ||
+      heritageText.includes("React.PureComponent") ||
+      heritageText === "Component" ||
+      heritageText === "PureComponent"
     );
   }
 
@@ -284,14 +294,14 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     // - JSX fragments: <>, </>
     // - Return statements with JSX
     const jsxPatterns = [
-      /<[A-Z][a-zA-Z0-9]*[\s>\/]/,  // Component tags: <MyComponent
-      /<[a-z][a-zA-Z0-9]*[\s>\/]/,  // HTML tags: <div
-      /<>/,                          // Fragment opening
-      /<\/>/,                        // Fragment closing
-      /return\s*\(/,                 // Return with parentheses (common for JSX)
+      /<[A-Z][a-zA-Z0-9]*[\s>\/]/, // Component tags: <MyComponent
+      /<[a-z][a-zA-Z0-9]*[\s>\/]/, // HTML tags: <div
+      /<>/, // Fragment opening
+      /<\/>/, // Fragment closing
+      /return\s*\(/, // Return with parentheses (common for JSX)
     ];
 
-    return jsxPatterns.some(pattern => pattern.test(text));
+    return jsxPatterns.some((pattern) => pattern.test(text));
   }
 
   /**
@@ -302,7 +312,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
 
     // Common React hooks
     const hookPatterns = [
-      /\buse[A-Z][a-zA-Z0-9]*\(/,  // Any hook: useState, useEffect, useCustomHook
+      /\buse[A-Z][a-zA-Z0-9]*\(/, // Any hook: useState, useEffect, useCustomHook
       /\buseState\(/,
       /\buseEffect\(/,
       /\buseContext\(/,
@@ -315,7 +325,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       /\buseDebugValue\(/,
     ];
 
-    return hookPatterns.some(pattern => pattern.test(text));
+    return hookPatterns.some((pattern) => pattern.test(text));
   }
 
   /**
@@ -350,7 +360,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
 
     // Check if props are accessed in the class
     const classText = classDecl.getText();
-    return classText.includes('this.props');
+    return classText.includes("this.props");
   }
 
   /**
@@ -358,12 +368,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private classHasState(classDecl: ClassDeclaration): boolean {
     const classText = classDecl.getText();
-    
+
     // Check for state initialization or usage
-    return (
-      classText.includes('this.state') ||
-      classText.includes('setState(')
-    );
+    return classText.includes("this.state") || classText.includes("setState(");
   }
 
   // ============================================================================
@@ -388,16 +395,21 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       if (chain.depth > 3) {
         issues.push(
           this.createIssue({
-            type: 'confusing-logic',
-            severity: 'medium',
-            category: 'components',
+            type: "confusing-logic",
+            severity: "medium",
+            category: "components",
             file: file.relativePath,
             node: chain.startNode,
-            description: `Prop drilling detected: prop '${chain.propName}' is passed through ${chain.depth} levels of components (${chain.componentPath.join(' → ')}). This makes the code harder to maintain and understand.`,
+            description: `Prop drilling detected: prop '${chain.propName}' is passed through ${chain.depth} levels of components (${chain.componentPath.join(" → ")}). This makes the code harder to maintain and understand.`,
             recommendation: `Consider using React Context, a state management library (Redux, Zustand), or component composition patterns to avoid passing '${chain.propName}' through ${chain.depth} levels. This will make the code more maintainable and reduce coupling between components.`,
-            estimatedEffort: 'medium',
-            tags: ['component', 'prop-drilling', 'state-management', 'refactoring'],
-          })
+            estimatedEffort: "medium",
+            tags: [
+              "component",
+              "prop-drilling",
+              "state-management",
+              "refactoring",
+            ],
+          }),
         );
       }
     }
@@ -413,7 +425,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
 
     const traverse = (node: Node) => {
       const kind = node.getKind();
-      
+
       // JSX element types
       if (
         kind === SyntaxKind.JsxElement ||
@@ -422,7 +434,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       ) {
         jsxElements.push(node);
       }
-      
+
       node.forEachChild(traverse);
     };
 
@@ -452,7 +464,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
           componentName,
           componentNode,
           ast,
-          1
+          1,
         );
 
         if (chain && chain.depth > 1) {
@@ -471,11 +483,14 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     const props: string[] = [];
 
     // Handle function components
-    if (Node.isFunctionDeclaration(componentNode) || Node.isArrowFunction(componentNode)) {
+    if (
+      Node.isFunctionDeclaration(componentNode) ||
+      Node.isArrowFunction(componentNode)
+    ) {
       const params = componentNode.getParameters();
       if (params.length > 0) {
         const propsParam = params[0];
-        
+
         // Handle destructured props: function MyComponent({ prop1, prop2 })
         const binding = propsParam.getNameNode();
         if (Node.isObjectBindingPattern(binding)) {
@@ -492,7 +507,10 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
           if (paramName) {
             // Look for props.propName usage in the component
             const componentText = componentNode.getText();
-            const propAccessPattern = new RegExp(`${paramName}\\.([a-zA-Z_$][a-zA-Z0-9_$]*)`, 'g');
+            const propAccessPattern = new RegExp(
+              `${paramName}\\.([a-zA-Z_$][a-zA-Z0-9_$]*)`,
+              "g",
+            );
             let match;
             while ((match = propAccessPattern.exec(componentText)) !== null) {
               const propName = match[1];
@@ -525,7 +543,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     componentNode: Node,
     ast: SourceFile,
     currentDepth: number,
-    visitedComponents: Set<string> = new Set()
+    visitedComponents: Set<string> = new Set(),
   ): PropChain | null {
     // Prevent infinite recursion
     if (visitedComponents.has(currentComponent)) {
@@ -553,7 +571,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       if (this.jsxElementPassesProp(jsxElement, propName)) {
         // Find the child component definition
         const childComponent = this.discoveredComponents.find(
-          comp => comp.name === childComponentName
+          (comp) => comp.name === childComponentName,
         );
 
         if (childComponent) {
@@ -564,7 +582,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
             childComponent.node,
             ast,
             currentDepth + 1,
-            new Set(visitedComponents)
+            new Set(visitedComponents),
           );
 
           if (childChain && childChain.depth > maxDepth) {
@@ -605,14 +623,14 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
 
     const traverse = (n: Node) => {
       const kind = n.getKind();
-      
+
       if (
         kind === SyntaxKind.JsxElement ||
         kind === SyntaxKind.JsxSelfClosingElement
       ) {
         jsxElements.push(n);
       }
-      
+
       n.forEachChild(traverse);
     };
 
@@ -625,13 +643,13 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private getJSXElementName(jsxElement: Node): string | null {
     const text = jsxElement.getText();
-    
+
     // Match opening tag: <ComponentName or <ComponentName>
     const match = text.match(/^<([A-Z][a-zA-Z0-9]*)/);
     if (match) {
       return match[1];
     }
-    
+
     return null;
   }
 
@@ -640,20 +658,20 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private jsxElementPassesProp(jsxElement: Node, propName: string): boolean {
     const text = jsxElement.getText();
-    
+
     // Look for patterns like:
     // - propName={propName}
     // - propName={props.propName}
     // - {...props} (spread operator)
     const patterns = [
-      new RegExp(`\\b${propName}=\\{${propName}\\}`),           // propName={propName}
-      new RegExp(`\\b${propName}=\\{props\\.${propName}\\}`),   // propName={props.propName}
+      new RegExp(`\\b${propName}=\\{${propName}\\}`), // propName={propName}
+      new RegExp(`\\b${propName}=\\{props\\.${propName}\\}`), // propName={props.propName}
       new RegExp(`\\b${propName}=\\{[^}]*${propName}[^}]*\\}`), // propName={...propName...}
-      /\{\.\.\.props\}/,                                         // {...props}
-      /\{\.\.\.rest\}/,                                          // {...rest}
+      /\{\.\.\.props\}/, // {...props}
+      /\{\.\.\.rest\}/, // {...rest}
     ];
-    
-    return patterns.some(pattern => pattern.test(text));
+
+    return patterns.some((pattern) => pattern.test(text));
   }
 
   // ============================================================================
@@ -670,29 +688,31 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Get components by type
    */
-  public getComponentsByType(type: 'function' | 'class' | 'arrow'): ComponentInfo[] {
-    return this.discoveredComponents.filter(comp => comp.type === type);
+  public getComponentsByType(
+    type: "function" | "class" | "arrow",
+  ): ComponentInfo[] {
+    return this.discoveredComponents.filter((comp) => comp.type === type);
   }
 
   /**
    * Get exported components
    */
   public getExportedComponents(): ComponentInfo[] {
-    return this.discoveredComponents.filter(comp => comp.isExported);
+    return this.discoveredComponents.filter((comp) => comp.isExported);
   }
 
   /**
    * Get components that use hooks
    */
   public getComponentsUsingHooks(): ComponentInfo[] {
-    return this.discoveredComponents.filter(comp => comp.usesHooks);
+    return this.discoveredComponents.filter((comp) => comp.usesHooks);
   }
 
   /**
    * Get components that use state
    */
   public getComponentsUsingState(): ComponentInfo[] {
-    return this.discoveredComponents.filter(comp => comp.usesState);
+    return this.discoveredComponents.filter((comp) => comp.usesState);
   }
 
   /**
@@ -709,7 +729,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Detect inconsistent component composition patterns
    * Validates Requirements: 6.4
-   * 
+   *
    * Detects:
    * - Inconsistent prop passing patterns (destructuring vs object)
    * - Inconsistent export patterns (default vs named)
@@ -717,7 +737,10 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    * - Inconsistent hook usage patterns
    * - Inconsistent event handler naming
    */
-  private detectComponentPatternInconsistencies(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectComponentPatternInconsistencies(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // Analyze patterns across all components in the file
@@ -769,9 +792,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       }
 
       // Count definition styles
-      if (component.type === 'function') {
+      if (component.type === "function") {
         patterns.functionDeclarations++;
-      } else if (component.type === 'arrow') {
+      } else if (component.type === "arrow") {
         patterns.arrowFunctions++;
       }
     }
@@ -782,37 +805,50 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Detect inconsistent prop passing patterns
    */
-  private detectInconsistentPropPatterns(file: FileInfo, patterns: any): Issue[] {
+  private detectInconsistentPropPatterns(
+    file: FileInfo,
+    patterns: any,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // If both patterns are used, flag inconsistency
     if (patterns.propDestructuring > 0 && patterns.propObject > 0) {
       const total = patterns.propDestructuring + patterns.propObject;
-      const destructuringPercent = Math.round((patterns.propDestructuring / total) * 100);
+      const destructuringPercent = Math.round(
+        (patterns.propDestructuring / total) * 100,
+      );
 
       // Find components using the minority pattern
       for (const component of this.discoveredComponents) {
         const usesDestructuring = this.usesPropDestructuring(component.node);
-        const isMinorityPattern = 
+        const isMinorityPattern =
           (usesDestructuring && destructuringPercent < 50) ||
-          (!usesDestructuring && component.hasProps && destructuringPercent >= 50);
+          (!usesDestructuring &&
+            component.hasProps &&
+            destructuringPercent >= 50);
 
         if (isMinorityPattern) {
-          const preferredPattern = destructuringPercent >= 50 ? 'destructuring' : 'object';
-          const currentPattern = usesDestructuring ? 'destructuring' : 'object';
+          const preferredPattern =
+            destructuringPercent >= 50 ? "destructuring" : "object";
+          const currentPattern = usesDestructuring ? "destructuring" : "object";
 
           issues.push(
             this.createIssue({
-              type: 'inconsistent-pattern',
-              severity: 'low',
-              category: 'components',
+              type: "inconsistent-pattern",
+              severity: "low",
+              category: "components",
               file: file.relativePath,
               node: component.node,
               description: `Component '${component.name}' uses ${currentPattern} for props, but ${patterns.propDestructuring} components use destructuring and ${patterns.propObject} use object props. This inconsistency makes the codebase harder to understand.`,
               recommendation: `Consider using ${preferredPattern} pattern for props consistently across all components. This improves code readability and maintainability.`,
-              estimatedEffort: 'trivial',
-              tags: ['component', 'inconsistent-pattern', 'props', 'code-style'],
-            })
+              estimatedEffort: "trivial",
+              tags: [
+                "component",
+                "inconsistent-pattern",
+                "props",
+                "code-style",
+              ],
+            }),
           );
         }
       }
@@ -824,37 +860,47 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Detect inconsistent export patterns
    */
-  private detectInconsistentExportPatterns(file: FileInfo, patterns: any): Issue[] {
+  private detectInconsistentExportPatterns(
+    file: FileInfo,
+    patterns: any,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // If both export patterns are used, flag inconsistency
     if (patterns.defaultExports > 0 && patterns.namedExports > 0) {
       const total = patterns.defaultExports + patterns.namedExports;
-      const defaultPercent = Math.round((patterns.defaultExports / total) * 100);
+      const defaultPercent = Math.round(
+        (patterns.defaultExports / total) * 100,
+      );
 
       // Find components using the minority pattern
       for (const component of this.discoveredComponents) {
         const isDefault = this.isDefaultExport(component.node);
-        const isMinorityPattern = 
+        const isMinorityPattern =
           (isDefault && defaultPercent < 50) ||
           (component.isExported && !isDefault && defaultPercent >= 50);
 
         if (isMinorityPattern) {
-          const preferredPattern = defaultPercent >= 50 ? 'default' : 'named';
-          const currentPattern = isDefault ? 'default' : 'named';
+          const preferredPattern = defaultPercent >= 50 ? "default" : "named";
+          const currentPattern = isDefault ? "default" : "named";
 
           issues.push(
             this.createIssue({
-              type: 'inconsistent-pattern',
-              severity: 'low',
-              category: 'components',
+              type: "inconsistent-pattern",
+              severity: "low",
+              category: "components",
               file: file.relativePath,
               node: component.node,
               description: `Component '${component.name}' uses ${currentPattern} export, but ${patterns.defaultExports} components use default exports and ${patterns.namedExports} use named exports. This inconsistency can confuse developers.`,
               recommendation: `Consider using ${preferredPattern} exports consistently across all components. This makes imports more predictable and consistent.`,
-              estimatedEffort: 'trivial',
-              tags: ['component', 'inconsistent-pattern', 'exports', 'code-style'],
-            })
+              estimatedEffort: "trivial",
+              tags: [
+                "component",
+                "inconsistent-pattern",
+                "exports",
+                "code-style",
+              ],
+            }),
           );
         }
       }
@@ -866,39 +912,52 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Detect inconsistent component definition styles
    */
-  private detectInconsistentDefinitionStyles(file: FileInfo, patterns: any): Issue[] {
+  private detectInconsistentDefinitionStyles(
+    file: FileInfo,
+    patterns: any,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // If both function and arrow styles are used, flag inconsistency
     if (patterns.functionDeclarations > 0 && patterns.arrowFunctions > 0) {
       const total = patterns.functionDeclarations + patterns.arrowFunctions;
-      const functionPercent = Math.round((patterns.functionDeclarations / total) * 100);
+      const functionPercent = Math.round(
+        (patterns.functionDeclarations / total) * 100,
+      );
 
       // Find components using the minority pattern
       for (const component of this.discoveredComponents) {
-        if (component.type === 'class') continue; // Skip class components
+        if (component.type === "class") continue; // Skip class components
 
-        const isFunction = component.type === 'function';
-        const isMinorityPattern = 
+        const isFunction = component.type === "function";
+        const isMinorityPattern =
           (isFunction && functionPercent < 50) ||
-          (component.type === 'arrow' && functionPercent >= 50);
+          (component.type === "arrow" && functionPercent >= 50);
 
         if (isMinorityPattern) {
-          const preferredPattern = functionPercent >= 50 ? 'function declaration' : 'arrow function';
-          const currentPattern = isFunction ? 'function declaration' : 'arrow function';
+          const preferredPattern =
+            functionPercent >= 50 ? "function declaration" : "arrow function";
+          const currentPattern = isFunction
+            ? "function declaration"
+            : "arrow function";
 
           issues.push(
             this.createIssue({
-              type: 'inconsistent-pattern',
-              severity: 'low',
-              category: 'components',
+              type: "inconsistent-pattern",
+              severity: "low",
+              category: "components",
               file: file.relativePath,
               node: component.node,
               description: `Component '${component.name}' is defined as ${currentPattern}, but ${patterns.functionDeclarations} components use function declarations and ${patterns.arrowFunctions} use arrow functions. This inconsistency affects code style uniformity.`,
               recommendation: `Consider using ${preferredPattern} consistently for all function components. This creates a more uniform codebase.`,
-              estimatedEffort: 'trivial',
-              tags: ['component', 'inconsistent-pattern', 'definition-style', 'code-style'],
-            })
+              estimatedEffort: "trivial",
+              tags: [
+                "component",
+                "inconsistent-pattern",
+                "definition-style",
+                "code-style",
+              ],
+            }),
           );
         }
       }
@@ -910,31 +969,38 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Detect inconsistent event handler naming patterns
    */
-  private detectInconsistentEventHandlerNaming(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectInconsistentEventHandlerNaming(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // Track event handler naming patterns
     const handlerPatterns = {
-      handlePrefix: 0,  // handleClick, handleSubmit
-      onPrefix: 0,      // onClick, onSubmit
-      other: 0,         // click, submit, doSomething
+      handlePrefix: 0, // handleClick, handleSubmit
+      onPrefix: 0, // onClick, onSubmit
+      other: 0, // click, submit, doSomething
     };
 
-    const inconsistentHandlers: Array<{ name: string; node: Node; pattern: string }> = [];
+    const inconsistentHandlers: Array<{
+      name: string;
+      node: Node;
+      pattern: string;
+    }> = [];
 
     for (const component of this.discoveredComponents) {
       const handlers = this.findEventHandlers(component.node);
 
       for (const handler of handlers) {
-        if (handler.name.startsWith('handle')) {
+        if (handler.name.startsWith("handle")) {
           handlerPatterns.handlePrefix++;
-          inconsistentHandlers.push({ ...handler, pattern: 'handle' });
-        } else if (handler.name.startsWith('on')) {
+          inconsistentHandlers.push({ ...handler, pattern: "handle" });
+        } else if (handler.name.startsWith("on")) {
           handlerPatterns.onPrefix++;
-          inconsistentHandlers.push({ ...handler, pattern: 'on' });
+          inconsistentHandlers.push({ ...handler, pattern: "on" });
         } else {
           handlerPatterns.other++;
-          inconsistentHandlers.push({ ...handler, pattern: 'other' });
+          inconsistentHandlers.push({ ...handler, pattern: "other" });
         }
       }
     }
@@ -947,35 +1013,45 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     ].filter(Boolean).length;
 
     if (patternsUsed > 1) {
-      const total = handlerPatterns.handlePrefix + handlerPatterns.onPrefix + handlerPatterns.other;
-      const dominantPattern = 
-        handlerPatterns.handlePrefix > handlerPatterns.onPrefix && handlerPatterns.handlePrefix > handlerPatterns.other
-          ? 'handle'
+      const total =
+        handlerPatterns.handlePrefix +
+        handlerPatterns.onPrefix +
+        handlerPatterns.other;
+      const dominantPattern =
+        handlerPatterns.handlePrefix > handlerPatterns.onPrefix &&
+        handlerPatterns.handlePrefix > handlerPatterns.other
+          ? "handle"
           : handlerPatterns.onPrefix > handlerPatterns.other
-          ? 'on'
-          : 'other';
+            ? "on"
+            : "other";
 
       // Flag handlers using minority patterns
       for (const handler of inconsistentHandlers) {
         if (handler.pattern !== dominantPattern) {
-          const preferredExample = dominantPattern === 'handle' 
-            ? 'handleClick' 
-            : dominantPattern === 'on' 
-            ? 'onClick' 
-            : 'descriptive names';
+          const preferredExample =
+            dominantPattern === "handle"
+              ? "handleClick"
+              : dominantPattern === "on"
+                ? "onClick"
+                : "descriptive names";
 
           issues.push(
             this.createIssue({
-              type: 'inconsistent-pattern',
-              severity: 'low',
-              category: 'components',
+              type: "inconsistent-pattern",
+              severity: "low",
+              category: "components",
               file: file.relativePath,
               node: handler.node,
               description: `Event handler '${handler.name}' uses '${handler.pattern}' prefix, but the codebase has ${handlerPatterns.handlePrefix} 'handle' handlers, ${handlerPatterns.onPrefix} 'on' handlers, and ${handlerPatterns.other} other patterns. This inconsistency makes the code less predictable.`,
               recommendation: `Consider using '${dominantPattern}' prefix consistently for event handlers (e.g., ${preferredExample}). This improves code consistency and makes event handlers easier to identify.`,
-              estimatedEffort: 'trivial',
-              tags: ['component', 'inconsistent-pattern', 'event-handlers', 'naming'],
-            })
+              estimatedEffort: "trivial",
+              tags: [
+                "component",
+                "inconsistent-pattern",
+                "event-handlers",
+                "naming",
+              ],
+            }),
           );
         }
       }
@@ -993,19 +1069,34 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
 
     // Look for common event handler patterns in JSX
     const eventAttributes = [
-      'onClick', 'onChange', 'onSubmit', 'onFocus', 'onBlur',
-      'onKeyDown', 'onKeyUp', 'onKeyPress', 'onMouseEnter', 'onMouseLeave',
-      'onMouseDown', 'onMouseUp', 'onInput', 'onScroll', 'onLoad',
+      "onClick",
+      "onChange",
+      "onSubmit",
+      "onFocus",
+      "onBlur",
+      "onKeyDown",
+      "onKeyUp",
+      "onKeyPress",
+      "onMouseEnter",
+      "onMouseLeave",
+      "onMouseDown",
+      "onMouseUp",
+      "onInput",
+      "onScroll",
+      "onLoad",
     ];
 
     for (const eventAttr of eventAttributes) {
       // Match patterns like onClick={handleClick} or onClick={onClickHandler}
-      const pattern = new RegExp(`${eventAttr}=\\{([a-zA-Z_$][a-zA-Z0-9_$]*)\\}`, 'g');
+      const pattern = new RegExp(
+        `${eventAttr}=\\{([a-zA-Z_$][a-zA-Z0-9_$]*)\\}`,
+        "g",
+      );
       let match;
 
       while ((match = pattern.exec(text)) !== null) {
         const handlerName = match[1];
-        
+
         // Find the actual function definition
         const handlerNode = this.findFunctionByName(node, handlerName);
         if (handlerNode) {
@@ -1056,7 +1147,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Detect duplicate component logic across components
    * Validates Requirements: 6.5
-   * 
+   *
    * Detects:
    * - Duplicate validation logic
    * - Duplicate data transformation logic
@@ -1064,7 +1155,10 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    * - Duplicate custom hook patterns
    * - Similar component structures
    */
-  private detectDuplicateComponentLogic(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectDuplicateComponentLogic(
+    file: FileInfo,
+    ast: SourceFile,
+  ): Issue[] {
     const issues: Issue[] = [];
 
     // Detect duplicate validation logic
@@ -1087,18 +1181,21 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectDuplicateValidation(file: FileInfo): Issue[] {
     const issues: Issue[] = [];
-    const validationPatterns = new Map<string, Array<{ component: ComponentInfo; node: Node }>>();
+    const validationPatterns = new Map<
+      string,
+      Array<{ component: ComponentInfo; node: Node }>
+    >();
 
     for (const component of this.discoveredComponents) {
       const validations = this.extractValidationLogic(component.node);
 
       for (const validation of validations) {
         const pattern = this.normalizeCode(validation.code);
-        
+
         if (!validationPatterns.has(pattern)) {
           validationPatterns.set(pattern, []);
         }
-        
+
         validationPatterns.get(pattern)!.push({
           component,
           node: validation.node,
@@ -1109,21 +1206,28 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     // Flag patterns that appear in multiple components
     for (const [pattern, occurrences] of validationPatterns.entries()) {
       if (occurrences.length > 1) {
-        const componentNames = occurrences.map(o => o.component.name).join(', ');
-        
+        const componentNames = occurrences
+          .map((o) => o.component.name)
+          .join(", ");
+
         for (const occurrence of occurrences) {
           issues.push(
             this.createIssue({
-              type: 'code-duplication',
-              severity: 'medium',
-              category: 'components',
+              type: "code-duplication",
+              severity: "medium",
+              category: "components",
               file: file.relativePath,
               node: occurrence.node,
               description: `Duplicate validation logic found in component '${occurrence.component.name}'. This same validation appears in ${occurrences.length} components: ${componentNames}. Duplicated validation logic increases maintenance burden.`,
               recommendation: `Extract this validation logic into a shared utility function or custom hook. This will make the validation logic reusable and easier to maintain. Consider creating a validation utility in a shared location.`,
-              estimatedEffort: 'small',
-              tags: ['component', 'code-duplication', 'validation', 'refactoring'],
-            })
+              estimatedEffort: "small",
+              tags: [
+                "component",
+                "code-duplication",
+                "validation",
+                "refactoring",
+              ],
+            }),
           );
         }
       }
@@ -1135,23 +1239,41 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Extract validation logic from a component
    */
-  private extractValidationLogic(node: Node): Array<{ code: string; node: Node }> {
+  private extractValidationLogic(
+    node: Node,
+  ): Array<{ code: string; node: Node }> {
     const validations: Array<{ code: string; node: Node }> = [];
     const text = node.getText();
 
     // Look for common validation patterns
     const validationKeywords = [
-      'validate', 'isValid', 'check', 'verify', 'test',
-      'required', 'optional', 'min', 'max', 'pattern',
-      'email', 'phone', 'url', 'number', 'string',
+      "validate",
+      "isValid",
+      "check",
+      "verify",
+      "test",
+      "required",
+      "optional",
+      "min",
+      "max",
+      "pattern",
+      "email",
+      "phone",
+      "url",
+      "number",
+      "string",
     ];
 
     const traverse = (n: Node) => {
       // Look for if statements with validation logic
       if (Node.isIfStatement(n)) {
         const condition = n.getExpression().getText();
-        
-        if (validationKeywords.some(keyword => condition.toLowerCase().includes(keyword))) {
+
+        if (
+          validationKeywords.some((keyword) =>
+            condition.toLowerCase().includes(keyword),
+          )
+        ) {
           validations.push({
             code: n.getText(),
             node: n,
@@ -1162,12 +1284,15 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       // Look for validation functions
       if (Node.isFunctionDeclaration(n) || Node.isArrowFunction(n)) {
         const funcText = n.getText();
-        const funcName = Node.isFunctionDeclaration(n) ? n.getName() : '';
-        
-        if (validationKeywords.some(keyword => 
-          funcName?.toLowerCase().includes(keyword) || 
-          funcText.toLowerCase().includes(keyword)
-        )) {
+        const funcName = Node.isFunctionDeclaration(n) ? n.getName() : "";
+
+        if (
+          validationKeywords.some(
+            (keyword) =>
+              funcName?.toLowerCase().includes(keyword) ||
+              funcText.toLowerCase().includes(keyword),
+          )
+        ) {
           validations.push({
             code: funcText,
             node: n,
@@ -1187,18 +1312,21 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectDuplicateEffects(file: FileInfo): Issue[] {
     const issues: Issue[] = [];
-    const effectPatterns = new Map<string, Array<{ component: ComponentInfo; node: Node }>>();
+    const effectPatterns = new Map<
+      string,
+      Array<{ component: ComponentInfo; node: Node }>
+    >();
 
     for (const component of this.discoveredComponents) {
       const effects = this.extractEffects(component.node);
 
       for (const effect of effects) {
         const pattern = this.normalizeCode(effect.code);
-        
+
         if (!effectPatterns.has(pattern)) {
           effectPatterns.set(pattern, []);
         }
-        
+
         effectPatterns.get(pattern)!.push({
           component,
           node: effect.node,
@@ -1209,21 +1337,29 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     // Flag patterns that appear in multiple components
     for (const [pattern, occurrences] of effectPatterns.entries()) {
       if (occurrences.length > 1) {
-        const componentNames = occurrences.map(o => o.component.name).join(', ');
-        
+        const componentNames = occurrences
+          .map((o) => o.component.name)
+          .join(", ");
+
         for (const occurrence of occurrences) {
           issues.push(
             this.createIssue({
-              type: 'code-duplication',
-              severity: 'medium',
-              category: 'components',
+              type: "code-duplication",
+              severity: "medium",
+              category: "components",
               file: file.relativePath,
               node: occurrence.node,
               description: `Duplicate useEffect logic found in component '${occurrence.component.name}'. This same effect appears in ${occurrences.length} components: ${componentNames}. Duplicated effects increase maintenance burden.`,
               recommendation: `Extract this effect logic into a custom hook. This will make the effect reusable and easier to maintain. Consider creating a custom hook like 'use[DescriptiveName]' in a shared hooks directory.`,
-              estimatedEffort: 'small',
-              tags: ['component', 'code-duplication', 'hooks', 'useEffect', 'refactoring'],
-            })
+              estimatedEffort: "small",
+              tags: [
+                "component",
+                "code-duplication",
+                "hooks",
+                "useEffect",
+                "refactoring",
+              ],
+            }),
           );
         }
       }
@@ -1248,7 +1384,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       const traverse = (n: Node) => {
         if (Node.isCallExpression(n)) {
           const expr = n.getExpression();
-          if (expr.getText() === 'useEffect') {
+          if (expr.getText() === "useEffect") {
             effects.push({
               code: n.getText(),
               node: n,
@@ -1269,18 +1405,21 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectDuplicateTransformations(file: FileInfo): Issue[] {
     const issues: Issue[] = [];
-    const transformPatterns = new Map<string, Array<{ component: ComponentInfo; node: Node }>>();
+    const transformPatterns = new Map<
+      string,
+      Array<{ component: ComponentInfo; node: Node }>
+    >();
 
     for (const component of this.discoveredComponents) {
       const transforms = this.extractTransformations(component.node);
 
       for (const transform of transforms) {
         const pattern = this.normalizeCode(transform.code);
-        
+
         if (!transformPatterns.has(pattern)) {
           transformPatterns.set(pattern, []);
         }
-        
+
         transformPatterns.get(pattern)!.push({
           component,
           node: transform.node,
@@ -1291,21 +1430,28 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     // Flag patterns that appear in multiple components
     for (const [pattern, occurrences] of transformPatterns.entries()) {
       if (occurrences.length > 1) {
-        const componentNames = occurrences.map(o => o.component.name).join(', ');
-        
+        const componentNames = occurrences
+          .map((o) => o.component.name)
+          .join(", ");
+
         for (const occurrence of occurrences) {
           issues.push(
             this.createIssue({
-              type: 'code-duplication',
-              severity: 'medium',
-              category: 'components',
+              type: "code-duplication",
+              severity: "medium",
+              category: "components",
               file: file.relativePath,
               node: occurrence.node,
               description: `Duplicate data transformation logic found in component '${occurrence.component.name}'. This same transformation appears in ${occurrences.length} components: ${componentNames}. Duplicated transformations increase maintenance burden.`,
               recommendation: `Extract this transformation logic into a shared utility function. This will make the transformation reusable and easier to maintain. Consider creating a utility function in a shared location.`,
-              estimatedEffort: 'small',
-              tags: ['component', 'code-duplication', 'transformation', 'refactoring'],
-            })
+              estimatedEffort: "small",
+              tags: [
+                "component",
+                "code-duplication",
+                "transformation",
+                "refactoring",
+              ],
+            }),
           );
         }
       }
@@ -1317,7 +1463,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Extract data transformation logic from a component
    */
-  private extractTransformations(node: Node): Array<{ code: string; node: Node }> {
+  private extractTransformations(
+    node: Node,
+  ): Array<{ code: string; node: Node }> {
     const transformations: Array<{ code: string; node: Node }> = [];
 
     const traverse = (n: Node) => {
@@ -1325,14 +1473,14 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       if (Node.isCallExpression(n)) {
         const expr = n.getExpression();
         const exprText = expr.getText();
-        
+
         if (
-          exprText.endsWith('.map') ||
-          exprText.endsWith('.filter') ||
-          exprText.endsWith('.reduce') ||
-          exprText.endsWith('.sort') ||
-          exprText.endsWith('.find') ||
-          exprText.endsWith('.findIndex')
+          exprText.endsWith(".map") ||
+          exprText.endsWith(".filter") ||
+          exprText.endsWith(".reduce") ||
+          exprText.endsWith(".sort") ||
+          exprText.endsWith(".find") ||
+          exprText.endsWith(".findIndex")
         ) {
           transformations.push({
             code: n.getText(),
@@ -1366,16 +1514,21 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
         if (similarity > 0.7) {
           issues.push(
             this.createIssue({
-              type: 'code-duplication',
-              severity: 'medium',
-              category: 'components',
+              type: "code-duplication",
+              severity: "medium",
+              category: "components",
               file: file.relativePath,
               node: comp1.node,
               description: `Components '${comp1.name}' and '${comp2.name}' have very similar structures (${Math.round(similarity * 100)}% similar). This suggests they could be abstracted into a single reusable component.`,
               recommendation: `Consider creating a single component that accepts configuration props to handle both use cases. This reduces code duplication and makes the codebase more maintainable. Look for common patterns and extract them into a shared component.`,
-              estimatedEffort: 'medium',
-              tags: ['component', 'code-duplication', 'abstraction', 'refactoring'],
-            })
+              estimatedEffort: "medium",
+              tags: [
+                "component",
+                "code-duplication",
+                "abstraction",
+                "refactoring",
+              ],
+            }),
           );
         }
       }
@@ -1387,7 +1540,10 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
   /**
    * Calculate structural similarity between two components
    */
-  private calculateStructuralSimilarity(comp1: ComponentInfo, comp2: ComponentInfo): number {
+  private calculateStructuralSimilarity(
+    comp1: ComponentInfo,
+    comp2: ComponentInfo,
+  ): number {
     let similarityScore = 0;
     let totalChecks = 0;
 
@@ -1435,7 +1591,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
       totalChecks++;
       const count1 = (text1.match(pattern) || []).length;
       const count2 = (text2.match(pattern) || []).length;
-      
+
       if (count1 > 0 && count2 > 0) {
         // Both use this pattern
         const ratio = Math.min(count1, count2) / Math.max(count1, count2);
@@ -1451,9 +1607,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private normalizeCode(code: string): string {
     return code
-      .replace(/\/\*[\s\S]*?\*\//g, '') // Remove block comments
-      .replace(/\/\/.*/g, '')            // Remove line comments
-      .replace(/\s+/g, ' ')              // Normalize whitespace
+      .replace(/\/\*[\s\S]*?\*\//g, "") // Remove block comments
+      .replace(/\/\/.*/g, "") // Remove line comments
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
   }
 
@@ -1488,7 +1644,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private isDefaultExport(node: Node): boolean {
     const parent = node.getParent();
-    
+
     // Check if this is a default export declaration
     if (parent && Node.isExportAssignment(parent)) {
       return true;
@@ -1497,11 +1653,11 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     // Check if there's a separate default export statement
     const sourceFile = node.getSourceFile();
     const defaultExports = sourceFile.getExportAssignments();
-    
+
     for (const exportAssignment of defaultExports) {
       const expr = exportAssignment.getExpression();
       const nodeName = this.getNodeName(node);
-      
+
       if (nodeName && expr.getText() === nodeName) {
         return true;
       }
@@ -1510,7 +1666,9 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     // Check for "export default" syntax
     const text = node.getText();
     const fullText = node.getFullText();
-    
-    return fullText.includes('export default') || text.startsWith('export default');
+
+    return (
+      fullText.includes("export default") || text.startsWith("export default")
+    );
   }
 }
