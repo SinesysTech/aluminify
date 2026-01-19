@@ -369,8 +369,8 @@ export function DisciplinaTable() {
     <div className="flex flex-col gap-8 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Disciplinas</h1>
-          <p className="text-sm text-[#71717A]">Gerencie as disciplinas do sistema</p>
+          <h1 className="page-title">Disciplinas</h1>
+          <p className="page-subtitle">Gerencie as disciplinas do sistema</p>
         </div>
         <div className="flex items-center gap-2">
           {mounted ? (
@@ -588,8 +588,8 @@ export function DisciplinaTable() {
             <FileText className="w-8 h-8 text-zinc-400" strokeWidth={1} />
           </div>
 
-          <h3 className="text-lg font-semibold text-zinc-900 mb-2">Nenhuma disciplina cadastrada</h3>
-          <p className="text-sm text-[#71717A] text-center max-w-sm mb-8 leading-relaxed">
+          <h3 className="empty-state-title mb-2">Nenhuma disciplina cadastrada</h3>
+          <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
             Sua infraestrutura está pronta. Adicione disciplinas manualmente para organizar seu conteúdo.
           </p>
 

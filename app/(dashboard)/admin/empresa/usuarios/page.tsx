@@ -151,9 +151,9 @@ export default function EmpresaUsuariosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">UsuÃ¡rios da Empresa</h1>
-          <p className="text-muted-foreground">
-            Visualize todos os usuÃ¡rios da sua empresa
+          <h1 className="page-title">Usuarios da Empresa</h1>
+          <p className="page-subtitle">
+            Visualize todos os usuarios da sua empresa
           </p>
         </div>
         <Button asChild>

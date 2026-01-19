@@ -24,8 +24,8 @@ export default async function MeusAgendamentosPage() {
     <div className="flex flex-col gap-6 p-2 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Meus Agendamentos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Meus Agendamentos</h1>
+          <p className="page-subtitle">
             Visualize e gerencie suas sessoes de mentoria agendadas.
           </p>
         </div>

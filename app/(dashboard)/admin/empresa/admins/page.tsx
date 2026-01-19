@@ -156,8 +156,8 @@ export default function EmpresaAdminsPage() {
       <div className="container mx-auto py-8 space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Administradores da Empresa</h1>
-            <p className="text-muted-foreground">
+            <h1 className="page-title">Administradores da Empresa</h1>
+            <p className="page-subtitle">
               Gerencie os administradores da sua empresa
             </p>
           </div>

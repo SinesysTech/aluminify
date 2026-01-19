@@ -207,8 +207,8 @@ export default function BrandingPage() {
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">PersonalizaÃ§Ã£o da Marca</h1>
-        <p className="text-muted-foreground">
+        <h1 className="page-title">Personalizacao da Marca</h1>
+        <p className="page-subtitle">
           Personalize a identidade visual da sua empresa: logos, cores e fontes
         </p>
       </div>

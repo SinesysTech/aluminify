@@ -43,10 +43,10 @@ export function ProfileTabs({ user }: ProfileTabsProps) {
                     </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-center sm:items-start gap-1">
-                    <h1 className="text-2xl font-bold tracking-tight">
-                        {user.fullName || 'Usuário'}
+                    <h1 className="page-title">
+                        {user.fullName || 'Usuario'}
                     </h1>
-                    <p className="text-muted-foreground text-sm">{user.email}</p>
+                    <p className="page-subtitle">{user.email}</p>
                     <Badge variant="secondary" className="mt-1">
                         {getRoleLabel(user.role)}
                     </Badge>
