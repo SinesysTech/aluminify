@@ -34,6 +34,8 @@ type Flashcard = {
   id: string
   pergunta: string
   resposta: string
+  perguntaImagemUrl?: string | null
+  respostaImagemUrl?: string | null
   importancia?: string | null
 }
 
@@ -982,10 +984,30 @@ export default function FlashcardsClient() {
             <CardContent className="p-6 text-center space-y-3">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">Pergunta</div>
               <div className="text-xl font-semibold leading-relaxed whitespace-pre-line">{current.pergunta}</div>
+              {current.perguntaImagemUrl && (
+                <div className="rounded-md border bg-background/50 p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={current.perguntaImagemUrl}
+                    alt="Imagem da pergunta"
+                    className="max-h-[320px] w-auto mx-auto object-contain"
+                  />
+                </div>
+              )}
               {showAnswer && (
                 <>
                   <div className="border-t pt-4 text-xs uppercase tracking-wide text-muted-foreground">Resposta</div>
                   <div className="text-lg leading-relaxed whitespace-pre-line">{current.resposta}</div>
+                  {current.respostaImagemUrl && (
+                    <div className="rounded-md border bg-background/50 p-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={current.respostaImagemUrl}
+                        alt="Imagem da resposta"
+                        className="max-h-[320px] w-auto mx-auto object-contain"
+                      />
+                    </div>
+                  )}
                 </>
               )}
               {!showAnswer && (

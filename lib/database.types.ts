@@ -1229,7 +1229,9 @@ export type Database = {
           id: string
           modulo_id: string | null
           pergunta: string
+          pergunta_imagem_path: string | null
           resposta: string
+          resposta_imagem_path: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1237,7 +1239,9 @@ export type Database = {
           id?: string
           modulo_id?: string | null
           pergunta: string
+          pergunta_imagem_path?: string | null
           resposta: string
+          resposta_imagem_path?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1245,7 +1249,9 @@ export type Database = {
           id?: string
           modulo_id?: string | null
           pergunta?: string
+          pergunta_imagem_path?: string | null
           resposta?: string
+          resposta_imagem_path?: string | null
         }
         Relationships: [
           {

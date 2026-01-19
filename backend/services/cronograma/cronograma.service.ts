@@ -130,8 +130,20 @@ export class CronogramaService {
 
     const client = getDatabaseClient();
 
+    // Resolver empresa_id (prioriza metadata; faz fallback para tabela alunos)
+    const resolvedEmpresaId = await this.resolveEmpresaId(
+      client,
+      userId,
+      empresaId,
+    );
+    if (!resolvedEmpresaId) {
+      throw new CronogramaValidationError(
+        "Empresa não encontrada para o usuário autenticado (empresa_id ausente).",
+      );
+    }
+
     // Verificar se aluno_id corresponde ao usuário autenticado, se não existir, criar
-    await this.ensureAlunoExists(client, userId, userEmail, empresaId);
+    await this.ensureAlunoExists(client, userId, userEmail, resolvedEmpresaId);
 
     // Deletar cronograma anterior do aluno (se existir)
     await this.deletarCronogramaAnterior(client, userId);
@@ -322,7 +334,12 @@ export class CronogramaService {
     // ETAPA 6: Persistência
     // ============================================
 
-    const cronograma = await this.persistirCronograma(client, input, itens);
+    const cronograma = await this.persistirCronograma(
+      client,
+      input,
+      itens,
+      resolvedEmpresaId,
+    );
 
     const semanasUteis = semanas.filter((s) => !s.is_ferias);
 
@@ -427,6 +444,12 @@ export class CronogramaService {
         );
       }
 
+      if (!empresaId) {
+        throw new CronogramaValidationError(
+          "Empresa não encontrada para criar o registro de aluno (empresa_id ausente).",
+        );
+      }
+
       const { error: insertError } = await client.from("alunos").insert({
         id: userId,
         email: userEmail,
@@ -442,6 +465,30 @@ export class CronogramaService {
 
       console.log("[CronogramaService] Registro de aluno criado com sucesso");
     }
+  }
+
+  private async resolveEmpresaId(
+    client: ReturnType<typeof getDatabaseClient>,
+    userId: string,
+    empresaId?: string,
+  ): Promise<string | undefined> {
+    if (empresaId) return empresaId;
+
+    const { data, error } = await client
+      .from("alunos")
+      .select("empresa_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        "[CronogramaService] Erro ao resolver empresa_id do aluno:",
+        error,
+      );
+      return undefined;
+    }
+
+    return (data?.empresa_id as string | null | undefined) ?? undefined;
   }
 
   private calcularSemanas(
@@ -1874,6 +1921,7 @@ export class CronogramaService {
     client: ReturnType<typeof getDatabaseClient>,
     input: GerarCronogramaInput,
     itens: ItemDistribuicao[],
+    empresaId: string,
   ): Promise<CronogramaDetalhado> {
     let cronograma: CronogramaDetalhado | null = null;
 
@@ -1881,6 +1929,7 @@ export class CronogramaService {
     const { data: cronogramaData, error: cronogramaError } = await client
       .from("cronogramas")
       .insert({
+        empresa_id: empresaId,
         aluno_id: input.aluno_id,
         curso_alvo_id: input.curso_alvo_id || null,
         nome: input.nome || "Meu Cronograma",
@@ -1940,6 +1989,7 @@ export class CronogramaService {
         const { data: cronogramaFallback, error: fallbackError } = await client
           .from("cronogramas")
           .insert({
+            empresa_id: empresaId,
             aluno_id: input.aluno_id,
             curso_alvo_id: input.curso_alvo_id || null,
             nome: input.nome || "Meu Cronograma",
