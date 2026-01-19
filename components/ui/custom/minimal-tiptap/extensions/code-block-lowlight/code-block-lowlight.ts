@@ -11,7 +11,7 @@ export const CodeBlockLowlight = TiptapCodeBlockLowlight.extend({
       HTMLAttributes: {
         class: "block-node",
       },
-    } as ReturnType<(typeof TiptapCodeBlockLowlight)["config"]["addOptions"]>;
+    };
   },
 });
 
