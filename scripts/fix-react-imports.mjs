@@ -104,7 +104,7 @@ function scanDirectory(dir, excludeDirs = ['node_modules', '.next', 'dist', '.gi
         processFile(fullPath);
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignora erros de acesso
   }
 }

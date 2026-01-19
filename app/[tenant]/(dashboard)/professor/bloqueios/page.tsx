@@ -23,9 +23,9 @@ export default async function BloqueiosPage() {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Bloqueios</h1>
-          <p className="text-muted-foreground">
-            Voce precisa estar vinculado a uma empresa para gerenciar bloqueios.
+          <h1 className="page-title">Bloqueios</h1>
+          <p className="page-subtitle">
+            Você precisa estar vinculado a uma empresa para gerenciar bloqueios.
           </p>
         </div>
       </div>
@@ -35,9 +35,9 @@ export default async function BloqueiosPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Bloqueios de Agenda</h1>
-        <p className="text-muted-foreground">
-          Gerencie periodos de indisponibilidade como feriados, recessos e imprevistos.
+        <h1 className="page-title">Bloqueios de Agenda</h1>
+        <p className="page-subtitle">
+          Gerencie períodos de indisponibilidade como feriados, recessos e imprevistos.
         </p>
       </div>
 

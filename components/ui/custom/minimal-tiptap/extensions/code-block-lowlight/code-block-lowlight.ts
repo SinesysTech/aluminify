@@ -7,7 +7,6 @@ export const CodeBlockLowlight = TiptapCodeBlockLowlight.extend({
     // @ts-expect-error - parent spread with extended options causes type mismatch
     return {
       ...this.parent?.(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       lowlight: createLowlight(common),
       defaultLanguage: null,
       HTMLAttributes: {

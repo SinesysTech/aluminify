@@ -765,9 +765,9 @@ export default function ModoFocoClient() {
       <div className="space-y-6" aria-hidden={isCleanView}>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Modo Foco</h1>
-          <p className="text-muted-foreground">
-            Estudo imersivo com worker dedicado e monitoramento de distraÃ§Ãµes.
+          <h1 className="page-title">Modo Foco</h1>
+          <p className="page-subtitle">
+            Estudo imersivo com worker dedicado e monitoramento de distrações.
           </p>
         </div>
         <Badge variant="outline" className="text-sm">
@@ -778,7 +778,7 @@ export default function ModoFocoClient() {
       <Card>
         <CardHeader>
           <CardTitle>Contexto</CardTitle>
-          <CardDescription>Selecione disciplina/frente ou use os parÃ¢metros da URL.</CardDescription>
+          <CardDescription>Selecione disciplina/frente ou use os parâmetros da URL.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

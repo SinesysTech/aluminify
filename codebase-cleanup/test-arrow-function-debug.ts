@@ -2,7 +2,7 @@
  * Debug test for arrow function detection
  */
 
-import { Project } from 'ts-morph';
+import { Project, Node, VariableDeclaration } from 'ts-morph';
 import { AdapterPatternAnalyzer } from './src/analyzers/adapter-pattern-analyzer';
 import type { FileInfo } from './src/types';
 
@@ -42,14 +42,14 @@ async function testArrowFunctions() {
   const functions = sourceFile.getFunctions();
   console.log(`  Regular functions: ${functions.length}`);
   
-  const arrowFunctions: any[] = [];
+  const arrowFunctions: Node[] = [];
   sourceFile.forEachDescendant((node) => {
     if (node.getKindName() === 'ArrowFunction') {
       arrowFunctions.push(node);
       const parent = node.getParent();
       console.log(`  Arrow function found, parent: ${parent?.getKindName()}`);
-      if (parent && parent.getKindName() === 'VariableDeclaration') {
-        console.log(`    Variable name: ${(parent as any).getName()}`);
+      if (parent && Node.isVariableDeclaration(parent)) {
+        console.log(`    Variable name: ${(parent as VariableDeclaration).getName()}`);
       }
     }
   });

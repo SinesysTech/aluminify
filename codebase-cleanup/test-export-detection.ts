@@ -2,7 +2,11 @@
  * Test export detection for variable declarations
  */
 
-import { Project, SyntaxKind } from 'ts-morph';
+import { Project, SyntaxKind, Modifier } from 'ts-morph';
+
+interface NodeWithModifiers {
+  getModifiers?: () => Modifier[];
+}
 
 async function testExportDetection() {
   console.log('Testing Export Detection...\n');
@@ -25,20 +29,20 @@ async function testExportDetection() {
     console.log(`\n  Variable: ${name}`);
     
     // Check modifiers on the variable declaration itself
-    const declModifiers = (varDecl as any).getModifiers?.() || [];
+    const declModifiers = (varDecl as unknown as NodeWithModifiers).getModifiers?.() || [];
     console.log(`    Modifiers on declaration: ${declModifiers.length}`);
-    
+
     // Check modifiers on the parent variable statement
     const parent = varDecl.getParent();
     console.log(`    Parent type: ${parent.getKindName()}`);
-    
+
     const parentParent = parent.getParent();
     console.log(`    Parent's parent type: ${parentParent?.getKindName()}`);
-    
-    if (parentParent && (parentParent as any).getModifiers) {
-      const parentModifiers = (parentParent as any).getModifiers();
+
+    if (parentParent && (parentParent as unknown as NodeWithModifiers).getModifiers) {
+      const parentModifiers = (parentParent as unknown as NodeWithModifiers).getModifiers!();
       console.log(`    Modifiers on parent's parent: ${parentModifiers.length}`);
-      const hasExport = parentModifiers.some((mod: any) => 
+      const hasExport = parentModifiers.some((mod: Modifier) =>
         mod.getKind() === SyntaxKind.ExportKeyword
       );
       console.log(`    Has export keyword: ${hasExport}`);

@@ -4,11 +4,16 @@
 
 import { Project } from 'ts-morph';
 import { MiddlewarePatternAnalyzer } from './src/analyzers/middleware-pattern-analyzer';
-import type { FileInfo } from './src/types';
+
+interface MiddlewareUsage {
+  middlewareName: string;
+  routeFile: string;
+  order: number;
+}
 
 class DebugMiddlewareAnalyzer extends MiddlewarePatternAnalyzer {
-  public getMiddlewareUsages() {
-    return (this as any).middlewareUsages;
+  public getMiddlewareUsages(): MiddlewareUsage[] {
+    return (this as unknown as { middlewareUsages: MiddlewareUsage[] }).middlewareUsages;
   }
 }
 
@@ -70,15 +75,15 @@ async function debugRateLimit() {
 
   console.log('Usages tracked:');
   const usages = analyzer.getMiddlewareUsages();
-  usages.forEach((u: any) => {
+  usages.forEach((u: MiddlewareUsage) => {
     console.log(`  ${u.order}: ${u.middlewareName}`);
   });
   console.log();
 
-  const routeUsages = usages.filter((u: any) => u.routeFile === 'app/api/test/route.ts');
+  const routeUsages = usages.filter((u: MiddlewareUsage) => u.routeFile === 'app/api/test/route.ts');
   const order = routeUsages
-    .sort((a: any, b: any) => a.order - b.order)
-    .map((u: any) => u.middlewareName.toLowerCase());
+    .sort((a: MiddlewareUsage, b: MiddlewareUsage) => a.order - b.order)
+    .map((u: MiddlewareUsage) => u.middlewareName.toLowerCase());
   
   console.log(`Order array: [${order.join(', ')}]`);
   

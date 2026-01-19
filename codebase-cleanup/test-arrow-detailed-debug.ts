@@ -2,7 +2,7 @@
  * Detailed debug test for arrow function detection
  */
 
-import { Project, Node } from 'ts-morph';
+import { Project, Node, ArrowFunction, Statement } from 'ts-morph';
 
 async function testArrowFunctionAnalysis() {
   console.log('Detailed arrow function analysis...\n');
@@ -22,7 +22,7 @@ async function testArrowFunctionAnalysis() {
   const sourceFile = project.createSourceFile('test.ts', code);
   
   // Find the arrow function
-  let arrowFunc: any = null;
+  let arrowFunc: ArrowFunction | null = null;
   sourceFile.forEachDescendant((node) => {
     if (Node.isArrowFunction(node)) {
       arrowFunc = node;
@@ -53,7 +53,7 @@ async function testArrowFunctionAnalysis() {
   }
   
   // Get statements
-  let statements: any[] = [];
+  let statements: (Statement | Node)[] = [];
   if (Node.isBlock(body)) {
     statements = body.getStatements();
     console.log('\nStatements in block:', statements.length);
@@ -68,7 +68,7 @@ async function testArrowFunctionAnalysis() {
   });
   
   // Get call expressions
-  const callExpressions: any[] = [];
+  const callExpressions: Node[] = [];
   body.forEachDescendant((node) => {
     if (Node.isCallExpression(node)) {
       callExpressions.push(node);
@@ -83,7 +83,7 @@ async function testArrowFunctionAnalysis() {
   // Get parameters
   const params = arrowFunc.getParameters();
   console.log('\nParameters:', params.length);
-  params.forEach((param: any) => {
+  params.forEach((param) => {
     console.log(`  - ${param.getName()}`);
   });
 }

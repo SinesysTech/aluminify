@@ -4,7 +4,6 @@
 
 import { Project } from 'ts-morph';
 import { MiddlewarePatternAnalyzer } from './src/analyzers/middleware-pattern-analyzer';
-import type { FileInfo } from './src/types';
 
 async function testRateLimitProper() {
   console.log('Testing Rate Limit Detection with Proper Middleware...\n');

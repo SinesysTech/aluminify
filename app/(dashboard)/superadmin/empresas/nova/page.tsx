@@ -84,8 +84,8 @@ export default function NovaEmpresaPage() {
     <div className="container mx-auto py-8 max-w-2xl">
       <div className="container mx-auto py-8 max-w-2xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Criar Nova Empresa</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Criar Nova Empresa</h1>
+          <p className="page-subtitle">
             Passo {step} de 3: {step === 1 ? 'Dados da Empresa' : step === 2 ? 'Plano' : 'Primeiro Admin'}
           </p>
         </div>

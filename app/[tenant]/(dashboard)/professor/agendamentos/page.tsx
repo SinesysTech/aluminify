@@ -23,8 +23,8 @@ export default async function ProfessorAgendamentosPage() {
   return (
     <div className="flex flex-col gap-6 p-2 md:p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Agendamentos</h1>
-        <p className="text-muted-foreground">
+        <h1 className="page-title">Agendamentos</h1>
+        <p className="page-subtitle">
           Gerencie os agendamentos de mentoria dos seus alunos.
         </p>
       </div>

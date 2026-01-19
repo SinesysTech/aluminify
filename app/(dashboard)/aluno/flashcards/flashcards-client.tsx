@@ -577,11 +577,11 @@ export default function FlashcardsClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="page-title flex items-center gap-2">
           Flashcards
           <Badge variant="secondary">SRS</Badge>
         </h1>
-        <p className="text-muted-foreground">Selecione o modo e revise com espaçamento inteligente.</p>
+        <p className="page-subtitle">Selecione o modo e revise com espaçamento inteligente.</p>
       </div>
 
       {/* Escopo da revisão */}

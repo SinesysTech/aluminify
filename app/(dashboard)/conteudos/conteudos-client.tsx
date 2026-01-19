@@ -1695,9 +1695,9 @@ export default function ConteudosClientPage() {
     <div className="flex flex-col gap-6 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Importar Conteudo Programatico</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Faca upload de arquivos CSV para cadastrar ou atualizar o conteudo programatico
+          <h1 className="page-title">Importar Conteúdo Programático</h1>
+          <p className="page-subtitle mt-1">
+            Faça upload de arquivos CSV para cadastrar ou atualizar o conteúdo programático
           </p>
         </div>
       </header>

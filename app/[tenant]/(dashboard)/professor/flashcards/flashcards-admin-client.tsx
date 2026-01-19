@@ -776,8 +776,8 @@ export default function FlashcardsAdminClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestão de Flashcards</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Gestão de Flashcards</h1>
+          <p className="page-subtitle">
             Gerencie os flashcards do sistema. Total: {total}
           </p>
         </div>

@@ -134,8 +134,8 @@ export default async function StatsPage() {
           </Link>
         </Button>
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">Estatisticas de Agendamentos</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="page-title">Estatísticas de Agendamentos</h1>
+          <p className="page-subtitle">
             Analise o desempenho dos seus agendamentos
           </p>
         </div>
