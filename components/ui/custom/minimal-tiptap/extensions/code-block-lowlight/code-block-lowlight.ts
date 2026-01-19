@@ -7,6 +7,13 @@ export const CodeBlockLowlight = TiptapCodeBlockLowlight.extend({
     return {
       ...this.parent?.(),
       lowlight: createLowlight(common),
+      // TipTap expects a non-optional prefix (TS requirement in newer versions)
+      languageClassPrefix: "language-",
+      // Required options in newer @tiptap/extension-code-block-lowlight typings
+      exitOnTripleEnter: true,
+      exitOnArrowDown: true,
+      enableTabIndentation: false,
+      tabSize: 2,
       defaultLanguage: null,
       HTMLAttributes: {
         class: "block-node",

@@ -185,9 +185,6 @@ export default function FlashcardsAdminClient() {
   const [respostaImageFile, setRespostaImageFile] = React.useState<File | null>(null)
   const [perguntaImageUrl, setPerguntaImageUrl] = React.useState<string | null>(null)
   const [respostaImageUrl, setRespostaImageUrl] = React.useState<string | null>(null)
-
-
-
   const uploadFlashcardImage = React.useCallback(
     async (flashcardId: string, side: 'pergunta' | 'resposta', file: File) => {
       const formData = new FormData()

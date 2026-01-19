@@ -1558,9 +1558,10 @@ export class FlashcardsService {
     // Construir query de flashcards
     console.log("[flashcards] Construindo query de flashcards");
     console.log("[flashcards] moduloIds:", moduloIds);
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const applyListFilters = <T extends { in: any; or: any; order: any; range: any }>(
+    const applyListFilters = <
+      T extends { in: any; or: any; order: any; range: any },
+    >(
       baseQuery: T,
     ): T | null => {
       let q = baseQuery;
@@ -1671,8 +1672,15 @@ export class FlashcardsService {
     }
 
     // Buscar módulos relacionados
+    const flashcardsWithModulo = flashcardsData as Array<{
+      modulo_id: string | null;
+    }>;
     const moduloIdsFromFlashcards = [
-      ...new Set(flashcardsData.map((f) => f.modulo_id as string)),
+      ...new Set(
+        flashcardsWithModulo
+          .map((f) => f.modulo_id)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+      ),
     ];
 
     if (moduloIdsFromFlashcards.length === 0) {
@@ -1856,7 +1864,16 @@ export class FlashcardsService {
 
     // Montar resposta final
     const flashcards: FlashcardAdmin[] = flashcardsData
-      .map((item) => {
+      .map(
+        (
+          item: {
+            id: string;
+            modulo_id: string | null;
+            pergunta: string;
+            resposta: string;
+            created_at: string | null;
+          } & Record<string, unknown>,
+        ) => {
         // After migration, modulo_id is guaranteed to be non-null
         const modulo = modulosMap.get(item.modulo_id as string);
         if (!modulo) return null;
@@ -1875,8 +1892,9 @@ export class FlashcardsService {
           created_at: item.created_at as string,
           modulo,
         } as FlashcardAdmin;
-      })
-      .filter((f): f is FlashcardAdmin => f !== null);
+      },
+      )
+      .filter((f: FlashcardAdmin | null): f is FlashcardAdmin => f !== null);
 
     const result: { data: FlashcardAdmin[]; total: number } = {
       data: flashcards,

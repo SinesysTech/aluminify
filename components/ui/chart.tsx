@@ -192,7 +192,7 @@ function ChartTooltipContent({
                 indicator === "dot" && "items-center"
               )}>
               {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item as never, index, (payload as never) ?? [])
+                formatter(item.value, item.name, item as never, index, payload as never)
               ) : (
                 <>
                   {itemConfig?.icon ? (
