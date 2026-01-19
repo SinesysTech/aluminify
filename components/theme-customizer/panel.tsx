@@ -7,15 +7,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {
-  PresetSelector,
-  SidebarModeSelector,
-  ThemeScaleSelector,
-  ColorModeSelector,
-  ContentLayoutSelector,
-  ThemeRadiusSelector,
-  ResetThemeButton
-} from "@/components/theme-customizer/index";
+import { PresetSelector } from "./preset-selector";
+import { SidebarModeSelector } from "./sidebar-mode-selector";
+import { ThemeScaleSelector } from "./scale-selector";
+import { ColorModeSelector } from "./color-mode-selector";
+import { ContentLayoutSelector } from "./content-layout-selector";
+import { ThemeRadiusSelector } from "./radius-selector";
+import { ResetThemeButton } from "./reset-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function ThemeCustomizerPanel() {
