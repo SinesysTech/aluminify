@@ -68,8 +68,13 @@ export async function POST(request: NextRequest) {
     // Se não há cursos, gerar senha temporária se não fornecida
     let finalTemporaryPassword = temporaryPassword;
     if (!hasCourses && !finalTemporaryPassword) {
-      // Gerar senha aleatória segura
-      finalTemporaryPassword = randomBytes(16).toString('hex');
+      // Usar CPF como senha padrão (apenas os dígitos)
+      if (cpf) {
+        finalTemporaryPassword = cpf.replace(/\D/g, '');
+      } else {
+        // Fallback: gerar senha aleatória segura se não tiver CPF
+        finalTemporaryPassword = randomBytes(16).toString('hex');
+      }
     }
 
     try {

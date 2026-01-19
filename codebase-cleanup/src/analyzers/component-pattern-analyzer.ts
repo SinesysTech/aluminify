@@ -18,10 +18,7 @@
 import {
   SourceFile,
   Node,
-  FunctionDeclaration,
-  ArrowFunction,
   ClassDeclaration,
-  VariableDeclaration,
   SyntaxKind,
 } from "ts-morph";
 import { BasePatternAnalyzer } from "./pattern-analyzer.js";
@@ -49,6 +46,20 @@ interface PropChain {
   depth: number;
   componentPath: string[];
   startNode: Node;
+}
+
+/**
+ * Pattern counters for component analysis
+ */
+interface PatternCounters {
+  propDestructuring: number;
+  propObject: number;
+  defaultExports: number;
+  namedExports: number;
+  functionDeclarations: number;
+  arrowFunctions: number;
+  usesTypeScript: number;
+  usesJavaScript: number;
 }
 
 /**
@@ -808,7 +819,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectInconsistentPropPatterns(
     file: FileInfo,
-    patterns: any,
+    patterns: PatternCounters,
   ): Issue[] {
     const issues: Issue[] = [];
 
@@ -863,7 +874,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectInconsistentExportPatterns(
     file: FileInfo,
-    patterns: any,
+    patterns: PatternCounters,
   ): Issue[] {
     const issues: Issue[] = [];
 
@@ -915,7 +926,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectInconsistentDefinitionStyles(
     file: FileInfo,
-    patterns: any,
+    patterns: PatternCounters,
   ): Issue[] {
     const issues: Issue[] = [];
 
@@ -972,7 +983,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectInconsistentEventHandlerNaming(
     file: FileInfo,
-    ast: SourceFile,
+    _ast: SourceFile,
   ): Issue[] {
     const issues: Issue[] = [];
 
@@ -1014,10 +1025,6 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     ].filter(Boolean).length;
 
     if (patternsUsed > 1) {
-      const total =
-        handlerPatterns.handlePrefix +
-        handlerPatterns.onPrefix +
-        handlerPatterns.other;
       const dominantPattern =
         handlerPatterns.handlePrefix > handlerPatterns.onPrefix &&
         handlerPatterns.handlePrefix > handlerPatterns.other
@@ -1158,7 +1165,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectDuplicateComponentLogic(
     file: FileInfo,
-    ast: SourceFile,
+    _ast: SourceFile,
   ): Issue[] {
     const issues: Issue[] = [];
 
@@ -1205,7 +1212,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     }
 
     // Flag patterns that appear in multiple components
-    for (const [pattern, occurrences] of validationPatterns.entries()) {
+    for (const [_pattern, occurrences] of validationPatterns.entries()) {
       if (occurrences.length > 1) {
         const componentNames = occurrences
           .map((o) => o.component.name)
@@ -1244,7 +1251,6 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     node: Node,
   ): Array<{ code: string; node: Node }> {
     const validations: Array<{ code: string; node: Node }> = [];
-    const text = node.getText();
 
     // Look for common validation patterns
     const validationKeywords = [
@@ -1336,7 +1342,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     }
 
     // Flag patterns that appear in multiple components
-    for (const [pattern, occurrences] of effectPatterns.entries()) {
+    for (const [_pattern, occurrences] of effectPatterns.entries()) {
       if (occurrences.length > 1) {
         const componentNames = occurrences
           .map((o) => o.component.name)
@@ -1374,29 +1380,22 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
    */
   private extractEffects(node: Node): Array<{ code: string; node: Node }> {
     const effects: Array<{ code: string; node: Node }> = [];
-    const text = node.getText();
 
-    // Find useEffect calls
-    const effectPattern = /useEffect\s*\(/g;
-    let match;
-
-    while ((match = effectPattern.exec(text)) !== null) {
-      // Try to find the actual call expression node
-      const traverse = (n: Node) => {
-        if (Node.isCallExpression(n)) {
-          const expr = n.getExpression();
-          if (expr.getText() === "useEffect") {
-            effects.push({
-              code: n.getText(),
-              node: n,
-            });
-          }
+    // Find useEffect calls by traversing AST
+    const traverse = (n: Node) => {
+      if (Node.isCallExpression(n)) {
+        const expr = n.getExpression();
+        if (expr.getText() === "useEffect") {
+          effects.push({
+            code: n.getText(),
+            node: n,
+          });
         }
-        n.forEachChild(traverse);
-      };
+      }
+      n.forEachChild(traverse);
+    };
 
-      traverse(node);
-    }
+    traverse(node);
 
     return effects;
   }
@@ -1429,7 +1428,7 @@ export class ComponentPatternAnalyzer extends BasePatternAnalyzer {
     }
 
     // Flag patterns that appear in multiple components
-    for (const [pattern, occurrences] of transformPatterns.entries()) {
+    for (const [_pattern, occurrences] of transformPatterns.entries()) {
       if (occurrences.length > 1) {
         const componentNames = occurrences
           .map((o) => o.component.name)

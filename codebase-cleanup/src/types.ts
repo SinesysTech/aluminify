@@ -2,6 +2,8 @@
  * Core type definitions for the codebase cleanup and refactoring analysis system
  */
 
+import type { SourceFile } from "ts-morph";
+
 // ============================================================================
 // File Information Types
 // ============================================================================
@@ -155,7 +157,7 @@ export interface FileScanner {
  */
 export interface PatternAnalyzer {
   name: string;
-  analyze(file: FileInfo, ast: any): Promise<Issue[]>;
+  analyze(file: FileInfo, ast: SourceFile): Promise<Issue[]>;
   getSupportedFileTypes(): FileCategory[];
 }
 
@@ -192,7 +194,7 @@ export interface AnalysisResult {
  */
 export interface AnalysisEngine {
   analyze(files: FileInfo[], analyzers: PatternAnalyzer[]): Promise<AnalysisResult>;
-  parseFile(file: FileInfo): Promise<any>;
+  parseFile(file: FileInfo): Promise<SourceFile>;
   aggregateIssues(issues: Issue[]): IssueCollection;
 }
 

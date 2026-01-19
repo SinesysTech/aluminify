@@ -94,7 +94,7 @@ export class ErrorHandlingPatternAnalyzer extends BasePatternAnalyzer {
    */
   private detectCrossFileInconsistencies(
     file: FileInfo,
-    ast: SourceFile,
+    _ast: SourceFile,
   ): Issue[] {
     const issues: Issue[] = [];
 

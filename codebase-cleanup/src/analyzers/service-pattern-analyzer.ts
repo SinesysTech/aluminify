@@ -12,7 +12,7 @@
  * - Unnecessary service abstraction layers
  */
 
-import { SourceFile, Node, SyntaxKind } from "ts-morph";
+import { SourceFile, Node } from "ts-morph";
 import { BasePatternAnalyzer } from "./pattern-analyzer.js";
 import type { FileInfo, Issue, FileCategory } from "../types.js";
 

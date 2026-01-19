@@ -11,7 +11,7 @@
  * Validates Requirements: 15.1, 15.2, 15.3, 15.5
  */
 
-import { SourceFile, Node, SyntaxKind, FunctionDeclaration, ArrowFunction, FunctionExpression, VariableDeclaration } from 'ts-morph';
+import { SourceFile, Node, VariableDeclaration } from 'ts-morph';
 import { BasePatternAnalyzer } from './pattern-analyzer.js';
 import type { FileInfo, Issue, FileCategory } from '../types.js';
 
@@ -432,7 +432,7 @@ export class MiddlewarePatternAnalyzer extends BasePatternAnalyzer {
    * Detect duplicate middleware logic across implementations
    * Validates Requirements: 15.2
    */
-  private detectDuplicateMiddleware(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectDuplicateMiddleware(file: FileInfo, _ast: SourceFile): Issue[] {
     const issues: Issue[] = [];
 
     // Get middleware implementations in this file
@@ -570,7 +570,7 @@ export class MiddlewarePatternAnalyzer extends BasePatternAnalyzer {
    * Detect inconsistent middleware ordering across routes
    * Validates Requirements: 15.3
    */
-  private detectInconsistentOrdering(file: FileInfo, ast: SourceFile): Issue[] {
+  private detectInconsistentOrdering(file: FileInfo, _ast: SourceFile): Issue[] {
     const issues: Issue[] = [];
 
     // Only analyze API routes
@@ -777,7 +777,7 @@ export class MiddlewarePatternAnalyzer extends BasePatternAnalyzer {
    * Identify opportunities to consolidate middleware
    * Validates Requirements: 15.5
    */
-  private identifyConsolidationOpportunities(file: FileInfo, ast: SourceFile): Issue[] {
+  private identifyConsolidationOpportunities(file: FileInfo, _ast: SourceFile): Issue[] {
     const issues: Issue[] = [];
 
     // Get middleware implementations in this file
