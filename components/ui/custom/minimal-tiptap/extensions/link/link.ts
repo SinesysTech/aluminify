@@ -17,11 +17,19 @@ export const Link = TiptapLink.extend({
    * - <a> elements with an href attribute that contains 'javascript:'
    */
   parseHTML() {
-    return [{ tag: 'a[href]:not([data-type="button"]):not([href *= "javascript:" i])' }];
+    return [
+      {
+        tag: 'a[href]:not([data-type="button"]):not([href *= "javascript:" i])',
+      },
+    ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ["a", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+    return [
+      "a",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
+      0,
+    ];
   },
 
   addOptions() {
@@ -29,10 +37,11 @@ export const Link = TiptapLink.extend({
       ...this.parent?.(),
       autolink: true,
       openOnClick: false,
+      protocols: ["http", "https", "mailto", "tel"],
       HTMLAttributes: {
-        class: "link"
-      }
-    } as ReturnType<(typeof TiptapLink)["config"]["addOptions"]>;
+        class: "link",
+      },
+    };
   },
 
   addProseMirrorPlugins() {
@@ -77,14 +86,16 @@ export const Link = TiptapLink.extend({
 
             const $start = doc.resolve(start);
             const $end = doc.resolve(end);
-            const transaction = tr.setSelection(new TextSelection($start, $end));
+            const transaction = tr.setSelection(
+              new TextSelection($start, $end),
+            );
 
             view.dispatch(transaction);
-          }
-        }
-      })
+          },
+        },
+      }),
     ];
-  }
+  },
 });
 
 export default Link;

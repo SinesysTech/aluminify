@@ -992,7 +992,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
       // We need student data for this
       const { data: aluno } = await supabase
         .from("alunos")
-        .select("nome, email")
+        .select("nome_completo, email")
         .eq("id", agendamento.aluno_id)
         .single();
 
@@ -1019,7 +1019,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
         const meetingLink = await generateMeetingLink(
           validIntegration.provider as "google" | "zoom" | "default",
           {
-            title: `Mentoria com ${aluno?.nome || "Aluno"}`,
+            title: `Mentoria com ${aluno?.nome_completo || "Aluno"}`,
             startTime: new Date(agendamento.data_inicio),
             endTime: new Date(agendamento.data_fim),
             description: "Sessão de mentoria agendada via Aluminify",

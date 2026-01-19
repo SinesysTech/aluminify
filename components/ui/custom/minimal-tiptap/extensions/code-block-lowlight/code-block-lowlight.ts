@@ -11,7 +11,7 @@ export const CodeBlockLowlight = TiptapCodeBlockLowlight.extend({
       HTMLAttributes: {
         class: "block-node",
       },
-    };
+    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   },
 });
 
