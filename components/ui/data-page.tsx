@@ -47,8 +47,8 @@ function DataPageHeader({ title, description, actions, className }: DataPageHead
       )}
     >
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{title}</h1>
-        <p className="text-sm text-[#71717A]">{description}</p>
+        <h1 className="page-title">{title}</h1>
+        <p className="page-subtitle">{description}</p>
       </div>
       {actions && (
         <div className="flex items-center gap-2">
@@ -162,10 +162,10 @@ function DataPageEmptyState({
         <Icon className="w-8 h-8 text-zinc-400" strokeWidth={1} />
       </div>
 
-      <h3 className="text-lg font-semibold text-zinc-900 mb-2">
+      <h3 className="empty-state-title mb-2">
         {title}
       </h3>
-      <p className="text-sm text-[#71717A] text-center max-w-sm mb-8 leading-relaxed">
+      <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
         {description}
       </p>
 

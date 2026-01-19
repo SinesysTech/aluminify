@@ -271,7 +271,7 @@ export function isProgressoAtividade(
 
 export type AtividadeStatus = Atividade["status"];
 export type ProgressoStatus = ProgressoAtividade["status"];
-export type DificuldadePercebida = 1 | 2 | 3 | 4 | 5;
+export type DificuldadePercebidaNivel = 1 | 2 | 3 | 4 | 5;
 
 // ============================================================================
 // FILTROS E ORDENAÇÃO

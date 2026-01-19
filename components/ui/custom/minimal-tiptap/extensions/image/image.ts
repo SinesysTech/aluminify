@@ -143,6 +143,8 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
   addOptions() {
     return {
       ...this.parent?.(),
+      inline: false,
+      allowBase64: false,
       allowedMimeTypes: [],
       maxFileSize: 0,
       uploadFn: undefined,
@@ -150,7 +152,7 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
       downloadImage: undefined,
       copyImage: undefined,
       copyLink: undefined
-    }
+    } as CustomImageOptions
   },
 
   addAttributes() {

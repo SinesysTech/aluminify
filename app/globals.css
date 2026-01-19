@@ -246,3 +246,36 @@
     background-image: none !important;
   }
 }
+
+/* === Typography Utilities === */
+@layer utilities {
+  /* Títulos principais de páginas (H1) */
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50;
+  }
+
+  /* Subtítulos/descrições de páginas */
+  .page-subtitle {
+    @apply text-sm text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* Títulos de seções (H2) */
+  .section-title {
+    @apply text-lg font-semibold text-zinc-900 dark:text-zinc-50;
+  }
+
+  /* Subtítulos de seções */
+  .section-subtitle {
+    @apply text-sm text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* Títulos de cards (H3) */
+  .card-title {
+    @apply text-base font-semibold text-zinc-900 dark:text-zinc-50;
+  }
+
+  /* Títulos de estados vazios */
+  .empty-state-title {
+    @apply text-lg font-semibold text-zinc-900 dark:text-zinc-50;
+  }
+}

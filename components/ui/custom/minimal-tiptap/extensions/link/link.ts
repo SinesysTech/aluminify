@@ -25,8 +25,10 @@ export const Link = TiptapLink.extend({
   },
 
   addOptions() {
+    // @ts-expect-error - parent type inference with extended options
     return {
       ...this.parent?.(),
+      autolink: true,
       openOnClick: false,
       HTMLAttributes: {
         class: "link"

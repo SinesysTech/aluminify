@@ -28,10 +28,10 @@ export function InstitutionHeader({
         <Building2 className="w-5 h-5 text-primary" />
       </div>
       <div>
-        <h1 className="text-lg font-semibold text-foreground">
+        <h1 className="page-title">
           {getGreeting()}, {empresaNome}!
         </h1>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 page-subtitle">
           <span className="flex items-center gap-1.5">
             <Users className="w-4 h-4" />
             {totalAlunos} {totalAlunos === 1 ? 'aluno' : 'alunos'}

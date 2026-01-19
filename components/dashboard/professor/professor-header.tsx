@@ -24,10 +24,10 @@ export function ProfessorHeader({ professorNome }: ProfessorHeaderProps) {
         <GraduationCap className="w-6 h-6 text-primary" />
       </div>
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+        <h1 className="page-title">
           {getGreeting()}, Professor {firstName}!
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="page-subtitle mt-1">
           Acompanhe seus alunos e agendamentos
         </p>
       </div>

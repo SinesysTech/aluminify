@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         biografia: null,
         foto_url: null,
         especialidade: null,
-      } as Database["public"]["Tables"]["professores"]["Insert"]);
+      } as unknown as Database["public"]["Tables"]["professores"]["Insert"]);
 
     if (insertProfessorError) {
       // rollback best-effort

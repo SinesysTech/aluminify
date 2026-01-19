@@ -1728,7 +1728,7 @@ export type Database = {
           created_at: string | null
           data_proxima_revisao: string | null
           dias_intervalo: number | null
-          empresa_id: string | null
+          empresa_id: string
           flashcard_id: string | null
           id: string
           nivel_facilidade: number | null
@@ -1741,7 +1741,7 @@ export type Database = {
           created_at?: string | null
           data_proxima_revisao?: string | null
           dias_intervalo?: number | null
-          empresa_id?: string | null
+          empresa_id: string
           flashcard_id?: string | null
           id?: string
           nivel_facilidade?: number | null
@@ -1754,7 +1754,7 @@ export type Database = {
           created_at?: string | null
           data_proxima_revisao?: string | null
           dias_intervalo?: number | null
-          empresa_id?: string | null
+          empresa_id?: string
           flashcard_id?: string | null
           id?: string
           nivel_facilidade?: number | null

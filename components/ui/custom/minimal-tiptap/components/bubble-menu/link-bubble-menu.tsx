@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type { ShouldShowProps } from '../../types'
 import type { Editor } from '@tiptap/react'
+// @ts-expect-error - BubbleMenu is available at runtime but types may lag behind
 import { BubbleMenu } from '@tiptap/react'
 import { LinkEditBlock } from '../link/link-edit-block'
 import { LinkPopoverBlock } from '../link/link-popover-block'

@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DeleteStudentDialog } from './delete-student-dialog'
+import { toast } from '@/hooks/use-toast'
 
 interface StudentTableProps {
     students: Student[]
@@ -42,7 +43,11 @@ export function StudentTable({ students }: StudentTableProps) {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
             if (sessionError || !session) {
-                alert('Sessão expirada. Faça login novamente.')
+                toast({
+                    variant: 'destructive',
+                    title: 'Sessão expirada',
+                    description: 'Faça login novamente para continuar.',
+                })
                 return
             }
 
@@ -63,21 +68,37 @@ export function StudentTable({ students }: StudentTableProps) {
                     statusText: response.statusText,
                     error: data,
                 })
-                alert(data.error || `Erro ao iniciar visualização (${response.status})`)
+                toast({
+                    variant: 'destructive',
+                    title: 'Erro ao visualizar como aluno',
+                    description: data.error || `Não foi possível iniciar a visualização. Tente novamente.`,
+                })
                 return
             }
 
             if (data.success) {
+                toast({
+                    title: 'Modo visualização ativado',
+                    description: 'Você está visualizando a plataforma como este aluno.',
+                })
                 // Aguardar um pouco para garantir que o cookie foi definido
                 await new Promise(resolve => setTimeout(resolve, 100))
                 router.push('/aluno/dashboard')
                 router.refresh()
             } else {
-                alert(data.error || 'Erro ao iniciar visualização')
+                toast({
+                    variant: 'destructive',
+                    title: 'Erro ao visualizar como aluno',
+                    description: data.error || 'Não foi possível iniciar a visualização.',
+                })
             }
         } catch (error) {
             console.error('Erro ao iniciar visualização:', error)
-            alert('Erro ao iniciar visualização. Verifique o console para mais detalhes.')
+            toast({
+                variant: 'destructive',
+                title: 'Erro inesperado',
+                description: 'Ocorreu um erro ao processar a solicitação. Tente novamente.',
+            })
         } finally {
             setLoadingId(null)
         }

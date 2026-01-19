@@ -38,8 +38,8 @@ export function AlunosClientPage({ students, meta, courses }: AlunosClientPagePr
                         <>
                             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
                                 <div>
-                                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Alunos</h1>
-                                    <p className="text-sm text-[#71717A]">Gerencie matrículas, progresso e status financeiro.</p>
+                                    <h1 className="page-title">Alunos</h1>
+                                    <p className="page-subtitle">Gerencie matrículas, progresso e status financeiro.</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button className="h-9 px-4 rounded-md border border-[#E4E4E7] bg-white text-sm font-medium hover:bg-zinc-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2 text-zinc-900">
@@ -72,8 +72,8 @@ export function AlunosClientPage({ students, meta, courses }: AlunosClientPagePr
                         <UserPlus className="w-8 h-8 text-zinc-400" strokeWidth={1} />
                     </div>
 
-                    <h3 className="text-lg font-semibold text-zinc-900 mb-2">Base de alunos vazia</h3>
-                    <p className="text-sm text-[#71717A] text-center max-w-sm mb-8 leading-relaxed">
+                    <h3 className="empty-state-title mb-2">Base de alunos vazia</h3>
+                    <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
                         Sua infraestrutura está pronta. Adicione alunos manualmente para gerar credenciais ou importe em massa.
                     </p>
 

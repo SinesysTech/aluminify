@@ -1354,6 +1354,34 @@ export class FlashcardsService {
       throw new Error("Feedback inválido. Use 1, 2, 3 ou 4.");
     }
 
+    // Buscar empresa_id do aluno para garantir isolamento de tenant
+    const { data: alunoData, error: alunoError } = await this.client
+      .from("alunos")
+      .select("empresa_id")
+      .eq("id", alunoId)
+      .maybeSingle();
+
+    if (alunoError || !alunoData?.empresa_id) {
+      throw new Error("Aluno não encontrado ou sem empresa associada.");
+    }
+
+    const empresaId = alunoData.empresa_id;
+
+    // Validar que o flashcard pertence à mesma empresa do aluno
+    const { data: flashcardData, error: flashcardError } = await this.client
+      .from("flashcards")
+      .select("empresa_id")
+      .eq("id", cardId)
+      .maybeSingle();
+
+    if (flashcardError || !flashcardData) {
+      throw new Error("Flashcard não encontrado.");
+    }
+
+    if (flashcardData.empresa_id !== empresaId) {
+      throw new Error("Flashcard não pertence à sua empresa.");
+    }
+
     const { data: existing, error } = await this.client
       .from("progresso_flashcards")
       .select("*")
@@ -1380,6 +1408,7 @@ export class FlashcardsService {
     const payload = {
       aluno_id: alunoId,
       flashcard_id: cardId,
+      empresa_id: empresaId,
       nivel_facilidade: srsResult.newEaseFactor,
       dias_intervalo: srsResult.newInterval,
       data_proxima_revisao: srsResult.nextReviewDate.toISOString(),
