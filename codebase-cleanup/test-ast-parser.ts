@@ -3,7 +3,6 @@
  */
 
 import { ASTParser, ASTQueryHelper } from './src/utils/ast-parser';
-import type { FileInfo } from './src/types';
 
 async function testASTParser() {
   console.log('Testing AST Parser...\n');

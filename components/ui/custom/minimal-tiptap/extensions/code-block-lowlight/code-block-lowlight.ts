@@ -6,7 +6,6 @@ export const CodeBlockLowlight = TiptapCodeBlockLowlight.extend({
   addOptions() {
     return {
       ...this.parent?.(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       lowlight: createLowlight(common),
       // TipTap expects a non-optional prefix (TS requirement in newer versions)
       languageClassPrefix: "language-",

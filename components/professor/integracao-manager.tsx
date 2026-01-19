@@ -30,12 +30,13 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [integracao, setIntegracao] = useState<ProfessorIntegracao | null>(null)
-  const [configuracoes, setConfiguracoes] = useState<ConfiguracoesProfessor | null>(null)
+  const [_configuracoes, setConfiguracoes] = useState<ConfiguracoesProfessor | null>(null)
   const [defaultLink, setDefaultLink] = useState("")
   const [selectedProvider, setSelectedProvider] = useState<"google" | "zoom" | "default">("default")
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [professorId])
 
   async function loadData() {

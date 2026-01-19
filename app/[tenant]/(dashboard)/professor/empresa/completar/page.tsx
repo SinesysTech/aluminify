@@ -273,9 +273,9 @@ export default function CompletarCadastroEmpresaPage() {
     return (
       <div className="container mx-auto py-8 max-w-xl">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Empresa nÃ£o encontrada</h1>
-          <p className="text-muted-foreground">
-            NÃ£o foi possÃ­vel carregar os dados da sua empresa.
+          <h1 className="page-title">Empresa não encontrada</h1>
+          <p className="page-subtitle">
+            Não foi possível carregar os dados da sua empresa.
           </p>
         </div>
       </div>
@@ -285,9 +285,9 @@ export default function CompletarCadastroEmpresaPage() {
   return (
     <div className="container mx-auto py-8 max-w-xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Completar Cadastro da Empresa</h1>
-        <p className="text-muted-foreground">
-          Complete as informaÃ§Ãµes da sua empresa para continuar usando a plataforma.
+        <h1 className="page-title">Completar Cadastro da Empresa</h1>
+        <p className="page-subtitle">
+          Complete as informações da sua empresa para continuar usando a plataforma.
         </p>
       </div>
       <div className="space-y-4">

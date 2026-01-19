@@ -244,7 +244,7 @@ describe('Property 8: Database Access Inconsistency Detection', () => {
             const fileInfo = createFileInfo('services/database.ts');
             const issues = await analyzer.analyze(fileInfo, ast);
             // Should detect inconsistent type usage
-            const inconsistentTypeIssues = issues.filter(issue => issue.type === 'inconsistent-pattern' &&
+            const _inconsistentTypeIssues = issues.filter(issue => issue.type === 'inconsistent-pattern' &&
                 issue.description.includes('Inconsistent type usage'));
             // May or may not detect depending on variable naming
             expect(issues.length).toBeGreaterThanOrEqual(0);

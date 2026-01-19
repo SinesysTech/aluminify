@@ -18,9 +18,9 @@ export default async function ProfessorConfiguracoesPage() {
   return (
     <div className="flex flex-col gap-6 p-2 md:p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Configuracoes de Agendamento</h1>
-        <p className="text-muted-foreground">
-          Configure suas preferencias para agendamentos de mentoria.
+        <h1 className="page-title">Configurações de Agendamento</h1>
+        <p className="page-subtitle">
+          Configure suas preferências para agendamentos de mentoria.
         </p>
       </div>
 

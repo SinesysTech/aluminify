@@ -82,7 +82,7 @@ describe('Property 12: Component Prop Drilling Detection', () => {
   /**
    * Generator for a simple component with props
    */
-  const simpleComponentArb = fc.record({
+  const _simpleComponentArb = fc.record({
     name: componentNameArb,
     props: fc.array(propNameArb, { minLength: 1, maxLength: 5 }),
     style: componentStyleArb,
@@ -273,8 +273,8 @@ function ${name}(props) {
           const issues = await analyzer.analyze(fileInfo, ast);
 
           // Should detect prop drilling with spread props
-          const propDrillingIssues = issues.filter(
-            issue => issue.type === 'confusing-logic' && 
+          const _propDrillingIssues = issues.filter(
+            issue => issue.type === 'confusing-logic' &&
                      issue.description.includes('Prop drilling detected')
           );
 

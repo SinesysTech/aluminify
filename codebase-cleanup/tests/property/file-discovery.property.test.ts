@@ -30,7 +30,7 @@ describe('Property 1: Complete File Discovery', () => {
     // Clean up test directories after each test
     try {
       await fs.rm(testBaseDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors
     }
   });
@@ -495,7 +495,7 @@ describe('Property 1: Complete File Discovery', () => {
     const linkPath = path.join(realDir, 'link-to-parent');
     try {
       await fs.symlink(testDir, linkPath, 'dir');
-    } catch (error) {
+    } catch (_error) {
       // Skip test if symlinks are not supported (e.g., Windows without admin)
       return;
     }

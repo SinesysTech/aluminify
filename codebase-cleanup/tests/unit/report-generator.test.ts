@@ -9,23 +9,17 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { createReportGenerator } from "../../src/reporter/report-generator";
 import type {
   AnalysisResult,
   ClassifiedIssues,
-  Issue,
-  IssuePattern,
-  Severity,
-  IssueCategory,
-  IssueType,
 } from "../../src/types";
 
 describe("ReportGenerator", () => {
-  let mockAnalysisResult: AnalysisResult;
-  let mockClassifiedIssues: ClassifiedIssues;
+  let _mockAnalysisResult: AnalysisResult;
+  let _mockClassifiedIssues: ClassifiedIssues;
 
   beforeEach(() => {
-    mockAnalysisResult = {
+    _mockAnalysisResult = {
       files: [],
       summary: {
         totalFiles: 0,
@@ -36,7 +30,7 @@ describe("ReportGenerator", () => {
       },
       issues: [],
     };
-    mockClassifiedIssues = {
+    _mockClassifiedIssues = {
       critical: [],
       high: [],
       medium: [],

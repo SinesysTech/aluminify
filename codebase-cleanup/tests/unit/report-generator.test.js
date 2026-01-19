@@ -9,10 +9,10 @@
  */
 import { describe, it, expect, beforeEach } from "vitest";
 describe("ReportGenerator", () => {
-    let mockAnalysisResult;
-    let mockClassifiedIssues;
+    let _mockAnalysisResult;
+    let _mockClassifiedIssues;
     beforeEach(() => {
-        mockAnalysisResult = {
+        _mockAnalysisResult = {
             files: [],
             summary: {
                 totalFiles: 0,
@@ -23,7 +23,7 @@ describe("ReportGenerator", () => {
             },
             issues: [],
         };
-        mockClassifiedIssues = {
+        _mockClassifiedIssues = {
             critical: [],
             high: [],
             medium: [],

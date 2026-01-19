@@ -673,7 +673,7 @@ describe('ComponentPatternAnalyzer', () => {
             const fileInfo = createFileInfo('components/SpreadProps.tsx');
             const issues = await analyzer.analyze(fileInfo, ast);
             // Spread props should be detected as potential prop drilling
-            const propDrillingIssues = issues.filter(issue => issue.tags.includes('prop-drilling'));
+            const _propDrillingIssues = issues.filter(issue => issue.tags.includes('prop-drilling'));
             // May or may not detect depending on implementation
             // This is a valid test case to ensure no crashes
             expect(issues).toBeDefined();

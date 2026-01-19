@@ -963,8 +963,8 @@ export default function SalaEstudosClientPage({
     return (
       <div className="w-full space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Sala de Estudos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Sala de Estudos</h1>
+          <p className="page-subtitle">
             Checklist e acompanhamento do seu progresso nas atividades
           </p>
         </div>
@@ -988,8 +988,8 @@ export default function SalaEstudosClientPage({
   return (
     <div className="w-full space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{title}</h1>
-        <p className="text-muted-foreground">{description}</p>
+        <h1 className="page-title">{title}</h1>
+        <p className="page-subtitle">{description}</p>
       </div>
 
       {error && (

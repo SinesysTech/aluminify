@@ -23,9 +23,9 @@ export default async function DisponibilidadePage() {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Disponibilidade</h1>
-          <p className="text-muted-foreground">
-            Voce precisa estar vinculado a uma empresa para configurar disponibilidade.
+          <h1 className="page-title">Disponibilidade</h1>
+          <p className="page-subtitle">
+            Você precisa estar vinculado a uma empresa para configurar disponibilidade.
           </p>
         </div>
       </div>
@@ -35,9 +35,9 @@ export default async function DisponibilidadePage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Disponibilidade</h1>
-        <p className="text-muted-foreground">
-          Configure seus horarios de atendimento para mentoria.
+        <h1 className="page-title">Disponibilidade</h1>
+        <p className="page-subtitle">
+          Configure seus horários de atendimento para mentoria.
         </p>
       </div>
 

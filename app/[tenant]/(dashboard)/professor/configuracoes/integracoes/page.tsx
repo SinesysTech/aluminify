@@ -30,9 +30,9 @@ export default async function IntegracoesPage({ searchParams }: PageProps) {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Integracoes</h1>
-          <p className="text-muted-foreground">
-            Voce precisa estar vinculado a uma empresa para configurar integracoes.
+          <h1 className="page-title">Integrações</h1>
+          <p className="page-subtitle">
+            Você precisa estar vinculado a uma empresa para configurar integrações.
           </p>
         </div>
       </div>
@@ -42,9 +42,9 @@ export default async function IntegracoesPage({ searchParams }: PageProps) {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Integracoes</h1>
-        <p className="text-muted-foreground">
-          Conecte servicos externos para gerar links de reuniao automaticamente.
+        <h1 className="page-title">Integrações</h1>
+        <p className="page-subtitle">
+          Conecte serviços externos para gerar links de reunião automaticamente.
         </p>
       </div>
 

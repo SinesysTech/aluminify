@@ -144,7 +144,7 @@ export const Reel = ({
       <div
         className={cn(
           "relative isolate h-full w-auto overflow-hidden bg-black",
-          "aspect-[9/16]",
+          "aspect-9/16",
           className
         )}
         {...props}
@@ -397,6 +397,7 @@ export const ReelImage = ({
 
   return (
     // biome-ignore lint/performance/noImgElement: "Reel is framework-agnostic"
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       alt={alt}
       className={cn("absolute inset-0 size-full object-cover", className)}
@@ -459,7 +460,7 @@ export const ReelControls = ({ className, ...props }: ReelControlsProps) => (
   <div
     className={cn(
       "absolute right-0 bottom-0 left-0 z-20 flex items-center justify-between p-4",
-      "bg-gradient-to-t from-black/60 to-transparent",
+      "bg-linear-gradient-to-t from-black/60 to-transparent",
       className
     )}
     {...props}
@@ -611,7 +612,7 @@ export const ReelHeader = ({ className, ...props }: ReelHeaderProps) => (
   <div
     className={cn(
       "absolute top-0 right-0 left-0 z-20 p-4 pt-6",
-      "bg-gradient-to-b from-black/60 to-transparent",
+      "bg-linear-to-b from-black/60 to-transparent",
       className
     )}
     {...props}
@@ -624,7 +625,7 @@ export const ReelFooter = ({ className, ...props }: ReelFooterProps) => (
   <div
     className={cn(
       "absolute right-0 bottom-0 left-0 z-20 p-4",
-      "bg-gradient-to-t from-black/60 to-transparent",
+      "bg-linear-to-t from-black/60 to-transparent",
       className
     )}
     {...props}

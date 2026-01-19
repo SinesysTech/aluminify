@@ -27,9 +27,9 @@ export default async function ConfiguracoesAvancadasPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">ConfiguraÃ§Ãµes AvanÃ§adas</h1>
-        <p className="text-muted-foreground">
-          Configure intervalos personalizados, lembretes e preferÃªncias de notificaÃ§Ãµes
+        <h1 className="page-title">Configurações Avançadas</h1>
+        <p className="page-subtitle">
+          Configure intervalos personalizados, lembretes e preferências de notificações
         </p>
       </div>
 

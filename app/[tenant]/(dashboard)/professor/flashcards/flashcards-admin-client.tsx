@@ -185,7 +185,6 @@ export default function FlashcardsAdminClient() {
   const [respostaImageFile, setRespostaImageFile] = React.useState<File | null>(null)
   const [perguntaImageUrl, setPerguntaImageUrl] = React.useState<string | null>(null)
   const [respostaImageUrl, setRespostaImageUrl] = React.useState<string | null>(null)
-
   const uploadFlashcardImage = React.useCallback(
     async (flashcardId: string, side: 'pergunta' | 'resposta', file: File) => {
       const formData = new FormData()
@@ -774,8 +773,8 @@ export default function FlashcardsAdminClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gestão de Flashcards</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Gestão de Flashcards</h1>
+          <p className="page-subtitle">
             Gerencie os flashcards do sistema. Total: {total}
           </p>
         </div>
