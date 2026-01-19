@@ -5,6 +5,7 @@ import {
   DisciplineValidationError,
 } from "@/backend/services/discipline";
 import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { getDatabaseClientAsUser } from "@/backend/clients/database";
 
 const serializeDiscipline = (
   discipline: Awaited<ReturnType<typeof disciplineService.getById>>,
@@ -52,14 +53,28 @@ function handleError(error: unknown) {
   );
 }
 
-// GET é público (catálogo)
-export async function GET() {
+// GET requer autenticação para respeitar isolamento de tenant via RLS
+async function getHandler(request: AuthenticatedRequest) {
   try {
     const startTime = Date.now();
-    const result = await disciplineService.list();
-    const endTime = Date.now();
 
-    const disciplines = Array.isArray(result) ? result : result.data;
+    // Usar cliente com contexto do usuário para respeitar RLS
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "Token não encontrado" }, { status: 401 });
+    }
+
+    const client = getDatabaseClientAsUser(token);
+    const { data, error } = await client
+      .from("disciplinas")
+      .select("id, nome, created_at, updated_at")
+      .order("nome", { ascending: true });
+
+    if (error) {
+      throw new Error(`Erro ao listar disciplinas: ${error.message}`);
+    }
+
+    const endTime = Date.now();
 
     // Log de performance em desenvolvimento
     const duration = endTime - startTime;
@@ -68,13 +83,18 @@ export async function GET() {
     }
 
     const response = NextResponse.json({
-      data: disciplines.map(serializeDiscipline),
+      data: (data || []).map((d) => ({
+        id: d.id,
+        name: d.nome,
+        createdAt: d.created_at,
+        updatedAt: d.updated_at,
+      })),
     });
 
-    // Adicionar headers de cache HTTP (5 minutos)
+    // Cache privado pois é específico do usuário/tenant
     response.headers.set(
       "Cache-Control",
-      "public, s-maxage=300, stale-while-revalidate=600",
+      "private, max-age=60, stale-while-revalidate=120",
     );
 
     return response;
@@ -82,6 +102,8 @@ export async function GET() {
     return handleError(error);
   }
 }
+
+export const GET = requireAuth(getHandler);
 
 // POST requer autenticação de professor (JWT ou API Key)
 async function postHandler(request: AuthenticatedRequest) {

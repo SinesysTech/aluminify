@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { ProfileSettings } from "./profile-settings"
 import type { AppUser } from "@/types/user"
@@ -13,7 +13,7 @@ export function ProfileTabs({ user }: ProfileTabsProps) {
             <div>
                 <h1 className="text-2xl font-bold tracking-tight">Meu Perfil</h1>
                 <p className="text-muted-foreground">
-                    Gerencie suas informaÃ§Ãµes pessoais e preferÃªncias.
+                    Gerencie suas informações pessoais e preferências.
                 </p>
             </div>
             <ProfileSettings user={user} />

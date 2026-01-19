@@ -5,7 +5,7 @@ import {
   CourseValidationError,
 } from '@/backend/services/course';
 import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database';
 import type { Database } from '@/lib/database.types';
 
 const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({
@@ -40,16 +40,78 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
-// GET é público (catálogo)
-export async function GET() {
+// GET requer autenticação para respeitar isolamento de tenant via RLS
+async function getHandler(request: AuthenticatedRequest) {
   try {
-    const result = await courseService.list();
-    const courses = Array.isArray(result) ? result : result.data;
-    return NextResponse.json({ data: courses.map(serializeCourse) });
+    // Usar cliente com contexto do usuário para respeitar RLS
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "Token não encontrado" }, { status: 401 });
+    }
+
+    const client = getDatabaseClientAsUser(token);
+
+    // Query cursos com disciplinas associadas
+    const { data, error } = await client
+      .from("cursos")
+      .select(`
+        id,
+        segmento_id,
+        disciplina_id,
+        nome,
+        modalidade,
+        tipo,
+        descricao,
+        ano_vigencia,
+        data_inicio,
+        data_termino,
+        meses_acesso,
+        planejamento_url,
+        imagem_capa_url,
+        created_at,
+        updated_at,
+        cursos_disciplinas (disciplina_id)
+      `)
+      .order("nome", { ascending: true });
+
+    if (error) {
+      throw new Error(`Erro ao listar cursos: ${error.message}`);
+    }
+
+    const response = NextResponse.json({
+      data: (data || []).map((c) => ({
+        id: c.id,
+        segmentId: c.segmento_id,
+        disciplineId: c.disciplina_id,
+        disciplineIds: c.cursos_disciplinas?.map((cd: { disciplina_id: string }) => cd.disciplina_id) || [],
+        name: c.nome,
+        modality: c.modalidade,
+        type: c.tipo,
+        description: c.descricao,
+        year: c.ano_vigencia,
+        startDate: c.data_inicio,
+        endDate: c.data_termino,
+        accessMonths: c.meses_acesso,
+        planningUrl: c.planejamento_url,
+        coverImageUrl: c.imagem_capa_url,
+        createdAt: c.created_at,
+        updatedAt: c.updated_at,
+      })),
+    });
+
+    // Cache privado pois é específico do usuário/tenant
+    response.headers.set(
+      "Cache-Control",
+      "private, max-age=60, stale-while-revalidate=120",
+    );
+
+    return response;
   } catch (error) {
     return handleError(error);
   }
 }
+
+export const GET = requireAuth(getHandler);
 
 // POST requer autenticação de professor (JWT ou API Key)
 async function postHandler(request: AuthenticatedRequest) {

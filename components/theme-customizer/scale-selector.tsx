@@ -13,9 +13,9 @@ export function ThemeScaleSelector() {
       <Label htmlFor="roundedCorner">Scale:</Label>
       <div>
         <ToggleGroup
-          value={theme.scale}
+          value={String(theme.scale)}
           type="single"
-          onValueChange={(value) => setTheme({ ...theme, scale: value as any })}
+          onValueChange={(value) => setTheme({ ...theme, scale: parseFloat(value) || 1 })}
           className="*:border-input w-full gap-3 *:rounded-md *:border">
           <ToggleGroupItem variant="outline" value="none">
             <BanIcon />

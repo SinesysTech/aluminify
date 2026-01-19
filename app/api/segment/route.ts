@@ -5,6 +5,7 @@ import {
   SegmentValidationError,
 } from "@/backend/services/segment";
 import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { getDatabaseClientAsUser } from "@/backend/clients/database";
 
 const serializeSegment = (
   segment: Awaited<ReturnType<typeof segmentService.getById>>,
@@ -53,16 +54,48 @@ function handleError(error: unknown) {
   );
 }
 
-// GET é público (catálogo)
-export async function GET() {
+// GET requer autenticação para respeitar isolamento de tenant via RLS
+async function getHandler(request: AuthenticatedRequest) {
   try {
-    const result = await segmentService.list();
-    const segments = Array.isArray(result) ? result : result.data;
-    return NextResponse.json({ data: segments.map(serializeSegment) });
+    // Usar cliente com contexto do usuário para respeitar RLS
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "Token não encontrado" }, { status: 401 });
+    }
+
+    const client = getDatabaseClientAsUser(token);
+    const { data, error } = await client
+      .from("segmentos")
+      .select("id, nome, slug, created_at, updated_at")
+      .order("nome", { ascending: true });
+
+    if (error) {
+      throw new Error(`Erro ao listar segmentos: ${error.message}`);
+    }
+
+    const response = NextResponse.json({
+      data: (data || []).map((s) => ({
+        id: s.id,
+        name: s.nome,
+        slug: s.slug,
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
+      })),
+    });
+
+    // Cache privado pois é específico do usuário/tenant
+    response.headers.set(
+      "Cache-Control",
+      "private, max-age=60, stale-while-revalidate=120",
+    );
+
+    return response;
   } catch (error) {
     return handleError(error);
   }
 }
+
+export const GET = requireAuth(getHandler);
 
 // POST requer autenticação de professor (JWT ou API Key)
 async function postHandler(request: AuthenticatedRequest) {

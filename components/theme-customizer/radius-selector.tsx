@@ -12,9 +12,9 @@ export function ThemeRadiusSelector() {
     <div className="flex flex-col gap-4">
       <Label htmlFor="roundedCorner">Radius:</Label>
       <ToggleGroup
-        value={theme.radius}
+        value={String(theme.radius)}
         type="single"
-        onValueChange={(value) => setTheme({ ...theme, radius: value as any })}
+        onValueChange={(value) => setTheme({ ...theme, radius: parseFloat(value) || 0.5 })}
         className="*:border-input w-full gap-3 *:rounded-md *:border">
         <ToggleGroupItem variant="outline" value="none">
           <BanIcon />
