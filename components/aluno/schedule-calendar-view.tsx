@@ -2220,29 +2220,23 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   // hasConcluidas: verde (prioridade máxima - todas as aulas concluídas)
                   hasConcluidas:
                     'bg-[#34D399]/20 dark:bg-[#34D399]/25 border border-[#34D399]/35 dark:border-[#34D399]/45 ' +
-                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
+                    'text-slate-950 dark:text-white [&>button]:text-slate-950 dark:[&>button]:text-white [&>button>span]:text-slate-950 dark:[&>button>span]:text-white',
                   // hasPendentes: laranja (prioridade média - algumas aulas concluídas mas não todas)
                   hasPendentes:
                     'bg-[#FB923C]/20 dark:bg-[#FB923C]/25 border border-[#FB923C]/35 dark:border-[#FB923C]/45 ' +
-                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
+                    'text-slate-950 dark:text-white [&>button]:text-slate-950 dark:[&>button]:text-white [&>button>span]:text-slate-950 dark:[&>button>span]:text-white',
                   // hasAulas: azul (prioridade baixa - tem aulas mas nenhuma concluída)
                   hasAulas:
                     'bg-[#60A5FA]/20 dark:bg-[#60A5FA]/25 border border-[#60A5FA]/35 dark:border-[#60A5FA]/45 ' +
-                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
+                    'text-slate-950 dark:text-white [&>button]:text-slate-950 dark:[&>button]:text-white [&>button>span]:text-slate-950 dark:[&>button>span]:text-white',
                   // hasDiasSelecionados: amarelo (prioridade baixa - dia selecionado sem aulas ainda)
                   hasDiasSelecionados:
                     'bg-[#FACC15]/20 dark:bg-[#FACC15]/25 border border-[#FACC15]/35 dark:border-[#FACC15]/45 ' +
-                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
+                    'text-slate-950 dark:text-white [&>button]:text-slate-950 dark:[&>button]:text-white [&>button>span]:text-slate-950 dark:[&>button>span]:text-white',
                   // hasFerias: rosa (períodos de férias e recesso)
                   hasFerias:
                     'bg-[#F472B6]/20 dark:bg-[#F472B6]/25 border border-[#F472B6]/35 dark:border-[#F472B6]/45 ' +
-                    'text-slate-950 dark:text-slate-50 [&>button]:text-slate-950 dark:[&>button]:text-slate-50 [&>button>span]:text-slate-950 dark:[&>button>span]:text-slate-50',
-                  // hasSemanaSobrecarregada: vermelho (semana acima de 100% de capacidade)
-                  hasSemanaSobrecarregada: 'ring-2 ring-[#F87171]',
-                  // hasSemanaCompleta: laranja (semana entre 95-100% de capacidade)
-                  hasSemanaCompleta: 'ring-2 ring-[#FB923C]',
-                  // hasSemanaParcial: amarelo (semana com uso parcial)
-                  hasSemanaParcial: 'ring-1 ring-[#FACC15]',
+                    'text-slate-950 dark:text-white [&>button]:text-slate-950 dark:[&>button]:text-white [&>button>span]:text-slate-950 dark:[&>button>span]:text-white',
                 }}
                 numberOfMonths={isMobile ? 1 : 2}
                 className="rounded-md border w-full"

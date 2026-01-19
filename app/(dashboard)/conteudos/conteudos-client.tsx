@@ -1908,18 +1908,18 @@ export default function ConteudosClientPage() {
               </div>
 
               {/* Info Box */}
-              <Alert className="border-violet-200 bg-violet-50 text-violet-950 dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-50">
-                <Info className="text-[#A78BFA]" />
-                <AlertTitle className="font-semibold text-violet-950 dark:text-violet-50">
+              <Alert className="border-violet-300 bg-violet-100 text-black! dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-50!">
+                <Info className="text-violet-700 dark:text-[#A78BFA]" />
+                <AlertTitle className="font-semibold text-black! dark:text-violet-50!">
                   Colunas necessarias no arquivo:
                 </AlertTitle>
-                <AlertDescription className="text-violet-800 dark:text-violet-100">
-                  <ul className="text-xs space-y-1 list-disc list-inside">
-                    <li><span className="font-semibold text-[#A78BFA]">Modulo</span> ou <span className="font-semibold text-[#A78BFA]">Nome do Modulo</span> (obrigatorio)</li>
-                    <li><span className="font-semibold text-[#A78BFA]">Aula</span> ou <span className="font-semibold text-[#A78BFA]">Nome da Aula</span> (obrigatorio)</li>
-                    <li><span className="font-semibold text-[#A78BFA]">Tempo</span> - tempo estimado em minutos (opcional)</li>
-                    <li><span className="font-semibold text-[#A78BFA]">Prioridade</span> - valor de 0 a 5 (opcional)</li>
-                    <li><span className="font-semibold text-[#A78BFA]">Importancia</span> - Alta, Media, Baixa ou Base (opcional)</li>
+                <AlertDescription className="text-black! dark:text-violet-100!">
+                  <ul className="text-xs space-y-1 list-disc list-inside text-black! dark:text-violet-100!">
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Modulo</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome do Modulo</span> (obrigatorio)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Aula</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome da Aula</span> (obrigatorio)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Tempo</span> - tempo estimado em minutos (opcional)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Prioridade</span> - valor de 0 a 5 (opcional)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Importancia</span> - Alta, Media, Baixa ou Base (opcional)</li>
                   </ul>
                 </AlertDescription>
               </Alert>

@@ -2876,7 +2876,7 @@ export class CronogramaService {
     const { data: cronogramaRaw, error: cronogramaError } = await client
       .from("cronogramas")
       .select(
-        "id, aluno_id, data_inicio, data_fim, horas_estudo_dia, dias_estudo_semana, periodos_ferias",
+        "id, aluno_id, data_inicio, data_fim, horas_estudo_dia, dias_estudo_semana, periodos_ferias, velocidade_reproducao",
       )
       .eq("id", cronogramaId)
       .single();
@@ -2893,6 +2893,7 @@ export class CronogramaService {
       horas_estudo_dia: number;
       dias_estudo_semana: number;
       periodos_ferias: unknown;
+      velocidade_reproducao?: number | null;
     };
 
     if (cronograma.aluno_id !== userId) {
@@ -2933,7 +2934,7 @@ export class CronogramaService {
       (cronograma.periodos_ferias as unknown as FeriasPeriodo[]) || [];
     const horasDia = cronograma.horas_estudo_dia || 0;
     const diasSemana = cronograma.dias_estudo_semana || 0;
-    const velocidadeReproducao = (cronograma as unknown as { velocidade_reproducao?: number }).velocidade_reproducao ?? 1.0;
+    const velocidadeReproducao = cronograma.velocidade_reproducao ?? 1.0;
 
     const semanas = this.calcularSemanas(
       dataInicio,
