@@ -119,6 +119,29 @@ export default function FlashcardsAdminClient() {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  const fetchWithAuth = React.useCallback(
+    async (input: string, init?: RequestInit) => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente.')
+      }
+
+      const headers = new Headers(init?.headers || {})
+      if (!(init?.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json')
+      }
+      headers.set('Authorization', `Bearer ${session.access_token}`)
+
+      return fetch(input, {
+        ...init,
+        headers,
+      })
+    },
+    [supabase],
+  )
+
   // Filtros
   const [disciplinaId, setDisciplinaId] = React.useState<string | undefined>(undefined)
   const [frenteId, setFrenteId] = React.useState<string | undefined>(undefined)
@@ -228,8 +251,6 @@ export default function FlashcardsAdminClient() {
     },
     [fetchWithAuth],
   )
-
-
 
   // Carregar cursos
   React.useEffect(() => {
@@ -1038,14 +1059,14 @@ export default function FlashcardsAdminClient() {
 
       {/* Modal Criar */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Criar Flashcard</DialogTitle>
             <DialogDescription>
               Preencha os campos para criar um novo flashcard.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto pr-1 space-y-4">
             <div className="space-y-2">
               <Label>Disciplina *</Label>
               <Select
@@ -1170,7 +1191,7 @@ export default function FlashcardsAdminClient() {
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 border-t pt-4 bg-background">
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
               Cancelar
             </Button>
@@ -1190,14 +1211,14 @@ export default function FlashcardsAdminClient() {
 
       {/* Modal Editar */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Editar Flashcard</DialogTitle>
             <DialogDescription>
               Atualize os campos do flashcard.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto pr-1 space-y-4">
             <div className="space-y-2">
               <Label>Disciplina *</Label>
               <Select
@@ -1372,7 +1393,7 @@ export default function FlashcardsAdminClient() {
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 border-t pt-4 bg-background">
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Cancelar
             </Button>

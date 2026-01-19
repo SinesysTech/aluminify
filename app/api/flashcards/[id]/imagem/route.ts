@@ -25,6 +25,16 @@ function parseSide(raw: unknown): ImageSide | null {
   return null;
 }
 
+function isMissingImagePathColumns(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const e = error as { code?: string; message?: string };
+  if (e.code === '42703') return true;
+  const msg = e.message ?? '';
+  return (
+    msg.includes('pergunta_imagem_path') || msg.includes('resposta_imagem_path')
+  );
+}
+
 async function ensureProfessorOrSuperAdmin(request: AuthenticatedRequest) {
   if (request.user?.isSuperAdmin) return { isSuperAdmin: true, empresaId: request.user.empresaId ?? null };
 
@@ -83,6 +93,16 @@ async function postHandler(request: AuthenticatedRequest, params: { id: string }
       .eq('id', params.id)
       .maybeSingle();
 
+    if (fcError && isMissingImagePathColumns(fcError)) {
+      return NextResponse.json(
+        {
+          error:
+            'Seu banco ainda não possui as colunas de imagem em `flashcards` (pergunta_imagem_path/resposta_imagem_path). Aplique a migration `20260119100000_add_flashcards_image_paths.sql` e tente novamente.',
+        },
+        { status: 400 },
+      );
+    }
+
     if (fcError || !flashcard) {
       return NextResponse.json({ error: 'Flashcard não encontrado.' }, { status: 404 });
     }
@@ -125,6 +145,15 @@ async function postHandler(request: AuthenticatedRequest, params: { id: string }
     if (updateError) {
       // Cleanup uploaded file if DB update fails
       await client.storage.from(FLASHCARDS_IMAGES_BUCKET).remove([newPath]);
+      if (isMissingImagePathColumns(updateError)) {
+        return NextResponse.json(
+          {
+            error:
+              'Não foi possível salvar a imagem porque seu banco ainda não possui as colunas `pergunta_imagem_path/resposta_imagem_path` em `flashcards`. Aplique a migration `20260119100000_add_flashcards_image_paths.sql`.',
+          },
+          { status: 400 },
+        );
+      }
       return NextResponse.json({ error: `Erro ao salvar imagem no flashcard: ${updateError.message}` }, { status: 400 });
     }
 
@@ -157,6 +186,16 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
       .eq('id', params.id)
       .maybeSingle();
 
+    if (fcError && isMissingImagePathColumns(fcError)) {
+      return NextResponse.json(
+        {
+          error:
+            'Seu banco ainda não possui as colunas de imagem em `flashcards` (pergunta_imagem_path/resposta_imagem_path). Aplique a migration `20260119100000_add_flashcards_image_paths.sql` e tente novamente.',
+        },
+        { status: 400 },
+      );
+    }
+
     if (fcError || !flashcard) {
       return NextResponse.json({ error: 'Flashcard não encontrado.' }, { status: 404 });
     }
@@ -182,6 +221,15 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
 
     const { error: updateError } = await client.from('flashcards').update(updatePayload).eq('id', params.id);
     if (updateError) {
+      if (isMissingImagePathColumns(updateError)) {
+        return NextResponse.json(
+          {
+            error:
+              'Não foi possível remover a imagem porque seu banco ainda não possui as colunas `pergunta_imagem_path/resposta_imagem_path` em `flashcards`. Aplique a migration `20260119100000_add_flashcards_image_paths.sql`.',
+          },
+          { status: 400 },
+        );
+      }
       return NextResponse.json({ error: `Erro ao remover imagem do flashcard: ${updateError.message}` }, { status: 400 });
     }
 

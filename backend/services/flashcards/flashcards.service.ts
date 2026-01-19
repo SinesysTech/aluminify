@@ -39,6 +39,16 @@ function formatSupabaseError(error: unknown): string {
   return String(error);
 }
 
+function isMissingFlashcardsImageColumnsError(error: unknown): boolean {
+  const formatted = formatSupabaseError(error);
+  // Postgres undefined_column
+  if (formatted.includes('[42703]')) return true;
+  return (
+    formatted.includes('pergunta_imagem_path') ||
+    formatted.includes('resposta_imagem_path')
+  );
+}
+
 export type FlashcardImportRow = {
   // Formato antigo (compatibilidade)
   disciplina?: string;
@@ -1540,51 +1550,77 @@ export class FlashcardsService {
     }
 
     // Construir query de flashcards
-    console.log("[flashcards] Construindo query de flashcards");
-    console.log("[flashcards] moduloIds:", moduloIds);
+    console.log('[flashcards] Construindo query de flashcards');
+    console.log('[flashcards] moduloIds:', moduloIds);
 
-    let query = this.client
-      .from("flashcards")
-      .select(
-        "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at",
-        { count: "exact" },
+    const applyListFilters = <T extends ReturnType<typeof this.client.from>>(
+      baseQuery: T,
+    ) => {
+      let q = baseQuery;
+
+      if (moduloIds !== null) {
+        if (moduloIds.length === 0) {
+          // Nenhum módulo encontrado, retornar vazio
+          console.log('[flashcards] Nenhum módulo encontrado, retornando vazio');
+          return null;
+        }
+        console.log('[flashcards] Aplicando filtro de módulos:', moduloIds.length, 'módulos');
+        q = q.in('modulo_id', moduloIds) as unknown as T;
+      }
+
+      if (filters.search) {
+        const searchTerm = `%${filters.search}%`;
+        console.log('[flashcards] Aplicando busca:', searchTerm);
+        q = q.or(`pergunta.ilike.${searchTerm},resposta.ilike.${searchTerm}`) as unknown as T;
+      }
+
+      const orderBy = filters.orderBy || 'created_at';
+      const orderDirection = filters.orderDirection || 'desc';
+      q = q.order(orderBy, { ascending: orderDirection === 'asc' }) as unknown as T;
+
+      const page = filters.page || 1;
+      const limit = filters.limit || 50;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      q = q.range(from, to) as unknown as T;
+
+      return q;
+    };
+
+    let query = applyListFilters(
+      this.client
+        .from('flashcards')
+        .select(
+          'id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at',
+          { count: 'exact' },
+        ),
+    );
+
+    if (!query) {
+      return { data: [], total: 0 };
+    }
+
+    console.log('[flashcards] Executando query de flashcards...');
+    let { data: flashcardsData, error, count } = await query;
+
+    // Compatibilidade: bancos ainda sem as colunas de imagem
+    if (error && isMissingFlashcardsImageColumnsError(error)) {
+      console.warn(
+        '[flashcards] Colunas pergunta_imagem_path/resposta_imagem_path não existem no banco; refazendo query sem elas.',
       );
-
-    if (moduloIds !== null) {
-      if (moduloIds.length === 0) {
-        // Nenhum módulo encontrado, retornar vazio
-        console.log("[flashcards] Nenhum módulo encontrado, retornando vazio");
+      const fallbackQuery = applyListFilters(
+        this.client
+          .from('flashcards')
+          .select('id, modulo_id, pergunta, resposta, created_at', { count: 'exact' }),
+      );
+      if (!fallbackQuery) {
         return { data: [], total: 0 };
       }
-      console.log(
-        "[flashcards] Aplicando filtro de módulos:",
-        moduloIds.length,
-        "módulos",
-      );
-      query = query.in("modulo_id", moduloIds);
+      const fallback = await fallbackQuery;
+      flashcardsData = fallback.data;
+      error = fallback.error;
+      count = fallback.count;
     }
-
-    if (filters.search) {
-      const searchTerm = `%${filters.search}%`;
-      console.log("[flashcards] Aplicando busca:", searchTerm);
-      query = query.or(
-        `pergunta.ilike.${searchTerm},resposta.ilike.${searchTerm}`,
-      );
-    }
-
-    const orderBy = filters.orderBy || "created_at";
-    const orderDirection = filters.orderDirection || "desc";
-    query = query.order(orderBy, { ascending: orderDirection === "asc" });
-
-    const page = filters.page || 1;
-    const limit = filters.limit || 50;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    query = query.range(from, to);
-
-    console.log("[flashcards] Executando query de flashcards...");
-    const { data: flashcardsData, error, count } = await query;
 
     if (error) {
       console.error(
@@ -1848,13 +1884,25 @@ export class FlashcardsService {
   async getById(id: string, userId: string): Promise<FlashcardAdmin | null> {
     await this.ensureProfessor(userId);
 
-    const { data: flashcard, error } = await this.client
-      .from("flashcards")
-      .select(
-        "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at",
-      )
-      .eq("id", id)
+    let { data: flashcard, error } = await this.client
+      .from('flashcards')
+      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at')
+      .eq('id', id)
       .maybeSingle();
+
+    // Compatibilidade: bancos ainda sem as colunas de imagem
+    if (error && isMissingFlashcardsImageColumnsError(error)) {
+      console.warn(
+        '[flashcards] Colunas pergunta_imagem_path/resposta_imagem_path não existem no banco (getById); fazendo fallback.',
+      );
+      const fallback = await this.client
+        .from('flashcards')
+        .select('id, modulo_id, pergunta, resposta, created_at')
+        .eq('id', id)
+        .maybeSingle();
+      flashcard = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       throw new Error(`Erro ao buscar flashcard: ${error.message}`);
