@@ -20,9 +20,13 @@ const serializeAtividade = (
     obrigatorio: a.obrigatorio as boolean,
     ordemExibicao: (a.ordemExibicao || a.ordem_exibicao) as number,
     createdAt:
-      (a.createdAt as any)?.toISOString?.() || (a.created_at as string),
+      a.createdAt instanceof Date
+        ? a.createdAt.toISOString()
+        : ((a.createdAt || a.created_at) as string),
     updatedAt:
-      (a.updatedAt as any)?.toISOString?.() || (a.updated_at as string),
+      a.updatedAt instanceof Date
+        ? a.updatedAt.toISOString()
+        : ((a.updatedAt || a.updated_at) as string),
   };
 };
 

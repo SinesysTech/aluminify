@@ -11,7 +11,7 @@ import {
 import { SessaoEstudo } from "@/types/sessao-estudo";
 
 function serialize(sessao: SessaoEstudo) {
-  const s = sessao as Record<string, any>;
+  const s = sessao as unknown as Record<string, unknown>;
   return {
     id: s.id,
     aluno_id: s.aluno_id || s.alunoId,
