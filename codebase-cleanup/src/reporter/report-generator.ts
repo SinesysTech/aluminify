@@ -542,7 +542,7 @@ export class ReportGeneratorImpl implements ReportGenerator {
    * @param classified Classified issues
    * @returns Formatted issues by category
    */
-  private formatIssuesByCategory(result: AnalysisResult, classified: ClassifiedIssues): string {
+  private formatIssuesByCategory(result: AnalysisResult, _classified: ClassifiedIssues): string {
     const lines: string[] = [];
     const categories = Array.from(result.issuesByCategory.keys()).sort();
 

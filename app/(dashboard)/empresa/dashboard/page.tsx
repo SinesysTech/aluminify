@@ -19,23 +19,23 @@ export default async function EmpresaDashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border p-6">
-          <h2 className="section-title mb-2">Configuracoes</h2>
+          <h2 className="section-title mb-2">Configurações</h2>
           <p className="section-subtitle">
-            Gerencie as configuracoes da empresa
+            Gerencie as configurações da empresa
           </p>
         </div>
 
         <div className="rounded-lg border p-6">
-          <h2 className="section-title mb-2">Usuarios</h2>
+          <h2 className="section-title mb-2">Usuários</h2>
           <p className="section-subtitle">
             Gerencie administradores, professores e alunos
           </p>
         </div>
 
         <div className="rounded-lg border p-6">
-          <h2 className="section-title mb-2">Relatorios</h2>
+          <h2 className="section-title mb-2">Relatórios</h2>
           <p className="section-subtitle">
-            Visualize relatorios e estatisticas
+            Visualize relatórios e estatísticas
           </p>
         </div>
       </div>

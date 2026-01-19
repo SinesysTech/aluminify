@@ -23,14 +23,14 @@ export default function ProfessorNovaEmpresaPage() {
     telefone: '',
   });
 
-  // Verificar se o professor jÃ¡ tem empresa ao carregar a pÃ¡gina
+  // Verificar se o professor já tem empresa ao carregar a página
   useEffect(() => {
     async function checkEmpresa() {
       if (user?.empresaId) {
-        // JÃ¡ tem empresa, redirecionar
+        // Já tem empresa, redirecionar
         toast({
-          title: 'VocÃª jÃ¡ tem uma empresa',
-          description: 'Redirecionando para a pÃ¡gina da sua empresa...',
+          title: 'Você já tem uma empresa',
+          description: 'Redirecionando para a página da sua empresa...',
         });
         setTimeout(() => {
           router.push('/admin/empresa');
@@ -52,8 +52,8 @@ export default function ProfessorNovaEmpresaPage() {
 
           if (professor?.empresa_id) {
             toast({
-              title: 'VocÃª jÃ¡ tem uma empresa',
-              description: 'Redirecionando para a pÃ¡gina da sua empresa...',
+              title: 'Você já tem uma empresa',
+              description: 'Redirecionando para a página da sua empresa...',
             });
             setTimeout(() => {
               router.push('/admin/empresa');
@@ -72,13 +72,13 @@ export default function ProfessorNovaEmpresaPage() {
   }, [user, router, toast]);
 
   async function handleCreateEmpresa() {
-    console.log('[Criar Empresa] Iniciando criaÃ§Ã£o...', { formData });
+    console.log('[Criar Empresa] Iniciando criação...', { formData });
 
-    // ValidaÃ§Ã£o bÃ¡sica
+    // Validação básica
     if (!formData.nome.trim()) {
       toast({
         title: 'Erro',
-        description: 'Nome da empresa Ã© obrigatÃ³rio',
+        description: 'Nome da empresa é obrigatório',
         variant: 'destructive',
       });
       return;
@@ -90,25 +90,25 @@ export default function ProfessorNovaEmpresaPage() {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
-        console.error('[Criar Empresa] Erro ao obter sessÃ£o:', sessionError);
-        throw new Error('Erro ao verificar sessÃ£o. FaÃ§a login novamente.');
+        console.error('[Criar Empresa] Erro ao obter sessão:', sessionError);
+        throw new Error('Erro ao verificar sessão. Faça login novamente.');
       }
 
       if (!session) {
-        console.error('[Criar Empresa] SessÃ£o nÃ£o encontrada');
-        throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
+        console.error('[Criar Empresa] Sessão não encontrada');
+        throw new Error('Sessão expirada. Faça login novamente.');
       }
 
-      console.log('[Criar Empresa] SessÃ£o vÃ¡lida, processando dados...');
+      console.log('[Criar Empresa] Sessão válida, processando dados...');
 
       const cnpjDigits = formData.cnpj.replace(/\D/g, '');
       const cnpjToSend = cnpjDigits.length === 0 ? undefined : cnpjDigits;
 
       if (cnpjToSend && cnpjToSend.length !== 14) {
-        throw new Error('CNPJ deve ter 14 dÃ­gitos (ou deixe em branco)');
+        throw new Error('CNPJ deve ter 14 dígitos (ou deixe em branco)');
       }
       if (cnpjToSend && /^(\d)\1+$/.test(cnpjToSend)) {
-        throw new Error('CNPJ invÃ¡lido');
+        throw new Error('CNPJ inválido');
       }
 
       const payload = {
@@ -118,7 +118,7 @@ export default function ProfessorNovaEmpresaPage() {
         telefone: formData.telefone?.trim() || undefined,
       };
 
-      console.log('[Criar Empresa] Enviando requisiÃ§Ã£o...', payload);
+      console.log('[Criar Empresa] Enviando requisição...', payload);
 
       const response = await fetch('/api/empresas/self', {
         method: 'POST',
@@ -135,11 +135,11 @@ export default function ProfessorNovaEmpresaPage() {
         const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
         console.error('[Criar Empresa] Erro na API:', err);
 
-        // Se o erro for 409 (jÃ¡ tem empresa), redirecionar
+        // Se o erro for 409 (já tem empresa), redirecionar
         if (response.status === 409) {
           toast({
-            title: 'VocÃª jÃ¡ tem uma empresa',
-            description: 'Redirecionando para a pÃ¡gina da sua empresa...',
+            title: 'Você já tem uma empresa',
+            description: 'Redirecionando para a página da sua empresa...',
           });
           setTimeout(() => {
             router.push('/admin/empresa');
@@ -156,7 +156,7 @@ export default function ProfessorNovaEmpresaPage() {
 
       toast({
         title: 'Sucesso',
-        description: 'Empresa criada e vinculada ao seu usuÃ¡rio.',
+        description: 'Empresa criada e vinculada ao seu usuário.',
       });
 
       // Aguardar um pouco para o toast aparecer antes de redirecionar
@@ -195,9 +195,9 @@ export default function ProfessorNovaEmpresaPage() {
     <div className="container mx-auto py-8 max-w-xl">
       <div className="container mx-auto py-8 max-w-xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Cadastrar sua Empresa</h1>
-          <p className="text-muted-foreground">
-            Para continuar, crie sua empresa e vocÃª serÃ¡ definido como administrador.
+          <h1 className="page-title">Cadastrar sua Empresa</h1>
+          <p className="page-subtitle">
+            Para continuar, crie sua empresa e você será definido como administrador.
           </p>
         </div>
 
@@ -223,7 +223,7 @@ export default function ProfessorNovaEmpresaPage() {
               disabled={loading}
             />
             <div className="text-xs text-muted-foreground">
-              Opcional. Se informar, deve ter 14 dÃ­gitos.
+              Opcional. Se informar, deve ter 14 dígitos.
             </div>
           </div>
 
@@ -253,7 +253,7 @@ export default function ProfessorNovaEmpresaPage() {
           <Button
             onClick={(e) => {
               e.preventDefault();
-              console.log('[Criar Empresa] BotÃ£o clicado');
+              console.log('[Criar Empresa] Botão clicado');
               handleCreateEmpresa();
             }}
             className="w-full"

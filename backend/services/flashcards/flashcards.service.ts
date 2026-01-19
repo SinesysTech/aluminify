@@ -648,7 +648,7 @@ export class FlashcardsService {
             (c as unknown as { respostaImagemPath?: string | null })
               .respostaImagemPath ?? null,
           );
-          const { perguntaImagemPath, respostaImagemPath, ...rest } =
+          const { perguntaImagemPath: _perguntaImagemPath, respostaImagemPath: _respostaImagemPath, ...rest } =
             c as unknown as {
               perguntaImagemPath?: string | null;
               respostaImagemPath?: string | null;
@@ -1257,7 +1257,7 @@ export class FlashcardsService {
             (c as unknown as { respostaImagemPath?: string | null })
               .respostaImagemPath ?? null,
           );
-          const { perguntaImagemPath, respostaImagemPath, ...rest } =
+          const { perguntaImagemPath: _perguntaImagemPath, respostaImagemPath: _respostaImagemPath, ...rest } =
             c as unknown as {
               perguntaImagemPath?: string | null;
               respostaImagemPath?: string | null;

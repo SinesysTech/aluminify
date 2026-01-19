@@ -63,7 +63,7 @@ export function RankingList({
   items,
   emptyMessage = 'Nenhum item encontrado',
   className,
-  maxHeight = '240px',
+  maxHeight: _maxHeight = '240px',
 }: RankingListProps) {
   return (
     <Card className={cn('flex flex-col', className)}>

@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
 import { getAvailableSlots } from "@/app/actions/agendamentos"
 import { Clock } from "lucide-react"

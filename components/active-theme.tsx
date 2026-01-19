@@ -148,7 +148,7 @@ export function ThemeConfigProvider({ children, initialTheme }: ActiveThemeProvi
   // Initial application on mount to ensure CSS matches state
   useEffect(() => {
     applyThemeToCSS(theme);
-  }, []);
+  }, [theme]);
 
   return (
     <ThemeConfigContext.Provider value={{ theme, setTheme, loadTenantBranding, applyBrandingToTheme, resetBrandingToDefaults }}>

@@ -23,9 +23,9 @@ export default async function RelatoriosPage() {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Relatorios</h1>
-          <p className="text-muted-foreground">
-            Voce precisa estar vinculado a uma empresa para acessar relatorios.
+          <h1 className="page-title">Relatórios</h1>
+          <p className="page-subtitle">
+            Você precisa estar vinculado a uma empresa para acessar relatórios.
           </p>
         </div>
       </div>
@@ -35,9 +35,9 @@ export default async function RelatoriosPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Relatorios de Agendamentos</h1>
-        <p className="text-muted-foreground">
-          Visualize estatisticas e gere relatorios sobre seus agendamentos.
+        <h1 className="page-title">Relatórios de Agendamentos</h1>
+        <p className="page-subtitle">
+          Visualize estatísticas e gere relatórios sobre seus agendamentos.
         </p>
       </div>
 

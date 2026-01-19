@@ -67,7 +67,7 @@ export default function MateriaisClientPage() {
   const [cursoSelecionado, setCursoSelecionado] = React.useState<string>('')
   const [disciplinaSelecionada, setDisciplinaSelecionada] = React.useState<string>('')
   const [frenteSelecionada, setFrenteSelecionada] = React.useState<string>('')
-  const [frenteCursoId, setFrenteCursoId] = React.useState<string | null>(null)
+  const [_frenteCursoId, setFrenteCursoId] = React.useState<string | null>(null)
   const [modulosComAtividades, setModulosComAtividades] = React.useState<ModuloComAtividades[]>([])
   const [, setIsLoading] = React.useState(false)
   const [isLoadingFrentes, setIsLoadingFrentes] = React.useState(false)
@@ -487,8 +487,8 @@ export default function MateriaisClientPage() {
   return (
     <div className="w-full space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gestão de Materiais</h1>
-        <p className="text-muted-foreground">
+        <h1 className="page-title">Gestão de Materiais</h1>
+        <p className="page-subtitle">
           Gerencie materiais complementares (listas, simulados, conceituários) para os módulos das
           aulas
         </p>

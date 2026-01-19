@@ -61,7 +61,7 @@ export default function MateriaisClientPage() {
   const [cursoSelecionado, setCursoSelecionado] = React.useState<string>('')
   const [disciplinaSelecionada, setDisciplinaSelecionada] = React.useState<string>('')
   const [frenteSelecionada, setFrenteSelecionada] = React.useState<string>('')
-  const [frenteCursoId, setFrenteCursoId] = React.useState<string | null>(null)
+  const [_frenteCursoId, setFrenteCursoId] = React.useState<string | null>(null)
   const [modulosComAtividades, setModulosComAtividades] = React.useState<ModuloComAtividades[]>([])
   const [, setIsLoading] = React.useState(false)
   const [isLoadingFrentes, setIsLoadingFrentes] = React.useState(false)

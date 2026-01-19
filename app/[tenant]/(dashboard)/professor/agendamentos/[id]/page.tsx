@@ -36,10 +36,10 @@ export default async function AgendamentoDetailPage({ params }: PageProps) {
           </Link>
         </Button>
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="page-title">
             Detalhes do Agendamento
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="page-subtitle">
             Visualize e gerencie este agendamento
           </p>
         </div>

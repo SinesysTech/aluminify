@@ -266,9 +266,9 @@ export class ASTQueryHelper {
     const constants: Node[] = [];
 
     for (const statement of variableStatements) {
-      const declarationList = statement.getFirstChildByKind(SyntaxKind.VariableDeclarationList);
+      const declarationList = statement.getFirstChildByKind(SyntaxKind.VariableDeclarationList) as VariableDeclarationList | undefined;
       if (declarationList) {
-        const flags = (declarationList as any).getDeclarationKind?.();
+        const flags = declarationList.getDeclarationKind?.();
         if (flags === 2) { // VariableDeclarationKind.Const
           constants.push(...declarationList.getDescendantsOfKind(SyntaxKind.VariableDeclaration));
         }
@@ -496,18 +496,18 @@ export class ASTQueryHelper {
    * @returns Name of the node or undefined
    */
   static getNodeName(node: Node): string | undefined {
-    const nodeWithName = node as any;
-    
+    const nodeWithName = node as unknown as NodeWithName;
+
     if (nodeWithName.getName && typeof nodeWithName.getName === 'function') {
       return nodeWithName.getName();
     }
-    
+
     if (nodeWithName.name) {
-      return typeof nodeWithName.name === 'string' 
-        ? nodeWithName.name 
+      return typeof nodeWithName.name === 'string'
+        ? nodeWithName.name
         : nodeWithName.name.getText?.();
     }
-    
+
     return undefined;
   }
 
@@ -517,14 +517,14 @@ export class ASTQueryHelper {
    * @returns True if the node is exported
    */
   static isExported(node: Node): boolean {
-    const nodeWithModifiers = node as any;
-    
+    const nodeWithModifiers = node as unknown as NodeWithModifiers;
+
     if (!nodeWithModifiers.getModifiers) {
       return false;
     }
-    
+
     const modifiers = nodeWithModifiers.getModifiers();
-    return modifiers.some((mod: any) => 
+    return modifiers.some((mod: Modifier) =>
       mod.getKind() === SyntaxKind.ExportKeyword
     );
   }

@@ -75,7 +75,7 @@ export class FileScannerImpl implements FileScanner {
     let realPath: string;
     try {
       realPath = await fs.realpath(currentPath);
-    } catch (error) {
+    } catch (_error) {
       // If we can't resolve the real path (permission denied, etc.), skip this path
       return;
     }
@@ -89,7 +89,7 @@ export class FileScannerImpl implements FileScanner {
     let entries;
     try {
       entries = await fs.readdir(currentPath, { withFileTypes: true });
-    } catch (error) {
+    } catch (_error) {
       // Permission denied or other error, skip this directory
       return;
     }
@@ -109,7 +109,7 @@ export class FileScannerImpl implements FileScanner {
           // Handle symbolic links
           await this.handleSymbolicLink(fullPath, rootPath, depth, options, files);
         }
-      } catch (error) {
+      } catch (_error) {
         // Skip files/directories that cause errors (permission denied, etc.)
         continue;
       }
@@ -142,7 +142,7 @@ export class FileScannerImpl implements FileScanner {
         const fileInfo = await this.createFileInfo(linkPath, rootPath);
         files.push(fileInfo);
       }
-    } catch (error) {
+    } catch (_error) {
       // Broken symbolic link or permission denied, skip
       return;
     }

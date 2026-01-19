@@ -17,7 +17,6 @@ import {
   CursoComDisciplinas,
 } from './types'
 import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progresso-atividade'
-import type { Disciplina, Curso, Frente } from '@/types/shared/entities/activity'
 
 // Helper para formatar erros do Supabase
 function formatSupabaseError(error: unknown): string {

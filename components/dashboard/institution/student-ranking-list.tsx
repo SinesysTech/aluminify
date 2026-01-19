@@ -2,7 +2,6 @@
 
 import { RankingList, type RankingItem } from '@/components/dashboard/shared/ranking-list'
 import type { StudentRankingItem } from '@/types/dashboard-institution'
-import { Flame } from 'lucide-react'
 
 interface StudentRankingListProps {
   students: StudentRankingItem[]

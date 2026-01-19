@@ -78,16 +78,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { format, parse } from 'date-fns'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
-import {
-  DataPageContainer,
-  DataPageHeader,
-  DataPageFilters,
-  DataPagePagination,
-  DataPageEmptyState,
-  DataPageTableWrapper,
-  DataPageMobileCards,
-  DataPagePrimaryButton,
-} from '@/components/ui/data-page'
 
 export type Curso = {
   id: string

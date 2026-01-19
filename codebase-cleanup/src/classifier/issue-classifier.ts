@@ -378,8 +378,6 @@ export class IssueClassifierImpl implements IssueClassifier {
           const mostCommonType = [...typeCount.entries()]
             .sort((a, b) => b[1] - a[1])[0][0];
 
-          const statistics = this.calculatePatternStatistics(similarIssues);
-
           patterns.push({
             patternId: `similar-${mostCommonType}-${Date.now()}`,
             patternName: `Similar ${this.getTypeDisplayName(mostCommonType)} Issues`,
@@ -843,8 +841,8 @@ export class IssueClassifierImpl implements IssueClassifier {
    */
   private generateRecommendedAction(
     type: IssueType,
-    category: IssueCategory,
-    issues: Issue[]
+    _category: IssueCategory,
+    _issues: Issue[]
   ): string {
     const actions: Record<IssueType, string> = {
       'backward-compatibility': 'Remove backward compatibility code and update to use current patterns consistently.',

@@ -151,15 +151,15 @@ export default function EmpresaUsuariosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="page-title">Usuarios da Empresa</h1>
+          <h1 className="page-title">Usuários da Empresa</h1>
           <p className="page-subtitle">
-            Visualize todos os usuarios da sua empresa
+            Visualize todos os usuários da sua empresa
           </p>
         </div>
         <Button asChild>
           <Link href="/empresa/configuracoes?tab=usuarios">
             <Settings className="h-4 w-4 mr-2" />
-            Gerenciar UsuÃ¡rios
+            Gerenciar Usuários
           </Link>
         </Button>
       </div>
@@ -195,9 +195,9 @@ export default function EmpresaUsuariosPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de UsuÃ¡rios</CardTitle>
+          <CardTitle>Lista de Usuários</CardTitle>
           <CardDescription>
-            {filteredUsers.length} usuÃ¡rio(s) encontrado(s)
+            {filteredUsers.length} usuário(s) encontrado(s)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -228,8 +228,8 @@ export default function EmpresaUsuariosPage() {
           {filteredUsers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {search || filterType !== 'todos'
-                ? 'Nenhum usuÃ¡rio encontrado com os filtros aplicados'
-                : 'Nenhum usuÃ¡rio cadastrado'}
+                ? 'Nenhum usuário encontrado com os filtros aplicados'
+                : 'Nenhum usuário cadastrado'}
             </div>
           ) : (
             <div className="space-y-2">

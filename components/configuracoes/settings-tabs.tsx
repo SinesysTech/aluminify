@@ -21,7 +21,7 @@ export function SettingsTabs({ user, initialTab }: SettingsTabsProps) {
         return (
             <div className="text-center py-8">
                 <p className="text-muted-foreground">
-                    VocÃª nÃ£o estÃ¡ associado a nenhuma empresa.
+                    Você não está associado a nenhuma empresa.
                 </p>
             </div>
         )
@@ -31,18 +31,18 @@ export function SettingsTabs({ user, initialTab }: SettingsTabsProps) {
         <div className="flex flex-col gap-8 h-full">
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
                 <div>
-                    <h1 className="page-title">Configuracoes da Empresa</h1>
+                    <h1 className="page-title">Configurações da Empresa</h1>
                     <p className="page-subtitle">
-                        Gerencie as configuracoes, personalizacao e usuarios da sua empresa.
+                        Gerencie as configurações, personalização e usuários da sua empresa.
                     </p>
                 </div>
             </header>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="branding">CustomizaÃ§Ãµes de Marca</TabsTrigger>
+                    <TabsTrigger value="branding">Customizações de Marca</TabsTrigger>
                     <TabsTrigger value="empresa">Dados da Empresa</TabsTrigger>
-                    <TabsTrigger value="usuarios">GestÃ£o de UsuÃ¡rios</TabsTrigger>
+                    <TabsTrigger value="usuarios">Gestão de Usuários</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="branding" className="space-y-6">
