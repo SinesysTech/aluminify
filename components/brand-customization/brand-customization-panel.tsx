@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react';
 import {
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { createClient } from '@/lib/client';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';
@@ -45,6 +46,24 @@ export function BrandCustomizationPanel({
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      throw new Error('Falha ao obter sessão do usuário');
+    }
+
+    const token = data.session?.access_token;
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  };
 
   // Initialize state from props
   useEffect(() => {
@@ -80,8 +99,10 @@ export function BrandCustomizationPanel({
       formData.append('file', file);
       formData.append('logoType', type);
 
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`/api/tenant-branding/${empresaId}/logos`, {
         method: 'POST',
+        headers: authHeaders,
         body: formData,
       });
 
@@ -115,8 +136,10 @@ export function BrandCustomizationPanel({
 
   const handleLogoRemove = async (type: LogoType): Promise<void> => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`/api/tenant-branding/${empresaId}/logos/${type}`, {
         method: 'DELETE',
+        headers: authHeaders,
       });
 
       if (!response.ok) {
@@ -140,10 +163,12 @@ export function BrandCustomizationPanel({
 
   const handleColorPaletteSave = async (paletteRequest: CreateColorPaletteRequest): Promise<void> => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`/api/tenant-branding/${empresaId}/color-palettes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
         body: JSON.stringify(paletteRequest),
       });
@@ -173,10 +198,12 @@ export function BrandCustomizationPanel({
 
   const handleFontSchemeSave = async (schemeRequest: CreateFontSchemeRequest): Promise<void> => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`/api/tenant-branding/${empresaId}/font-schemes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
         body: JSON.stringify(schemeRequest),
       });
