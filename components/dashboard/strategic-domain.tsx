@@ -299,7 +299,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
           </div>
 
           {isLoading && (
-            <p className="text-xs text-muted-foreground">Atualizandoâ€¦</p>
+            <p className="text-xs text-muted-foreground">Atualizando...</p>
           )}
 
           <Accordion

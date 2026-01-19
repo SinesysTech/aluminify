@@ -192,42 +192,42 @@ export function SubjectDistribution({
         <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-foreground text-base md:text-lg font-semibold">
-              DistribuiÃ§Ã£o por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'MÃ³dulo'}
+              Distribuição por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'Módulo'}
             </h2>
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                  aria-label="InformaÃ§Ãµes sobre distribuiÃ§Ã£o por disciplina"
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    aria-label="Informações sobre distribuição por disciplina"
+                  >
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  align="start"
+                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                  sideOffset={8}
                 >
-                  <Info className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                align="start"
-                className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                sideOffset={8}
-              >
-                <div className="space-y-2 text-sm">
-                  <p>
-                    Este grÃ¡fico mostra como seu tempo de estudo estÃ¡ distribuÃ­do (aulas assistidas no cronograma + tempo registrado em listas de exercÃ­cios).
-                  </p>
-                  <p>
-                    Cada cor representa um grupo (curso, disciplina, frente ou mÃ³dulo) e o tamanho do segmento indica a porcentagem do tempo total.
-                  </p>
-                  <p>
-                    O nÃºmero no centro mostra o total de horas estudadas.
-                  </p>
-                  <p>
-                    Uma distribuiÃ§Ã£o equilibrada ajuda a manter um bom desempenho em todas as Ã¡reas.
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      Este gráfico mostra como seu tempo de estudo está distribuído (aulas assistidas no cronograma + tempo registrado em listas de exercícios).
+                    </p>
+                    <p>
+                      Cada cor representa um grupo (curso, disciplina, frente ou módulo) e o tamanho do segmento indica a porcentagem do tempo total.
+                    </p>
+                    <p>
+                      O número no centro mostra o total de horas estudadas.
+                    </p>
+                    <p>
+                      Uma distribuição equilibrada ajuda a manter un bom desempenho em todas as áreas.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
@@ -308,7 +308,7 @@ export function SubjectDistribution({
         {renderItems.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Sem dados suficientes no perÃ­odo selecionado.
+              Sem dados suficientes no período selecionado.
             </p>
           </div>
         ) : (
@@ -316,7 +316,7 @@ export function SubjectDistribution({
             <div className="flex flex-1 items-center justify-center py-4">
               <div className="relative flex items-center justify-center w-48 h-48">
                 <svg className="w-full h-full" viewBox="0 0 36 36">
-                  {/* CÃ­rculo de fundo */}
+                  {/* Círculo de fundo */}
                   <circle
                     cx="18"
                     cy="18"
@@ -326,7 +326,7 @@ export function SubjectDistribution({
                     strokeWidth="4"
                     className="text-muted"
                   />
-                  {/* Segmentos do grÃ¡fico */}
+                  {/* Segmentos do gráfico */}
                   {itemsWithOffsets.map(({ item, offset }, index) => {
                     const dashArray = `${(item.percentage / 100) * circumference} ${circumference}`
 
