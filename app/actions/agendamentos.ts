@@ -962,24 +962,17 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     throw new Error("Unauthorized");
   }
 
-  // Get agendamento details for meeting link generation
-  const { data: agendamento } = await supabase
+  // 1. Fetch agendamento simple first to verify existence and ownership
+  // This avoids RLS issues with joined tables if permissions aren't perfect
+  const { data: agendamento, error: fetchError } = await supabase
     .from("agendamentos")
-    .select(
-      `
-      id,
-      data_inicio,
-      data_fim,
-      professor_id,
-      aluno_id,
-      aluno:alunos!agendamentos_aluno_id_fkey(nome, email)
-    `,
-    )
+    .select("id, professor_id, data_inicio, data_fim, aluno_id")
     .eq("id", id)
     .single();
 
-  if (!agendamento) {
-    throw new Error("Agendamento nao encontrado");
+  if (fetchError || !agendamento) {
+    console.error("Error fetching appointment for confirmation:", fetchError);
+    throw new Error(`Agendamento nao encontrado: ${id}`);
   }
 
   // Verify that user is the professor of this appointment
@@ -991,51 +984,46 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
 
   // If no explicit link provided, try to generate one or use default
   if (!linkToUse) {
-    // Load professor configuration for default link
-    const config = await getConfiguracoesProfessor(user.id);
+    try {
+      // Load professor configuration for default link
+      const config = await getConfiguracoesProfessor(user.id);
 
-    // Load professor integration settings
-    const { data: integration } = await supabase
-      // Next build estava falhando porque os tipos do Supabase não incluem essa tabela
-      // (provavelmente o `Database` gerado está desatualizado). Em runtime a tabela existe.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from("professor_integracoes" as any)
-      .select("*")
-      .eq("professor_id", user.id)
-      .single();
+      // Try to generate meeting link if provider is configured
+      // We need student data for this
+      const { data: aluno } = await supabase
+        .from("alunos")
+        .select("nome_completo, email")
+        .eq("id", agendamento.aluno_id)
+        .single();
 
-    // Try to generate meeting link if provider is configured
-    const validIntegration =
-      integration && !("code" in integration)
-        ? (integration as unknown as { provider: string; access_token: string })
-        : null;
-    if (
-      validIntegration &&
-      validIntegration.provider !== "default" &&
-      validIntegration.access_token
-    ) {
-      try {
-        type AlunoData = {
-          nome: string;
-          email: string;
-        } | null;
-        // A tipagem do Supabase pode retornar SelectQueryError quando a relation não está no `Database` gerado.
-        // Em runtime, quando vem corretamente, é um objeto com { nome, email }.
-        const alunoRaw = agendamento.aluno as unknown;
-        const alunoData: AlunoData =
-          alunoRaw &&
-          typeof alunoRaw === "object" &&
-          !("code" in (alunoRaw as Record<string, unknown>))
-            ? (alunoRaw as AlunoData)
-            : null;
+      const { data: integration } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .from("professor_integracoes" as any)
+        .select("*")
+        .eq("professor_id", user.id)
+        .single();
+
+      const validIntegration =
+        integration && !("code" in integration)
+          ? (integration as unknown as {
+              provider: string;
+              access_token: string;
+            })
+          : null;
+
+      if (
+        validIntegration &&
+        validIntegration.provider !== "default" &&
+        validIntegration.access_token
+      ) {
         const meetingLink = await generateMeetingLink(
           validIntegration.provider as "google" | "zoom" | "default",
           {
-            title: `Mentoria com ${alunoData?.nome || "Aluno"}`,
+            title: `Mentoria com ${aluno?.nome_completo || "Aluno"}`,
             startTime: new Date(agendamento.data_inicio),
             endTime: new Date(agendamento.data_fim),
             description: "Sessão de mentoria agendada via Aluminify",
-            attendees: alunoData?.email ? [alunoData.email] : [],
+            attendees: aluno?.email ? [aluno.email] : [],
           },
           {
             accessToken: validIntegration.access_token,
@@ -1046,15 +1034,15 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
         if (meetingLink) {
           linkToUse = meetingLink.url;
         }
-      } catch (error) {
-        console.error("Error generating meeting link:", error);
-        // Fall back to default link if generation fails
       }
-    }
 
-    // Use default link if no link was generated
-    if (!linkToUse && config?.link_reuniao_padrao) {
-      linkToUse = config.link_reuniao_padrao;
+      // Use default link if no link was generated
+      if (!linkToUse && config?.link_reuniao_padrao) {
+        linkToUse = config.link_reuniao_padrao;
+      }
+    } catch (err) {
+      console.error("Error generating/fetching meeting link details:", err);
+      // Continue without link if generation fails
     }
   }
 
@@ -1071,7 +1059,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     .from("agendamentos")
     .update(updateData)
     .eq("id", id)
-    .eq("professor_id", user.id)
+    .eq("professor_id", user.id) // Security double-check
     .select()
     .single();
 
@@ -1079,9 +1067,6 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     console.error("Error confirming appointment:", error);
     throw new Error("Failed to confirm appointment");
   }
-
-  // Notification is created by database trigger notify_agendamento_change()
-  // No need to create manually here to avoid duplicates
 
   revalidatePath("/professor/agendamentos");
   revalidatePath("/meus-agendamentos");
@@ -1099,13 +1084,14 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
   }
 
   // Verify ownership first for better error message
-  const { data: agendamento } = await supabase
+  const { data: agendamento, error: fetchError } = await supabase
     .from("agendamentos")
     .select("professor_id")
     .eq("id", id)
     .single();
 
-  if (!agendamento) {
+  if (fetchError || !agendamento) {
+    console.error("Error fetching appointment for rejection:", fetchError);
     throw new Error("Agendamento nao encontrado");
   }
 
@@ -1148,13 +1134,14 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
   }
 
   // First get the agendamento to validate cancellation and ownership
-  const { data: agendamento } = await supabase
+  const { data: agendamento, error: fetchError } = await supabase
     .from("agendamentos")
     .select("professor_id, aluno_id, data_inicio, status")
     .eq("id", id)
     .single();
 
-  if (!agendamento) {
+  if (fetchError || !agendamento) {
+    console.error("Error fetching appointment for cancellation:", fetchError);
     throw new Error("Agendamento nao encontrado");
   }
 

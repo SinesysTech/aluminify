@@ -255,11 +255,11 @@ function ChartLegendContent({
   verticalAlign = "bottom",
   nameKey
 }: React.ComponentProps<"div"> & {
-    payload?: LegendPayloadItem[];
-    verticalAlign?: "top" | "bottom" | "middle";
-    hideIcon?: boolean;
-    nameKey?: string;
-  }) {
+  payload?: LegendPayloadItem[];
+  verticalAlign?: "top" | "bottom" | "middle";
+  hideIcon?: boolean;
+  nameKey?: string;
+}) {
   const { config } = useChart();
 
   if (!payload?.length) {

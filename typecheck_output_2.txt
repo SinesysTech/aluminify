@@ -1,0 +1,9 @@
+
+> aluminify@0.1.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+components/ui/custom/minimal-tiptap/extensions/link/link.ts(35,3): error TS2322: Type '(this: { name: string; parent: (() => LinkOptions) | undefined; }) => { autolink: true; openOnClick: false; protocols: string[]; HTMLAttributes: { class: string; }; defaultProtocol?: string | undefined; ... 4 more ...; shouldAutoLink?: ((url: string) => boolean) | undefined; }' is not assignable to type '(this: { name: string; parent: (() => LinkOptions) | undefined; }) => LinkOptions'.
+  Call signature return types '{ autolink: true; openOnClick: false; protocols: string[]; HTMLAttributes: { class: string; }; defaultProtocol?: string | undefined; enableClickSelection?: boolean | undefined; linkOnPaste?: boolean | undefined; validate?: ((url: string) => boolean) | undefined; isAllowedUri?: ((url: string, ctx: { ...; }) => boolea...' and 'LinkOptions' are incompatible.
+    The types of 'defaultProtocol' are incompatible between these types.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
