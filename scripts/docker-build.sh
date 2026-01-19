@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 IMAGE_NAME="sinesystec/aluminify"
 REGISTRY="${DOCKER_REGISTRY:-}"
 VERSION="${VERSION:-latest}"
-PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
+PLATFORMS="${PLATFORMS:-linux/amd64}"
 
 echo -e "${GREEN}=== Aluminify Docker Build ===${NC}"
 echo ""
