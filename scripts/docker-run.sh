@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-IMAGE_NAME="aluminify"
+IMAGE_NAME="sinesystec/aluminify"
 CONTAINER_NAME="aluminify-app"
 PORT="${PORT:-3000}"
 ENV_FILE="${ENV_FILE:-.env.local}"

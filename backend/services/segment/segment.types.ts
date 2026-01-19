@@ -6,10 +6,7 @@ export interface Segment {
   updatedAt: Date;
 }
 
-export interface CreateSegmentInput {
-  name: string;
-  slug?: string;
-}
+// Duplicate removed
 
 export interface UpdateSegmentInput {
   name?: string;
@@ -19,6 +16,6 @@ export interface UpdateSegmentInput {
 export interface CreateSegmentInput {
   name: string;
   slug?: string;
-  empresaId?: string | null;
+  empresaId: string;
   createdBy?: string;
 }

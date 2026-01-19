@@ -264,7 +264,9 @@ export type SessaoStatus =
   | "em_andamento"
   | "pausada"
   | "finalizada"
-  | "cancelada";
+  | "cancelada"
+  | "concluido"
+  | "descartado";
 
 export interface SessaoEstudo {
   id: string;
@@ -316,6 +318,8 @@ export interface FinalizarSessaoInput {
 }
 
 export interface CalculoTempoResultado {
+  tempoTotalBrutoSegundos: number;
+  tempoTotalLiquidoSegundos: number;
   tempo_total_minutos: number;
   tempo_efetivo_minutos: number;
   pausas: LogPausa[];

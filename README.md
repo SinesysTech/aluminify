@@ -350,10 +350,10 @@ docker-compose up
 docker-compose -f docker-compose.prod.yml up -d
 
 # Build manual
-docker build -t aluminify:latest .
+docker build -t sinesystec/aluminify:latest .
 
 # Run manual
-docker run -p 3000:3000 --env-file .env.local aluminify:latest
+docker run -p 3000:3000 --env-file .env.local sinesystec/aluminify:latest
 ```
 
 ### Características

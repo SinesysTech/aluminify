@@ -92,13 +92,13 @@ chmod +x scripts/docker-build.sh
 
 ```bash
 # Build básico
-docker build -t aluminify:latest .
+docker build -t sinesystec/aluminify:latest .
 
 # Build com versão específica
-docker build -t aluminify:v1.0.0 .
+docker build -t sinesystec/aluminify:v1.0.0 .
 
 # Build multi-plataforma (requer Docker Buildx)
-docker buildx build --platform linux/amd64,linux/arm64 -t aluminify:latest .
+docker buildx build --platform linux/amd64,linux/arm64 -t sinesystec/aluminify:latest .
 ```
 
 ### Build para Produção
@@ -106,7 +106,7 @@ docker buildx build --platform linux/amd64,linux/arm64 -t aluminify:latest .
 Para builds de produção com output standalone:
 
 ```bash
-DOCKER_BUILD=true docker build -t aluminify:prod .
+DOCKER_BUILD=true docker build -t sinesystec/aluminify:prod .
 ```
 
 ## Execução Local
@@ -132,7 +132,7 @@ docker run -d \
   -p 3000:3000 \
   --env-file .env.local \
   --restart unless-stopped \
-  aluminify:latest
+  sinesystec/aluminify:latest
 ```
 
 ### Acessar a Aplicação
@@ -235,17 +235,17 @@ docker-compose -f docker-compose.prod.yml up -d
 
 2. **Build otimizado:**
 ```bash
-DOCKER_BUILD=true docker build -t aluminify:prod .
+DOCKER_BUILD=true docker build -t sinesystec/aluminify:prod .
 ```
 
 3. **Tag para registry:**
 ```bash
-docker tag aluminify:prod seu-registry/aluminify:v1.0.0
+docker tag sinesystec/aluminify:prod sinesystec/aluminify:v1.0.0
 ```
 
 4. **Push para registry:**
 ```bash
-docker push seu-registry/aluminify:v1.0.0
+docker push sinesystec/aluminify:v1.0.0
 ```
 
 ### Health Check

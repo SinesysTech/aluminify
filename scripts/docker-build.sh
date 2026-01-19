@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-IMAGE_NAME="aluminify"
+IMAGE_NAME="sinesystec/aluminify"
 REGISTRY="${DOCKER_REGISTRY:-}"
 VERSION="${VERSION:-latest}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"

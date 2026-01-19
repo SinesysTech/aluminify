@@ -4,6 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { CustomThemePreset, CompleteBrandingConfig } from '@/types/brand-customization';
 import { getCSSPropertiesManager } from '@/lib/services/css-properties-manager';
 
+export type ThemeType = 'light' | 'dark';
+
 // Extended theme configuration that includes brand customization
 export interface ExtendedThemeConfig {
   preset: string;

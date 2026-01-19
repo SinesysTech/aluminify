@@ -2,7 +2,7 @@
 # This script runs the Docker container with proper configuration
 
 # Configuration
-$IMAGE_NAME = "aluminify"
+$IMAGE_NAME = "sinesystec/aluminify"
 $CONTAINER_NAME = "aluminify-app"
 $PORT = if ($env:PORT) { $env:PORT } else { "3000" }
 $ENV_FILE = if ($env:ENV_FILE) { $env:ENV_FILE } else { ".env.local" }

@@ -2,7 +2,7 @@
 # This script builds the Docker image with proper tagging and versioning
 
 # Configuration
-$IMAGE_NAME = "aluminify"
+$IMAGE_NAME = "sinesystec/aluminify"
 $REGISTRY = $env:DOCKER_REGISTRY
 $VERSION = if ($env:VERSION) { $env:VERSION } else { "latest" }
 $PLATFORMS = if ($env:PLATFORMS) { $env:PLATFORMS } else { "linux/amd64,linux/arm64" }
@@ -31,9 +31,9 @@ Write-Host ""
 
 # Determine full image name
 if ($REGISTRY) {
-    $FULL_IMAGE_NAME = "$REGISTRY/$IMAGE_NAME:$VERSION"
+    $FULL_IMAGE_NAME = "${REGISTRY}/${IMAGE_NAME}:${VERSION}"
 } else {
-    $FULL_IMAGE_NAME = "$IMAGE_NAME:$VERSION"
+    $FULL_IMAGE_NAME = "${IMAGE_NAME}:${VERSION}"
 }
 
 # Build for multiple platforms if buildx is available
@@ -43,14 +43,14 @@ try {
     docker buildx build `
         --platform $PLATFORMS `
         -t $FULL_IMAGE_NAME `
-        -t "$IMAGE_NAME:latest" `
+        -t "${IMAGE_NAME}:latest" `
         --load `
         .
 } catch {
     Write-Host "Docker Buildx not available. Building for current platform only..." -ForegroundColor Yellow
     docker build `
         -t $FULL_IMAGE_NAME `
-        -t "$IMAGE_NAME:latest" `
+        -t "${IMAGE_NAME}:latest" `
         .
 }
 
