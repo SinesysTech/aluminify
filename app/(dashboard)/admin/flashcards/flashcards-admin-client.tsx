@@ -165,6 +165,29 @@ export default function FlashcardsAdminClient() {
   const [perguntaImageUrl, setPerguntaImageUrl] = React.useState<string | null>(null)
   const [respostaImageUrl, setRespostaImageUrl] = React.useState<string | null>(null)
 
+  const fetchWithAuth = React.useCallback(
+    async (input: string, init?: RequestInit) => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente.')
+      }
+
+      const headers = new Headers(init?.headers || {})
+      if (!(init?.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json')
+      }
+      headers.set('Authorization', `Bearer ${session.access_token}`)
+
+      return fetch(input, {
+        ...init,
+        headers,
+      })
+    },
+    [supabase],
+  )
+
   const uploadFlashcardImage = React.useCallback(
     async (flashcardId: string, side: 'pergunta' | 'resposta', file: File) => {
       const formData = new FormData()
@@ -209,28 +232,6 @@ export default function FlashcardsAdminClient() {
   )
 
 
-  const fetchWithAuth = React.useCallback(
-    async (input: string, init?: RequestInit) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('Sessão expirada. Faça login novamente.')
-      }
-
-      const headers = new Headers(init?.headers || {})
-      if (!(init?.body instanceof FormData)) {
-        headers.set('Content-Type', 'application/json')
-      }
-      headers.set('Authorization', `Bearer ${session.access_token}`)
-
-      return fetch(input, {
-        ...init,
-        headers,
-      })
-    },
-    [supabase],
-  )
 
   // Carregar cursos
   React.useEffect(() => {
