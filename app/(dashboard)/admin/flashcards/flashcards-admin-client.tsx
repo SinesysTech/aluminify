@@ -63,6 +63,10 @@ type Flashcard = {
   modulo_id: string
   pergunta: string
   resposta: string
+  pergunta_imagem_path?: string | null
+  resposta_imagem_path?: string | null
+  pergunta_imagem_url?: string | null
+  resposta_imagem_url?: string | null
   created_at: string
   modulo: {
     id: string
@@ -156,6 +160,53 @@ export default function FlashcardsAdminClient() {
   const [formPergunta, setFormPergunta] = React.useState<string>('')
   const [formResposta, setFormResposta] = React.useState<string>('')
   const [saving, setSaving] = React.useState(false)
+  const [perguntaImageFile, setPerguntaImageFile] = React.useState<File | null>(null)
+  const [respostaImageFile, setRespostaImageFile] = React.useState<File | null>(null)
+  const [perguntaImageUrl, setPerguntaImageUrl] = React.useState<string | null>(null)
+  const [respostaImageUrl, setRespostaImageUrl] = React.useState<string | null>(null)
+
+  const uploadFlashcardImage = React.useCallback(
+    async (flashcardId: string, side: 'pergunta' | 'resposta', file: File) => {
+      const formData = new FormData()
+      formData.set('side', side)
+      formData.set('file', file)
+      const res = await fetchWithAuth(`/api/flashcards/${flashcardId}/imagem`, {
+        method: 'POST',
+        body: formData,
+      })
+      const body = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) {
+        throw new Error((body as { error?: string }).error || 'Erro ao enviar imagem')
+      }
+    },
+    [fetchWithAuth],
+  )
+
+  const deleteFlashcardImage = React.useCallback(
+    async (flashcardId: string, side: 'pergunta' | 'resposta') => {
+      const res = await fetchWithAuth(`/api/flashcards/${flashcardId}/imagem?side=${side}`, {
+        method: 'DELETE',
+      })
+      const body = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) {
+        throw new Error((body as { error?: string }).error || 'Erro ao remover imagem')
+      }
+    },
+    [fetchWithAuth],
+  )
+
+  const refreshFlashcardImages = React.useCallback(
+    async (flashcardId: string) => {
+      const res = await fetchWithAuth(`/api/flashcards/${flashcardId}`)
+      const body = (await res.json()) as { data?: Flashcard; error?: string }
+      if (!res.ok) {
+        throw new Error(body?.error || 'Erro ao carregar flashcard')
+      }
+      setPerguntaImageUrl(body.data?.pergunta_imagem_url ?? null)
+      setRespostaImageUrl(body.data?.resposta_imagem_url ?? null)
+    },
+    [fetchWithAuth],
+  )
 
 
   const fetchWithAuth = React.useCallback(
@@ -480,16 +531,33 @@ export default function FlashcardsAdminClient() {
         }),
       })
 
-      const body = await res.json()
+      const body = (await res.json()) as { data?: Flashcard; error?: string }
 
       if (!res.ok) {
         throw new Error(body?.error || 'Erro ao criar flashcard')
+      }
+
+      const createdId = body.data?.id
+      if (createdId) {
+        const uploads: Promise<void>[] = []
+        if (perguntaImageFile) uploads.push(uploadFlashcardImage(createdId, 'pergunta', perguntaImageFile))
+        if (respostaImageFile) uploads.push(uploadFlashcardImage(createdId, 'resposta', respostaImageFile))
+        if (uploads.length > 0) {
+          try {
+            await Promise.all(uploads)
+          } catch (e) {
+            // Flashcard criado, mas imagem falhou
+            setError(e instanceof Error ? e.message : 'Erro ao enviar imagem')
+          }
+        }
       }
 
       setCreateDialogOpen(false)
       setFormModuloId(undefined)
       setFormPergunta('')
       setFormResposta('')
+      setPerguntaImageFile(null)
+      setRespostaImageFile(null)
       loadFlashcards()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar flashcard')
@@ -502,6 +570,10 @@ export default function FlashcardsAdminClient() {
     setSelectedFlashcard(flashcard)
     setFormPergunta(flashcard.pergunta)
     setFormResposta(flashcard.resposta)
+    setPerguntaImageFile(null)
+    setRespostaImageFile(null)
+    setPerguntaImageUrl(null)
+    setRespostaImageUrl(null)
 
     // Carregar disciplina e frente do flashcard
     const disciplinaIdFromFlashcard = flashcard.modulo.frente.disciplina.id
@@ -539,6 +611,12 @@ export default function FlashcardsAdminClient() {
       console.error('Erro ao carregar dados para edição:', err)
     }
 
+    try {
+      await refreshFlashcardImages(flashcard.id)
+    } catch (e) {
+      console.error('Erro ao carregar imagens do flashcard:', e)
+    }
+
     setEditDialogOpen(true)
   }
 
@@ -567,11 +645,22 @@ export default function FlashcardsAdminClient() {
         throw new Error(body?.error || 'Erro ao atualizar flashcard')
       }
 
+      const uploads: Promise<void>[] = []
+      if (perguntaImageFile) uploads.push(uploadFlashcardImage(selectedFlashcard.id, 'pergunta', perguntaImageFile))
+      if (respostaImageFile) uploads.push(uploadFlashcardImage(selectedFlashcard.id, 'resposta', respostaImageFile))
+      if (uploads.length > 0) {
+        await Promise.all(uploads)
+      }
+
       setEditDialogOpen(false)
       setSelectedFlashcard(null)
       setFormModuloId(undefined)
       setFormPergunta('')
       setFormResposta('')
+      setPerguntaImageFile(null)
+      setRespostaImageFile(null)
+      setPerguntaImageUrl(null)
+      setRespostaImageUrl(null)
       loadFlashcards()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar flashcard')
@@ -671,6 +760,10 @@ export default function FlashcardsAdminClient() {
     setFormModuloId(undefined)
     setFormPergunta('')
     setFormResposta('')
+    setPerguntaImageFile(null)
+    setRespostaImageFile(null)
+    setPerguntaImageUrl(null)
+    setRespostaImageUrl(null)
     setCreateDialogOpen(true)
   }
 
@@ -1070,6 +1163,25 @@ export default function FlashcardsAdminClient() {
             </div>
 
             <div className="space-y-2">
+              <Label>Imagem da Pergunta (opcional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPerguntaImageFile(e.target.files?.[0] ?? null)}
+              />
+              {(perguntaImageFile || perguntaImageUrl) && (
+                <div className="rounded-md border p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={perguntaImageFile ? URL.createObjectURL(perguntaImageFile) : (perguntaImageUrl ?? '')}
+                    alt="Pré-visualização da imagem da pergunta"
+                    className="max-h-48 w-auto mx-auto"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label>Resposta *</Label>
               <Textarea
                 value={formResposta}
@@ -1077,6 +1189,25 @@ export default function FlashcardsAdminClient() {
                 placeholder="Digite a resposta do flashcard..."
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Imagem da Resposta (opcional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setRespostaImageFile(e.target.files?.[0] ?? null)}
+              />
+              {(respostaImageFile || respostaImageUrl) && (
+                <div className="rounded-md border p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={respostaImageFile ? URL.createObjectURL(respostaImageFile) : (respostaImageUrl ?? '')}
+                    alt="Pré-visualização da imagem da resposta"
+                    className="max-h-48 w-auto mx-auto"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -1184,6 +1315,51 @@ export default function FlashcardsAdminClient() {
             </div>
 
             <div className="space-y-2">
+              <Label>Imagem da Pergunta</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setPerguntaImageFile(e.target.files?.[0] ?? null)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!selectedFlashcard || saving || (!perguntaImageUrl && !perguntaImageFile)}
+                  onClick={async () => {
+                    if (!selectedFlashcard) return
+                    if (perguntaImageFile) {
+                      // Remover seleção local
+                      setPerguntaImageFile(null)
+                      return
+                    }
+                    try {
+                      setSaving(true)
+                      await deleteFlashcardImage(selectedFlashcard.id, 'pergunta')
+                      setPerguntaImageUrl(null)
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : 'Erro ao remover imagem')
+                    } finally {
+                      setSaving(false)
+                    }
+                  }}
+                >
+                  Remover
+                </Button>
+              </div>
+              {(perguntaImageFile || perguntaImageUrl) && (
+                <div className="rounded-md border p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={perguntaImageFile ? URL.createObjectURL(perguntaImageFile) : (perguntaImageUrl ?? '')}
+                    alt="Imagem da pergunta"
+                    className="max-h-48 w-auto mx-auto"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label>Resposta *</Label>
               <Textarea
                 value={formResposta}
@@ -1191,6 +1367,50 @@ export default function FlashcardsAdminClient() {
                 placeholder="Digite a resposta do flashcard..."
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Imagem da Resposta</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setRespostaImageFile(e.target.files?.[0] ?? null)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!selectedFlashcard || saving || (!respostaImageUrl && !respostaImageFile)}
+                  onClick={async () => {
+                    if (!selectedFlashcard) return
+                    if (respostaImageFile) {
+                      setRespostaImageFile(null)
+                      return
+                    }
+                    try {
+                      setSaving(true)
+                      await deleteFlashcardImage(selectedFlashcard.id, 'resposta')
+                      setRespostaImageUrl(null)
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : 'Erro ao remover imagem')
+                    } finally {
+                      setSaving(false)
+                    }
+                  }}
+                >
+                  Remover
+                </Button>
+              </div>
+              {(respostaImageFile || respostaImageUrl) && (
+                <div className="rounded-md border p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={respostaImageFile ? URL.createObjectURL(respostaImageFile) : (respostaImageUrl ?? '')}
+                    alt="Imagem da resposta"
+                    className="max-h-48 w-auto mx-auto"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

@@ -39,6 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ChevronDown, Upload, FileText, AlertCircle, CheckCircle2, Trash2, Plus, Info, FileUp } from 'lucide-react'
 import Papa from 'papaparse'
 import { useRouter } from 'next/navigation'
@@ -1904,23 +1905,21 @@ export default function ConteudosClientPage() {
               </div>
 
               {/* Info Box */}
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 p-4">
-                <div className="flex gap-3">
-                  <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                      Colunas necessarias no arquivo:
-                    </p>
-                    <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-                      <li><span className="font-semibold">Modulo</span> ou <span className="font-semibold">Nome do Modulo</span> (obrigatorio)</li>
-                      <li><span className="font-semibold">Aula</span> ou <span className="font-semibold">Nome da Aula</span> (obrigatorio)</li>
-                      <li><span className="font-semibold">Tempo</span> - tempo estimado em minutos (opcional)</li>
-                      <li><span className="font-semibold">Prioridade</span> - valor de 0 a 5 (opcional)</li>
-                      <li><span className="font-semibold">Importancia</span> - Alta, Media, Baixa ou Base (opcional)</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <Alert className="border-violet-200 bg-violet-50 text-violet-950 dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-50">
+                <Info className="text-[#A78BFA]" />
+                <AlertTitle className="font-semibold text-violet-950 dark:text-violet-50">
+                  Colunas necessarias no arquivo:
+                </AlertTitle>
+                <AlertDescription className="text-violet-800 dark:text-violet-100">
+                  <ul className="text-xs space-y-1 list-disc list-inside">
+                    <li><span className="font-semibold text-[#A78BFA]">Modulo</span> ou <span className="font-semibold text-[#A78BFA]">Nome do Modulo</span> (obrigatorio)</li>
+                    <li><span className="font-semibold text-[#A78BFA]">Aula</span> ou <span className="font-semibold text-[#A78BFA]">Nome da Aula</span> (obrigatorio)</li>
+                    <li><span className="font-semibold text-[#A78BFA]">Tempo</span> - tempo estimado em minutos (opcional)</li>
+                    <li><span className="font-semibold text-[#A78BFA]">Prioridade</span> - valor de 0 a 5 (opcional)</li>
+                    <li><span className="font-semibold text-[#A78BFA]">Importancia</span> - Alta, Media, Baixa ou Base (opcional)</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
             </div>
           </div>
 

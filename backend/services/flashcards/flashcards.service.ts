@@ -63,6 +63,8 @@ export type FlashcardReviewItem = {
   moduloId: string | null;
   pergunta: string;
   resposta: string;
+  perguntaImagemUrl?: string | null;
+  respostaImagemUrl?: string | null;
   importancia?: string | null;
   dataProximaRevisao?: string | null;
 };
@@ -74,6 +76,10 @@ export type FlashcardAdmin = {
   modulo_id: string;
   pergunta: string;
   resposta: string;
+  pergunta_imagem_path?: string | null;
+  resposta_imagem_path?: string | null;
+  pergunta_imagem_url?: string | null;
+  resposta_imagem_url?: string | null;
   created_at: string;
   modulo: {
     id: string;
@@ -115,6 +121,8 @@ export type ListFlashcardsFilters = {
 
 export class FlashcardsService {
   private client = getDatabaseClient();
+  private readonly FLASHCARDS_IMAGES_BUCKET = 'flashcards-images';
+  private readonly FLASHCARDS_SIGNED_URL_TTL_SECONDS = 60 * 30; // 30 min
   /**
    * Pool máximo de flashcards buscados do banco para montar uma sessão de revisão.
    *
@@ -166,6 +174,20 @@ export class FlashcardsService {
     keys.push(`cache:flashcards:page:1:limit:50:order:created_at:desc`);
     
     await cacheService.delMany(keys);
+  }
+
+  private async createSignedImageUrl(path?: string | null): Promise<string | null> {
+    const objectPath = path?.trim();
+    if (!objectPath) return null;
+    try {
+      const { data, error } = await this.client.storage
+        .from(this.FLASHCARDS_IMAGES_BUCKET)
+        .createSignedUrl(objectPath, this.FLASHCARDS_SIGNED_URL_TTL_SECONDS);
+      if (error) return null;
+      return data?.signedUrl ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async importFlashcards(rows: FlashcardImportRow[], userId: string): Promise<FlashcardImportResult> {
@@ -525,7 +547,7 @@ export class FlashcardsService {
       // Buscar flashcards do módulo
       const { data: flashcards, error: cardsError } = await this.client
         .from('flashcards')
-        .select('id, modulo_id, pergunta, resposta, modulos(importancia)')
+        .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)')
         .eq('modulo_id', filters.moduloId)
         .limit(this.REVIEW_CANDIDATE_POOL);
 
@@ -538,6 +560,8 @@ export class FlashcardsService {
         moduloId: c.modulo_id as string,
         pergunta: c.pergunta as string,
         resposta: c.resposta as string,
+        perguntaImagemPath: (c as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null,
+        respostaImagemPath: (c as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null,
         importancia: Array.isArray(c.modulos)
           ? (c.modulos as ModuloRow[])[0]?.importancia
           : (c.modulos as ModuloRow | undefined)?.importancia,
@@ -562,7 +586,7 @@ export class FlashcardsService {
       });
 
       const shuffled = this.shuffle(dueCards);
-      return shuffled.slice(0, 10).map((c) => {
+      const sessionCards = shuffled.slice(0, 10).map((c) => {
         const progress = progressMap.get(c.id);
         return {
           ...c,
@@ -570,6 +594,23 @@ export class FlashcardsService {
           dataProximaRevisao: progress?.data_proxima_revisao ?? null,
         };
       });
+      const signed = await Promise.all(
+        sessionCards.map(async (c) => {
+          const perguntaImagemUrl = await this.createSignedImageUrl((c as unknown as { perguntaImagemPath?: string | null }).perguntaImagemPath ?? null);
+          const respostaImagemUrl = await this.createSignedImageUrl((c as unknown as { respostaImagemPath?: string | null }).respostaImagemPath ?? null);
+          const { perguntaImagemPath, respostaImagemPath, ...rest } = c as unknown as {
+            perguntaImagemPath?: string | null;
+            respostaImagemPath?: string | null;
+            [key: string]: unknown;
+          };
+          return {
+            ...(rest as unknown as FlashcardReviewItem),
+            perguntaImagemUrl,
+            respostaImagemUrl,
+          };
+        }),
+      );
+      return signed;
     }
     
     // Modos automáticos: buscar cursos do aluno ou professor
@@ -918,7 +959,7 @@ export class FlashcardsService {
     console.log(`[flashcards] Buscando flashcards para ${moduloIds.length} módulos (modo: ${modo})`);
     const { data: flashcards, error: cardsError } = await this.client
       .from('flashcards')
-      .select('id, modulo_id, pergunta, resposta, modulos(importancia)')
+      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)')
       .in('modulo_id', moduloIds)
       .limit(this.REVIEW_CANDIDATE_POOL);
 
@@ -933,6 +974,8 @@ export class FlashcardsService {
       moduloId: c.modulo_id as string,
       pergunta: c.pergunta as string,
       resposta: c.resposta as string,
+      perguntaImagemPath: (c as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null,
+      respostaImagemPath: (c as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null,
       importancia: Array.isArray(c.modulos)
         ? (c.modulos as ModuloRow[])[0]?.importancia
         : (c.modulos as ModuloRow | undefined)?.importancia,
@@ -1012,7 +1055,7 @@ export class FlashcardsService {
 
       // Embaralhar resultado final e limitar a 10
       const finalShuffled = this.shuffle(selecionados);
-      return finalShuffled.slice(0, 10).map((c) => {
+      const sessionCards = finalShuffled.slice(0, 10).map((c) => {
         const progress = progressMap.get(c.id);
         return {
           ...c,
@@ -1020,6 +1063,23 @@ export class FlashcardsService {
           dataProximaRevisao: progress?.data_proxima_revisao ?? null,
         };
       });
+      const signed = await Promise.all(
+        sessionCards.map(async (c) => {
+          const perguntaImagemUrl = await this.createSignedImageUrl((c as unknown as { perguntaImagemPath?: string | null }).perguntaImagemPath ?? null);
+          const respostaImagemUrl = await this.createSignedImageUrl((c as unknown as { respostaImagemPath?: string | null }).respostaImagemPath ?? null);
+          const { perguntaImagemPath, respostaImagemPath, ...rest } = c as unknown as {
+            perguntaImagemPath?: string | null;
+            respostaImagemPath?: string | null;
+            [key: string]: unknown;
+          };
+          return {
+            ...(rest as unknown as FlashcardReviewItem),
+            perguntaImagemUrl,
+            respostaImagemUrl,
+          };
+        }),
+      );
+      return signed;
     }
 
     // Para outros modos (incluindo "mais_cobrados"), usar lógica padrão
@@ -1039,7 +1099,7 @@ export class FlashcardsService {
 
     console.log(`[flashcards] Modo "${modo}": ${dueCards.length} flashcards "due" de ${cards.length} total`);
     const shuffled = this.shuffle(dueCards);
-    const resultado = shuffled.slice(0, 10).map((c) => {
+    const sessionCards = shuffled.slice(0, 10).map((c) => {
       const progress = progressMap.get(c.id);
       return {
         ...c,
@@ -1047,8 +1107,24 @@ export class FlashcardsService {
         dataProximaRevisao: progress?.data_proxima_revisao ?? null,
       };
     });
-    console.log(`[flashcards] Retornando ${resultado.length} flashcards para revisão`);
-    return resultado;
+    const signed = await Promise.all(
+      sessionCards.map(async (c) => {
+        const perguntaImagemUrl = await this.createSignedImageUrl((c as unknown as { perguntaImagemPath?: string | null }).perguntaImagemPath ?? null);
+        const respostaImagemUrl = await this.createSignedImageUrl((c as unknown as { respostaImagemPath?: string | null }).respostaImagemPath ?? null);
+        const { perguntaImagemPath, respostaImagemPath, ...rest } = c as unknown as {
+          perguntaImagemPath?: string | null;
+          respostaImagemPath?: string | null;
+          [key: string]: unknown;
+        };
+        return {
+          ...(rest as unknown as FlashcardReviewItem),
+          perguntaImagemUrl,
+          respostaImagemUrl,
+        };
+      }),
+    );
+    console.log(`[flashcards] Retornando ${signed.length} flashcards para revisão`);
+    return signed;
   }
 
   /**
@@ -1210,7 +1286,7 @@ export class FlashcardsService {
     
     let query = this.client
       .from('flashcards')
-      .select('id, modulo_id, pergunta, resposta, created_at', { count: 'exact' });
+      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at', { count: 'exact' });
 
     if (moduloIds !== null) {
       if (moduloIds.length === 0) {
@@ -1410,7 +1486,9 @@ export class FlashcardsService {
           id: item.id,
           modulo_id: item.modulo_id as string,
           pergunta: item.pergunta,
+          pergunta_imagem_path: (item as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null,
           resposta: item.resposta,
+          resposta_imagem_path: (item as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null,
           created_at: item.created_at as string,
           modulo,
         };
@@ -1447,7 +1525,7 @@ export class FlashcardsService {
 
     const { data: flashcard, error } = await this.client
       .from('flashcards')
-      .select('id, modulo_id, pergunta, resposta, created_at')
+      .select('id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at')
       .eq('id', id)
       .maybeSingle();
 
@@ -1484,11 +1562,20 @@ export class FlashcardsService {
       throw new Error(`Erro ao buscar módulo: ${moduloGetError?.message || 'Módulo não encontrado'}`);
     }
 
+    const perguntaPath = (flashcard as unknown as { pergunta_imagem_path?: string | null }).pergunta_imagem_path ?? null;
+    const respostaPath = (flashcard as unknown as { resposta_imagem_path?: string | null }).resposta_imagem_path ?? null;
+    const perguntaUrl = await this.createSignedImageUrl(perguntaPath);
+    const respostaUrl = await this.createSignedImageUrl(respostaPath);
+
     return {
       id: flashcard.id,
       modulo_id: flashcard.modulo_id as string,
       pergunta: flashcard.pergunta,
       resposta: flashcard.resposta,
+      pergunta_imagem_path: perguntaPath,
+      resposta_imagem_path: respostaPath,
+      pergunta_imagem_url: perguntaUrl,
+      resposta_imagem_url: respostaUrl,
       created_at: flashcard.created_at as string,
       modulo: {
         id: (modulo as unknown as ModuloWithNestedRelations).id,
