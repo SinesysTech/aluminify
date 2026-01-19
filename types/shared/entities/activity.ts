@@ -9,24 +9,76 @@
 // ATIVIDADE
 // ============================================================================
 
+import { TipoAtividade, StatusAtividade } from "../enums";
+
 export interface Atividade {
   id: string;
-  nome: string;
+  nome: string; // Database column 'titulo' mapped to 'nome' in some places, but service uses 'titulo'
+  titulo: string; // Service uses 'titulo'
+  modulo_id: string;
+  moduloId: string; // CamelCase version
+  tipo: TipoAtividade;
   frente_id: string;
   disciplina_id: string;
   curso_id?: string;
-  modulo_id?: string;
-  status: "pendente" | "em_progresso" | "concluida";
+  status: StatusAtividade;
+  arquivo_url?: string | null;
+  arquivoUrl?: string | null;
+  gabarito_url?: string | null;
+  gabaritoUrl?: string | null;
+  link_externo?: string | null;
+  linkExterno?: string | null;
+  obrigatorio: boolean;
+  ordem_exibicao: number;
+  ordemExibicao: number;
   dataInicio?: string;
   dataConclusao?: string;
   questoesTotais?: number;
   questoesAcertos?: number;
-  dificuldadePercebida?: 1 | 2 | 3 | 4 | 5;
-  anotacoesPessoais?: string;
-  tipo?: string;
+  dificuldadePercebida?: number | null;
+  anotacoesPessoais?: string | null;
   descricao?: string;
   created_at: string;
   updated_at: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy?: string | null;
+}
+
+export interface AtividadeComProgressoEHierarquia extends Atividade {
+  moduloNome: string;
+  moduloNumero: number | null;
+  frenteNome: string;
+  frenteId: string;
+  disciplinaNome: string;
+  disciplinaId: string;
+  cursoNome: string;
+  cursoId: string;
+  progressoStatus: StatusAtividade | null;
+  progressoDataInicio: Date | null;
+  progressoDataConclusao: Date | null;
+}
+
+export interface CreateAtividadeInput {
+  moduloId: string;
+  tipo: TipoAtividade;
+  titulo: string;
+  arquivoUrl?: string;
+  gabaritoUrl?: string;
+  linkExterno?: string;
+  obrigatorio?: boolean;
+  ordemExibicao?: number;
+}
+
+export interface UpdateAtividadeInput {
+  moduloId?: string;
+  tipo?: TipoAtividade;
+  titulo?: string;
+  arquivoUrl?: string | null;
+  gabaritoUrl?: string | null;
+  linkExterno?: string | null;
+  obrigatorio?: boolean;
+  ordemExibicao?: number;
 }
 
 export interface AtividadeComDetalhes extends Atividade {
