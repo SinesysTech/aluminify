@@ -1,27 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   atividadeService,
   AtividadeNotFoundError,
   AtividadeValidationError,
-} from '@/backend/services/atividade';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+} from "@/backend/services/atividade";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
 const serializeAtividade = (
   atividade: Awaited<ReturnType<typeof atividadeService.getById>>,
 ) => {
-  const a = atividade as any; // Type assertion para contornar incompatibilidade de tipos
+  const a = atividade as Record<string, unknown>;
   return {
-    id: a.id,
-    moduloId: a.moduloId || a.modulo_id,
-    tipo: a.tipo,
-    titulo: a.titulo,
-    arquivoUrl: a.arquivoUrl || a.arquivo_url,
-    gabaritoUrl: a.gabaritoUrl || a.gabarito_url,
-    linkExterno: a.linkExterno || a.link_externo,
-    obrigatorio: a.obrigatorio,
-    ordemExibicao: a.ordemExibicao || a.ordem_exibicao,
-    createdAt: a.createdAt?.toISOString?.() || a.created_at,
-    updatedAt: a.updatedAt?.toISOString?.() || a.updated_at,
+    id: a.id as string,
+    moduloId: (a.moduloId || a.modulo_id) as string,
+    tipo: a.tipo as string,
+    titulo: a.titulo as string,
+    arquivoUrl: (a.arquivoUrl || a.arquivo_url) as string,
+    gabaritoUrl: (a.gabaritoUrl || a.gabarito_url) as string,
+    linkExterno: (a.linkExterno || a.link_externo) as string,
+    obrigatorio: a.obrigatorio as boolean,
+    ordemExibicao: (a.ordemExibicao || a.ordem_exibicao) as number,
+    createdAt:
+      (a.createdAt as any)?.toISOString?.() || (a.created_at as string),
+    updatedAt:
+      (a.updatedAt as any)?.toISOString?.() || (a.updated_at as string),
   };
 };
 
@@ -35,7 +37,7 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 interface RouteContext {
@@ -54,9 +56,16 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 }
 
 // PATCH - Atualizar atividade (especialmente arquivo_url após upload direto)
-async function patchHandler(request: AuthenticatedRequest, params: { id: string }) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+async function patchHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
+  if (
+    request.user &&
+    request.user.role !== "professor" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -82,14 +91,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   return requireAuth((req) => patchHandler(req, params))(request);
 }
 
-async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+async function deleteHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
+  if (
+    request.user &&
+    request.user.role !== "professor" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
     await atividadeService.delete(params.id);
-    return NextResponse.json({ message: 'Atividade removida com sucesso' });
+    return NextResponse.json({ message: "Atividade removida com sucesso" });
   } catch (error) {
     return handleError(error);
   }

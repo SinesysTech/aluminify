@@ -78,7 +78,8 @@ function mapToCronogramaDetalhado(
     modulos_selecionados:
       (row.modulos_selecionados as unknown as string[]) ?? null,
     excluir_aulas_concluidas: row.excluir_aulas_concluidas,
-    velocidade_reproducao: (row as any).velocidade_reproducao ?? 1.0,
+    velocidade_reproducao:
+      ((row as Record<string, unknown>).velocidade_reproducao as number) ?? 1.0,
     created_at: row.created_at ?? new Date().toISOString(),
     updated_at: row.updated_at ?? new Date().toISOString(),
   };
@@ -1950,7 +1951,7 @@ export class CronogramaService {
           : null) as unknown as Database["public"]["Tables"]["cronogramas"]["Insert"]["modulos_selecionados"],
         excluir_aulas_concluidas: input.excluir_aulas_concluidas !== false,
         velocidade_reproducao: input.velocidade_reproducao ?? 1.0,
-      } as any)
+      } as Database["public"]["Tables"]["cronogramas"]["Insert"])
       .select()
       .single();
 

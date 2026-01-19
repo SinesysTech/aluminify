@@ -335,12 +335,16 @@ export class ConversationService {
     const payload = {
       conversation_id: conversationId,
       user_id: userId,
-      history: history as any,
+      history:
+        history as unknown as Database["public"]["Tables"]["chat_conversation_history"]["Insert"]["history"],
     };
 
     const { error } = await supabase
       .from("chat_conversation_history")
-      .upsert(payload as any, { onConflict: "conversation_id" });
+      .upsert(
+        payload as Database["public"]["Tables"]["chat_conversation_history"]["Insert"],
+        { onConflict: "conversation_id" },
+      );
 
     if (error) {
       console.error(

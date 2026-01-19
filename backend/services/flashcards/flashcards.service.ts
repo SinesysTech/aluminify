@@ -1786,7 +1786,7 @@ export class FlashcardsService {
               .resposta_imagem_path ?? null,
           created_at: item.created_at as string,
           modulo,
-        };
+        } satisfies FlashcardAdmin;
       })
       .filter((f): f is FlashcardAdmin => f !== null);
 

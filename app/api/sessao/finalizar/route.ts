@@ -1,25 +1,31 @@
-import { NextResponse } from 'next/server';
-import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { NextResponse } from "next/server";
+import {
+  requireUserAuth,
+  AuthenticatedRequest,
+} from "@/backend/auth/middleware";
 import {
   sessaoEstudoService,
   SessaoEstudoValidationError,
   SessaoEstudoNotFoundError,
-} from '@/backend/services/sessao-estudo';
-import { SessaoEstudo } from '@/types/sessao-estudo';
+} from "@/backend/services/sessao-estudo";
+import { SessaoEstudo } from "@/types/sessao-estudo";
 
 function serialize(sessao: SessaoEstudo) {
-  const s = sessao as any; // Type assertion para compatibilidade
+  const s = sessao as Record<string, any>;
   return {
     id: s.id,
     aluno_id: s.aluno_id || s.alunoId,
     disciplina_id: s.disciplina_id || s.disciplinaId,
     frente_id: s.frente_id || s.frenteId,
     modulo_id: s.modulo_id || s.moduloId,
-    atividade_relacionada_id: s.atividade_relacionada_id || s.atividadeRelacionadaId,
+    atividade_relacionada_id:
+      s.atividade_relacionada_id || s.atividadeRelacionadaId,
     inicio: s.inicio,
     fim: s.fim,
-    tempo_total_bruto_segundos: s.tempo_total_bruto_segundos || s.tempoTotalBrutoSegundos,
-    tempo_total_liquido_segundos: s.tempo_total_liquido_segundos || s.tempoTotalLiquidoSegundos,
+    tempo_total_bruto_segundos:
+      s.tempo_total_bruto_segundos || s.tempoTotalBrutoSegundos,
+    tempo_total_liquido_segundos:
+      s.tempo_total_liquido_segundos || s.tempoTotalLiquidoSegundos,
     log_pausas: s.log_pausas || s.logPausas,
     metodo_estudo: s.metodo_estudo || s.metodoEstudo,
     nivel_foco: s.nivel_foco || s.nivelFoco,
@@ -48,30 +54,9 @@ async function handler(request: AuthenticatedRequest) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    console.error('[sessao/finalizar]', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    console.error("[sessao/finalizar]", error);
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
 
 export const PATCH = requireUserAuth(handler);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

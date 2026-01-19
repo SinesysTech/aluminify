@@ -1,26 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   atividadeService,
   AtividadeValidationError,
-} from '@/backend/services/atividade';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+} from "@/backend/services/atividade";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
 const serializeAtividade = (
   atividade: Awaited<ReturnType<typeof atividadeService.getById>>,
 ) => {
-  const a = atividade as any; // Type assertion para contornar incompatibilidade de tipos
+  const a = atividade as Record<string, unknown>;
   return {
-    id: a.id,
-    moduloId: a.moduloId || a.modulo_id,
-    tipo: a.tipo,
-    titulo: a.titulo,
-    arquivoUrl: a.arquivoUrl || a.arquivo_url,
-    gabaritoUrl: a.gabaritoUrl || a.gabarito_url,
-    linkExterno: a.linkExterno || a.link_externo,
-    obrigatorio: a.obrigatorio,
-    ordemExibicao: a.ordemExibicao || a.ordem_exibicao,
-    createdAt: a.createdAt?.toISOString?.() || a.created_at,
-    updatedAt: a.updatedAt?.toISOString?.() || a.updated_at,
+    id: a.id as string,
+    moduloId: (a.moduloId || a.modulo_id) as string,
+    tipo: a.tipo as string,
+    titulo: a.titulo as string,
+    arquivoUrl: (a.arquivoUrl || a.arquivo_url) as string,
+    gabaritoUrl: (a.gabaritoUrl || a.gabarito_url) as string,
+    linkExterno: (a.linkExterno || a.link_externo) as string,
+    obrigatorio: a.obrigatorio as boolean,
+    ordemExibicao: (a.ordemExibicao || a.ordem_exibicao) as number,
+    createdAt:
+      (a.createdAt as any)?.toISOString?.() || (a.created_at as string),
+    updatedAt:
+      (a.updatedAt as any)?.toISOString?.() || (a.updated_at as string),
   };
 };
 
@@ -30,15 +32,15 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 // GET - Listar atividades (filtro por modulo_id ou frente_id)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const moduloId = searchParams.get('modulo_id');
-    const frenteId = searchParams.get('frente_id');
+    const moduloId = searchParams.get("modulo_id");
+    const frenteId = searchParams.get("frente_id");
 
     let atividades;
 
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest) {
       atividades = await atividadeService.listByFrente(frenteId);
     } else {
       return NextResponse.json(
-        { error: 'modulo_id or frente_id query parameter is required' },
+        { error: "modulo_id or frente_id query parameter is required" },
         { status: 400 },
       );
     }
@@ -60,8 +62,12 @@ export async function GET(request: NextRequest) {
 }
 
 async function postHandler(request: AuthenticatedRequest) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (
+    request.user &&
+    request.user.role !== "professor" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -77,7 +83,10 @@ async function postHandler(request: AuthenticatedRequest) {
       ordemExibicao: body?.ordem_exibicao,
     });
 
-    return NextResponse.json({ data: serializeAtividade(atividade) }, { status: 201 });
+    return NextResponse.json(
+      { data: serializeAtividade(atividade) },
+      { status: 201 },
+    );
   } catch (error) {
     return handleError(error);
   }

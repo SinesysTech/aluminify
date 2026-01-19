@@ -60,8 +60,9 @@ function calcularTempos(
   let totalPausasMs = 0;
 
   for (const pausa of logPausas) {
-    const pausaInicio = Date.parse(pausa.inicio);
-    const pausaFim = Date.parse(pausa.fim);
+    // parseLogPausas already validates inicio/fim exist
+    const pausaInicio = Date.parse(pausa.inicio!);
+    const pausaFim = Date.parse(pausa.fim!);
 
     if (Number.isNaN(pausaInicio) || Number.isNaN(pausaFim) || pausaFim <= pausaInicio) {
       throw new SessaoEstudoValidationError('Intervalo de pausa inválido');
@@ -85,6 +86,9 @@ function calcularTempos(
   return {
     tempoTotalBrutoSegundos,
     tempoTotalLiquidoSegundos,
+    tempo_total_minutos: Math.round(tempoTotalBrutoSegundos / 60),
+    tempo_efetivo_minutos: Math.round(tempoTotalLiquidoSegundos / 60),
+    pausas: logPausas,
   };
 }
 

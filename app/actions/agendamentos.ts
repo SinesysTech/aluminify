@@ -406,7 +406,7 @@ export async function createAgendamento(
   const confirmadoEm = config?.auto_confirmar ? new Date().toISOString() : null;
 
   // Garantir que as datas sejam strings ISO para o banco
-  const payload = {
+  const payload: Database["public"]["Tables"]["agendamentos"]["Insert"] = {
     ...data,
     professor_id: data.professor_id,
     aluno_id: user.id,
@@ -420,11 +420,12 @@ export async function createAgendamento(
     confirmado_em: confirmadoEm,
     observacoes: data.observacoes || null,
     link_reuniao: data.link_reuniao || null,
+    empresa_id: empresaId || "",
   };
 
   const { data: result, error } = await supabase
     .from("agendamentos")
-    .insert(payload as any)
+    .insert(payload)
     .select()
     .single();
 
@@ -717,9 +718,7 @@ export async function getAvailabilityForMonth(
 // =============================================
 
 // Helper function to check if a value is a valid aluno/professor object
-function isValidUserObject(
-  obj: unknown,
-): obj is {
+function isValidUserObject(obj: unknown): obj is {
   id: string;
   nome: string;
   email: string;
@@ -1334,7 +1333,7 @@ export async function updateConfiguracoesProfessor(
     .upsert({
       ...configData,
       professor_id: professorId,
-    } as any)
+    } as Database["public"]["Tables"]["agendamento_configuracoes"]["Insert"])
     .select()
     .single();
 
@@ -1637,7 +1636,9 @@ export async function bulkUpsertDisponibilidade(items: Disponibilidade[]) {
 
   const { error } = await supabase
     .from("agendamento_disponibilidade")
-    .upsert(payload as any);
+    .upsert(
+      payload as Database["public"]["Tables"]["agendamento_disponibilidade"]["Insert"][],
+    );
 
   if (error) {
     console.error("Error bulk upserting availability:", error);
@@ -1727,7 +1728,9 @@ export async function createRecorrencia(
 
   const { data: result, error } = await supabase
     .from("agendamento_recorrencia")
-    .insert(payload as any)
+    .insert(
+      payload as Database["public"]["Tables"]["agendamento_recorrencia"]["Insert"],
+    )
     .select()
     .single();
 
@@ -1970,7 +1973,9 @@ export async function createBloqueio(
 
   const { data: result, error } = await supabase
     .from("agendamento_bloqueios")
-    .insert(payload as any)
+    .insert(
+      payload as Database["public"]["Tables"]["agendamento_bloqueios"]["Insert"],
+    )
     .select()
     .single();
 
