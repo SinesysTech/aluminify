@@ -1,5 +1,6 @@
 import { mergeAttributes } from "@tiptap/core";
 import TiptapLink from "@tiptap/extension-link";
+import type { LinkOptions } from "@tiptap/extension-link";
 import type { EditorView } from "@tiptap/pm/view";
 import { getMarkRange } from "@tiptap/core";
 import { Plugin, TextSelection } from "@tiptap/pm/state";
@@ -34,7 +35,7 @@ export const Link = TiptapLink.extend({
 
   addOptions() {
     const parentOptions = this.parent?.();
-    return {
+    return ({
       ...parentOptions,
       defaultProtocol: "https",
       autolink: true,
@@ -45,13 +46,16 @@ export const Link = TiptapLink.extend({
       HTMLAttributes: {
         class: "link",
       },
-      validate: parentOptions?.validate ?? ((_url: string) => true),
+      validate:
+        parentOptions?.validate ??
+        ((url: string) => !url.toLowerCase().startsWith("javascript:")),
       isAllowedUri:
         parentOptions?.isAllowedUri ??
         ((url: string, ctx: { defaultValidate: (url: string) => boolean }) =>
           ctx.defaultValidate(url)),
       shouldAutoLink: parentOptions?.shouldAutoLink ?? ((_url: string) => true),
-    };
+      // Tipagem: manter compatibilidade entre versões do TipTap sem quebrar o build
+    }) as unknown as LinkOptions;
   },
 
   addProseMirrorPlugins() {
