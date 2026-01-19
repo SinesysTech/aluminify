@@ -194,6 +194,7 @@ function Calendar({
             startMonth={startMonth}
             endMonth={endMonth}
             onPrevClick={onPrevClick}
+            onNextClick={onNextClick}
           />
         ),
         CaptionLabel: (props) => (
@@ -207,7 +208,6 @@ function Calendar({
         ),
         MonthGrid: ({ className, children, ...props }) => (
           <MonthGrid
-            children={children}
             className={className}
             displayYears={displayYears}
             startMonth={startMonth}
@@ -215,7 +215,9 @@ function Calendar({
             navView={navView}
             setNavView={setNavView}
             {...props}
-          />
+          >
+            {children}
+          </MonthGrid>
         )
       }}
       numberOfMonths={columnsDisplayed}
@@ -280,7 +282,7 @@ function Nav({
     }
     goToMonth(previousMonth);
     onPrevClick?.(previousMonth);
-  }, [previousMonth, goToMonth]);
+  }, [previousMonth, goToMonth, navView, onPrevClick, displayYears, setDisplayYears]);
 
   const handleNextClick = React.useCallback(() => {
     if (!nextMonth) return;
@@ -294,7 +296,7 @@ function Nav({
     }
     goToMonth(nextMonth);
     onNextClick?.(nextMonth);
-  }, [goToMonth, nextMonth]);
+  }, [goToMonth, nextMonth, navView, onNextClick, displayYears, setDisplayYears]);
   return (
     <nav className={cn("flex items-center", className)}>
       <Button
@@ -427,7 +429,7 @@ function YearGrid({
             className={cn(
               "text-foreground h-7 w-full text-sm font-normal",
               displayYears.from + i === new Date().getFullYear() &&
-                "bg-accent text-accent-foreground font-medium"
+              "bg-accent text-accent-foreground font-medium"
             )}
             variant="ghost"
             onClick={() => {

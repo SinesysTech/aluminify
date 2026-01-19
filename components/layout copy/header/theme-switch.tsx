@@ -11,6 +11,7 @@ export default function ThemeSwitch() {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

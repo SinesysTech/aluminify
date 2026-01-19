@@ -362,10 +362,10 @@ export function UserManagement({ empresaId }: UserManagementProps) {
               />
             </div>
             <Button variant="outline" asChild>
-              <a href="/admin/empresa/alunos">
+              <Link href="/admin/empresa/alunos">
                 <UserCog className="h-4 w-4 mr-2" />
                 Gerenciar Alunos
-              </a>
+              </Link>
             </Button>
           </div>
 
