@@ -22,25 +22,25 @@ export function ThemeRadiusSelector() {
         <ToggleGroupItem
           variant="outline"
           value="sm"
-          className="text-xs data-[variant=outline]:border-l-1">
+          className="text-xs data-[variant=outline]:border-l">
           SM
         </ToggleGroupItem>
         <ToggleGroupItem
           variant="outline"
           value="md"
-          className="text-xs data-[variant=outline]:border-l-1">
+          className="text-xs data-[variant=outline]:border-l">
           MD
         </ToggleGroupItem>
         <ToggleGroupItem
           variant="outline"
           value="lg"
-          className="text-xs data-[variant=outline]:border-l-1">
+          className="text-xs data-[variant=outline]:border-l">
           LG
         </ToggleGroupItem>
         <ToggleGroupItem
           variant="outline"
           value="xl"
-          className="text-xs data-[variant=outline]:border-l-1">
+          className="text-xs data-[variant=outline]:border-l">
           XL
         </ToggleGroupItem>
       </ToggleGroup>

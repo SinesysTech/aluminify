@@ -23,13 +23,13 @@ export function ThemeScaleSelector() {
           <ToggleGroupItem
             variant="outline"
             value="sm"
-            className="text-xs data-[variant=outline]:border-l-1">
+            className="text-xs data-[variant=outline]:border-l">
             XS
           </ToggleGroupItem>
           <ToggleGroupItem
             variant="outline"
             value="lg"
-            className="text-xs data-[variant=outline]:border-l-1">
+            className="text-xs data-[variant=outline]:border-l">
             LG
           </ToggleGroupItem>
         </ToggleGroup>
