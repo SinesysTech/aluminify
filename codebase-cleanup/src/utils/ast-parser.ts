@@ -5,8 +5,23 @@
  * and querying AST nodes for common patterns.
  */
 
-import { Project, SourceFile, Node, SyntaxKind } from 'ts-morph';
+import { Project, SourceFile, Node, SyntaxKind, VariableDeclarationList, Modifier } from 'ts-morph';
 import type { FileInfo } from '../types';
+
+/**
+ * Interface for nodes that may have a getName method
+ */
+interface NodeWithName {
+  getName?: () => string | undefined;
+  name?: string | { getText?: () => string };
+}
+
+/**
+ * Interface for nodes that may have getModifiers method
+ */
+interface NodeWithModifiers {
+  getModifiers?: () => Modifier[];
+}
 
 /**
  * Error thrown when file parsing fails

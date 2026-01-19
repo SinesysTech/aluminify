@@ -9,7 +9,7 @@ import { resolve } from 'path';
 import { readFile, writeFile } from 'fs/promises';
 import { CleanupPlanner } from '../../planner/index.js';
 import { handleError } from '../utils/error-handler.js';
-import type { ClassifiedIssues } from '../../types.js';
+import type { ClassifiedIssues, Issue, CleanupPlan, CleanupPhase, CleanupTask } from '../../types.js';
 
 interface PlanOptions {
   input: string;
@@ -42,10 +42,10 @@ export const planCommand = new Command('plan')
 
       // Reconstruct ClassifiedIssues
       const classified: ClassifiedIssues = {
-        critical: data.issues.filter((i: any) => i.severity === 'critical'),
-        high: data.issues.filter((i: any) => i.severity === 'high'),
-        medium: data.issues.filter((i: any) => i.severity === 'medium'),
-        low: data.issues.filter((i: any) => i.severity === 'low'),
+        critical: data.issues.filter((i: Issue) => i.severity === 'critical'),
+        high: data.issues.filter((i: Issue) => i.severity === 'high'),
+        medium: data.issues.filter((i: Issue) => i.severity === 'medium'),
+        low: data.issues.filter((i: Issue) => i.severity === 'low'),
         patterns: data.patterns || [],
       };
 
@@ -89,7 +89,7 @@ export const planCommand = new Command('plan')
 /**
  * Generate markdown representation of cleanup plan
  */
-function generateMarkdownPlan(plan: any): string {
+function generateMarkdownPlan(plan: CleanupPlan): string {
   let markdown = '# Codebase Cleanup Plan\n\n';
 
   // Summary
@@ -115,12 +115,12 @@ function generateMarkdownPlan(plan: any): string {
 
   // Phases
   markdown += '## Execution Phases\n\n';
-  plan.phases.forEach((phase: any) => {
+  plan.phases.forEach((phase: CleanupPhase) => {
     markdown += `### Phase ${phase.phaseNumber}: ${phase.phaseName}\n\n`;
     markdown += `${phase.description}\n\n`;
     markdown += `**Tasks in this phase**: ${phase.tasks.length}\n\n`;
 
-    phase.tasks.forEach((task: any) => {
+    phase.tasks.forEach((task: CleanupTask) => {
       markdown += `#### ${task.title}\n\n`;
       markdown += `- **ID**: ${task.id}\n`;
       markdown += `- **Category**: ${task.category}\n`;

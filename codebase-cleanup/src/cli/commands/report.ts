@@ -9,7 +9,7 @@ import { resolve } from 'path';
 import { readFile, writeFile } from 'fs/promises';
 import { createReportGenerator } from '../../reporter/index.js';
 import { handleError } from '../utils/error-handler.js';
-import type { AnalysisResult, ClassifiedIssues } from '../../types.js';
+import type { AnalysisResult, ClassifiedIssues, Issue } from '../../types.js';
 
 interface ReportOptions {
   input: string;
@@ -53,10 +53,10 @@ export const reportCommand = new Command('report')
       };
 
       const classified: ClassifiedIssues = {
-        critical: data.issues.filter((i: any) => i.severity === 'critical'),
-        high: data.issues.filter((i: any) => i.severity === 'high'),
-        medium: data.issues.filter((i: any) => i.severity === 'medium'),
-        low: data.issues.filter((i: any) => i.severity === 'low'),
+        critical: data.issues.filter((i: Issue) => i.severity === 'critical'),
+        high: data.issues.filter((i: Issue) => i.severity === 'high'),
+        medium: data.issues.filter((i: Issue) => i.severity === 'medium'),
+        low: data.issues.filter((i: Issue) => i.severity === 'low'),
         patterns: data.patterns || [],
       };
 
