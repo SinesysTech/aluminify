@@ -18,9 +18,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.role !== 'professor') {
+    if (user.role !== 'professor' && user.role !== 'usuario') {
       return NextResponse.json(
-        { error: 'Acesso negado. Apenas professor pode criar empresa neste fluxo.' },
+        { error: 'Acesso negado. Apenas usuários da instituição podem criar empresa neste fluxo.' },
         { status: 403 }
       );
     }

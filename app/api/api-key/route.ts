@@ -30,8 +30,8 @@ async function handler(request: AuthenticatedRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Apenas professores podem criar API keys
-  if (request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+  // Apenas usuarios (staff) podem criar API keys
+  if (request.user.role !== 'professor' && request.user.role !== 'usuario' && request.user.role !== 'superadmin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

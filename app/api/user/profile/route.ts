@@ -20,35 +20,42 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const role = (user.user_metadata?.role as string) || 'aluno';
+    const metadataRole = (user.user_metadata?.role as string) || 'aluno';
+    // Normalize legacy role names
+    const role = metadataRole === 'professor' || metadataRole === 'empresa' ? 'usuario' : metadataRole;
 
-    // Para professores, empresa_id é derivado da tabela `professores` (fonte de verdade)
+    // Para usuarios (staff), empresa_id é derivado da tabela `usuarios` (fonte de verdade)
     let empresaId: string | null = null;
     let isEmpresaAdmin: boolean | null = null;
     let fullName: string | null = null;
+    let roleType: string | null = null;
 
-    if (role === 'professor' || role === 'superadmin') {
-      const { data: professor } = await supabase
-        .from('professores')
-        .select('empresa_id,is_admin,nome_completo')
+    if (role === 'usuario' || role === 'superadmin' || metadataRole === 'professor' || metadataRole === 'empresa') {
+      const { data: usuario } = await supabase
+        .from('usuarios')
+        .select(`
+          empresa_id,
+          nome_completo,
+          papeis!inner(tipo)
+        `)
         .eq('id', user.id)
+        .eq('ativo', true)
+        .is('deleted_at', null)
         .maybeSingle();
 
-      // Type assertion: Query result properly typed from Database schema
-      type ProfessorProfile = Pick<Database['public']['Tables']['professores']['Row'], 'empresa_id' | 'is_admin' | 'nome_completo'>;
-      const typedProfessor = professor as ProfessorProfile | null;
-
-      // `professores` é fonte de verdade, mas em cadastros recentes pode haver atraso/fluxo sem trigger.
-      // Fallback para metadata evita UX quebrada (ex.: admin/empresa exibindo "Empresa não encontrada").
-      empresaId =
-        typedProfessor?.empresa_id ??
-        ((user.user_metadata?.empresa_id as string | undefined) ?? null);
-      isEmpresaAdmin =
-        typedProfessor?.is_admin ??
-        ((user.user_metadata?.is_admin as boolean | undefined) ?? null);
-      fullName =
-        typedProfessor?.nome_completo ??
-        ((user.user_metadata?.full_name as string | undefined) ?? null);
+      if (usuario) {
+        empresaId = usuario.empresa_id;
+        fullName = usuario.nome_completo;
+        const papelData = usuario.papeis as unknown as { tipo: string } | null;
+        roleType = papelData?.tipo ?? null;
+        // admin and professor_admin are empresa admins
+        isEmpresaAdmin = roleType === 'admin' || roleType === 'professor_admin';
+      } else {
+        // Fallback para metadata evita UX quebrada
+        empresaId = (user.user_metadata?.empresa_id as string | undefined) ?? null;
+        isEmpresaAdmin = (user.user_metadata?.is_admin as boolean | undefined) ?? null;
+        fullName = (user.user_metadata?.full_name as string | undefined) ?? null;
+      }
     } else {
       const { data: aluno } = await supabase
         .from('alunos')
@@ -67,6 +74,7 @@ export async function GET() {
       id: user.id,
       email: user.email,
       role,
+      roleType,
       fullName,
       empresaId,
       isEmpresaAdmin,

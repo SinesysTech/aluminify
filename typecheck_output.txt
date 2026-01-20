@@ -1,9 +1,0 @@
-
-> aluminify@0.1.1 typecheck
-> tsc -p tsconfig.json --noEmit
-
-components/ui/custom/minimal-tiptap/extensions/code-block-lowlight/code-block-lowlight.ts(6,3): error TS2322: Type '(this: { name: string; parent: (() => CodeBlockLowlightOptions) | undefined; }) => { lowlight: any; defaultLanguage: null; HTMLAttributes: { class: string; }; languageClassPrefix?: string | ... 1 more ... | undefined; exitOnTripleEnter?: boolean | ... 1 more ... | undefined; exitOnArrowDown?: boolean | ... 1 more .....' is not assignable to type '(this: { name: string; parent: (() => CodeBlockLowlightOptions) | undefined; }) => CodeBlockLowlightOptions'.
-  Type '{ lowlight: any; defaultLanguage: null; HTMLAttributes: { class: string; }; languageClassPrefix?: string | null | undefined; exitOnTripleEnter?: boolean | null | undefined; exitOnArrowDown?: boolean | null | undefined; enableTabIndentation?: boolean | null | undefined; tabSize?: number | null | undefined; }' is not assignable to type 'CodeBlockLowlightOptions'.
-    Property 'languageClassPrefix' is optional in type '{ lowlight: any; defaultLanguage: null; HTMLAttributes: { class: string; }; languageClassPrefix?: string | null | undefined; exitOnTripleEnter?: boolean | null | undefined; exitOnArrowDown?: boolean | ... 1 more ... | undefined; enableTabIndentation?: boolean | ... 1 more ... | undefined; tabSize?: number | ... 1 mo...' but required in type 'CodeBlockLowlightOptions'.
-components/ui/custom/minimal-tiptap/extensions/link/link.ts(35,21): error TS2344: Type '((this: { name: string; parent: (() => LinkOptions) | undefined; }) => LinkOptions) | undefined' does not satisfy the constraint '(...args: any) => any'.
-  Type 'undefined' is not assignable to type '(...args: any) => any'.

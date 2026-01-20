@@ -18,8 +18,9 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/server";
-import type { AppUser, AppUserRole } from "@/types/user";
-import { getDefaultRouteForRole, hasRequiredRole } from "@/lib/roles";
+import type { AppUser, AppUserRole, LegacyAppUserRole } from "@/types/user";
+import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
+import { getDefaultRouteForRole, hasRequiredRole, isAdminRoleTipo } from "@/lib/roles";
 import { getImpersonationContext } from "@/lib/auth-impersonate";
 
 export async function getAuthenticatedUser(): Promise<AppUser | null> {
@@ -45,11 +46,19 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     targetUserId = impersonationContext.impersonatedUserId;
   }
 
-  const role =
-    isImpersonating && impersonationContext
-      ? impersonationContext.impersonatedUserRole
-      : (user.user_metadata?.role as AppUserRole) || "aluno";
+  // Get role from metadata - map legacy roles to new ones
+  const metadataRole = isImpersonating && impersonationContext
+    ? impersonationContext.impersonatedUserRole
+    : (user.user_metadata?.role as LegacyAppUserRole | AppUserRole) || "aluno";
+
+  // Map legacy "professor" and "empresa" roles to "usuario"
+  let role: AppUserRole = metadataRole === "professor" || metadataRole === "empresa"
+    ? "usuario"
+    : (metadataRole as AppUserRole);
+
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password);
+  let roleType: RoleTipo | undefined;
+  let permissions: RolePermissions | undefined;
 
   if (process.env.NODE_ENV === "development") {
     console.log(
@@ -94,137 +103,67 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     }
   }
 
-  // Ensure professor record exists if user is a professor
-  // Note: This is a best-effort attempt. The handle_new_user() trigger should have created it,
-  // but this ensures it exists even if the trigger didn't fire or if the user was created differently.
-  if (role === "professor") {
-    try {
-      // Check if professor record exists
-      const { data: existingProfessor, error: checkError } = await supabase
-        .from("professores")
-        .select("id, email")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      // Only proceed if we successfully checked (no error) and record doesn't exist
-      if (!checkError && !existingProfessor) {
-        const empresaId = user.user_metadata?.empresa_id as string | undefined;
-
-        // Só tenta criar se tivermos uma empresa associada
-        if (!empresaId) {
-          return {
-            id: user.id,
-            email: user.email || "",
-            role,
-            fullName:
-              user.user_metadata?.full_name ||
-              user.user_metadata?.name ||
-              user.email?.split("@")[0],
-            avatarUrl: user.user_metadata?.avatar_url,
-            mustChangePassword,
-          };
-        }
-
-        // Try to create the record, but don't fail if RLS blocks it
-        // The trigger should have created it, so this is just a safety net
-        const { error: insertError } = await supabase
-          .from("professores")
-          .insert({
-            id: user.id,
-            email: user.email || "",
-            empresa_id: empresaId,
-            nome_completo:
-              user.user_metadata?.full_name ||
-              user.user_metadata?.name ||
-              user.email?.split("@")[0] ||
-              "Novo Professor",
-            is_admin: Boolean(user.user_metadata?.is_admin),
-          });
-
-        // Only log if there's an actual error (not just RLS blocking)
-        // Most errors here are expected if RLS policy isn't set up yet
-        if (insertError && insertError.code !== "42501") {
-          // 42501 is permission denied - this is expected if policy doesn't exist yet
-          console.debug(
-            "Could not auto-create professor record (may need RLS policy):",
-            {
-              code: insertError.code,
-              message: insertError.message,
-            },
-          );
-        }
-      } else if (
-        !checkError &&
-        existingProfessor &&
-        existingProfessor.email !== user.email
-      ) {
-        // Update email if it has changed
-        await supabase
-          .from("professores")
-          .update({ email: user.email || "" })
-          .eq("id", user.id);
-      }
-    } catch (error) {
-      // Silently ignore - this is a best-effort operation
-      // The handle_new_user trigger should handle record creation
-      if (process.env.NODE_ENV === "development") {
-        console.debug("Error ensuring professor record (non-critical):", error);
-      }
-    }
-  }
-
-  // Carregar contexto de empresa para professor/superadmin (melhora navegação e guards)
-  if (role === "professor" || role === "superadmin") {
-    const { data: professorRow, error: professorError } = await supabase
-      .from("professores")
-      .select("empresa_id,is_admin,nome_completo,empresas(nome,slug)")
+  // Load empresa context for usuarios (staff) and superadmin
+  // First check if user exists in usuarios table (institution staff)
+  if (role === "usuario" || role === "superadmin" || metadataRole === "professor" || metadataRole === "empresa") {
+    const { data: usuarioRow, error: usuarioError } = await supabase
+      .from("usuarios")
+      .select(`
+        empresa_id,
+        nome_completo,
+        papeis!inner(tipo, permissoes),
+        empresas!inner(nome, slug)
+      `)
       .eq("id", user.id)
+      .eq("ativo", true)
+      .is("deleted_at", null)
       .maybeSingle();
 
-    if (!professorError && professorRow) {
-      empresaId = professorRow.empresa_id ?? undefined;
-      isEmpresaAdmin = Boolean(professorRow.is_admin);
+    if (!usuarioError && usuarioRow) {
+      // User found in usuarios table - they are institution staff
+      role = "usuario";
 
-      /**
-       * Type Assertion for Join Query
-       *
-       * Why needed: Supabase's TypeScript client cannot automatically infer the structure
-       * of joined data. The query `.select('empresa_id,is_admin,nome_completo,empresas(nome)')`
-       * joins the professores table with the empresas table, but TypeScript doesn't know
-       * the shape of the joined result.
-       *
-       * What we're asserting: The result includes an 'empresas' property that is either:
-       * - An object with a 'nome' field (when the join finds a matching empresa)
-       * - null (when there's no matching empresa or empresa_id is null)
-       *
-       * Safety: This assertion is safe because:
-       * 1. The query explicitly requests 'empresas(nome)'
-       * 2. We handle the null case with optional chaining (?.)
-       * 3. The database schema guarantees empresa_id is a foreign key to empresas
-       *
-       * Alternative: We could use a generic type parameter on the select() call, but
-       * type assertions are more explicit and easier to maintain for complex joins.
-       *
-       * For more information, see: docs/TYPESCRIPT_SUPABASE_GUIDE.md#type-assertions
-       */
-      type ProfessorWithEmpresa = {
-        empresa_id: string | null;
-        is_admin: boolean;
+      type UsuarioWithJoins = {
+        empresa_id: string;
         nome_completo: string;
-        empresas: { nome: string; slug: string } | null;
+        papeis: { tipo: string; permissoes: RolePermissions };
+        empresas: { nome: string; slug: string };
       };
-      const typedRow = professorRow as unknown as ProfessorWithEmpresa;
+      const typedRow = usuarioRow as unknown as UsuarioWithJoins;
+
+      empresaId = typedRow.empresa_id;
       empresaNome = typedRow.empresas?.nome ?? undefined;
       empresaSlug = typedRow.empresas?.slug ?? undefined;
+      roleType = typedRow.papeis?.tipo as RoleTipo;
+      permissions = typedRow.papeis?.permissoes;
+      isEmpresaAdmin = roleType ? isAdminRoleTipo(roleType) : false;
 
-      // Se existir nome_completo, preferir como fullName
-      if (professorRow.nome_completo) {
+      // Use nome_completo from usuarios table
+      if (typedRow.nome_completo) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (user.user_metadata as any) = {
           ...(user.user_metadata || {}),
-          full_name: professorRow.nome_completo,
+          full_name: typedRow.nome_completo,
         };
       }
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "[AUTH DEBUG] getAuthenticatedUser: usuario found " +
+            JSON.stringify({
+              userId: user.id,
+              email: user.email,
+              role,
+              roleType,
+              empresaId,
+              empresaSlug,
+              isEmpresaAdmin,
+            }),
+        );
+      }
+    } else if (role === "superadmin") {
+      // Superadmin may not have usuario record, that's ok
+      isEmpresaAdmin = true;
     }
   }
 
@@ -274,6 +213,8 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     id: targetUserId,
     email: user.email || "",
     role,
+    roleType,
+    permissions,
     fullName:
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||

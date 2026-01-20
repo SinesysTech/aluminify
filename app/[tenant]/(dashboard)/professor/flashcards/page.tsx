@@ -2,7 +2,7 @@
 import FlashcardsAdminClient from './flashcards-admin-client'
 
 export default async function FlashcardsAdminPage() {
-  await requireUser({ allowedRoles: ['professor'] })
+  await requireUser({ allowedRoles: ['professor', 'usuario'] })
   return <FlashcardsAdminClient />
 }
 

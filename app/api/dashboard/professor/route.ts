@@ -27,8 +27,8 @@ async function getHandler(request: AuthenticatedRequest) {
       )
     }
 
-    // Verificar se é professor
-    if (!['professor', 'superadmin'].includes(request.user?.role || '')) {
+    // Verificar se é professor/usuario
+    if (!['professor', 'usuario', 'superadmin'].includes(request.user?.role || '')) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas professores podem acessar este dashboard.' },
         { status: 403 }

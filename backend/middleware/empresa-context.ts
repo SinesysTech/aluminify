@@ -38,20 +38,22 @@ export async function getEmpresaContext(
     }
   }
 
-  // Buscar empresa_id do professor
-  const { data: professor, error } = await client
-    .from('professores')
+  // Buscar empresa_id do usuário (tabela usuarios)
+  const { data: usuario, error } = await client
+    .from('usuarios')
     .select('empresa_id')
     .eq('id', userId)
+    .eq('ativo', true)
+    .is('deleted_at', null)
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching professor empresa_id:', error);
-    // Se não encontrar registro do professor, tentar buscar do metadata do usuário
+    console.error('Error fetching usuario empresa_id:', error);
+    // Se não encontrar registro do usuário, tentar buscar do metadata
     // Isso pode acontecer se a trigger ainda não executou
     // Usar authUser se disponível, senão não tentar acessar client.auth.getUser()
     if (authUser) {
-      const empresaIdFromMetadata = (authUser as { user_metadata?: { empresa_id?: string }; empresaId?: string })?.user_metadata?.empresa_id || 
+      const empresaIdFromMetadata = (authUser as { user_metadata?: { empresa_id?: string }; empresaId?: string })?.user_metadata?.empresa_id ||
                                      (authUser as { empresaId?: string })?.empresaId;
       if (empresaIdFromMetadata) {
         return {
@@ -63,9 +65,9 @@ export async function getEmpresaContext(
     return { empresaId: null, isSuperAdmin };
   }
 
-  // Se não encontrou registro do professor mas tem empresa_id no metadata, usar metadata
+  // Se não encontrou registro do usuário mas tem empresa_id no metadata, usar metadata
   // Usar authUser.empresaId se disponível
-  if (!professor?.empresa_id && authUser?.empresaId) {
+  if (!usuario?.empresa_id && authUser?.empresaId) {
     return {
       empresaId: authUser.empresaId,
       isSuperAdmin,
@@ -73,7 +75,7 @@ export async function getEmpresaContext(
   }
 
   return {
-    empresaId: professor?.empresa_id ?? null,
+    empresaId: usuario?.empresa_id ?? null,
     isSuperAdmin,
   };
 }

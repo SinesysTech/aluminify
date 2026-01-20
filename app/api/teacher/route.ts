@@ -70,10 +70,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Apenas professores e superadmins podem criar professores
-    if (user.role !== 'professor' && user.role !== 'superadmin') {
+    // Apenas usuarios (staff) e superadmins podem criar professores
+    if (user.role !== 'professor' && user.role !== 'usuario' && user.role !== 'superadmin') {
       return NextResponse.json(
-        { error: 'Acesso negado. Apenas professores ou superadmin podem criar professores.' },
+        { error: 'Acesso negado. Apenas usuários da instituição ou superadmin podem criar professores.' },
         { status: 403 }
       );
     }

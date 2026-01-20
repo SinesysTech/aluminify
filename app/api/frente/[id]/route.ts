@@ -29,8 +29,8 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Verificar se o usuário é professor
-  if (request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+  // Verificar se o usuário é professor/usuario
+  if (request.user.role !== 'professor' && request.user.role !== 'usuario' && request.user.role !== 'superadmin') {
     return NextResponse.json({ error: 'Forbidden. Only professors can delete fronts.' }, { status: 403 });
   }
 
@@ -40,28 +40,26 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
   const metadataEmpresaId = request.user.empresaId;
 
   try {
-    // Resolver empresa_id do professor (preferir metadata, mas cair para tabela professores)
+    // Resolver empresa_id do usuario (preferir metadata, mas cair para tabela usuarios)
     let empresaId: string | undefined = metadataEmpresaId;
-    if (!empresaId && request.user.role === 'professor') {
-      const { data: professor, error: professorError } = await client
-        .from('professores')
+    if (!empresaId && (request.user.role === 'professor' || request.user.role === 'usuario')) {
+      const { data: usuario, error: usuarioError } = await client
+        .from('usuarios')
         .select('empresa_id')
         .eq('id', userId)
+        .eq('ativo', true)
+        .is('deleted_at', null)
         .maybeSingle();
 
-      // Type assertion: Query result properly typed from Database schema
-      type ProfessorEmpresa = Pick<Database['public']['Tables']['professores']['Row'], 'empresa_id'>;
-      const typedProfessor = professor as ProfessorEmpresa | null;
-
-      if (professorError) {
-        console.error('[Frente API] Error fetching professor empresa_id:', professorError);
+      if (usuarioError) {
+        console.error('[Frente API] Error fetching usuario empresa_id:', usuarioError);
         return NextResponse.json(
-          { error: 'Failed to verify professor company' },
+          { error: 'Failed to verify user company' },
           { status: 500 }
         );
       }
 
-      empresaId = typedProfessor?.empresa_id ?? undefined;
+      empresaId = usuario?.empresa_id ?? undefined;
     }
 
     // Se não conseguimos determinar a empresa e não é superadmin, não dá para autorizar com segurança

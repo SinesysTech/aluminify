@@ -113,9 +113,9 @@ async function getHandler(request: AuthenticatedRequest) {
 
 export const GET = requireAuth(getHandler);
 
-// POST requer autenticação de professor (JWT ou API Key)
+// POST requer autenticação de usuario (JWT ou API Key)
 async function postHandler(request: AuthenticatedRequest) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+  if (request.user && request.user.role !== 'professor' && request.user.role !== 'usuario' && request.user.role !== 'superadmin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -123,9 +123,9 @@ async function postHandler(request: AuthenticatedRequest) {
     const body = await request.json();
 
     // Resolver empresaId:
-    // - Professor: sempre deriva da tabela `professores` (fonte de verdade)
+    // - Usuario: sempre deriva da tabela `usuarios` (fonte de verdade)
     // - Superadmin: pode passar empresaId no body (ou via query param `empresa_id` se quiser)
-    // - API Key: deriva do `createdBy` da API key (que deve ser um professor)
+    // - API Key: deriva do `createdBy` da API key (que deve ser um usuario)
     let empresaId: string | null = null;
 
     if (request.user?.role === 'superadmin') {
@@ -140,19 +140,23 @@ async function postHandler(request: AuthenticatedRequest) {
           { status: 400 },
         );
       }
-    } else if (request.user?.role === 'professor') {
-      const adminClient = getDatabaseClient();
-      const { data: professor } = await adminClient
-        .from('professores')
-        .select('empresa_id')
-        .eq('id', request.user.id)
-        .maybeSingle();
+    } else if (request.user?.role === 'professor' || request.user?.role === 'usuario') {
+      // Preferir empresaId do contexto de auth (já populado pelo middleware)
+      empresaId = request.user.empresaId ?? null;
 
-      // Type assertion: Query result properly typed from Database schema
-      type ProfessorEmpresa = Pick<Database['public']['Tables']['professores']['Row'], 'empresa_id'>;
-      const typedProfessor = professor as ProfessorEmpresa | null;
+      // Fallback para tabela usuarios se não tiver no contexto
+      if (!empresaId) {
+        const adminClient = getDatabaseClient();
+        const { data: usuario } = await adminClient
+          .from('usuarios')
+          .select('empresa_id')
+          .eq('id', request.user.id)
+          .eq('ativo', true)
+          .is('deleted_at', null)
+          .maybeSingle();
 
-      empresaId = typedProfessor?.empresa_id ?? null;
+        empresaId = usuario?.empresa_id ?? null;
+      }
 
       if (!empresaId) {
         return NextResponse.json(
@@ -162,21 +166,19 @@ async function postHandler(request: AuthenticatedRequest) {
       }
     } else if (request.apiKey?.createdBy) {
       const adminClient = getDatabaseClient();
-      const { data: professor } = await adminClient
-        .from('professores')
+      const { data: usuario } = await adminClient
+        .from('usuarios')
         .select('empresa_id')
         .eq('id', request.apiKey.createdBy)
+        .eq('ativo', true)
+        .is('deleted_at', null)
         .maybeSingle();
 
-      // Type assertion: Query result properly typed from Database schema
-      type ProfessorEmpresa = Pick<Database['public']['Tables']['professores']['Row'], 'empresa_id'>;
-      const typedProfessor = professor as ProfessorEmpresa | null;
-
-      empresaId = typedProfessor?.empresa_id ?? null;
+      empresaId = usuario?.empresa_id ?? null;
 
       if (!empresaId) {
         return NextResponse.json(
-          { error: 'empresaId is required (API key não está vinculada a um professor com empresa)' },
+          { error: 'empresaId is required (API key não está vinculada a um usuário com empresa)' },
           { status: 400 },
         );
       }

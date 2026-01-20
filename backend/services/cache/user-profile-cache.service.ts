@@ -54,16 +54,18 @@ class UserProfileCacheService {
       avatarUrl: user.user_metadata?.avatar_url,
     };
 
-    // Tentar buscar nome completo da tabela professores
+    // Tentar buscar nome completo da tabela usuarios
     try {
-      const { data: professor } = await client
-        .from('professores')
+      const { data: usuario } = await client
+        .from('usuarios')
         .select('nome_completo')
         .eq('id', userId)
+        .eq('ativo', true)
+        .is('deleted_at', null)
         .maybeSingle();
 
-      if (professor?.nome_completo) {
-        profile.nomeCompleto = professor.nome_completo;
+      if (usuario?.nome_completo) {
+        profile.nomeCompleto = usuario.nome_completo;
       }
     } catch {
       // Ignorar erro - não é crítico
