@@ -4,6 +4,8 @@
 
 // Entities
 export * from "./entities/user";
+export * from "./entities/papel";
+export * from "./entities/usuario";
 export * from "./entities/course";
 export * from "./entities/activity";
 

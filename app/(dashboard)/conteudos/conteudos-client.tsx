@@ -1829,60 +1829,60 @@ export default function ConteudosClientPage() {
       </header>
 
       {/* Card de Upload */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm max-w-3xl">
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm w-full max-w-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 p-6 border-b">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <FileUp className="h-5 w-5 text-primary" />
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+            <FileUp className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold leading-none tracking-tight">Upload de Arquivo</h3>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h3 className="card-title">Upload de Arquivo</h3>
+            <p className="text-xs text-muted-foreground">
               Importe seu conteudo programatico via planilha
             </p>
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="px-5 py-4 space-y-5">
           {/* Alerts */}
           {error && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2.5 text-xs text-destructive flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm text-emerald-700 dark:text-emerald-400 flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
+            <div className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-3 py-2.5 text-xs text-emerald-700 dark:text-emerald-400 flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{successMessage}</span>
             </div>
           )}
 
           {cursos.length === 0 && (
-            <div className="rounded-lg border-2 border-dashed p-4 text-sm text-muted-foreground text-center">
+            <div className="rounded-md border-2 border-dashed px-3 py-2.5 text-xs text-muted-foreground text-center">
               Nenhum curso encontrado.{' '}
-              <Button variant="link" className="h-auto p-0 align-baseline" onClick={() => router.push('/curso')}>
+              <Button variant="link" className="h-auto p-0 align-baseline text-xs" onClick={() => router.push('/curso')}>
                 Crie um curso antes de importar conteudos.
               </Button>
             </div>
           )}
 
           {/* Section 1: Contexto da Disciplina */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
                 1
               </span>
-              <h4 className="text-base font-medium">Contexto da Disciplina</h4>
+              <h4 className="text-sm font-medium">Contexto da Disciplina</h4>
             </div>
 
-            <div className="ml-10 space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="curso">Curso</Label>
+            <div className="ml-7 space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="curso" className="text-xs">Curso</Label>
                   <Select value={cursoSelecionado} onValueChange={handleCursoChange}>
-                    <SelectTrigger id="curso">
+                    <SelectTrigger id="curso" className="h-9 text-sm">
                       <SelectValue placeholder="Selecione um curso" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1893,12 +1893,12 @@ export default function ConteudosClientPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     Precisa de um curso novo?{' '}
                     <Button
                       type="button"
                       variant="link"
-                      className="h-auto p-0 align-baseline text-xs"
+                      className="h-auto p-0 align-baseline text-[11px]"
                       onClick={() => router.push('/curso')}
                     >
                       Abrir gestao de cursos
@@ -1906,25 +1906,28 @@ export default function ConteudosClientPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="disciplina">Disciplina do Curso</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="disciplina" className="text-xs">Disciplina do Curso</Label>
                   {!cursoSelecionado ? (
                     <Input
                       id="disciplina"
                       value="Selecione um curso primeiro"
                       disabled
+                      className="h-9 text-sm"
                     />
                   ) : disciplinasDoCurso.length === 0 ? (
                     <Input
                       id="disciplina"
                       value="Este curso nao possui disciplinas cadastradas"
                       disabled
+                      className="h-9 text-sm"
                     />
                   ) : disciplinasDoCurso.length === 1 ? (
                     <Input
                       id="disciplina"
                       value={disciplinasDoCurso[0].nome}
                       disabled
+                      className="h-9 text-sm"
                     />
                   ) : (
                     <Select
@@ -1935,7 +1938,7 @@ export default function ConteudosClientPage() {
                         setModulos([])
                       }}
                     >
-                      <SelectTrigger id="disciplina">
+                      <SelectTrigger id="disciplina" className="h-9 text-sm">
                         <SelectValue placeholder="Selecione uma disciplina do curso" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1950,35 +1953,36 @@ export default function ConteudosClientPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="frente">Nome da Frente</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="frente" className="text-xs">Nome da Frente</Label>
                 <Input
                   id="frente"
                   placeholder="Ex: Frente A, Frente B..."
                   value={frenteNome}
                   onChange={(e) => setFrenteNome(e.target.value)}
+                  className="h-9 text-sm"
                 />
               </div>
             </div>
           </div>
 
           {/* Separator */}
-          <div className="relative">
+          <div className="relative py-1">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
           </div>
 
           {/* Section 2: Arquivo de Dados */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
                 2
               </span>
-              <h4 className="text-base font-medium">Arquivo de Dados</h4>
+              <h4 className="text-sm font-medium">Arquivo de Dados</h4>
             </div>
 
-            <div className="ml-10 space-y-4">
+            <div className="ml-7 space-y-3">
               {/* Dropzone */}
               <div
                 onClick={handleDropzoneClick}
@@ -1986,10 +1990,10 @@ export default function ConteudosClientPage() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`
-                  relative cursor-pointer rounded-lg border-2 border-dashed p-8
+                  relative cursor-pointer rounded-md border-2 border-dashed px-4 py-5
                   transition-all duration-200 ease-in-out
                   ${isDragging
-                    ? 'border-primary bg-primary/5 scale-[1.02]'
+                    ? 'border-primary bg-primary/5 scale-[1.01]'
                     : arquivo
                       ? 'border-emerald-500 bg-emerald-500/5'
                       : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
@@ -2006,26 +2010,26 @@ export default function ConteudosClientPage() {
                 <div className="flex flex-col items-center justify-center text-center">
                   {arquivo ? (
                     <>
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 mb-3">
-                        <FileText className="h-6 w-6 text-emerald-600" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 mb-2">
+                        <FileText className="h-4 w-4 text-emerald-600" />
                       </div>
-                      <p className="text-sm font-medium text-foreground">{arquivo.name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs font-medium text-foreground">{arquivo.name}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         Clique para trocar o arquivo
                       </p>
                     </>
                   ) : (
                     <>
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
-                        <Upload className="h-6 w-6 text-muted-foreground" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted mb-2">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-xs font-medium text-foreground">
                         Arraste e solte seu arquivo aqui
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         ou clique para selecionar
                       </p>
-                      <p className="text-xs text-muted-foreground mt-3">
+                      <p className="text-[11px] text-muted-foreground mt-2">
                         Formatos aceitos: <span className="font-medium">CSV</span> ou <span className="font-medium">XLSX</span>
                       </p>
                     </>
@@ -2034,13 +2038,13 @@ export default function ConteudosClientPage() {
               </div>
 
               {/* Info Box */}
-              <Alert className="border-violet-300 bg-violet-100 text-black! dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-50!">
-                <Info className="text-violet-700 dark:text-[#A78BFA]" />
-                <AlertTitle className="font-semibold text-black! dark:text-violet-50!">
+              <Alert className="py-2.5 border-violet-300 bg-violet-100 text-black! dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-50!">
+                <Info className="h-4 w-4 text-violet-700 dark:text-[#A78BFA]" />
+                <AlertTitle className="text-xs font-semibold text-black! dark:text-violet-50!">
                   Colunas necessarias no arquivo:
                 </AlertTitle>
                 <AlertDescription className="text-black! dark:text-violet-100!">
-                  <ul className="text-xs space-y-1 list-disc list-inside text-black! dark:text-violet-100!">
+                  <ul className="text-[11px] space-y-0.5 list-disc list-inside text-black! dark:text-violet-100!">
                     <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Modulo</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome do Modulo</span> (obrigatorio)</li>
                     <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Aula</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome da Aula</span> (obrigatorio)</li>
                     <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Tempo</span> - tempo estimado em minutos (opcional)</li>
@@ -2051,9 +2055,9 @@ export default function ConteudosClientPage() {
                     variant="outline"
                     size="sm"
                     onClick={downloadTemplate}
-                    className="mt-3 border-violet-400 text-violet-700 hover:bg-violet-200 hover:text-violet-800 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-900/50 dark:hover:text-violet-200"
+                    className="mt-2.5 h-7 text-xs border-violet-400 text-violet-700 hover:bg-violet-200 hover:text-violet-800 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-900/50 dark:hover:text-violet-200"
                   >
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
                     Baixar modelo de planilha
                   </Button>
                 </AlertDescription>
@@ -2071,17 +2075,16 @@ export default function ConteudosClientPage() {
               !frenteNome.trim() ||
               !arquivo
             }
-            className="w-full h-11 text-base"
-            size="lg"
+            className="w-full h-9 text-sm"
           >
             {isLoading ? (
               <>
-                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <div className="h-3.5 w-3.5 mr-1.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Processando...
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-5 w-5" />
+                <Upload className="mr-1.5 h-4 w-4" />
                 Importar e Atualizar
               </>
             )}
@@ -2091,31 +2094,31 @@ export default function ConteudosClientPage() {
 
       {/* Secao de Visualizacao */}
       {disciplinaSelecionada && (
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
-          <div className="flex items-center gap-3 p-6 border-b">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <FileText className="h-5 w-5 text-primary" />
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm w-full max-w-2xl mx-auto">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+              <FileText className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold leading-none tracking-tight">Conteudo Atual</h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h3 className="card-title">Conteudo Atual</h3>
+              <p className="text-xs text-muted-foreground">
                 Visualize o conteudo programatico cadastrado para esta disciplina
               </p>
             </div>
           </div>
-          <div className="p-6">
+          <div className="px-5 py-4">
             {frentes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 text-sm text-muted-foreground">
                 Nenhuma frente cadastrada para esta disciplina
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label>Selecione uma frente para visualizar:</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Selecione uma frente para visualizar:</Label>
                 <Select
                   value={frenteSelecionada}
                   onValueChange={setFrenteSelecionada}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="Selecione uma frente" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2130,53 +2133,53 @@ export default function ConteudosClientPage() {
             )}
 
             {isLoadingContent && (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 text-sm text-muted-foreground">
                 Carregando...
               </div>
             )}
 
             {!isLoadingContent && frenteSelecionada && modulos.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum módulo cadastrado para esta frente
+              <div className="text-center py-6 text-sm text-muted-foreground">
+                Nenhum modulo cadastrado para esta frente
               </div>
             )}
 
             {!isLoadingContent && frenteSelecionada && modulos.length > 0 && (
-              <div className="mt-4 space-y-4">
+              <div className="mt-3 space-y-3">
                 {/* Resumo da Frente */}
                 {(() => {
                   const { totalAulas, tempoTotal } = calcularEstatisticasFrente(modulos)
                   const frenteSelecionadaData = frentes.find(f => f.id === frenteSelecionada)
                   return (
-                    <div className="rounded-lg border-2 bg-primary/5 p-4">
-                      <div className="flex items-center justify-between gap-4">
+                    <div className="rounded-md border bg-primary/5 px-3 py-2.5">
+                      <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-lg font-semibold">
+                          <h3 className="text-xs font-semibold">
                             Resumo: {frenteSelecionadaData?.nome || 'N/A'}
                           </h3>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {modulos.length} módulo{modulos.length !== 1 ? 's' : ''} cadastrado{modulos.length !== 1 ? 's' : ''}
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {modulos.length} modulo{modulos.length !== 1 ? 's' : ''} cadastrado{modulos.length !== 1 ? 's' : ''}
                           </p>
                         </div>
 
-                        <div className="flex shrink-0 items-center gap-4">
+                        <div className="flex shrink-0 items-center gap-3">
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={checkCronogramasBeforeDelete}
                             disabled={isDeleting}
-                            className="text-white"
+                            className="h-7 text-xs text-white"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                             Deletar Frente
                           </Button>
 
                           <div className="text-right">
-                            <div className="text-2xl font-bold">
+                            <div className="text-base font-bold">
                               {totalAulas} aula{totalAulas !== 1 ? 's' : ''}
                             </div>
                             {tempoTotal > 0 && (
-                              <div className="mt-1 text-lg text-muted-foreground">
+                              <div className="text-xs text-muted-foreground">
                                 {formatTempo(tempoTotal)}
                               </div>
                             )}
@@ -2187,7 +2190,7 @@ export default function ConteudosClientPage() {
                   )
                 })()}
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {modulos.map((modulo) => {
                     const isOpen = modulosAbertos.has(modulo.id)
                     const toggleModulo = (open: boolean) => {
@@ -2204,21 +2207,21 @@ export default function ConteudosClientPage() {
 
                     return (
                       <Collapsible key={modulo.id} open={isOpen} onOpenChange={toggleModulo}>
-                        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-3 hover:bg-accent">
-                          <div className="flex items-center gap-2">
-                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                            <span className="font-medium">
-                              Módulo {modulo.numero_modulo || 'N/A'}: {modulo.nome}
+                        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-2.5 py-2 hover:bg-accent text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                            <span className="font-medium text-xs">
+                              Modulo {modulo.numero_modulo || 'N/A'}: {modulo.nome}
                             </span>
                           </div>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {modulo.aulas.length} aula{modulo.aulas.length !== 1 ? 's' : ''}
                           </span>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <div className="mt-2 space-y-3">
+                          <div className="mt-1.5 space-y-2">
                             {/* Seletor de Importância */}
-                            <div className="flex items-center justify-between rounded-md border p-3 bg-muted/50">
+                            <div className="flex items-center justify-between rounded-md border px-2.5 py-2 bg-muted/50">
                               <div className="flex items-center gap-3 flex-1">
                                 <Label className="text-sm font-medium whitespace-nowrap">Importância:</Label>
                                 {editingImportancia === modulo.id ? (

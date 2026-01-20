@@ -1,5 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { AppUserRole } from "@/types/shared";
+import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
+import { isAdminRole } from "@/backend/services/permission";
 import type {
   UserRoleIdentification,
   UserRoleDetail,
@@ -45,14 +47,14 @@ export class UserRoleIdentifierService {
       rolesSet.add("superadmin");
     }
 
-    // Check for professor role
-    const professorRoles = await this.checkProfessorRoles(
+    // Check for usuario role (institution staff)
+    const usuarioRoles = await this.checkUsuarioRoles(
       userId,
       empresaId,
       userEmail,
     );
-    for (const role of professorRoles) {
-      rolesSet.add("professor");
+    for (const role of usuarioRoles) {
+      rolesSet.add("usuario");
       empresaIdsSet.add(role.empresaId);
       if (includeDetails) {
         roleDetails.push(role);
@@ -197,18 +199,21 @@ export class UserRoleIdentifierService {
     return Boolean(isSuperadmin);
   }
 
-  private async checkProfessorRoles(
+  private async checkUsuarioRoles(
     userId: string,
     empresaId?: string,
     email?: string | null,
   ): Promise<UserRoleDetail[]> {
     let query = this.client
-      .from("professores")
+      .from("usuarios")
       .select(
         `
         id,
         empresa_id,
-        is_admin,
+        papeis!inner (
+          tipo,
+          permissoes
+        ),
         empresas!inner (
           id,
           nome,
@@ -216,7 +221,9 @@ export class UserRoleIdentifierService {
         )
       `,
       )
-      .eq("id", userId);
+      .eq("id", userId)
+      .eq("ativo", true)
+      .is("deleted_at", null);
 
     if (empresaId) {
       query = query.eq("empresa_id", empresaId);
@@ -226,33 +233,38 @@ export class UserRoleIdentifierService {
 
     if (error) {
       console.error(
-        "[UserRoleIdentifier] Error checking professor roles:",
+        "[UserRoleIdentifier] Error checking usuario roles:",
         error,
       );
-      // Continua para fallback por email se disponível
+      // Continue to fallback by email if available
     }
 
     // Type for raw query result
-    type ProfessorQueryRow = {
+    type UsuarioQueryRow = {
       id: string;
       empresa_id: string;
-      is_admin: boolean;
+      papeis:
+        | { tipo: string; permissoes: unknown }
+        | { tipo: string; permissoes: unknown }[];
       empresas:
         | { id: string; nome: string; slug: string }
         | { id: string; nome: string; slug: string }[];
     };
 
-    const rows = (data || []) as ProfessorQueryRow[];
+    const rows = (data || []) as UsuarioQueryRow[];
 
-    // Fallback: algumas bases podem ter professor cadastrado por email (ou id divergente)
+    // Fallback: some databases may have users registered by email (or divergent id)
     if (!rows.length && email) {
       let emailQuery = this.client
-        .from("professores")
+        .from("usuarios")
         .select(
           `
           id,
           empresa_id,
-          is_admin,
+          papeis!inner (
+            tipo,
+            permissoes
+          ),
           empresas!inner (
             id,
             nome,
@@ -260,7 +272,9 @@ export class UserRoleIdentifierService {
           )
         `,
         )
-        .eq("email", email);
+        .eq("email", email)
+        .eq("ativo", true)
+        .is("deleted_at", null);
 
       if (empresaId) {
         emailQuery = emailQuery.eq("empresa_id", empresaId);
@@ -269,11 +283,11 @@ export class UserRoleIdentifierService {
       const { data: emailData, error: emailError } = await emailQuery;
       if (emailError) {
         console.error(
-          "[UserRoleIdentifier] Error checking professor roles by email:",
+          "[UserRoleIdentifier] Error checking usuario roles by email:",
           emailError,
         );
       } else {
-        rows.push(...((emailData || []) as ProfessorQueryRow[]));
+        rows.push(...((emailData || []) as UsuarioQueryRow[]));
       }
     }
 
@@ -281,12 +295,20 @@ export class UserRoleIdentifierService {
       const empresa = Array.isArray(row.empresas)
         ? row.empresas[0]
         : row.empresas;
+      const papel = Array.isArray(row.papeis)
+        ? row.papeis[0]
+        : row.papeis;
+      const roleType = papel.tipo as RoleTipo;
+      const permissions = papel.permissoes as RolePermissions;
+
       return {
-        role: "professor" as const,
+        role: "usuario" as const,
         empresaId: row.empresa_id,
         empresaNome: empresa.nome,
         empresaSlug: empresa.slug,
-        isAdmin: row.is_admin,
+        isAdmin: isAdminRole(roleType),
+        roleType,
+        permissions,
       };
     });
   }
@@ -410,12 +432,12 @@ export class UserRoleIdentifierService {
   private determinePrimaryRole(
     roles: Array<Exclude<AppUserRole, "empresa">>,
   ): Exclude<AppUserRole, "empresa"> {
-    // Priority: superadmin > professor > aluno
+    // Priority: superadmin > usuario > aluno
     if (roles.includes("superadmin")) {
       return "superadmin";
     }
-    if (roles.includes("professor")) {
-      return "professor";
+    if (roles.includes("usuario")) {
+      return "usuario";
     }
     if (roles.includes("aluno")) {
       return "aluno";

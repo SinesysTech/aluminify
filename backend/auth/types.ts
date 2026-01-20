@@ -1,10 +1,24 @@
-export type UserRole = "aluno" | "professor" | "superadmin" | "empresa";
+import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
+
+// Main app roles (simplified)
+// - aluno: student
+// - usuario: institution staff (professor, admin, staff, monitor)
+// - superadmin: system administrator
+export type UserRole = "aluno" | "usuario" | "superadmin";
+
+// Legacy roles (for compatibility during migration)
+export type LegacyUserRole = "aluno" | "professor" | "superadmin" | "empresa";
 
 export interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
+  // Specific role type (only for role="usuario")
+  roleType?: RoleTipo;
+  // Role permissions
+  permissions?: RolePermissions;
   isSuperAdmin?: boolean;
+  // Deprecated: use permissions.usuarios instead
   isAdmin?: boolean;
   empresaId?: string;
 }

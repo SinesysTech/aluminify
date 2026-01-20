@@ -1,4 +1,5 @@
 import type { AppUserRole } from '@/types/shared';
+import type { RoleTipo, RolePermissions } from '@/types/shared/entities/papel';
 
 /**
  * Result of identifying user roles
@@ -20,8 +21,12 @@ export interface UserRoleDetail {
   empresaId: string;
   empresaNome: string;
   empresaSlug: string;
-  /** Whether user is admin for this empresa (professors only) */
+  /** Whether user is admin for this empresa */
   isAdmin?: boolean;
+  /** Specific role type (only for role="usuario") */
+  roleType?: RoleTipo;
+  /** Role permissions (only for role="usuario") */
+  permissions?: RolePermissions;
 }
 
 /**
