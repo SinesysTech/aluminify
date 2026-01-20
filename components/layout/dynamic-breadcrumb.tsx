@@ -17,6 +17,7 @@ const routeLabels: Record<string, string> = {
   "/curso": "Cursos",
   "/disciplina": "Disciplinas",
   "/segmento": "Segmentos",
+  "/empresa/configuracoes": "Configurações",
 }
 
 export function DynamicBreadcrumb() {

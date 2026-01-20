@@ -15,8 +15,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/client'
+import { toast } from 'sonner'
 
 function safeNextPath(next: string | null | undefined) {
   if (!next) return null
@@ -25,7 +25,6 @@ function safeNextPath(next: string | null | undefined) {
 
 export function LoginPageClient() {
   const searchParams = useSearchParams()
-  const { toast } = useToast()
 
   const next = useMemo(() => {
     return safeNextPath(searchParams?.get('next')) ?? '/protected'
@@ -39,10 +38,8 @@ export function LoginPageClient() {
   const handleMagicLink = async () => {
     if (isLoading) return
     if (!email) {
-      toast({
-        title: 'Email obrigatório',
+      toast.error('Email obrigatório', {
         description: 'Informe seu email para receber o magic link.',
-        variant: 'destructive',
       })
       return
     }
@@ -58,24 +55,19 @@ export function LoginPageClient() {
       })
 
       if (error) {
-        toast({
-          title: 'Não foi possível enviar o link',
+        toast.error('Não foi possível enviar o link', {
           description: error.message,
-          variant: 'destructive',
         })
         return
       }
 
-      toast({
-        title: 'Magic link enviado',
+      toast.success('Magic link enviado', {
         description: 'Verifique sua caixa de entrada para continuar o login.',
       })
     } catch (error) {
       console.error('[login] Erro ao enviar magic link:', error)
-      toast({
-        title: 'Erro inesperado',
+      toast.error('Erro inesperado', {
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
-        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -93,10 +85,8 @@ export function LoginPageClient() {
 
     if (!email || !password) {
       console.log('[DEBUG] handleSubmit cancelado: campos vazios', { hasEmail: !!email, hasPassword: !!password })
-      toast({
-        title: 'Campos obrigatórios',
+      toast.error('Campos obrigatórios', {
         description: 'Informe email e senha para entrar.',
-        variant: 'destructive',
       })
       return
     }
@@ -122,7 +112,6 @@ export function LoginPageClient() {
 
       if (error) {
         // Tratamento de erros específicos do Supabase
-        const errorTitle = 'Não foi possível entrar'
         let errorDescription = error.message
 
         if (error.message.includes('Invalid login credentials')) {
@@ -133,10 +122,8 @@ export function LoginPageClient() {
           errorDescription = 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.'
         }
 
-        toast({
-          title: errorTitle,
+        toast.error('Não foi possível entrar', {
           description: errorDescription,
-          variant: 'destructive',
         })
         return
       }
@@ -164,10 +151,8 @@ export function LoginPageClient() {
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error)
       console.error('[DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A')
-      toast({
-        title: 'Erro inesperado',
+      toast.error('Erro inesperado', {
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
-        variant: 'destructive',
       })
     } finally {
       console.log('[DEBUG] handleSubmit finalizado, setIsLoading(false)')

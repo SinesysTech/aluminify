@@ -16,8 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/client';
+import { toast } from 'sonner';
 
 interface TenantLoginPageClientProps {
   tenantSlug: string;
@@ -39,7 +39,6 @@ export function TenantLoginPageClient({
 }: TenantLoginPageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
 
   const next = useMemo(() => {
     return safeNextPath(searchParams?.get('next')) ?? '/protected';
@@ -150,10 +149,8 @@ export function TenantLoginPageClient({
   const handleMagicLink = async () => {
     if (isLoading) return;
     if (!email) {
-      toast({
-        title: 'Email obrigatório',
+      toast.error('Email obrigatório', {
         description: 'Informe seu email para receber o magic link.',
-        variant: 'destructive',
       });
       return;
     }
@@ -169,24 +166,19 @@ export function TenantLoginPageClient({
       });
 
       if (error) {
-        toast({
-          title: 'Não foi possível enviar o link',
+        toast.error('Não foi possível enviar o link', {
           description: error.message,
-          variant: 'destructive',
         });
         return;
       }
 
-      toast({
-        title: 'Magic link enviado',
+      toast.success('Magic link enviado', {
         description: 'Verifique sua caixa de entrada para continuar o login.',
       });
     } catch (error) {
       console.error('[tenant-login] Erro ao enviar magic link:', error);
-      toast({
-        title: 'Erro inesperado',
+      toast.error('Erro inesperado', {
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
-        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -204,10 +196,8 @@ export function TenantLoginPageClient({
 
     if (!email || !password) {
       console.log('[DEBUG] handleSubmit cancelado: campos vazios');
-      toast({
-        title: 'Campos obrigatórios',
+      toast.error('Campos obrigatórios', {
         description: 'Informe email e senha para entrar.',
-        variant: 'destructive',
       });
       return;
     }
@@ -231,7 +221,6 @@ export function TenantLoginPageClient({
       });
 
       if (error) {
-        const errorTitle = 'Não foi possível entrar';
         let errorDescription = error.message;
 
         if (error.message.includes('Invalid login credentials')) {
@@ -242,10 +231,8 @@ export function TenantLoginPageClient({
           errorDescription = 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
         }
 
-        toast({
-          title: errorTitle,
+        toast.error('Não foi possível entrar', {
           description: errorDescription,
-          variant: 'destructive',
         });
         return;
       }
@@ -265,10 +252,8 @@ export function TenantLoginPageClient({
         // Logout user since they don't belong to this tenant
         await supabase.auth.signOut();
 
-        toast({
-          title: 'Acesso negado',
+        toast.error('Acesso negado', {
           description: validateResult.message || 'Você não tem acesso a esta instituição.',
-          variant: 'destructive',
         });
         return;
       }
@@ -299,10 +284,8 @@ export function TenantLoginPageClient({
       router.refresh();
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error);
-      toast({
-        title: 'Erro inesperado',
+      toast.error('Erro inesperado', {
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
-        variant: 'destructive',
       });
     } finally {
       console.log('[DEBUG] handleSubmit finalizado');

@@ -270,45 +270,6 @@ export function BrandCustomizationPanel({
     <Card className="w-full border-none shadow-none">
       <CardContent className="p-0">
         <div className="flex flex-col space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Palette className="h-6 w-6" />
-                Personalização da Marca
-              </h2>
-              <p className="text-muted-foreground mt-1">
-                Personalize a identidade visual da sua empresa, incluindo logos, cores e fontes.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleReset}
-                variant="outline"
-                disabled={isSaving || isResetting}
-              >
-                {isResetting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                )}
-                Restaurar Padrão
-              </Button>
-
-              <Button
-                onClick={handleSave}
-                disabled={!hasUnsavedChanges || isSaving || isResetting}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                Salvar Alterações
-              </Button>
-            </div>
-          </div>
-
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -512,6 +473,33 @@ export function BrandCustomizationPanel({
               />
             </TabsContent>
           </Tabs>
+
+          <div className="flex items-center justify-end pt-4 border-t gap-2">
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              disabled={isSaving || isResetting}
+            >
+              {isResetting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4 mr-2" />
+              )}
+              Restaurar Padrão
+            </Button>
+
+            <Button
+              onClick={handleSave}
+              disabled={!hasUnsavedChanges || isSaving || isResetting}
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Salvar Alterações
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

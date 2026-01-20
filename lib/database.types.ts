@@ -1504,6 +1504,50 @@ export type Database = {
           },
         ]
       }
+      papeis: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          empresa_id: string | null
+          id: string
+          is_system: boolean
+          nome: string
+          permissoes: Json
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          empresa_id?: string | null
+          id?: string
+          is_system?: boolean
+          nome: string
+          permissoes?: Json
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          empresa_id?: string | null
+          id?: string
+          is_system?: boolean
+          nome?: string
+          permissoes?: Json
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "papeis_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professores: {
         Row: {
           biografia: string | null
@@ -2036,6 +2080,167 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          ativo: boolean
+          biografia: string | null
+          chave_pix: string | null
+          cpf: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string
+          empresa_id: string
+          especialidade: string | null
+          foto_url: string | null
+          id: string
+          nome_completo: string
+          papel_id: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          biografia?: string | null
+          chave_pix?: string | null
+          cpf?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email: string
+          empresa_id: string
+          especialidade?: string | null
+          foto_url?: string | null
+          id: string
+          nome_completo: string
+          papel_id: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          biografia?: string | null
+          chave_pix?: string | null
+          cpf?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string
+          empresa_id?: string
+          especialidade?: string | null
+          foto_url?: string | null
+          id?: string
+          nome_completo?: string
+          papel_id?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios_disciplinas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          curso_id: string | null
+          disciplina_id: string
+          empresa_id: string
+          frente_id: string | null
+          id: string
+          modulo_id: string | null
+          turma_id: string | null
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          curso_id?: string | null
+          disciplina_id: string
+          empresa_id: string
+          frente_id?: string | null
+          id?: string
+          modulo_id?: string | null
+          turma_id?: string | null
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          curso_id?: string | null
+          disciplina_id?: string
+          empresa_id?: string
+          frente_id?: string | null
+          id?: string
+          modulo_id?: string | null
+          turma_id?: string | null
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_disciplinas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_disciplinas_disciplina_id_fkey"
+            columns: ["disciplina_id"]
+            isOneToOne: false
+            referencedRelation: "disciplinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_disciplinas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_disciplinas_frente_id_fkey"
+            columns: ["frente_id"]
+            isOneToOne: false
+            referencedRelation: "frentes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_disciplinas_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_disciplinas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_disciplinas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]

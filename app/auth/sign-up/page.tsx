@@ -13,11 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { toast } = useToast()
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -32,28 +31,22 @@ export default function SignUpPage() {
     if (isLoading) return
 
     if (!firstName || !lastName || !organization || !email || !password) {
-      toast({
-        title: 'Campos obrigatórios',
+      toast.error('Campos obrigatórios', {
         description: 'Preencha nome, sobrenome, organização, email e senha.',
-        variant: 'destructive',
       })
       return
     }
 
     if (!acceptTerms) {
-      toast({
-        title: 'Termos de Serviço',
+      toast.error('Termos de Serviço', {
         description: 'Você precisa aceitar os termos para continuar.',
-        variant: 'destructive',
       })
       return
     }
 
     if (password.length < 8) {
-      toast({
-        title: 'Senha fraca',
+      toast.error('Senha fraca', {
         description: 'A senha precisa ter pelo menos 8 caracteres.',
-        variant: 'destructive',
       })
       return
     }
@@ -83,29 +76,23 @@ export default function SignUpPage() {
         const message = data?.error || 'Erro ao inicializar instância'
 
         if (message.includes('já está cadastrado') || message.includes('already registered')) {
-          toast({
-            title: 'Conta já existe',
+          toast.error('Conta já existe', {
             description: 'Este email já possui uma conta. Por favor, faça login.',
-            variant: 'destructive',
-            action: (
-              <Link href="/auth" className="inline-flex h-8 shrink-0 items-center justify-center rounded-md border text-sm font-medium transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                Fazer Login
-              </Link>
-            ),
+            action: {
+              label: 'Fazer Login',
+              onClick: () => router.push('/auth'),
+            },
           })
           return
         }
 
-        toast({
-          title: 'Não foi possível criar sua conta',
+        toast.error('Não foi possível criar sua conta', {
           description: message,
-          variant: 'destructive',
         })
         return
       }
 
-      toast({
-        title: 'Instância criada!',
+      toast.success('Instância criada!', {
         description:
           data?.message ||
           'Sua conta e empresa foram criadas. Você já pode fazer login.',
@@ -114,11 +101,9 @@ export default function SignUpPage() {
       router.push('/auth/sign-up-success')
     } catch (error) {
       console.error('[sign-up] Erro ao fazer signup:', error)
-      toast({
-        title: 'Erro inesperado',
+      toast.error('Erro inesperado', {
         description:
           error instanceof Error ? error.message : 'Tente novamente em instantes.',
-        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
