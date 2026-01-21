@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAuthUser } from '@/backend/auth/middleware';
-import { getDatabaseClient } from '@/backend/clients/database';
-import { EmpresaRepositoryImpl, EmpresaService } from '@/backend/services/empresa';
-import type { Database } from '@/lib/database.types';
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/backend/auth/middleware";
+import { getDatabaseClient } from "@/backend/clients/database";
+import {
+  EmpresaRepositoryImpl,
+  EmpresaService,
+} from "@/backend/services/empresa";
+import type { Database } from "@/lib/database.types";
 
 /**
  * POST /api/empresas/self
@@ -15,59 +18,75 @@ export async function POST(request: NextRequest) {
     const user = await getAuthUser(request);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== 'professor' && user.role !== 'usuario') {
+    if (user.role !== "usuario" && user.role !== "usuario") {
       return NextResponse.json(
-        { error: 'Acesso negado. Apenas usuários da instituição podem criar empresa neste fluxo.' },
-        { status: 403 }
+        {
+          error:
+            "Acesso negado. Apenas usuários da instituição podem criar empresa neste fluxo.",
+        },
+        { status: 403 },
       );
     }
 
     const body = await request.json();
-    const nome = String(body?.nome ?? '').trim();
-    const cnpjRaw = body?.cnpj ? String(body.cnpj).trim() : '';
-    const cnpjDigits = cnpjRaw.replace(/\D/g, '');
-    const cnpj =
-      cnpjDigits.length === 0 ? undefined : cnpjDigits; // sempre normaliza para dígitos
-    const emailContato = body?.emailContato ? String(body.emailContato).trim() : undefined;
+    const nome = String(body?.nome ?? "").trim();
+    const cnpjRaw = body?.cnpj ? String(body.cnpj).trim() : "";
+    const cnpjDigits = cnpjRaw.replace(/\D/g, "");
+    const cnpj = cnpjDigits.length === 0 ? undefined : cnpjDigits; // sempre normaliza para dígitos
+    const emailContato = body?.emailContato
+      ? String(body.emailContato).trim()
+      : undefined;
     const telefone = body?.telefone ? String(body.telefone).trim() : undefined;
 
     if (!nome) {
-      return NextResponse.json({ error: 'Nome da empresa é obrigatório' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Nome da empresa é obrigatório" },
+        { status: 400 },
+      );
     }
 
     // Validação amigável (evita 500 por erro de input)
     if (cnpj && cnpj.length !== 14) {
-      return NextResponse.json({ error: 'CNPJ deve ter 14 dígitos' }, { status: 400 });
+      return NextResponse.json(
+        { error: "CNPJ deve ter 14 dígitos" },
+        { status: 400 },
+      );
     }
 
     if (cnpj && /^(\d)\1+$/.test(cnpj)) {
-      return NextResponse.json({ error: 'CNPJ inválido' }, { status: 400 });
+      return NextResponse.json({ error: "CNPJ inválido" }, { status: 400 });
     }
 
     const adminClient = getDatabaseClient();
 
     // Confirmar que o professor existe e ainda não está vinculado a uma empresa
     const { data: professor, error: professorError } = await adminClient
-      .from('professores')
-      .select('id, empresa_id')
-      .eq('id', user.id)
+      .from("professores")
+      .select("id, empresa_id")
+      .eq("id", user.id)
       .maybeSingle();
 
     // Type assertion: Query result properly typed from Database schema
-    type ProfessorEmpresa = Pick<Database['public']['Tables']['professores']['Row'], 'id' | 'empresa_id'>;
+    type ProfessorEmpresa = Pick<
+      Database["public"]["Tables"]["professores"]["Row"],
+      "id" | "empresa_id"
+    >;
     const typedProfessor = professor as ProfessorEmpresa | null;
 
     if (professorError || !typedProfessor) {
-      return NextResponse.json({ error: 'Professor não encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Professor não encontrado" },
+        { status: 404 },
+      );
     }
 
     if (typedProfessor.empresa_id) {
       return NextResponse.json(
-        { error: 'Este professor já está vinculado a uma empresa' },
-        { status: 409 }
+        { error: "Este professor já está vinculado a uma empresa" },
+        { status: 409 },
       );
     }
 
@@ -79,32 +98,36 @@ export async function POST(request: NextRequest) {
       cnpj,
       emailContato,
       telefone,
-      plano: 'basico',
+      plano: "basico",
     });
 
     // 2) Vincular professor à empresa e marcar como admin
     const { error: updateProfessorError } = await adminClient
-      .from('professores')
+      .from("professores")
       .update({ empresa_id: empresa.id, is_admin: true })
-      .eq('id', user.id);
+      .eq("id", user.id);
 
     if (updateProfessorError) {
       return NextResponse.json(
-        { error: `Erro ao vincular professor à empresa: ${updateProfessorError.message}` },
-        { status: 500 }
+        {
+          error: `Erro ao vincular professor à empresa: ${updateProfessorError.message}`,
+        },
+        { status: 500 },
       );
     }
 
     // 3) Inserir em empresa_admins como owner
-    const { error: adminInsertError } = await adminClient.from('empresa_admins').insert({
-      empresa_id: empresa.id,
-      user_id: user.id,
-      is_owner: true,
-      permissoes: {},
-    });
+    const { error: adminInsertError } = await adminClient
+      .from("empresa_admins")
+      .insert({
+        empresa_id: empresa.id,
+        user_id: user.id,
+        is_owner: true,
+        permissoes: {},
+      });
 
     if (adminInsertError) {
-      console.error('Error inserting empresa_admin:', adminInsertError);
+      console.error("Error inserting empresa_admin:", adminInsertError);
       // Não falhar completamente, mas logar o erro
       // O professor já foi vinculado como admin na tabela professores
     }
@@ -113,13 +136,13 @@ export async function POST(request: NextRequest) {
     try {
       await adminClient.auth.admin.updateUserById(user.id, {
         user_metadata: {
-          role: 'professor',
+          role: "professor",
           empresa_id: empresa.id,
           is_admin: true,
         },
       });
     } catch (metadataError) {
-      console.error('Error updating user metadata:', metadataError);
+      console.error("Error updating user metadata:", metadataError);
       // Não falhar completamente, os metadados podem ser atualizados depois
     }
 
@@ -131,19 +154,22 @@ export async function POST(request: NextRequest) {
           slug: empresa.slug,
           plano: empresa.plano,
         },
-        message: 'Empresa criada e vinculada ao professor com sucesso.',
+        message: "Empresa criada e vinculada ao professor com sucesso.",
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
-    console.error('Error creating self empresa:', error);
-    const message = error instanceof Error ? error.message : 'Erro ao criar empresa';
+    console.error("Error creating self empresa:", error);
+    const message =
+      error instanceof Error ? error.message : "Erro ao criar empresa";
     // Se cair aqui por erro de validação, devolver 400 para UX melhor
-    if (typeof message === 'string' && (message.includes('CNPJ deve ter 14 dígitos') || message.includes('CNPJ inválido'))) {
+    if (
+      typeof message === "string" &&
+      (message.includes("CNPJ deve ter 14 dígitos") ||
+        message.includes("CNPJ inválido"))
+    ) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
-

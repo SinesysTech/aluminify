@@ -14,7 +14,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   switch (user.role) {
     case 'aluno':
       return <AlunoSidebar {...props} />
-    case 'professor':
     case 'usuario':
       // usuario = institution staff (professor, admin, staff, monitor)
       if (user.isEmpresaAdmin) {
@@ -23,8 +22,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return <ProfessorSidebar {...props} />
     case 'superadmin':
       return <SuperAdminSidebar {...props} />
-    case 'empresa':
-      return <EmpresaSidebar {...props} />
     default:
       return <AlunoSidebar {...props} />
   }

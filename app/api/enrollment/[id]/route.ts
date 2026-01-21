@@ -1,19 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   enrollmentService,
   EnrollmentConflictError,
   EnrollmentNotFoundError,
   EnrollmentValidationError,
-} from '@/backend/services/enrollment';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+} from "@/backend/services/enrollment";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
-const serializeEnrollment = (enrollment: Awaited<ReturnType<typeof enrollmentService.getById>>) => ({
+const serializeEnrollment = (
+  enrollment: Awaited<ReturnType<typeof enrollmentService.getById>>,
+) => ({
   id: enrollment.id,
   studentId: enrollment.studentId,
   courseId: enrollment.courseId,
   enrollmentDate: enrollment.enrollmentDate.toISOString(),
-  accessStartDate: enrollment.accessStartDate.toISOString().split('T')[0],
-  accessEndDate: enrollment.accessEndDate.toISOString().split('T')[0],
+  accessStartDate: enrollment.accessStartDate.toISOString().split("T")[0],
+  accessEndDate: enrollment.accessEndDate.toISOString().split("T")[0],
   active: enrollment.active,
   createdAt: enrollment.createdAt.toISOString(),
   updatedAt: enrollment.updatedAt.toISOString(),
@@ -33,7 +35,7 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 interface RouteContext {
@@ -41,7 +43,10 @@ interface RouteContext {
 }
 
 // GET - RLS filtra automaticamente (alunos veem apenas suas próprias matrículas)
-async function getHandler(_request: AuthenticatedRequest, params: { id: string }) {
+async function getHandler(
+  _request: AuthenticatedRequest,
+  params: { id: string },
+) {
   try {
     const enrollment = await enrollmentService.getById(params.id);
     return NextResponse.json({ data: serializeEnrollment(enrollment) });
@@ -51,9 +56,16 @@ async function getHandler(_request: AuthenticatedRequest, params: { id: string }
 }
 
 // PUT - RLS verifica permissões (professor ou superadmin)
-async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+async function putHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
+  if (
+    request.user &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -70,9 +82,16 @@ async function putHandler(request: AuthenticatedRequest, params: { id: string })
 }
 
 // DELETE - RLS verifica permissões (professor ou superadmin)
-async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+async function deleteHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
+  if (
+    request.user &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -97,4 +116,3 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   return requireAuth((req) => deleteHandler(req, params))(request);
 }
-

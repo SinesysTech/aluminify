@@ -61,7 +61,10 @@ async function getHandler(request: AuthenticatedRequest) {
     // Usar cliente com contexto do usuário para respeitar RLS
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ error: "Token não encontrado" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Token não encontrado" },
+        { status: 401 },
+      );
     }
 
     const client = getDatabaseClientAsUser(token);
@@ -118,7 +121,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
   if (
     request.user &&
-    request.user.role !== "professor" &&
+    request.user.role !== "usuario" &&
     request.user.role !== "superadmin"
   ) {
     console.log("[Discipline POST] Forbidden - user role:", request.user.role);

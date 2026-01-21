@@ -1,11 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import {
   apiKeyService,
   ApiKeyValidationError,
-} from '@/backend/services/api-key';
-import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+} from "@/backend/services/api-key";
+import {
+  requireUserAuth,
+  AuthenticatedRequest,
+} from "@/backend/auth/middleware";
 
-const serializeApiKey = (apiKey: Awaited<ReturnType<typeof apiKeyService.getById>>) => ({
+const serializeApiKey = (
+  apiKey: Awaited<ReturnType<typeof apiKeyService.getById>>,
+) => ({
   id: apiKey.id,
   name: apiKey.name,
   createdBy: apiKey.createdBy,
@@ -22,20 +27,24 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 async function handler(request: AuthenticatedRequest) {
   if (!request.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Apenas usuarios (staff) podem criar API keys
-  if (request.user.role !== 'professor' && request.user.role !== 'usuario' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (
+    request.user.role !== "usuario" &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (request.method === 'GET') {
+  if (request.method === "GET") {
     try {
       const apiKeys = await apiKeyService.list(request.user.id);
       return NextResponse.json({ data: apiKeys.map(serializeApiKey) });
@@ -44,7 +53,7 @@ async function handler(request: AuthenticatedRequest) {
     }
   }
 
-  if (request.method === 'POST') {
+  if (request.method === "POST") {
     try {
       const body = await request.json();
       const result = await apiKeyService.create(
@@ -70,9 +79,8 @@ async function handler(request: AuthenticatedRequest) {
     }
   }
 
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export const GET = requireUserAuth(handler);
 export const POST = requireUserAuth(handler);
-

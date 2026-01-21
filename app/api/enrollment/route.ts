@@ -1,18 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import {
   enrollmentService,
   EnrollmentConflictError,
   EnrollmentValidationError,
-} from '@/backend/services/enrollment';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+} from "@/backend/services/enrollment";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
-const serializeEnrollment = (enrollment: Awaited<ReturnType<typeof enrollmentService.getById>>) => ({
+const serializeEnrollment = (
+  enrollment: Awaited<ReturnType<typeof enrollmentService.getById>>,
+) => ({
   id: enrollment.id,
   studentId: enrollment.studentId,
   courseId: enrollment.courseId,
   enrollmentDate: enrollment.enrollmentDate.toISOString(),
-  accessStartDate: enrollment.accessStartDate.toISOString().split('T')[0],
-  accessEndDate: enrollment.accessEndDate.toISOString().split('T')[0],
+  accessStartDate: enrollment.accessStartDate.toISOString().split("T")[0],
+  accessEndDate: enrollment.accessEndDate.toISOString().split("T")[0],
   active: enrollment.active,
   createdAt: enrollment.createdAt.toISOString(),
   updatedAt: enrollment.updatedAt.toISOString(),
@@ -28,15 +30,15 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 // GET - RLS filtra automaticamente (alunos veem apenas suas próprias matrículas)
 async function getHandler(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get('studentId');
-    const courseId = searchParams.get('courseId');
+    const studentId = searchParams.get("studentId");
+    const courseId = searchParams.get("courseId");
 
     let enrollments;
     if (studentId) {
@@ -55,8 +57,12 @@ async function getHandler(request: AuthenticatedRequest) {
 
 // POST - Criar matrícula (professor ou API Key)
 async function postHandler(request: AuthenticatedRequest) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (
+    request.user &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -68,7 +74,10 @@ async function postHandler(request: AuthenticatedRequest) {
       accessEndDate: body?.accessEndDate,
       active: body?.active,
     });
-    return NextResponse.json({ data: serializeEnrollment(enrollment) }, { status: 201 });
+    return NextResponse.json(
+      { data: serializeEnrollment(enrollment) },
+      { status: 201 },
+    );
   } catch (error) {
     return handleError(error);
   }
@@ -76,4 +85,3 @@ async function postHandler(request: AuthenticatedRequest) {
 
 export const GET = requireAuth(getHandler);
 export const POST = requireAuth(postHandler);
-

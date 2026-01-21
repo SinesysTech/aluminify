@@ -18,7 +18,11 @@ import type {
   UsuarioWithDisciplinas,
   DisciplinaBasic,
 } from "@/types/shared/entities/usuario";
-import type { Papel, RolePermissions, RoleTipo } from "@/types/shared/entities/papel";
+import type {
+  Papel,
+  RolePermissions,
+  RoleTipo,
+} from "@/types/shared/entities/papel";
 
 const TABLE = "usuarios";
 const DISCIPLINAS_TABLE = "usuarios_disciplinas";
@@ -26,8 +30,10 @@ const DISCIPLINAS_TABLE = "usuarios_disciplinas";
 type UsuarioRow = Database["public"]["Tables"]["usuarios"]["Row"];
 type UsuarioInsert = Database["public"]["Tables"]["usuarios"]["Insert"];
 type UsuarioUpdate = Database["public"]["Tables"]["usuarios"]["Update"];
-type UsuarioDisciplinaRow = Database["public"]["Tables"]["usuarios_disciplinas"]["Row"];
-type UsuarioDisciplinaInsert = Database["public"]["Tables"]["usuarios_disciplinas"]["Insert"];
+type UsuarioDisciplinaRow =
+  Database["public"]["Tables"]["usuarios_disciplinas"]["Row"];
+type UsuarioDisciplinaInsert =
+  Database["public"]["Tables"]["usuarios_disciplinas"]["Insert"];
 type PapelRow = Database["public"]["Tables"]["papeis"]["Row"];
 
 function mapRow(row: UsuarioRow): Usuario {
@@ -57,14 +63,16 @@ function mapPapelRow(row: PapelRow): Papel {
     nome: row.nome,
     tipo: row.tipo as RoleTipo,
     descricao: row.descricao,
-    permissoes: row.permissoes as RolePermissions,
+    permissoes: row.permissoes as unknown as RolePermissions,
     isSystem: row.is_system,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
 }
 
-function mapRowWithPapel(row: UsuarioRow & { papeis: PapelRow }): UsuarioWithPapel {
+function mapRowWithPapel(
+  row: UsuarioRow & { papeis: PapelRow },
+): UsuarioWithPapel {
   const usuario = mapRow(row);
   const papel = mapPapelRow(row.papeis);
   return {
@@ -95,9 +103,18 @@ export interface UsuarioRepository {
   findById(id: string): Promise<Usuario | null>;
   findByIdWithPapel(id: string): Promise<UsuarioWithPapel | null>;
   findByEmail(email: string, empresaId: string): Promise<Usuario | null>;
-  listByEmpresa(empresaId: string, includeInactive?: boolean): Promise<Usuario[]>;
-  listByEmpresaWithPapel(empresaId: string, includeInactive?: boolean): Promise<UsuarioWithPapel[]>;
-  listSummaryByEmpresa(empresaId: string, includeInactive?: boolean): Promise<UsuarioSummary[]>;
+  listByEmpresa(
+    empresaId: string,
+    includeInactive?: boolean,
+  ): Promise<Usuario[]>;
+  listByEmpresaWithPapel(
+    empresaId: string,
+    includeInactive?: boolean,
+  ): Promise<UsuarioWithPapel[]>;
+  listSummaryByEmpresa(
+    empresaId: string,
+    includeInactive?: boolean,
+  ): Promise<UsuarioSummary[]>;
   listByPapelTipo(empresaId: string, tipo: RoleTipo): Promise<Usuario[]>;
   create(payload: CreateUsuarioInput): Promise<Usuario>;
   update(id: string, payload: UpdateUsuarioInput): Promise<Usuario>;
@@ -108,9 +125,15 @@ export interface UsuarioRepository {
   // Disciplina associations
   findWithDisciplinas(id: string): Promise<UsuarioWithDisciplinas | null>;
   listDisciplinas(usuarioId: string): Promise<DisciplinaBasic[]>;
-  addDisciplina(payload: CreateUsuarioDisciplinaInput): Promise<UsuarioDisciplina>;
+  addDisciplina(
+    payload: CreateUsuarioDisciplinaInput,
+  ): Promise<UsuarioDisciplina>;
   removeDisciplina(usuarioId: string, disciplinaId: string): Promise<void>;
-  setDisciplinas(usuarioId: string, disciplinaIds: string[], empresaId: string): Promise<void>;
+  setDisciplinas(
+    usuarioId: string,
+    disciplinaIds: string[],
+    empresaId: string,
+  ): Promise<void>;
   listByDisciplina(disciplinaId: string): Promise<Usuario[]>;
 }
 
@@ -144,7 +167,9 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       throw new Error(`Failed to fetch usuario with papel: ${error.message}`);
     }
 
-    return data ? mapRowWithPapel(data as UsuarioRow & { papeis: PapelRow }) : null;
+    return data
+      ? mapRowWithPapel(data as UsuarioRow & { papeis: PapelRow })
+      : null;
   }
 
   async findByEmail(email: string, empresaId: string): Promise<Usuario | null> {
@@ -163,7 +188,10 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
     return data ? mapRow(data) : null;
   }
 
-  async listByEmpresa(empresaId: string, includeInactive = false): Promise<Usuario[]> {
+  async listByEmpresa(
+    empresaId: string,
+    includeInactive = false,
+  ): Promise<Usuario[]> {
     let query = this.client
       .from(TABLE)
       .select("*")
@@ -184,7 +212,10 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
     return (data ?? []).map(mapRow);
   }
 
-  async listByEmpresaWithPapel(empresaId: string, includeInactive = false): Promise<UsuarioWithPapel[]> {
+  async listByEmpresaWithPapel(
+    empresaId: string,
+    includeInactive = false,
+  ): Promise<UsuarioWithPapel[]> {
     let query = this.client
       .from(TABLE)
       .select("*, papeis!inner(*)")
@@ -202,13 +233,20 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       throw new Error(`Failed to list usuarios with papel: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => mapRowWithPapel(row as UsuarioRow & { papeis: PapelRow }));
+    return (data ?? []).map((row) =>
+      mapRowWithPapel(row as UsuarioRow & { papeis: PapelRow }),
+    );
   }
 
-  async listSummaryByEmpresa(empresaId: string, includeInactive = false): Promise<UsuarioSummary[]> {
+  async listSummaryByEmpresa(
+    empresaId: string,
+    includeInactive = false,
+  ): Promise<UsuarioSummary[]> {
     let query = this.client
       .from(TABLE)
-      .select("id, nome_completo, email, foto_url, ativo, papeis!inner(nome, tipo)")
+      .select(
+        "id, nome_completo, email, foto_url, ativo, papeis!inner(nome, tipo)",
+      )
       .eq("empresa_id", empresaId)
       .is("deleted_at", null)
       .order("nome_completo", { ascending: true });
@@ -229,7 +267,8 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       email: row.email,
       fotoUrl: row.foto_url,
       papelNome: (row.papeis as { nome: string; tipo: string }).nome,
-      papelTipo: (row.papeis as { nome: string; tipo: string }).tipo as RoleTipo,
+      papelTipo: (row.papeis as { nome: string; tipo: string })
+        .tipo as RoleTipo,
       ativo: row.ativo,
     }));
   }
@@ -245,7 +284,9 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       .order("nome_completo", { ascending: true });
 
     if (error) {
-      throw new Error(`Failed to list usuarios by papel tipo: ${error.message}`);
+      throw new Error(
+        `Failed to list usuarios by papel tipo: ${error.message}`,
+      );
     }
 
     return (data ?? []).map(mapRow);
@@ -361,7 +402,9 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
 
   // Disciplina associations
 
-  async findWithDisciplinas(id: string): Promise<UsuarioWithDisciplinas | null> {
+  async findWithDisciplinas(
+    id: string,
+  ): Promise<UsuarioWithDisciplinas | null> {
     const usuario = await this.findById(id);
     if (!usuario) {
       return null;
@@ -392,7 +435,9 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
     }));
   }
 
-  async addDisciplina(payload: CreateUsuarioDisciplinaInput): Promise<UsuarioDisciplina> {
+  async addDisciplina(
+    payload: CreateUsuarioDisciplinaInput,
+  ): Promise<UsuarioDisciplina> {
     const insertData: UsuarioDisciplinaInsert = {
       usuario_id: payload.usuarioId,
       disciplina_id: payload.disciplinaId,
@@ -417,7 +462,10 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
     return mapUsuarioDisciplinaRow(data);
   }
 
-  async removeDisciplina(usuarioId: string, disciplinaId: string): Promise<void> {
+  async removeDisciplina(
+    usuarioId: string,
+    disciplinaId: string,
+  ): Promise<void> {
     const { error } = await this.client
       .from(DISCIPLINAS_TABLE)
       .delete()
@@ -425,11 +473,17 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       .eq("disciplina_id", disciplinaId);
 
     if (error) {
-      throw new Error(`Failed to remove disciplina from usuario: ${error.message}`);
+      throw new Error(
+        `Failed to remove disciplina from usuario: ${error.message}`,
+      );
     }
   }
 
-  async setDisciplinas(usuarioId: string, disciplinaIds: string[], empresaId: string): Promise<void> {
+  async setDisciplinas(
+    usuarioId: string,
+    disciplinaIds: string[],
+    empresaId: string,
+  ): Promise<void> {
     // Remove all existing disciplina associations
     const { error: deleteError } = await this.client
       .from(DISCIPLINAS_TABLE)
@@ -437,24 +491,30 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       .eq("usuario_id", usuarioId);
 
     if (deleteError) {
-      throw new Error(`Failed to clear usuario disciplinas: ${deleteError.message}`);
+      throw new Error(
+        `Failed to clear usuario disciplinas: ${deleteError.message}`,
+      );
     }
 
     // Add new associations
     if (disciplinaIds.length > 0) {
-      const insertData: UsuarioDisciplinaInsert[] = disciplinaIds.map((disciplinaId) => ({
-        usuario_id: usuarioId,
-        disciplina_id: disciplinaId,
-        empresa_id: empresaId,
-        ativo: true,
-      }));
+      const insertData: UsuarioDisciplinaInsert[] = disciplinaIds.map(
+        (disciplinaId) => ({
+          usuario_id: usuarioId,
+          disciplina_id: disciplinaId,
+          empresa_id: empresaId,
+          ativo: true,
+        }),
+      );
 
       const { error: insertError } = await this.client
         .from(DISCIPLINAS_TABLE)
         .insert(insertData);
 
       if (insertError) {
-        throw new Error(`Failed to set usuario disciplinas: ${insertError.message}`);
+        throw new Error(
+          `Failed to set usuario disciplinas: ${insertError.message}`,
+        );
       }
     }
   }
@@ -467,9 +527,13 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       .eq("ativo", true);
 
     if (error) {
-      throw new Error(`Failed to list usuarios by disciplina: ${error.message}`);
+      throw new Error(
+        `Failed to list usuarios by disciplina: ${error.message}`,
+      );
     }
 
-    return (data ?? []).map((row) => mapRow(row.usuarios as unknown as UsuarioRow));
+    return (data ?? []).map((row) =>
+      mapRow(row.usuarios as unknown as UsuarioRow),
+    );
   }
 }

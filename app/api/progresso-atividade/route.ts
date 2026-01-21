@@ -1,8 +1,16 @@
-import { NextResponse } from 'next/server';
-import { progressoAtividadeService, ProgressoNotFoundError, ProgressoValidationError } from '@/backend/services/progresso-atividade';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { NextResponse } from "next/server";
+import {
+  progressoAtividadeService,
+  ProgressoNotFoundError,
+  ProgressoValidationError,
+} from "@/backend/services/progresso-atividade";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
-const serializeProgresso = (progresso: Awaited<ReturnType<typeof progressoAtividadeService.getProgressoById>>) => ({
+const serializeProgresso = (
+  progresso: Awaited<
+    ReturnType<typeof progressoAtividadeService.getProgressoById>
+  >,
+) => ({
   id: progresso.id,
   alunoId: progresso.alunoId,
   atividadeId: progresso.atividadeId,
@@ -25,41 +33,60 @@ function handleError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  console.error('Progresso API Error:', error);
-  let errorMessage = 'Internal server error';
+  console.error("Progresso API Error:", error);
+  let errorMessage = "Internal server error";
   if (error instanceof Error) {
     errorMessage = error.message || errorMessage;
-    console.error('Error stack:', error.stack);
-  } else if (typeof error === 'string') {
+    console.error("Error stack:", error.stack);
+  } else if (typeof error === "string") {
     errorMessage = error;
-  } else if (error && typeof error === 'object' && 'message' in error) {
+  } else if (error && typeof error === "object" && "message" in error) {
     errorMessage = String(error.message);
   }
 
-  return NextResponse.json({
-    error: errorMessage,
-    details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined
-  }, { status: 500 });
+  return NextResponse.json(
+    {
+      error: errorMessage,
+      details:
+        process.env.NODE_ENV === "development"
+          ? error instanceof Error
+            ? error.stack
+            : String(error)
+          : undefined,
+    },
+    { status: 500 },
+  );
 }
 
 // GET: Listar progresso do aluno
 async function getHandler(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const alunoId = searchParams.get('alunoId');
+    const alunoId = searchParams.get("alunoId");
 
     if (!alunoId) {
-      return NextResponse.json({ error: 'Missing parameter: alunoId is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing parameter: alunoId is required" },
+        { status: 400 },
+      );
     }
 
     // Verificar se o aluno está acessando seu próprio progresso ou se é professor
-    if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    if (
+      request.user &&
+      request.user.role !== "usuario" &&
+      request.user.role !== "superadmin"
+    ) {
       if (request.user.id !== alunoId) {
-        return NextResponse.json({ error: 'Forbidden: You can only access your own progress' }, { status: 403 });
+        return NextResponse.json(
+          { error: "Forbidden: You can only access your own progress" },
+          { status: 403 },
+        );
       }
     }
 
-    const progressos = await progressoAtividadeService.getProgressoByAluno(alunoId);
+    const progressos =
+      await progressoAtividadeService.getProgressoByAluno(alunoId);
     return NextResponse.json({ data: progressos.map(serializeProgresso) });
   } catch (error) {
     return handleError(error);
@@ -67,6 +94,3 @@ async function getHandler(request: AuthenticatedRequest) {
 }
 
 export const GET = requireAuth(getHandler);
-
-
-

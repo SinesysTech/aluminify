@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   teacherService,
   TeacherConflictError,
   TeacherValidationError,
-} from '@/backend/services/teacher';
-import { getAuthUser } from '@/backend/auth/middleware';
+} from "@/backend/services/teacher";
+import { getAuthUser } from "@/backend/auth/middleware";
 
-const serializeTeacher = (teacher: Awaited<ReturnType<typeof teacherService.getById>>) => ({
+const serializeTeacher = (
+  teacher: Awaited<ReturnType<typeof teacherService.getById>>,
+) => ({
   id: teacher.id,
   fullName: teacher.fullName,
   email: teacher.email,
@@ -29,23 +31,31 @@ function handleError(error: unknown) {
   }
 
   // Log detalhado do erro
-  console.error('Teacher API Error:', error);
-  
+  console.error("Teacher API Error:", error);
+
   // Extrair mensagem de erro mais detalhada
-  let errorMessage = 'Internal server error';
+  let errorMessage = "Internal server error";
   if (error instanceof Error) {
     errorMessage = error.message || errorMessage;
-    console.error('Error stack:', error.stack);
-  } else if (typeof error === 'string') {
+    console.error("Error stack:", error.stack);
+  } else if (typeof error === "string") {
     errorMessage = error;
-  } else if (error && typeof error === 'object' && 'message' in error) {
+  } else if (error && typeof error === "object" && "message" in error) {
     errorMessage = String(error.message);
   }
-  
-  return NextResponse.json({ 
-    error: errorMessage,
-    details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined
-  }, { status: 500 });
+
+  return NextResponse.json(
+    {
+      error: errorMessage,
+      details:
+        process.env.NODE_ENV === "development"
+          ? error instanceof Error
+            ? error.stack
+            : String(error)
+          : undefined,
+    },
+    { status: 500 },
+  );
 }
 
 export async function GET() {
@@ -62,39 +72,46 @@ export async function POST(request: NextRequest) {
   try {
     // Verificar autenticação
     const user = await getAuthUser(request);
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
     // Apenas usuarios (staff) e superadmins podem criar professores
-    if (user.role !== 'professor' && user.role !== 'usuario' && user.role !== 'superadmin') {
+    if (
+      user.role !== "usuario" &&
+      user.role !== "usuario" &&
+      user.role !== "superadmin"
+    ) {
       return NextResponse.json(
-        { error: 'Acesso negado. Apenas usuários da instituição ou superadmin podem criar professores.' },
-        { status: 403 }
+        {
+          error:
+            "Acesso negado. Apenas usuários da instituição ou superadmin podem criar professores.",
+        },
+        { status: 403 },
       );
     }
 
     const body = await request.json();
-    console.log('[Teacher POST] Request body:', body);
-    
+    console.log("[Teacher POST] Request body:", body);
+
     if (!body?.fullName || !body?.email) {
-      return NextResponse.json({ 
-        error: 'Campos obrigatórios: fullName e email são necessários' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Campos obrigatórios: fullName e email são necessários",
+        },
+        { status: 400 },
+      );
     }
 
     // Super Admin pode criar sem empresaId, outros professores precisam de empresaId
     if (!user.isSuperAdmin && !body?.empresaId) {
       return NextResponse.json(
-        { error: 'empresaId é obrigatório para professores' },
-        { status: 400 }
+        { error: "empresaId é obrigatório para professores" },
+        { status: 400 },
       );
     }
-    
+
     const teacher = await teacherService.create({
       id: body?.id,
       empresaId: body?.empresaId || null,
@@ -106,11 +123,13 @@ export async function POST(request: NextRequest) {
       photoUrl: body?.photoUrl,
       specialty: body?.specialty,
     });
-    console.log('[Teacher POST] Teacher created:', teacher.id);
-    return NextResponse.json({ data: serializeTeacher(teacher) }, { status: 201 });
+    console.log("[Teacher POST] Teacher created:", teacher.id);
+    return NextResponse.json(
+      { data: serializeTeacher(teacher) },
+      { status: 201 },
+    );
   } catch (error) {
-    console.error('[Teacher POST] Error creating teacher:', error);
+    console.error("[Teacher POST] Error creating teacher:", error);
     return handleError(error);
   }
 }
-

@@ -1,8 +1,15 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { atividadeService, AtividadeValidationError } from '@/backend/services/atividade';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { NextResponse, type NextRequest } from "next/server";
+import {
+  atividadeService,
+  AtividadeValidationError,
+} from "@/backend/services/atividade";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
-function serializeAtividadeComProgresso(atividade: Awaited<ReturnType<typeof atividadeService.listByAlunoMatriculas>>[0]) {
+function serializeAtividadeComProgresso(
+  atividade: Awaited<
+    ReturnType<typeof atividadeService.listByAlunoMatriculas>
+  >[0],
+) {
   return {
     id: atividade.id,
     moduloId: atividade.moduloId,
@@ -26,7 +33,8 @@ function serializeAtividadeComProgresso(atividade: Awaited<ReturnType<typeof ati
     cursoId: atividade.cursoId,
     progressoStatus: atividade.progressoStatus,
     progressoDataInicio: atividade.progressoDataInicio?.toISOString() || null,
-    progressoDataConclusao: atividade.progressoDataConclusao?.toISOString() || null,
+    progressoDataConclusao:
+      atividade.progressoDataConclusao?.toISOString() || null,
     questoesTotais: atividade.questoesTotais,
     questoesAcertos: atividade.questoesAcertos,
     dificuldadePercebida: atividade.dificuldadePercebida,
@@ -39,21 +47,29 @@ function handleError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  console.error('Atividade Aluno API Error:', error);
-  let errorMessage = 'Internal server error';
+  console.error("Atividade Aluno API Error:", error);
+  let errorMessage = "Internal server error";
   if (error instanceof Error) {
     errorMessage = error.message || errorMessage;
-    console.error('Error stack:', error.stack);
-  } else if (typeof error === 'string') {
+    console.error("Error stack:", error.stack);
+  } else if (typeof error === "string") {
     errorMessage = error;
-  } else if (error && typeof error === 'object' && 'message' in error) {
+  } else if (error && typeof error === "object" && "message" in error) {
     errorMessage = String(error.message);
   }
 
-  return NextResponse.json({
-    error: errorMessage,
-    details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined
-  }, { status: 500 });
+  return NextResponse.json(
+    {
+      error: errorMessage,
+      details:
+        process.env.NODE_ENV === "development"
+          ? error instanceof Error
+            ? error.stack
+            : String(error)
+          : undefined,
+    },
+    { status: 500 },
+  );
 }
 
 interface RouteContext {
@@ -61,19 +77,31 @@ interface RouteContext {
 }
 
 // GET: Listar atividades do aluno (agrupadas por estrutura)
-async function getHandler(request: AuthenticatedRequest, params: { alunoId: string }) {
+async function getHandler(
+  request: AuthenticatedRequest,
+  params: { alunoId: string },
+) {
   try {
     const alunoId = params.alunoId;
 
     // Verificar permissão: aluno só pode ver suas próprias atividades
-    if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
+    if (
+      request.user &&
+      request.user.role !== "usuario" &&
+      request.user.role !== "superadmin"
+    ) {
       if (request.user.id !== alunoId) {
-        return NextResponse.json({ error: 'Forbidden: You can only access your own activities' }, { status: 403 });
+        return NextResponse.json(
+          { error: "Forbidden: You can only access your own activities" },
+          { status: 403 },
+        );
       }
     }
 
     const atividades = await atividadeService.listByAlunoMatriculas(alunoId);
-    return NextResponse.json({ data: atividades.map(serializeAtividadeComProgresso) });
+    return NextResponse.json({
+      data: atividades.map(serializeAtividadeComProgresso),
+    });
   } catch (error) {
     return handleError(error);
   }
@@ -83,4 +111,3 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   return requireAuth((req) => getHandler(req, params))(request);
 }
-

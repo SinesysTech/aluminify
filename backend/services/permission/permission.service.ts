@@ -293,10 +293,10 @@ export function mergePermissions(
 
   for (const [key, value] of Object.entries(overrides)) {
     if (value !== undefined && key in result) {
-      result[key as keyof RolePermissions] = {
+      (result as Record<string, unknown>)[key] = {
         ...result[key as keyof RolePermissions],
         ...value,
-      } as RolePermissions[keyof RolePermissions];
+      };
     }
   }
 

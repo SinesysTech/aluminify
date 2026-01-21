@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   regraAtividadeService,
   RegraAtividadeNotFoundError,
   RegraAtividadeValidationError,
-} from '@/backend/services/regras-atividade';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+} from "@/backend/services/regras-atividade";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 
-const serializeRegra = (regra: Awaited<ReturnType<typeof regraAtividadeService.getById>>) => ({
+const serializeRegra = (
+  regra: Awaited<ReturnType<typeof regraAtividadeService.getById>>,
+) => ({
   id: regra.id,
   cursoId: regra.cursoId,
   tipoAtividade: regra.tipoAtividade,
@@ -35,12 +37,16 @@ function handleError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 async function ensureProfessor(request: AuthenticatedRequest) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (
+    request.user &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;
 }
@@ -49,7 +55,10 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-async function patchHandler(request: AuthenticatedRequest, params: { id: string }) {
+async function patchHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
   const forbidden = await ensureProfessor(request);
   if (forbidden) return forbidden;
 
@@ -71,13 +80,16 @@ async function patchHandler(request: AuthenticatedRequest, params: { id: string 
   }
 }
 
-async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
+async function deleteHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
   const forbidden = await ensureProfessor(request);
   if (forbidden) return forbidden;
 
   try {
     await regraAtividadeService.delete(params.id);
-    return NextResponse.json({ message: 'Regra removida com sucesso' });
+    return NextResponse.json({ message: "Regra removida com sucesso" });
   } catch (error) {
     return handleError(error);
   }

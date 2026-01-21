@@ -271,8 +271,8 @@ function ColorPreview({ colors, className = "" }: ColorPreviewProps) {
 
 export function ColorPaletteEditor({
   currentPalette,
-  _onSave,
-  _onPreview,
+  onSave: _onSave,
+  onPreview: _onPreview,
   onValidate
 }: ColorPaletteEditorProps) {
   // State management

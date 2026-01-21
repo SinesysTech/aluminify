@@ -129,7 +129,6 @@ export const GET = requireAuth(getHandler);
 async function postHandler(request: AuthenticatedRequest) {
   if (
     request.user &&
-    request.user.role !== "professor" &&
     request.user.role !== "usuario" &&
     request.user.role !== "superadmin"
   ) {
@@ -160,10 +159,7 @@ async function postHandler(request: AuthenticatedRequest) {
           { status: 400 },
         );
       }
-    } else if (
-      request.user?.role === "professor" ||
-      request.user?.role === "usuario"
-    ) {
+    } else if (request.user?.role === "usuario") {
       // Preferir empresaId do contexto de auth (já populado pelo middleware)
       empresaId = request.user.empresaId ?? null;
 

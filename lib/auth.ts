@@ -18,9 +18,14 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/server";
+import { getDatabaseClient } from "@/backend/clients/database";
 import type { AppUser, AppUserRole, LegacyAppUserRole } from "@/types/user";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
-import { getDefaultRouteForRole, hasRequiredRole, isAdminRoleTipo } from "@/lib/roles";
+import {
+  getDefaultRouteForRole,
+  hasRequiredRole,
+  isAdminRoleTipo,
+} from "@/lib/roles";
 import { getImpersonationContext } from "@/lib/auth-impersonate";
 
 export async function getAuthenticatedUser(): Promise<AppUser | null> {
@@ -47,14 +52,17 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
   }
 
   // Get role from metadata - map legacy roles to new ones
-  const metadataRole = isImpersonating && impersonationContext
-    ? impersonationContext.impersonatedUserRole
-    : (user.user_metadata?.role as LegacyAppUserRole | AppUserRole) || "aluno";
+  const metadataRole =
+    isImpersonating && impersonationContext
+      ? impersonationContext.impersonatedUserRole
+      : (user.user_metadata?.role as LegacyAppUserRole | AppUserRole) ||
+        "aluno";
 
   // Map legacy "professor" and "empresa" roles to "usuario"
-  let role: AppUserRole = metadataRole === "professor" || metadataRole === "empresa"
-    ? "usuario"
-    : (metadataRole as AppUserRole);
+  let role: AppUserRole =
+    metadataRole === "professor" || metadataRole === "empresa"
+      ? "usuario"
+      : (metadataRole as AppUserRole);
 
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password);
   let roleType: RoleTipo | undefined;
@@ -105,10 +113,18 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
 
   // Load empresa context for usuarios (staff) and superadmin
   // First check if user exists in usuarios table (institution staff)
-  // Note: Using separate queries instead of joins to avoid RLS issues with nested joins
-  if (role === "usuario" || role === "superadmin" || metadataRole === "professor" || metadataRole === "empresa") {
+  // Note: Using service role client to bypass RLS for auth queries
+  if (
+    role === "usuario" ||
+    role === "superadmin" ||
+    metadataRole === "professor" ||
+    metadataRole === "empresa"
+  ) {
+    // Use service role client to bypass RLS for authentication queries
+    const adminClient = getDatabaseClient();
+
     // Query 1: Get usuario data
-    const { data: usuarioRow, error: usuarioError } = await supabase
+    const { data: usuarioRow, error: usuarioError } = await adminClient
       .from("usuarios")
       .select("empresa_id, nome_completo, papel_id")
       .eq("id", user.id)
@@ -123,7 +139,7 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
 
       // Query 2: Get papel data
       if (usuarioRow.papel_id) {
-        const { data: papelRow } = await supabase
+        const { data: papelRow } = await adminClient
           .from("papeis")
           .select("tipo, permissoes")
           .eq("id", usuarioRow.papel_id)
@@ -131,14 +147,14 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
 
         if (papelRow) {
           roleType = papelRow.tipo as RoleTipo;
-          permissions = papelRow.permissoes as RolePermissions;
+          permissions = papelRow.permissoes as unknown as RolePermissions;
           isEmpresaAdmin = roleType ? isAdminRoleTipo(roleType) : false;
         }
       }
 
       // Query 3: Get empresa data
       if (usuarioRow.empresa_id) {
-        const { data: empresaRow } = await supabase
+        const { data: empresaRow } = await adminClient
           .from("empresas")
           .select("nome, slug")
           .eq("id", usuarioRow.empresa_id)
@@ -245,7 +261,7 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
 }
 
 type RequireUserOptions = {
-  allowedRoles?: AppUserRole[];
+  allowedRoles?: (AppUserRole | LegacyAppUserRole)[];
   ignorePasswordRequirement?: boolean;
 };
 

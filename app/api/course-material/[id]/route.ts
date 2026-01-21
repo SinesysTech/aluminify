@@ -1,16 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   courseMaterialService,
   CourseMaterialNotFoundError,
   CourseMaterialValidationError,
   createCourseMaterialService,
-} from '@/backend/services/course-material';
+} from "@/backend/services/course-material";
 import {
   requireAuth,
   requireUserAuth,
   AuthenticatedRequest,
-} from '@/backend/auth/middleware';
-import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database';
+} from "@/backend/auth/middleware";
+import {
+  getDatabaseClient,
+  getDatabaseClientAsUser,
+} from "@/backend/clients/database";
 
 const serializeCourseMaterial = (
   material: Awaited<ReturnType<typeof courseMaterialService.getById>>,
@@ -36,7 +39,7 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 interface RouteContext {
@@ -44,17 +47,20 @@ interface RouteContext {
 }
 
 function getBearerToken(request: NextRequest): string | null {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
   return authHeader.substring(7).trim() || null;
 }
 
 // GET - exige JWT para aplicar RLS (alunos veem apenas materiais de cursos matriculados)
-async function getHandler(request: AuthenticatedRequest, params: { id: string }) {
+async function getHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
   try {
     const token = getBearerToken(request);
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userClient = getDatabaseClientAsUser(token);
@@ -67,9 +73,16 @@ async function getHandler(request: AuthenticatedRequest, params: { id: string })
 }
 
 // PUT requer autenticação de professor (JWT ou API Key) - RLS verifica permissões
-async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+async function putHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
+  if (
+    request.user &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -96,29 +109,35 @@ async function putHandler(request: AuthenticatedRequest, params: { id: string })
       const db = getDatabaseClient();
 
       const { data: professor, error: profError } = await db
-        .from('professores')
-        .select('empresa_id')
-        .eq('id', request.apiKey.createdBy)
+        .from("professores")
+        .select("empresa_id")
+        .eq("id", request.apiKey.createdBy)
         .maybeSingle();
 
-      if (profError) throw new Error(`Falha ao validar professor da API key: ${profError.message}`);
+      if (profError)
+        throw new Error(
+          `Falha ao validar professor da API key: ${profError.message}`,
+        );
 
-      const empresaId = (professor as { empresa_id?: string | null } | null)?.empresa_id ?? null;
+      const empresaId =
+        (professor as { empresa_id?: string | null } | null)?.empresa_id ??
+        null;
       if (!empresaId) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
       // Garantir que o material pertence à empresa do criador da chave
       const { data: scopedMaterial, error: scopedErr } = await db
-        .from('materiais_curso')
-        .select('id')
-        .eq('id', params.id)
-        .eq('empresa_id', empresaId)
+        .from("materiais_curso")
+        .select("id")
+        .eq("id", params.id)
+        .eq("empresa_id", empresaId)
         .maybeSingle();
 
-      if (scopedErr) throw new Error(`Falha ao validar material: ${scopedErr.message}`);
+      if (scopedErr)
+        throw new Error(`Falha ao validar material: ${scopedErr.message}`);
       if (!scopedMaterial) {
-        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
 
       const material = await courseMaterialService.update(params.id, {
@@ -131,16 +150,23 @@ async function putHandler(request: AuthenticatedRequest, params: { id: string })
       return NextResponse.json({ data: serializeCourseMaterial(material) });
     }
 
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   } catch (error) {
     return handleError(error);
   }
 }
 
 // DELETE requer autenticação de professor (JWT ou API Key) - RLS verifica permissões
-async function deleteHandler(request: AuthenticatedRequest, params: { id: string }) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+async function deleteHandler(
+  request: AuthenticatedRequest,
+  params: { id: string },
+) {
+  if (
+    request.user &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -159,36 +185,42 @@ async function deleteHandler(request: AuthenticatedRequest, params: { id: string
       const db = getDatabaseClient();
 
       const { data: professor, error: profError } = await db
-        .from('professores')
-        .select('empresa_id')
-        .eq('id', request.apiKey.createdBy)
+        .from("professores")
+        .select("empresa_id")
+        .eq("id", request.apiKey.createdBy)
         .maybeSingle();
 
-      if (profError) throw new Error(`Falha ao validar professor da API key: ${profError.message}`);
+      if (profError)
+        throw new Error(
+          `Falha ao validar professor da API key: ${profError.message}`,
+        );
 
-      const empresaId = (professor as { empresa_id?: string | null } | null)?.empresa_id ?? null;
+      const empresaId =
+        (professor as { empresa_id?: string | null } | null)?.empresa_id ??
+        null;
       if (!empresaId) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
       // Garantir que o material pertence à empresa do criador da chave
       const { data: scopedMaterial, error: scopedErr } = await db
-        .from('materiais_curso')
-        .select('id')
-        .eq('id', params.id)
-        .eq('empresa_id', empresaId)
+        .from("materiais_curso")
+        .select("id")
+        .eq("id", params.id)
+        .eq("empresa_id", empresaId)
         .maybeSingle();
 
-      if (scopedErr) throw new Error(`Falha ao validar material: ${scopedErr.message}`);
+      if (scopedErr)
+        throw new Error(`Falha ao validar material: ${scopedErr.message}`);
       if (!scopedMaterial) {
-        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
 
       await courseMaterialService.delete(params.id);
       return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   } catch (error) {
     return handleError(error);
   }
@@ -208,4 +240,3 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const params = await context.params;
   return requireUserAuth((req) => getHandler(req, params))(request);
 }
-

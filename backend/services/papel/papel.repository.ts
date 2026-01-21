@@ -28,7 +28,7 @@ function mapRow(row: PapelRow): Papel {
     nome: row.nome,
     tipo: row.tipo as RoleTipo,
     descricao: row.descricao,
-    permissoes: row.permissoes as RolePermissions,
+    permissoes: row.permissoes as unknown as RolePermissions,
     isSystem: row.is_system,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -149,7 +149,8 @@ export class PapelRepositoryImpl implements PapelRepository {
       nome: payload.nome,
       tipo: payload.tipo,
       descricao: payload.descricao ?? null,
-      permissoes: payload.permissoes as unknown as Database["public"]["Tables"]["papeis"]["Insert"]["permissoes"],
+      permissoes:
+        payload.permissoes as unknown as Database["public"]["Tables"]["papeis"]["Insert"]["permissoes"],
       is_system: false, // Custom roles are never system roles
     };
 

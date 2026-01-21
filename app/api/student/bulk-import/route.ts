@@ -1,30 +1,37 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import {
   studentImportService,
   StudentValidationError,
-} from '@/backend/services/student';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
-import Papa from 'papaparse';
-import ExcelJS from 'exceljs';
-import type { Database } from '@/lib/database.types';
+} from "@/backend/services/student";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import Papa from "papaparse";
+import ExcelJS from "exceljs";
+import type { Database } from "@/lib/database.types";
 
 const STUDENT_IMPORT_COLUMN_ALIASES = {
-  fullName: ['nome completo', 'nome'],
-  email: ['email', 'e-mail'],
-  cpf: ['cpf'],
-  phone: ['telefone', 'celular'],
-  enrollmentNumber: ['numero de matricula', 'número de matrícula', 'matricula', 'matrícula'],
-  courses: ['cursos', 'curso', 'courses'],
-  temporaryPassword: ['senha temporaria', 'senha temporária', 'senha', 'password'],
+  fullName: ["nome completo", "nome"],
+  email: ["email", "e-mail"],
+  cpf: ["cpf"],
+  phone: ["telefone", "celular"],
+  enrollmentNumber: [
+    "numero de matricula",
+    "número de matrícula",
+    "matricula",
+    "matrícula",
+  ],
+  courses: ["cursos", "curso", "courses"],
+  temporaryPassword: [
+    "senha temporaria",
+    "senha temporária",
+    "senha",
+    "password",
+  ],
 } as const;
 
 type ParsedSpreadsheetRow = Record<string, string>;
 
 const normalizeColumnName = (value?: string | null) =>
-  (value ?? '')
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, ' ');
+  (value ?? "").toLowerCase().trim().replace(/\s+/g, " ");
 
 const splitCourses = (value: string) =>
   value
@@ -34,31 +41,38 @@ const splitCourses = (value: string) =>
 
 const filterSpreadsheetRows = (rows: Record<string, string>[]) =>
   rows.filter((row) =>
-    Object.values(row).some((value) => String(value ?? '').trim()),
+    Object.values(row).some((value) => String(value ?? "").trim()),
   );
 
-const parseCSVFile = (buffer: Buffer<ArrayBufferLike>): Promise<ParsedSpreadsheetRow[]> =>
+const parseCSVFile = (
+  buffer: Buffer<ArrayBufferLike>,
+): Promise<ParsedSpreadsheetRow[]> =>
   new Promise((resolve, reject) => {
-    const csvContent = buffer.toString('utf-8');
+    const csvContent = buffer.toString("utf-8");
     Papa.parse<ParsedSpreadsheetRow>(csvContent, {
       header: true,
-      skipEmptyLines: 'greedy',
+      skipEmptyLines: "greedy",
       transformHeader: (header: string) => header.trim(),
-      delimiter: ';', // Padrão Excel PT-BR para evitar quebra por vírgulas em textos
+      delimiter: ";", // Padrão Excel PT-BR para evitar quebra por vírgulas em textos
       quoteChar: '"',
       escapeChar: '"',
       complete: (results) => {
         if (results.errors?.length) {
-          reject(new Error(results.errors[0].message ?? 'Erro ao processar CSV.'));
+          reject(
+            new Error(results.errors[0].message ?? "Erro ao processar CSV."),
+          );
           return;
         }
         resolve(filterSpreadsheetRows(results.data ?? []));
       },
-      error: (error: { message?: string }) => reject(new Error(error.message || 'Erro desconhecido')),
+      error: (error: { message?: string }) =>
+        reject(new Error(error.message || "Erro desconhecido")),
     });
   });
 
-const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> => {
+const parseXLSXFile = async (
+  buffer: Buffer,
+): Promise<ParsedSpreadsheetRow[]> => {
   try {
     const workbook = new ExcelJS.Workbook();
     // @ts-expect-error - ExcelJS expects Buffer but TypeScript infers Buffer<ArrayBufferLike> from Buffer.from()
@@ -66,7 +80,7 @@ const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> =>
 
     const worksheet = workbook.worksheets[0];
     if (!worksheet) {
-      throw new Error('O arquivo XLSX não contém planilhas.');
+      throw new Error("O arquivo XLSX não contém planilhas.");
     }
 
     const rows: ParsedSpreadsheetRow[] = [];
@@ -76,7 +90,7 @@ const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> =>
       if (rowNumber === 1) {
         // First row = headers
         row.eachCell({ includeEmpty: false }, (cell) => {
-          headers.push(String(cell.value ?? '').trim());
+          headers.push(String(cell.value ?? "").trim());
         });
       } else {
         // Data rows
@@ -84,7 +98,7 @@ const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> =>
         row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
           const header = headers[colNumber - 1];
           if (header) {
-            rowData[header] = String(cell.value ?? '').trim();
+            rowData[header] = String(cell.value ?? "").trim();
           }
         });
         if (Object.keys(rowData).length > 0) {
@@ -97,7 +111,7 @@ const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> =>
   } catch (error) {
     throw new Error(
       `Erro ao processar XLSX: ${
-        error instanceof Error ? error.message : 'Erro desconhecido'
+        error instanceof Error ? error.message : "Erro desconhecido"
       }`,
     );
   }
@@ -105,9 +119,9 @@ const parseXLSXFile = async (buffer: Buffer): Promise<ParsedSpreadsheetRow[]> =>
 
 const normalizeCourseName = (name: string) =>
   name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
     .slice(0, 32)
     .toUpperCase();
 
@@ -119,10 +133,10 @@ function handleError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  console.error('Student Bulk Import API Error:', error);
+  console.error("Student Bulk Import API Error:", error);
 
   const message =
-    error instanceof Error ? error.message : 'Erro interno ao importar alunos.';
+    error instanceof Error ? error.message : "Erro interno ao importar alunos.";
 
   return NextResponse.json({ error: message }, { status: 500 });
 }
@@ -130,26 +144,30 @@ function handleError(error: unknown) {
 async function postHandler(request: AuthenticatedRequest) {
   if (
     !request.user ||
-    (request.user.role !== 'professor' && !request.user.isSuperAdmin)
+    (request.user.role !== "usuario" && !request.user.isSuperAdmin)
   ) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get("file") as File | null;
 
     if (!file) {
       return NextResponse.json(
-        { error: 'Arquivo não fornecido.' },
+        { error: "Arquivo não fornecido." },
         { status: 400 },
       );
     }
 
     const extension = file.name.toLowerCase();
-    if (!extension.endsWith('.csv') && !extension.endsWith('.xlsx') && !extension.endsWith('.xls')) {
+    if (
+      !extension.endsWith(".csv") &&
+      !extension.endsWith(".xlsx") &&
+      !extension.endsWith(".xls")
+    ) {
       return NextResponse.json(
-        { error: 'Formato de arquivo não suportado. Use CSV, XLS ou XLSX.' },
+        { error: "Formato de arquivo não suportado. Use CSV, XLS ou XLSX." },
         { status: 400 },
       );
     }
@@ -159,26 +177,30 @@ async function postHandler(request: AuthenticatedRequest) {
     const buffer = Buffer.from(arrayBuffer) as Buffer;
 
     // Parse do arquivo
-    const rawRows = extension.endsWith('.xlsx') || extension.endsWith('.xls')
-      ? await parseXLSXFile(buffer)
-      : await parseCSVFile(buffer);
+    const rawRows =
+      extension.endsWith(".xlsx") || extension.endsWith(".xls")
+        ? await parseXLSXFile(buffer)
+        : await parseCSVFile(buffer);
 
     if (rawRows.length === 0) {
       return NextResponse.json(
-        { error: 'Nenhum dado válido encontrado na planilha.' },
+        { error: "Nenhum dado válido encontrado na planilha." },
         { status: 400 },
       );
     }
 
     // Buscar cursos para validação
-    const { getDatabaseClient } = await import('@/backend/clients/database');
+    const { getDatabaseClient } = await import("@/backend/clients/database");
     const client = getDatabaseClient();
     const { data: coursesData, error: coursesError } = await client
-      .from('cursos')
-      .select('id, nome');
+      .from("cursos")
+      .select("id, nome");
 
     // Type assertion: Query result properly typed from Database schema
-    type CourseBasic = Pick<Database['public']['Tables']['cursos']['Row'], 'id' | 'nome'>;
+    type CourseBasic = Pick<
+      Database["public"]["Tables"]["cursos"]["Row"],
+      "id" | "nome"
+    >;
     const typedCoursesData = coursesData as CourseBasic[] | null;
 
     if (coursesError) {
@@ -200,58 +222,78 @@ async function postHandler(request: AuthenticatedRequest) {
       const normalizedRow = new Map<string, string>();
       Object.entries(row).forEach(([key, value]) => {
         if (!key) return;
-        normalizedRow.set(normalizeColumnName(key), value != null ? String(value).trim() : '');
+        normalizedRow.set(
+          normalizeColumnName(key),
+          value != null ? String(value).trim() : "",
+        );
       });
 
       const getValue = (aliases: readonly string[]) => {
         for (const alias of aliases) {
           const normalizedKey = normalizeColumnName(alias);
           if (normalizedRow.has(normalizedKey)) {
-            return normalizedRow.get(normalizedKey) || '';
+            return normalizedRow.get(normalizedKey) || "";
           }
         }
-        return '';
+        return "";
       };
 
       const rowNumber = index + 2; // +2 porque index começa em 0 e linha 1 é header
 
       const fullName = getValue(STUDENT_IMPORT_COLUMN_ALIASES.fullName);
       const email = getValue(STUDENT_IMPORT_COLUMN_ALIASES.email).toLowerCase();
-      const cpfDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.cpf).replace(/\D/g, '');
-      const phoneDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.phone).replace(/\D/g, '');
-      const enrollmentNumber = getValue(STUDENT_IMPORT_COLUMN_ALIASES.enrollmentNumber);
+      const cpfDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.cpf).replace(
+        /\D/g,
+        "",
+      );
+      const phoneDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.phone).replace(
+        /\D/g,
+        "",
+      );
+      const enrollmentNumber = getValue(
+        STUDENT_IMPORT_COLUMN_ALIASES.enrollmentNumber,
+      );
       const coursesRaw = getValue(STUDENT_IMPORT_COLUMN_ALIASES.courses);
-      const temporaryPasswordRaw = getValue(STUDENT_IMPORT_COLUMN_ALIASES.temporaryPassword);
-      const courses = coursesRaw ? Array.from(new Set(splitCourses(coursesRaw))) : [];
+      const temporaryPasswordRaw = getValue(
+        STUDENT_IMPORT_COLUMN_ALIASES.temporaryPassword,
+      );
+      const courses = coursesRaw
+        ? Array.from(new Set(splitCourses(coursesRaw)))
+        : [];
 
       // Gerar senha se não fornecida
       let temporaryPassword = temporaryPasswordRaw;
       if (!temporaryPassword && cpfDigits && courses.length > 0) {
         // Usar o primeiro curso para gerar senha padrão
         const primaryCourseName = courses[0];
-        temporaryPassword = generateDefaultPassword(cpfDigits, primaryCourseName);
+        temporaryPassword = generateDefaultPassword(
+          cpfDigits,
+          primaryCourseName,
+        );
       }
 
       const errors: string[] = [];
 
-      if (!fullName) errors.push('Nome completo é obrigatório.');
-      if (!email) errors.push('Email é obrigatório.');
-      if (!cpfDigits || cpfDigits.length !== 11) errors.push('CPF deve ter 11 dígitos.');
-      if (!phoneDigits || phoneDigits.length < 10) errors.push('Telefone deve ter ao menos 10 dígitos.');
-      if (!enrollmentNumber) errors.push('Número de matrícula é obrigatório.');
+      if (!fullName) errors.push("Nome completo é obrigatório.");
+      if (!email) errors.push("Email é obrigatório.");
+      if (!cpfDigits || cpfDigits.length !== 11)
+        errors.push("CPF deve ter 11 dígitos.");
+      if (!phoneDigits || phoneDigits.length < 10)
+        errors.push("Telefone deve ter ao menos 10 dígitos.");
+      if (!enrollmentNumber) errors.push("Número de matrícula é obrigatório.");
       if (!temporaryPassword) {
-        errors.push('Senha temporária é obrigatória.');
+        errors.push("Senha temporária é obrigatória.");
       } else if (temporaryPassword.length < 8) {
-        errors.push('Senha temporária deve ter pelo menos 8 caracteres.');
+        errors.push("Senha temporária deve ter pelo menos 8 caracteres.");
       }
       if (!coursesRaw) {
-        errors.push('Informe pelo menos um curso.');
+        errors.push("Informe pelo menos um curso.");
       } else if (courseNameLookup.size > 0) {
         const invalidCourses = courses.filter(
           (course) => !courseNameLookup.has(course.trim().toLowerCase()),
         );
         if (invalidCourses.length) {
-          errors.push(`Cursos não encontrados: ${invalidCourses.join(', ')}`);
+          errors.push(`Cursos não encontrados: ${invalidCourses.join(", ")}`);
         }
       }
 
@@ -274,8 +316,8 @@ async function postHandler(request: AuthenticatedRequest) {
 
     if (validRows.length === 0) {
       return NextResponse.json(
-        { 
-          error: 'Nenhuma linha válida para importação.',
+        {
+          error: "Nenhuma linha válida para importação.",
           preview: importRows.map((row) => ({
             rowNumber: row.rowNumber,
             email: row.email,
@@ -308,4 +350,3 @@ async function postHandler(request: AuthenticatedRequest) {
 }
 
 export const POST = requireAuth(postHandler);
-

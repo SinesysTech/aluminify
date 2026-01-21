@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 async function postHandler(request: AuthenticatedRequest) {
   if (
     request.user &&
-    request.user.role !== "professor" &&
+    request.user.role !== "usuario" &&
     request.user.role !== "superadmin"
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

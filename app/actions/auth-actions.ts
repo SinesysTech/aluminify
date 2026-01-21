@@ -48,7 +48,7 @@ export async function identifyUserRoleAction(
       case "superadmin":
         redirectUrl = "/admin"; // Or superadmin specific dashboard
         break;
-      case "professor":
+      case "usuario":
         redirectUrl = "/professor/dashboard";
         break;
       case "aluno":
