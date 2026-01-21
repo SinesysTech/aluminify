@@ -18,6 +18,7 @@ import { createClient } from '@/lib/client';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';
+import { useTenantBrandingOptional } from '@/hooks/use-tenant-branding';
 import type {
   BrandCustomizationState,
   BrandCustomizationPanelProps,
@@ -46,6 +47,9 @@ export function BrandCustomizationPanel({
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Get branding context for refresh and cross-tab sync
+  const brandingContext = useTenantBrandingOptional();
 
   const getAuthHeaders = async (): Promise<Record<string, string>> => {
     const supabase = createClient();
@@ -120,6 +124,12 @@ export function BrandCustomizationPanel({
         }
       }));
 
+      // Refresh branding context to propagate changes to all components (sidebar, etc.)
+      if (brandingContext) {
+        await brandingContext.refreshBranding();
+        brandingContext.triggerCrossTabUpdate();
+      }
+
       return { success: true, logoUrl: data.logoUrl };
     } catch (error) {
       return {
@@ -127,7 +137,7 @@ export function BrandCustomizationPanel({
         error: error instanceof Error ? error.message : 'Falha no upload do logo'
       };
     }
-  }, [empresaId]);
+  }, [empresaId, brandingContext]);
 
   const handleLogoRemove = useCallback(async (type: LogoType): Promise<void> => {
     try {
@@ -147,11 +157,17 @@ export function BrandCustomizationPanel({
         delete newLogos[type];
         return { ...prev, logos: newLogos };
       });
+
+      // Refresh branding context to propagate changes to all components
+      if (brandingContext) {
+        await brandingContext.refreshBranding();
+        brandingContext.triggerCrossTabUpdate();
+      }
     } catch (error) {
       console.error('Removal failed:', error);
       throw error;
     }
-  }, [empresaId]);
+  }, [empresaId, brandingContext]);
 
   const handleColorPaletteSave = async (paletteRequest: CreateColorPaletteRequest): Promise<void> => {
     try {

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { StatsCards } from "@/components/financial/stats-cards";
 import { RecentTransactions } from "@/components/financial/recent-transactions";
 import { createFinancialService } from "@/backend/services/financial";
-import type { TransactionStatus } from "@/types/shared/entities/financial";
+import type { TransactionStatus, Provider } from "@/types/shared/entities/financial";
 
 interface TransactionStats {
   totalAmountCents: number;
@@ -32,7 +32,7 @@ export default async function FinanceiroPage() {
     amountCents: number;
     currency: string;
     status: TransactionStatus;
-    provider: string;
+    provider: Provider;
     saleDate: string;
   }> = [];
 

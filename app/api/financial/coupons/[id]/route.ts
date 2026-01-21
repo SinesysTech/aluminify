@@ -56,7 +56,7 @@ async function getHandler(request: AuthenticatedRequest, context?: Record<string
       );
     }
 
-    const { id } = (context as RouteContext).params;
+    const { id } = (context as unknown as RouteContext).params;
 
     const client = getDatabaseClient();
     const repository = createCouponRepository(client);
@@ -102,7 +102,7 @@ async function patchHandler(request: AuthenticatedRequest, context?: Record<stri
       );
     }
 
-    const { id } = (context as RouteContext).params;
+    const { id } = (context as unknown as RouteContext).params;
     const body = await request.json();
 
     const client = getDatabaseClient();
@@ -176,7 +176,7 @@ async function deleteHandler(request: AuthenticatedRequest, context?: Record<str
       );
     }
 
-    const { id } = (context as RouteContext).params;
+    const { id } = (context as unknown as RouteContext).params;
 
     const client = getDatabaseClient();
     const repository = createCouponRepository(client);

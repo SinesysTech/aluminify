@@ -39,9 +39,9 @@ export function NavMain({
   // Prevent hydration mismatch by only rendering collapsible items after mount
   const [mounted, setMounted] = useState(false)
 
-  // Using useLayoutEffect pattern to avoid the lint warning about setState in effects
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Required for hydration safety
+  // Required for hydration safety - must set mounted state after initial render
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

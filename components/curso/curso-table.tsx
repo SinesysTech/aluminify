@@ -13,7 +13,8 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen, Search } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen, Search, Eye, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -130,6 +131,7 @@ const cursoSchema = z.object({
 type CursoFormValues = z.infer<typeof cursoSchema>
 
 export function CursoTable() {
+  const router = useRouter()
   const [data, setData] = React.useState<Curso[]>([])
   const [segmentos, setSegmentos] = React.useState<Segmento[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
@@ -148,6 +150,7 @@ export function CursoTable() {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [deletingCurso, setDeletingCurso] = React.useState<Curso | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [enrollmentCounts, setEnrollmentCounts] = React.useState<Record<string, number>>({})
 
   React.useEffect(() => {
     setMounted(true)
@@ -247,11 +250,23 @@ export function CursoTable() {
     }
   }, [])
 
+  const fetchEnrollmentCounts = React.useCallback(async () => {
+    try {
+      const response = await apiClient.get<{ data: Record<string, number> }>('/api/course/enrollments-count')
+      if (response && 'data' in response) {
+        setEnrollmentCounts(response.data)
+      }
+    } catch (err) {
+      console.error('Error fetching enrollment counts:', err)
+    }
+  }, [])
+
   React.useEffect(() => {
     fetchCursos()
     fetchSegmentos()
     fetchDisciplinas()
-  }, [fetchCursos, fetchSegmentos, fetchDisciplinas])
+    fetchEnrollmentCounts()
+  }, [fetchCursos, fetchSegmentos, fetchDisciplinas, fetchEnrollmentCounts])
 
   const handleCreate = async (values: CursoFormValues) => {
     try {
@@ -413,6 +428,34 @@ export function CursoTable() {
       cell: ({ row }) => <div>{row.getValue('year')}</div>,
     },
     {
+      id: 'enrollmentCount',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Alunos
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const count = enrollmentCounts[row.original.id] || 0
+        return (
+          <div className="flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-zinc-400" />
+            <span className="font-medium">{count}</span>
+          </div>
+        )
+      },
+      sortingFn: (rowA, rowB) => {
+        const countA = enrollmentCounts[rowA.original.id] || 0
+        const countB = enrollmentCounts[rowB.original.id] || 0
+        return countA - countB
+      },
+    },
+    {
       accessorKey: 'createdAt',
       header: ({ column }) => {
         return (
@@ -447,6 +490,10 @@ export function CursoTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push(`/admin/cursos/${curso.id}`)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Visualizar alunos
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleEdit(curso)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Editar
@@ -837,6 +884,10 @@ export function CursoTable() {
                           <Badge variant="outline" className="text-xs">{curso.modality}</Badge>
                           <Badge variant="outline" className="text-xs">{curso.type}</Badge>
                           <Badge variant="outline" className="text-xs">{curso.year}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            <Users className="h-3 w-3 mr-1" />
+                            {enrollmentCounts[curso.id] || 0} alunos
+                          </Badge>
                         </div>
                       </div>
                       <DropdownMenu>
@@ -849,6 +900,10 @@ export function CursoTable() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => router.push(`/admin/cursos/${curso.id}`)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Visualizar alunos
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(curso)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Editar

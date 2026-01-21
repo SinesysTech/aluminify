@@ -64,7 +64,7 @@ const empresaNavItems: NavItem[] = [
   // Funcionalidades do Professor (Superset)
   {
     title: "Cursos",
-    url: "/curso",
+    url: "/admin/cursos",
     icon: BookOpen,
   },
   {
