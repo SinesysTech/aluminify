@@ -14,7 +14,10 @@ stages:
 build-and-push:
   stage: build
   script:
+    # Login GitLab Registry
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    # Login Docker Hub
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
     - |
       docker build \
         --build-arg NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
@@ -23,8 +26,12 @@ build-and-push:
         --build-arg UPSTASH_REDIS_REST_URL=$UPSTASH_REDIS_REST_URL \
         --build-arg UPSTASH_REDIS_REST_TOKEN=$UPSTASH_REDIS_REST_TOKEN \
         -t $CI_REGISTRY_IMAGE:latest \
+        -t $DOCKERHUB_USERNAME/aluminify:latest \
         .
+    # Push para GitLab Registry
     - docker push $CI_REGISTRY_IMAGE:latest
+    # Push para Docker Hub
+    - docker push $DOCKERHUB_USERNAME/aluminify:latest
   only:
     - main
     - master
