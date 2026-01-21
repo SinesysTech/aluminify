@@ -105,15 +105,12 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
 
   // Load empresa context for usuarios (staff) and superadmin
   // First check if user exists in usuarios table (institution staff)
+  // Note: Using separate queries instead of joins to avoid RLS issues with nested joins
   if (role === "usuario" || role === "superadmin" || metadataRole === "professor" || metadataRole === "empresa") {
+    // Query 1: Get usuario data
     const { data: usuarioRow, error: usuarioError } = await supabase
       .from("usuarios")
-      .select(`
-        empresa_id,
-        nome_completo,
-        papeis!inner(tipo, permissoes),
-        empresas!inner(nome, slug)
-      `)
+      .select("empresa_id, nome_completo, papel_id")
       .eq("id", user.id)
       .eq("ativo", true)
       .is("deleted_at", null)
@@ -122,28 +119,43 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     if (!usuarioError && usuarioRow) {
       // User found in usuarios table - they are institution staff
       role = "usuario";
+      empresaId = usuarioRow.empresa_id;
 
-      type UsuarioWithJoins = {
-        empresa_id: string;
-        nome_completo: string;
-        papeis: { tipo: string; permissoes: RolePermissions };
-        empresas: { nome: string; slug: string };
-      };
-      const typedRow = usuarioRow as unknown as UsuarioWithJoins;
+      // Query 2: Get papel data
+      if (usuarioRow.papel_id) {
+        const { data: papelRow } = await supabase
+          .from("papeis")
+          .select("tipo, permissoes")
+          .eq("id", usuarioRow.papel_id)
+          .maybeSingle();
 
-      empresaId = typedRow.empresa_id;
-      empresaNome = typedRow.empresas?.nome ?? undefined;
-      empresaSlug = typedRow.empresas?.slug ?? undefined;
-      roleType = typedRow.papeis?.tipo as RoleTipo;
-      permissions = typedRow.papeis?.permissoes;
-      isEmpresaAdmin = roleType ? isAdminRoleTipo(roleType) : false;
+        if (papelRow) {
+          roleType = papelRow.tipo as RoleTipo;
+          permissions = papelRow.permissoes as RolePermissions;
+          isEmpresaAdmin = roleType ? isAdminRoleTipo(roleType) : false;
+        }
+      }
+
+      // Query 3: Get empresa data
+      if (usuarioRow.empresa_id) {
+        const { data: empresaRow } = await supabase
+          .from("empresas")
+          .select("nome, slug")
+          .eq("id", usuarioRow.empresa_id)
+          .maybeSingle();
+
+        if (empresaRow) {
+          empresaNome = empresaRow.nome ?? undefined;
+          empresaSlug = empresaRow.slug ?? undefined;
+        }
+      }
 
       // Use nome_completo from usuarios table
-      if (typedRow.nome_completo) {
+      if (usuarioRow.nome_completo) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (user.user_metadata as any) = {
           ...(user.user_metadata || {}),
-          full_name: typedRow.nome_completo,
+          full_name: usuarioRow.nome_completo,
         };
       }
 

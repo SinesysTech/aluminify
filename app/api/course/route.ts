@@ -1,14 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import {
   courseService,
   CourseConflictError,
   CourseValidationError,
-} from '@/backend/services/course';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
-import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database';
-import type { Database } from '@/lib/database.types';
+} from "@/backend/services/course";
+import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import {
+  getDatabaseClient,
+  getDatabaseClientAsUser,
+} from "@/backend/clients/database";
 
-const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({
+const serializeCourse = (
+  course: Awaited<ReturnType<typeof courseService.getById>>,
+) => ({
   id: course.id,
   segmentId: course.segmentId,
   disciplineId: course.disciplineId, // Mantido para compatibilidade
@@ -18,8 +22,8 @@ const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById
   type: course.type,
   description: course.description,
   year: course.year,
-  startDate: course.startDate?.toISOString().split('T')[0] ?? null,
-  endDate: course.endDate?.toISOString().split('T')[0] ?? null,
+  startDate: course.startDate?.toISOString().split("T")[0] ?? null,
+  endDate: course.endDate?.toISOString().split("T")[0] ?? null,
   accessMonths: course.accessMonths,
   planningUrl: course.planningUrl,
   coverImageUrl: course.coverImageUrl,
@@ -37,7 +41,7 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
 // GET requer autenticação para respeitar isolamento de tenant via RLS
@@ -46,7 +50,10 @@ async function getHandler(request: AuthenticatedRequest) {
     // Usar cliente com contexto do usuário para respeitar RLS
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({ error: "Token não encontrado" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Token não encontrado" },
+        { status: 401 },
+      );
     }
 
     const client = getDatabaseClientAsUser(token);
@@ -54,7 +61,8 @@ async function getHandler(request: AuthenticatedRequest) {
     // Query cursos com disciplinas associadas
     const { data, error } = await client
       .from("cursos")
-      .select(`
+      .select(
+        `
         id,
         segmento_id,
         disciplina_id,
@@ -71,7 +79,8 @@ async function getHandler(request: AuthenticatedRequest) {
         created_at,
         updated_at,
         cursos_disciplinas (disciplina_id)
-      `)
+      `,
+      )
       .order("nome", { ascending: true });
 
     if (error) {
@@ -83,7 +92,10 @@ async function getHandler(request: AuthenticatedRequest) {
         id: c.id,
         segmentId: c.segmento_id,
         disciplineId: c.disciplina_id,
-        disciplineIds: c.cursos_disciplinas?.map((cd: { disciplina_id: string }) => cd.disciplina_id) || [],
+        disciplineIds:
+          c.cursos_disciplinas?.map(
+            (cd: { disciplina_id: string }) => cd.disciplina_id,
+          ) || [],
         name: c.nome,
         modality: c.modalidade,
         type: c.tipo,
@@ -115,8 +127,13 @@ export const GET = requireAuth(getHandler);
 
 // POST requer autenticação de usuario (JWT ou API Key)
 async function postHandler(request: AuthenticatedRequest) {
-  if (request.user && request.user.role !== 'professor' && request.user.role !== 'usuario' && request.user.role !== 'superadmin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (
+    request.user &&
+    request.user.role !== "professor" &&
+    request.user.role !== "usuario" &&
+    request.user.role !== "superadmin"
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -128,19 +145,25 @@ async function postHandler(request: AuthenticatedRequest) {
     // - API Key: deriva do `createdBy` da API key (que deve ser um usuario)
     let empresaId: string | null = null;
 
-    if (request.user?.role === 'superadmin') {
+    if (request.user?.role === "superadmin") {
       empresaId =
         body?.empresaId ||
-        request.nextUrl?.searchParams?.get('empresa_id') ||
+        request.nextUrl?.searchParams?.get("empresa_id") ||
         null;
 
       if (!empresaId) {
         return NextResponse.json(
-          { error: 'empresaId is required (informe empresaId ao criar curso como superadmin)' },
+          {
+            error:
+              "empresaId is required (informe empresaId ao criar curso como superadmin)",
+          },
           { status: 400 },
         );
       }
-    } else if (request.user?.role === 'professor' || request.user?.role === 'usuario') {
+    } else if (
+      request.user?.role === "professor" ||
+      request.user?.role === "usuario"
+    ) {
       // Preferir empresaId do contexto de auth (já populado pelo middleware)
       empresaId = request.user.empresaId ?? null;
 
@@ -148,11 +171,11 @@ async function postHandler(request: AuthenticatedRequest) {
       if (!empresaId) {
         const adminClient = getDatabaseClient();
         const { data: usuario } = await adminClient
-          .from('usuarios')
-          .select('empresa_id')
-          .eq('id', request.user.id)
-          .eq('ativo', true)
-          .is('deleted_at', null)
+          .from("usuarios")
+          .select("empresa_id")
+          .eq("id", request.user.id)
+          .eq("ativo", true)
+          .is("deleted_at", null)
           .maybeSingle();
 
         empresaId = usuario?.empresa_id ?? null;
@@ -160,25 +183,31 @@ async function postHandler(request: AuthenticatedRequest) {
 
       if (!empresaId) {
         return NextResponse.json(
-          { error: 'empresaId is required (crie/vincule uma empresa antes de cadastrar cursos)' },
+          {
+            error:
+              "empresaId is required (crie/vincule uma empresa antes de cadastrar cursos)",
+          },
           { status: 400 },
         );
       }
     } else if (request.apiKey?.createdBy) {
       const adminClient = getDatabaseClient();
       const { data: usuario } = await adminClient
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', request.apiKey.createdBy)
-        .eq('ativo', true)
-        .is('deleted_at', null)
+        .from("usuarios")
+        .select("empresa_id")
+        .eq("id", request.apiKey.createdBy)
+        .eq("ativo", true)
+        .is("deleted_at", null)
         .maybeSingle();
 
       empresaId = usuario?.empresa_id ?? null;
 
       if (!empresaId) {
         return NextResponse.json(
-          { error: 'empresaId is required (API key não está vinculada a um usuário com empresa)' },
+          {
+            error:
+              "empresaId is required (API key não está vinculada a um usuário com empresa)",
+          },
           { status: 400 },
         );
       }
@@ -186,7 +215,10 @@ async function postHandler(request: AuthenticatedRequest) {
 
     if (!empresaId) {
       return NextResponse.json(
-        { error: 'empresaId is required (não foi possível resolver a empresa do curso)' },
+        {
+          error:
+            "empresaId is required (não foi possível resolver a empresa do curso)",
+        },
         { status: 400 },
       );
     }
@@ -207,11 +239,13 @@ async function postHandler(request: AuthenticatedRequest) {
       planningUrl: body?.planningUrl,
       coverImageUrl: body?.coverImageUrl,
     });
-    return NextResponse.json({ data: serializeCourse(course) }, { status: 201 });
+    return NextResponse.json(
+      { data: serializeCourse(course) },
+      { status: 201 },
+    );
   } catch (error) {
     return handleError(error);
   }
 }
 
 export const POST = requireAuth(postHandler);
-

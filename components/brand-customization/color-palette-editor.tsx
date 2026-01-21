@@ -12,7 +12,6 @@ import {
   Loader2,
   Copy,
   Check,
-  AlertTriangle
 } from 'lucide-react';
 import type {
   ColorPaletteEditorProps,
@@ -272,8 +271,8 @@ function ColorPreview({ colors, className = "" }: ColorPreviewProps) {
 
 export function ColorPaletteEditor({
   currentPalette,
-  onSave,
-  onPreview,
+  _onSave,
+  _onPreview,
   onValidate
 }: ColorPaletteEditorProps) {
   // State management
@@ -301,8 +300,8 @@ export function ColorPaletteEditor({
 
   const [isValidating, setIsValidating] = useState(false);
   const [accessibilityReport, setAccessibilityReport] = useState<AccessibilityReport | null>(null);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [previewMode, setPreviewMode] = useState(false);
+
+
 
   // Preset palettes for quick selection
   const presetPalettes: PresetPalette[] = useMemo(() => [
@@ -410,45 +409,9 @@ export function ColorPaletteEditor({
     }
   }, [currentPalette]);
 
-  // Auto-preview when palette data changes
-  useEffect(() => {
-    if (previewMode) {
-      onPreview(paletteData);
-    }
-  }, [paletteData, previewMode, onPreview]);
 
-  // Validation function
-  const validatePalette = useCallback((): string[] => {
-    const errors: string[] = [];
 
-    if (!paletteData.name.trim()) {
-      errors.push('Nome da paleta é obrigatório');
-    }
 
-    if (paletteData.name.length > 100) {
-      errors.push('Nome da paleta deve ter menos de 100 caracteres');
-    }
-
-    // Validate all color fields are valid hex colors
-    const colorFields = [
-      'primaryColor', 'primaryForeground', 'secondaryColor', 'secondaryForeground',
-      'accentColor', 'accentForeground', 'mutedColor', 'mutedForeground',
-      'backgroundColor', 'foregroundColor', 'cardColor', 'cardForeground',
-      'destructiveColor', 'destructiveForeground', 'sidebarBackground',
-      'sidebarForeground', 'sidebarPrimary', 'sidebarPrimaryForeground'
-    ];
-
-    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-
-    for (const field of colorFields) {
-      const value = paletteData[field as keyof CreateColorPaletteRequest] as string;
-      if (!hexRegex.test(value)) {
-        errors.push(`${field.replace(/([A-Z])/g, ' $1').toLowerCase()} deve ser uma cor hexadecimal válida`);
-      }
-    }
-
-    return errors;
-  }, [paletteData]);
 
   // Handle palette data updates
   const updatePaletteData = useCallback((field: keyof CreateColorPaletteRequest, value: string) => {
@@ -489,41 +452,11 @@ export function ColorPaletteEditor({
     }
   }, [paletteData, onValidate]);
 
-  // Toggle preview mode
-  const togglePreview = useCallback(() => {
-    setPreviewMode(prev => {
-      const newPreviewMode = !prev;
-      if (newPreviewMode) {
-        onPreview(paletteData);
-      }
-      return newPreviewMode;
-    });
-  }, [paletteData, onPreview]);
 
-  // Save palette (calls parent onSave)
-  const savePalette = useCallback(async () => {
-    const errors = validatePalette();
-    setValidationErrors(errors);
-    if (errors.length === 0) {
-      await onSave(paletteData);
-    }
-  }, [paletteData, onSave, validatePalette]);
 
   return (
     <div className="space-y-6">
-      {/* Validation Errors */}
-      {validationErrors.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div className="space-y-1">
-              {validationErrors.map((error, index) => (
-                <div key={index} className="text-sm">• {error}</div>
-              ))}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Preset Palettes - Quick Selection */}
       <div className="flex flex-wrap gap-2">

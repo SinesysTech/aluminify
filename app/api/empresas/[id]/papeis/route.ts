@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/server";
 import { PapelRepositoryImpl } from "@/backend/services/papel";
-import { getAuthUser, requirePermission } from "@/backend/auth/middleware";
+import { getAuthUser } from "@/backend/auth/middleware";
 import {
   getEmpresaContext,
   validateEmpresaAccess,
@@ -41,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     console.error("Error listing papeis:", error);
     return NextResponse.json(
       { error: "Erro ao listar papéis" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!user.isSuperAdmin && !user.isAdmin) {
       return NextResponse.json(
         { error: "Apenas administradores podem criar papéis customizados" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -80,7 +79,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!nome || !tipo || !permissoes) {
       return NextResponse.json(
         { error: "nome, tipo e permissoes são obrigatórios" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 

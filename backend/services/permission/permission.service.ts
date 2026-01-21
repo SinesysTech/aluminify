@@ -12,9 +12,8 @@ import type {
   ResourcePermissions,
   SimplePermissions,
   RoleTipo,
-  ADMIN_ROLES,
-  TEACHING_ROLES,
 } from "@/types/shared/entities/papel";
+import { ADMIN_ROLES, TEACHING_ROLES } from "@/types/shared/entities/papel";
 
 // Resource names that map to RolePermissions keys
 export type ResourceName = keyof RolePermissions;
@@ -42,7 +41,7 @@ export interface PermissionService {
   canAccess(
     context: PermissionContext,
     resource: ResourceName,
-    action: ResourceAction | SimpleAction
+    action: ResourceAction | SimpleAction,
   ): boolean;
 
   canView(context: PermissionContext, resource: ResourceName): boolean;
@@ -70,7 +69,7 @@ export class PermissionServiceImpl implements PermissionService {
   canAccess(
     context: PermissionContext,
     resource: ResourceName,
-    action: ResourceAction | SimpleAction
+    action: ResourceAction | SimpleAction,
   ): boolean {
     const resourcePermissions = context.permissions[resource];
 
@@ -122,16 +121,14 @@ export class PermissionServiceImpl implements PermissionService {
    * Check if user has admin role
    */
   isAdmin(context: PermissionContext): boolean {
-    const adminRoles: RoleTipo[] = ["admin", "professor_admin"];
-    return adminRoles.includes(context.roleTipo);
+    return ADMIN_ROLES.includes(context.roleTipo);
   }
 
   /**
    * Check if user has a teaching role (can have disciplinas)
    */
   isTeachingRole(context: PermissionContext): boolean {
-    const teachingRoles: RoleTipo[] = ["professor", "professor_admin", "monitor"];
-    return teachingRoles.includes(context.roleTipo);
+    return TEACHING_ROLES.includes(context.roleTipo);
   }
 
   /**
@@ -235,7 +232,7 @@ export class PermissionServiceImpl implements PermissionService {
 export function hasPermission(
   permissions: RolePermissions,
   resource: ResourceName,
-  action: ResourceAction | SimpleAction
+  action: ResourceAction | SimpleAction,
 ): boolean {
   const resourcePermissions = permissions[resource];
 
@@ -261,13 +258,17 @@ export function isAdminRole(tipo: RoleTipo): boolean {
  * Check if a role type is a teaching role
  */
 export function isTeachingRole(tipo: RoleTipo): boolean {
-  return tipo === "professor" || tipo === "professor_admin" || tipo === "monitor";
+  return (
+    tipo === "professor" || tipo === "professor_admin" || tipo === "monitor"
+  );
 }
 
 /**
  * Get all resources a user can view
  */
-export function getViewableResources(permissions: RolePermissions): ResourceName[] {
+export function getViewableResources(
+  permissions: RolePermissions,
+): ResourceName[] {
   const resources: ResourceName[] = [];
 
   for (const [key, value] of Object.entries(permissions)) {
@@ -286,7 +287,7 @@ export function getViewableResources(permissions: RolePermissions): ResourceName
  */
 export function mergePermissions(
   base: RolePermissions,
-  overrides: Partial<RolePermissions>
+  overrides: Partial<RolePermissions>,
 ): RolePermissions {
   const result = { ...base };
 
