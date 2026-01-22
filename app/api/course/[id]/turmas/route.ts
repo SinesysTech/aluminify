@@ -3,7 +3,7 @@ import { createClient } from '@/lib/server';
 import { createStudentTransferService } from '@/backend/services/student';
 
 interface RouteContext {
-  params: Promise<{ courseId: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: NextRequest, context: RouteContext) {
@@ -18,7 +18,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { courseId } = await context.params;
+    const { id: courseId } = await context.params;
 
     if (!courseId) {
       return NextResponse.json(
