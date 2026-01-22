@@ -1,161 +1,174 @@
 # Design: Transferencia em Massa de Alunos
 
-## Context
-
-O sistema Aluminify possui estrutura hierarquica para gestao de alunos:
-
-```
-Empresa (Tenant)
-├── Cursos (com empresa_id)
-│   └── Turmas (opcional, com curso_id)
-├── Alunos (com empresa_id)
-│   ├── alunos_cursos (N:N - aluno vinculado ao curso)
-│   └── alunos_turmas (N:N - aluno vinculado a turma, com status)
-└── Matriculas (registro detalhado com datas de acesso)
-```
-
-### Niveis de Encapsulamento
-1. **Nivel 1**: Organizacao trabalha so com cursos (curso = turma)
-2. **Nivel 2**: Organizacao trabalha com cursos + turmas
-
-## Goals / Non-Goals
-
-### Goals
-- Permitir selecao em massa de alunos (10, 20, 30, todos)
-- Transferir multiplos alunos entre cursos de forma atomica
-- Transferir multiplos alunos entre turmas do mesmo curso
-- Fornecer feedback detalhado do resultado (sucesso/falha por aluno)
-- Manter isolamento multi-tenant via RLS existente
-
-### Non-Goals
-- Transferencia entre organizacoes (empresas diferentes)
-- Transferencia automatica baseada em regras
-- Historico detalhado de transferencias (audit log)
-- Notificacoes automaticas aos alunos transferidos
-
-## Decisions
+## Decisoes Tecnicas
 
 ### 1. Processamento em Batch
+- Transferencias serao processadas em lotes de 10 alunos
+- Segue o padrao existente em `student-import.service.ts`
+- Permite feedback de progresso e evita timeouts
 
-**Decisao**: Processar transferencias em lotes de 10 alunos.
+### 2. Isolamento Multi-tenant
+- RLS existente ja garante isolamento via `empresa_id`
+- Todas as queries usam o cliente Supabase autenticado (nao admin)
+- Nenhuma policy adicional necessaria
 
-**Razao**: Seguir padrao existente em `student-import.service.ts` que ja usa batches para evitar timeouts e garantir atomicidade parcial.
+### 3. Schema do Banco
+- **Sem alteracoes de schema** - usar tabelas existentes:
+  - `alunos_cursos` para link aluno-curso
+  - `alunos_turmas` para link aluno-turma (ja implementado)
+  - `matriculas` para dados de matricula (opcional)
 
-### 2. Usar Tabelas Existentes
-
-**Decisao**: Nao criar novas tabelas. Usar `alunos_cursos` e `alunos_turmas` existentes.
-
-**Razao**: Estrutura ja suporta o caso de uso. Adicionar tabelas seria over-engineering.
-
-### 3. Status Configuravel para Turma Origem
-
-**Decisao**: Permitir escolher status do registro antigo em `alunos_turmas`: `concluido`, `cancelado`, ou `trancado`.
-
-**Razao**: Diferentes cenarios de negocio requerem diferentes status (transferencia planejada vs. urgente vs. administrativa).
-
-### 4. RLS para Isolamento
-
-**Decisao**: Usar cliente Supabase autenticado (nao admin) para operacoes.
-
-**Razao**: RLS existente em `alunos`, `cursos`, `turmas`, `alunos_cursos`, `alunos_turmas` ja garante isolamento por `empresa_id`. Nenhuma policy nova necessaria.
-
-### 5. Resposta Multi-Status
-
-**Decisao**: Retornar resultado detalhado por aluno, mesmo em caso de falha parcial.
-
-```typescript
-interface BulkTransferResult {
-  total: number;
-  success: number;
-  failed: number;
-  results: {
-    studentId: string;
-    status: 'success' | 'failed' | 'skipped';
-    message?: string;
-  }[];
-}
-```
-
-**Razao**: Admin precisa saber exatamente quais alunos foram transferidos e quais falharam para tomar acoes corretivas.
+### 4. Status de Transferencia de Turma
+- Ao transferir de turma, o registro antigo recebe status configuravel:
+  - `concluido` (padrao) - aluno concluiu periodo na turma
+  - `cancelado` - transferencia por cancelamento
+  - `trancado` - transferencia por trancamento
 
 ## Fluxo de Transferencia
 
 ```
 Usuario seleciona alunos na tabela
-         │
-         ▼
+         |
+         v
 Clica em "Transferir" na barra de acoes
-         │
-         ▼
+         |
+         v
 Dialog abre com opcoes:
-├── Tipo: Curso ou Turma
-├── Destino: Lista de cursos/turmas disponiveis
-└── Status origem (se turma): concluido/cancelado/trancado
-         │
-         ▼
+- Tipo: Curso ou Turma
+- Destino: Lista de cursos/turmas disponiveis
+         |
+         v
 Usuario confirma transferencia
-         │
-         ▼
+         |
+         v
 API processa em batches de 10
-         │
-         ▼
-Retorna resultado detalhado
-         │
-         ▼
-UI exibe resumo e atualiza lista
+         |
+         v
+Retorna resultado detalhado:
+- Total processados
+- Sucessos
+- Falhas com motivo
+- Pulados (ja no destino)
 ```
 
-## Risks / Trade-offs
+## Estrutura de Arquivos
 
-| Risco | Mitigacao |
-|-------|-----------|
-| Timeout em transferencias grandes (100+ alunos) | Processamento em batches de 10 |
-| Falha parcial deixa dados inconsistentes | Transacao por batch, resultado detalhado |
-| Usuario seleciona alunos errados | Confirmacao com lista de nomes antes de executar |
-| Transferencia para turma de outro curso | Validacao no backend antes de executar |
+### Backend
 
-## API Schemas
+```
+backend/services/student/
+├── student-transfer.types.ts      # Tipos e interfaces
+├── student-transfer.repository.ts # Operacoes de banco
+├── student-transfer.service.ts    # Logica de negocio
+└── index.ts                       # Re-exports
+```
+
+### API Routes
+
+```
+app/api/student/
+├── bulk-transfer/
+│   ├── course/
+│   │   └── route.ts    # POST - transferir entre cursos
+│   └── turma/
+│       └── route.ts    # POST - transferir entre turmas
+├── by-course/
+│   └── [courseId]/
+│       └── route.ts    # GET - listar alunos do curso
+└── by-turma/
+    └── [turmaId]/
+        └── route.ts    # GET - listar alunos da turma
+
+app/api/course/
+└── [courseId]/
+    └── turmas/
+        └── route.ts    # GET - listar turmas do curso
+```
+
+### UI Components
+
+```
+components/aluno/
+├── aluno-table.tsx              # Modificar: adicionar selecao
+├── bulk-actions-bar.tsx         # Novo: barra de acoes em massa
+└── transfer-students-dialog.tsx # Novo: dialog de transferencia
+```
+
+## Schemas de API
 
 ### POST /api/student/bulk-transfer/course
 
+**Request:**
 ```typescript
-// Request
-interface BulkTransferCourseRequest {
-  studentIds: string[];           // Max 100
-  sourceCourseId: string;
-  targetCourseId: string;
+{
+  studentIds: string[];           // UUIDs dos alunos (max 100)
+  sourceCourseId: string;         // Curso de origem
+  targetCourseId: string;         // Curso de destino
   options?: {
-    preserveEnrollmentDates?: boolean;
-    updateMatriculas?: boolean;
-  };
+    preserveEnrollmentDates?: boolean;  // Manter datas originais
+    updateMatriculas?: boolean;         // Atualizar tabela matriculas
+  }
 }
+```
 
-// Response: BulkTransferResult
+**Response:**
+```typescript
+{
+  total: number;
+  success: number;
+  failed: number;
+  results: {
+    studentId: string;
+    studentName: string;
+    status: 'success' | 'failed' | 'skipped';
+    message?: string;
+  }[]
+}
 ```
 
 ### POST /api/student/bulk-transfer/turma
 
+**Request:**
 ```typescript
-// Request
-interface BulkTransferTurmaRequest {
-  studentIds: string[];           // Max 100
-  sourceTurmaId: string;
-  targetTurmaId: string;          // Must be same course
+{
+  studentIds: string[];           // UUIDs dos alunos (max 100)
+  sourceTurmaId: string;          // Turma de origem
+  targetTurmaId: string;          // Turma de destino (mesmo curso)
   sourceStatusOnTransfer?: 'concluido' | 'cancelado' | 'trancado';
 }
-
-// Response: BulkTransferResult
 ```
 
-## Migration Plan
+**Response:** Mesmo schema do endpoint de curso
 
-Nenhuma migracao necessaria. Alteracoes sao puramente aditivas:
-- Novos arquivos de servico/repositorio
-- Novos endpoints de API
-- Novos componentes de UI
+## Tratamento de Erros
 
-**Rollback**: Remover arquivos criados. Nenhum dado afetado.
+| Cenario | HTTP Status | Mensagem |
+|---------|-------------|----------|
+| Nenhum aluno selecionado | 400 | "Selecione pelo menos um aluno" |
+| Origem e destino iguais | 400 | "Origem e destino devem ser diferentes" |
+| Aluno nao esta na origem | 400 | "Aluno {nome} nao esta matriculado no curso/turma de origem" |
+| Curso/turma nao encontrado | 404 | "Curso/Turma de destino nao encontrado" |
+| Turmas de cursos diferentes | 400 | "As turmas devem pertencer ao mesmo curso" |
+| Limite excedido | 400 | "Maximo de 100 alunos por transferencia" |
+| Falha parcial | 207 | Multi-status com resultados individuais |
 
-## Open Questions
+## Consideracoes de Performance
 
-Nenhuma questao aberta - requisitos foram clarificados com o usuario.
+1. **Limite de 100 alunos por request** - evita sobrecarga
+2. **Batches de 10** - permite feedback e evita locks longos
+3. **Transacoes por batch** - rollback granular em caso de falha
+4. **Indices existentes** - `alunos_cursos` e `alunos_turmas` ja tem PKs compostas
+
+## Alternativas Consideradas
+
+### 1. Transferencia sincrona vs assincrona
+**Escolhido:** Sincrono com batches
+**Motivo:** Simplicidade e feedback imediato. Para volumes maiores (1000+), considerar jobs assincronos no futuro.
+
+### 2. Soft delete vs update de registros
+**Escolhido:** Update de status para turmas, delete+insert para cursos
+**Motivo:** Manter historico de turmas (status tracking), mas `alunos_cursos` nao tem campo de status.
+
+### 3. Modal vs pagina dedicada
+**Escolhido:** Dialog/Modal
+**Motivo:** Fluxo mais rapido, nao precisa navegar para outra pagina.

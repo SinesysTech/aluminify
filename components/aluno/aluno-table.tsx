@@ -12,8 +12,9 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  RowSelectionState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, FileDown, Eye, Search } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, FileDown, Eye, Search, ChevronDown } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -70,6 +71,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
 import { formatBRPhone, formatCPF, isValidBRPhone, isValidCPF } from '@/lib/br'
+import { BulkActionsBar } from './bulk-actions-bar'
+import { TransferStudentsDialog } from './transfer-students-dialog'
 
 export type CourseOption = {
   id: string
@@ -179,6 +182,10 @@ export function AlunoTable() {
   const [importSummary, setImportSummary] = React.useState<StudentImportApiSummary | null>(null)
   const [importLoading, setImportLoading] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+
+  // Selection and transfer states
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
+  const [transferDialogOpen, setTransferDialogOpen] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
@@ -634,6 +641,28 @@ export function AlunoTable() {
 
   const columns: ColumnDef<Aluno>[] = [
     {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Selecionar todos"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Selecionar linha"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: 'fullName',
       header: ({ column }) => {
         return (
@@ -785,12 +814,38 @@ export function AlunoTable() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      rowSelection,
     },
   })
+
+  // Get selected students
+  const selectedStudents = React.useMemo(() => {
+    return table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+  }, [table, rowSelection])
+
+  // Selection helpers
+  const selectN = (n: number) => {
+    const rows = table.getFilteredRowModel().rows.slice(0, n)
+    const newSelection: RowSelectionState = {}
+    rows.forEach((row) => {
+      newSelection[row.id] = true
+    })
+    setRowSelection(newSelection)
+  }
+
+  const clearSelection = () => {
+    setRowSelection({})
+  }
+
+  const handleTransferComplete = () => {
+    clearSelection()
+    fetchAlunos()
+  }
 
   return (
     <div className="flex flex-col gap-8 h-full pb-10">
@@ -1209,6 +1264,32 @@ export function AlunoTable() {
             }}
           />
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-10">
+              Selecionar
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => selectN(10)}>
+              10 primeiros
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => selectN(20)}>
+              20 primeiros
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => selectN(30)}>
+              30 primeiros
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => table.toggleAllRowsSelected(true)}>
+              Selecionar todos ({data.length})
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={clearSelection}>
+              Limpar selecao
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {loading ? (
@@ -1691,6 +1772,22 @@ export function AlunoTable() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedStudents.length}
+        onTransfer={() => setTransferDialogOpen(true)}
+        onClearSelection={clearSelection}
+      />
+
+      {/* Transfer Students Dialog */}
+      <TransferStudentsDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        selectedStudents={selectedStudents}
+        courses={courseOptions}
+        onTransferComplete={handleTransferComplete}
+      />
     </div>
   )
 }

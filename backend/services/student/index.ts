@@ -3,6 +3,8 @@ import { getDatabaseClient } from '@/backend/clients/database';
 import { StudentRepositoryImpl } from './student.repository';
 import { StudentService } from './student.service';
 import { StudentImportService } from './student-import.service';
+import { StudentTransferRepositoryImpl } from './student-transfer.repository';
+import { StudentTransferService } from './student-transfer.service';
 
 /**
  * Factory function para criar StudentService com cliente Supabase específico.
@@ -26,6 +28,18 @@ export function createStudentService(client: SupabaseClient): StudentService {
 export function createStudentImportService(client: SupabaseClient): StudentImportService {
   const studentService = createStudentService(client);
   return new StudentImportService(studentService);
+}
+
+/**
+ * Factory function para criar StudentTransferService com cliente Supabase específico.
+ * Use esta função para operações de transferência em massa de alunos.
+ *
+ * @param client - Cliente Supabase com contexto do usuário autenticado
+ * @returns Instância de StudentTransferService que respeita RLS
+ */
+export function createStudentTransferService(client: SupabaseClient): StudentTransferService {
+  const repository = new StudentTransferRepositoryImpl(client);
+  return new StudentTransferService(repository);
 }
 
 // === ADMIN SERVICES (bypassa RLS - usar apenas em contextos seguros) ===
@@ -82,4 +96,7 @@ export * from './student.service';
 export * from './student.repository';
 export * from './errors';
 export * from './student-import.service';
+export * from './student-transfer.types';
+export * from './student-transfer.repository';
+export * from './student-transfer.service';
 
