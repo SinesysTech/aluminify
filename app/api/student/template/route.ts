@@ -4,8 +4,8 @@ import { StudentTemplateService } from '@/backend/services/student/student-templ
 
 export async function GET() {
   try {
-    // Apenas admins e superadmins podem baixar o template
-    await requireUser({ allowedRoles: ['admin', 'superadmin'] });
+    // Apenas superadmins podem baixar o template
+    await requireUser({ allowedRoles: ['superadmin'] });
 
     const templateService = new StudentTemplateService();
     const buffer = await templateService.generateTemplate();
