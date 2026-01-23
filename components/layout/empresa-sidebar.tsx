@@ -52,6 +52,16 @@ const empresaNavItems: NavItem[] = [
     icon: Users,
   },
   {
+    title: "Equipe",
+    url: "/admin/empresa/usuarios",
+    icon: Users,
+  },
+  {
+    title: "Papéis",
+    url: "/admin/empresa/papeis",
+    icon: Shield,
+  },
+  {
     title: "Financeiro",
     url: "/admin/financeiro",
     icon: DollarSign,
