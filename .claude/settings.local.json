@@ -32,7 +32,10 @@
       "Bash(docker build:*)",
       "Bash(git log:*)",
       "Bash(git fetch:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm view:*)",
+      "Bash(npm install)"
     ],
     "deny": [],
     "ask": []
