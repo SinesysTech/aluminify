@@ -22,6 +22,7 @@ import { getDatabaseClient } from "@/backend/clients/database";
 import type { AppUser, AppUserRole } from "@/types/user";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
 import { getImpersonationContext } from "@/lib/auth-impersonate";
+import { getDefaultRouteForRole } from "@/lib/roles";
 
 type LegacyAppUserRole = "professor" | "empresa";
 
@@ -52,8 +53,8 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
   const metadataRole =
     isImpersonating && impersonationContext
       ? impersonationContext.impersonatedUserRole
-      : ((user.user_metadata?.role as AppUserRole | LegacyAppUserRole) ||
-          "aluno");
+      : (user.user_metadata?.role as AppUserRole | LegacyAppUserRole) ||
+        "aluno";
 
   // Back-compat: map legacy roles to the unified staff role ("usuario")
   let role: AppUserRole =

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Building2, Check, ChevronDown, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -89,10 +90,12 @@ export function OrganizationSwitcher({
           {activeOrganization ? (
             <>
               {activeOrganization.logoUrl ? (
-                <img
+                <Image
                   src={activeOrganization.logoUrl}
                   alt=""
-                  className="h-4 w-4 rounded object-contain"
+                  width={16}
+                  height={16}
+                  className="rounded object-contain"
                 />
               ) : (
                 <Building2 className="h-4 w-4" />
@@ -124,10 +127,12 @@ export function OrganizationSwitcher({
           {activeOrganization ? (
             <>
               {activeOrganization.logoUrl ? (
-                <img
+                <Image
                   src={activeOrganization.logoUrl}
                   alt=""
-                  className="h-5 w-5 rounded object-contain shrink-0"
+                  width={20}
+                  height={20}
+                  className="rounded object-contain shrink-0"
                 />
               ) : (
                 <Building2 className="h-5 w-5 shrink-0 text-muted-foreground" />
@@ -191,10 +196,12 @@ export function OrganizationSwitcher({
           >
             <div className="flex items-center gap-2 min-w-0">
               {org.logoUrl ? (
-                <img
+                <Image
                   src={org.logoUrl}
                   alt=""
-                  className="h-5 w-5 rounded object-contain shrink-0"
+                  width={20}
+                  height={20}
+                  className="rounded object-contain shrink-0"
                 />
               ) : (
                 <Building2 className="h-5 w-5 shrink-0 text-muted-foreground" />
@@ -235,10 +242,12 @@ export function OrganizationBadge({
       )}
     >
       {organization.logoUrl ? (
-        <img
+        <Image
           src={organization.logoUrl}
           alt=""
-          className="h-3 w-3 rounded object-contain"
+          width={12}
+          height={12}
+          className="rounded object-contain"
         />
       ) : (
         <Building2 className="h-3 w-3" />
