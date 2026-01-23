@@ -538,30 +538,34 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         },
         (payload) => {
           console.log('[Realtime Dashboard] Mudança detectada em cronograma_itens:', payload)
-          
+
           interface CronogramaItemUpdate {
             id: string;
             concluido: boolean;
             data_conclusao: string | null;
             [key: string]: unknown;
           }
-          // Recarregar o item específico que mudou
-          if (cronograma && payload.new) {
+          // Recarregar o item específico que mudou - usando setCronograma com callback para evitar dependência de cronograma
+          if (payload.new) {
             const updatedItem = payload.new as CronogramaItemUpdate
-            const updatedItems = cronograma.cronograma_itens.map((item) =>
-              item.id === updatedItem.id
-                ? { ...item, concluido: updatedItem.concluido, data_conclusao: updatedItem.data_conclusao }
-                : item
-            )
-            setCronograma({ ...cronograma, cronograma_itens: updatedItems })
+            setCronograma((prev) => {
+              if (!prev) return prev
+              const updatedItems = prev.cronograma_itens.map((item) =>
+                item.id === updatedItem.id
+                  ? { ...item, concluido: updatedItem.concluido, data_conclusao: updatedItem.data_conclusao }
+                  : item
+              )
+              return { ...prev, cronograma_itens: updatedItems }
+            })
           } else if (payload.eventType === 'DELETE' && payload.old) {
             // Remover item deletado
             const deletedItem = payload.old as { id: string; [key: string]: unknown }
             const deletedId = deletedItem.id
-            const updatedItems = cronograma?.cronograma_itens.filter((item) => item.id !== deletedId) || []
-            if (cronograma) {
-              setCronograma({ ...cronograma, cronograma_itens: updatedItems })
-            }
+            setCronograma((prev) => {
+              if (!prev) return prev
+              const updatedItems = prev.cronograma_itens.filter((item) => item.id !== deletedId)
+              return { ...prev, cronograma_itens: updatedItems }
+            })
           }
         }
       )
@@ -570,7 +574,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [cronogramaId, cronograma])
+  }, [cronogramaId])
 
   const toggleConcluido = async (itemId: string, concluido: boolean) => {
     const supabase = createClient()
