@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function LandingPage() {
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased selection:bg-gray-200 dark:selection:bg-gray-700 transition-colors duration-200">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased selection:bg-gray-200 dark:selection:bg-gray-700 transition-colors duration-200 overflow-x-hidden">
             <div className="fixed inset-0 pointer-events-none z-0">
                 <div className="absolute inset-0 bg-(image:--color-grid-pattern) dark:bg-(image:--color-grid-pattern-dark) opacity-[0.3] grid-bg"></div>
             </div>
@@ -12,41 +12,39 @@ export function LandingPage() {
             <nav className="sticky top-0 z-50 w-full border-b border-border-light/60 dark:border-border-dark/60 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
-                        <div className="flex items-center gap-8">
-                            <Link className="flex items-center gap-2" href="/">
-                                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold font-display text-xl">
-                                    A
-                                </div>
-                                <span className="font-display font-bold text-lg tracking-tight">
-                                    Aluminify
-                                </span>
-                            </Link>
-                            <div className="hidden md:flex gap-6 text-sm font-medium text-text-muted-light dark:text-text-muted-dark">
-                                <a
-                                    className="hover:text-primary dark:hover:text-white transition-colors"
-                                    href="/features.html"
-                                >
-                                    Produto
-                                </a>
-                                <a
-                                    className="hover:text-primary dark:hover:text-white transition-colors"
-                                    href="/open-source.html"
-                                >
-                                    Open Source
-                                </a>
-                                <a
-                                    className="hover:text-primary dark:hover:text-white transition-colors"
-                                    href="/pricing.html"
-                                >
-                                    Preços
-                                </a>
-                                <a
-                                    className="hover:text-primary dark:hover:text-white transition-colors"
-                                    href="/docs.html"
-                                >
-                                    Docs
-                                </a>
+                        <Link className="flex items-center gap-2" href="/">
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold font-display text-xl">
+                                A
                             </div>
+                            <span className="font-display font-bold text-lg tracking-tight">
+                                Aluminify
+                            </span>
+                        </Link>
+                        <div className="hidden md:flex gap-6 text-sm font-medium text-text-muted-light dark:text-text-muted-dark absolute left-1/2 -translate-x-1/2">
+                            <a
+                                className="hover:text-primary dark:hover:text-white transition-colors"
+                                href="/features.html"
+                            >
+                                Produto
+                            </a>
+                            <a
+                                className="hover:text-primary dark:hover:text-white transition-colors"
+                                href="/open-source.html"
+                            >
+                                Open Source
+                            </a>
+                            <a
+                                className="hover:text-primary dark:hover:text-white transition-colors"
+                                href="/pricing.html"
+                            >
+                                Preços
+                            </a>
+                            <a
+                                className="hover:text-primary dark:hover:text-white transition-colors"
+                                href="/docs.html"
+                            >
+                                Docs
+                            </a>
                         </div>
                         <div className="flex items-center gap-4">
                             <Link
@@ -512,7 +510,7 @@ export function LandingPage() {
                     </div>
                 </section>
 
-                <section className="py-24 bg-background-light dark:bg-background-dark">
+                <section className="py-24 bg-background-light dark:bg-background-dark overflow-x-hidden">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
@@ -551,7 +549,7 @@ export function LandingPage() {
                                     </tr>
 
                                     <tr
-                                        className="bg-blue-50/30 dark:bg-blue-900/10 border-2 border-blue-500 shadow-md relative z-10 cursor-pointer transform scale-[1.01] transition-transform"
+                                        className="bg-blue-50/30 dark:bg-blue-900/10 border-2 border-blue-500 shadow-md relative z-10 cursor-pointer transition-colors"
                                         onClick={() => (window.location.href = "/pricing.html")}
                                     >
                                         <td className="py-6 px-6 font-bold text-lg text-primary dark:text-white flex items-center gap-2">

@@ -43,7 +43,8 @@ export class DisciplineService {
   async create(payload: CreateDisciplineInput): Promise<Discipline> {
     const name = this.validateName(payload.name);
 
-    const existing = await this.repository.findByName(name);
+    // Check for duplicate within the same tenant (empresa)
+    const existing = await this.repository.findByName(name, payload.empresaId);
     if (existing) {
       throw new DisciplineConflictError(`Discipline "${name}" already exists`);
     }
@@ -72,12 +73,13 @@ export class DisciplineService {
     }
 
     const name = this.validateName(payload.name);
-    const existing = await this.repository.findByName(name);
+    // Check for duplicate within the same tenant (empresa)
+    const existing = await this.repository.findByName(name, payload.empresaId);
     if (existing && existing.id !== id) {
       throw new DisciplineConflictError(`Discipline "${name}" already exists`);
     }
 
-    const discipline = await this.repository.update(id, { name });
+    const discipline = await this.repository.update(id, { name, empresaId: payload.empresaId });
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =

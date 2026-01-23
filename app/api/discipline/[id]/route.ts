@@ -49,8 +49,15 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 // PUT requer autenticação (JWT ou API Key) - RLS verifica se é o criador ou superadmin
 async function putHandler(request: AuthenticatedRequest, params: { id: string }) {
   try {
+    if (!request.user?.empresaId) {
+      return NextResponse.json({ error: 'empresaId é obrigatório' }, { status: 400 });
+    }
+
     const body = await request.json();
-    const discipline = await disciplineService.update(params.id, { name: body?.name });
+    const discipline = await disciplineService.update(params.id, {
+      name: body?.name,
+      empresaId: request.user.empresaId,
+    });
     return NextResponse.json({ data: serializeDiscipline(discipline) });
   } catch (error) {
     return handleError(error);

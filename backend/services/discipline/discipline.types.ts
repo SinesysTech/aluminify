@@ -13,4 +13,5 @@ export interface CreateDisciplineInput {
 
 export interface UpdateDisciplineInput {
   name?: string;
+  empresaId: string;
 }

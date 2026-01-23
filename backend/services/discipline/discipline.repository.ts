@@ -18,7 +18,7 @@ export interface PaginatedResult<T> {
 export interface DisciplineRepository {
   list(params?: PaginationParams): Promise<PaginatedResult<Discipline>>;
   findById(id: string): Promise<Discipline | null>;
-  findByName(name: string): Promise<Discipline | null>;
+  findByName(name: string, empresaId: string): Promise<Discipline | null>;
   create(payload: CreateDisciplineInput): Promise<Discipline>;
   update(id: string, payload: UpdateDisciplineInput): Promise<Discipline>;
   delete(id: string): Promise<void>;
@@ -100,11 +100,12 @@ export class DisciplineRepositoryImpl implements DisciplineRepository {
     return data ? mapRow(data) : null;
   }
 
-  async findByName(name: string): Promise<Discipline | null> {
+  async findByName(name: string, empresaId: string): Promise<Discipline | null> {
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("nome", name)
+      .eq("empresa_id", empresaId)
       .maybeSingle();
 
     if (error) {
