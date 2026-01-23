@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,6 +22,28 @@ export default function CronogramaClientPage() {
   const [cronogramaId, setCronogramaId] = useState<string | null>(null)
 
   useEffect(() => {
+    function logCronogramaError(error: unknown) {
+      const e = error as {
+        message?: string
+        code?: string
+        details?: string
+        hint?: string
+        status?: number
+        name?: string
+      }
+
+      // Alguns erros do supabase-js podem aparecer como `{}` no console (props não-enumeráveis).
+      // Logar campos importantes explicitamente facilita depuração.
+      console.error('Erro ao buscar cronograma:', {
+        name: e?.name,
+        code: e?.code,
+        status: e?.status,
+        message: e?.message,
+        details: e?.details,
+        hint: e?.hint,
+      })
+    }
+
     async function checkCronograma() {
       const supabase = createClient()
       const {
@@ -48,7 +70,7 @@ export default function CronogramaClientPage() {
           // Erro esperado - coluna 'ativo' não existe na tabela cronogramas
           // Pode ser cache do navegador, não logar
         } else {
-          console.error('Erro ao buscar cronograma:', error)
+          logCronogramaError(error)
         }
       }
 

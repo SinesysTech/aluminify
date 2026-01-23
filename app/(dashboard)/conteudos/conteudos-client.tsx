@@ -840,7 +840,12 @@ export default function ConteudosClientPage() {
 
       // Gerar e baixar arquivo
       const buffer = await workbook.xlsx.writeBuffer()
-      const blob = new Blob([new Uint8Array(buffer)], {
+      // ExcelJS pode retornar Uint8Array com buffer baseado em SharedArrayBuffer em alguns ambientes.
+      // BlobPart não aceita SharedArrayBuffer; copiamos para um Uint8Array "seguro".
+      const bytes =
+        buffer instanceof Uint8Array ? new Uint8Array(buffer) : new Uint8Array(buffer as ArrayBuffer)
+
+      const blob = new Blob([bytes], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       })
       const url = URL.createObjectURL(blob)

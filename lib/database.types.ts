@@ -957,6 +957,7 @@ export type Database = {
           periodos_ferias: Json | null
           prioridade_minima: number
           updated_at: string | null
+          velocidade_reproducao: number
         }
         Insert: {
           aluno_id: string
@@ -977,6 +978,7 @@ export type Database = {
           periodos_ferias?: Json | null
           prioridade_minima?: number
           updated_at?: string | null
+          velocidade_reproducao?: number
         }
         Update: {
           aluno_id?: string
@@ -997,6 +999,7 @@ export type Database = {
           periodos_ferias?: Json | null
           prioridade_minima?: number
           updated_at?: string | null
+          velocidade_reproducao?: number
         }
         Relationships: [
           {

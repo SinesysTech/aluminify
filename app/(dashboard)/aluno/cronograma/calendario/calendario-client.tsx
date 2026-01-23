@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,6 +22,26 @@ export default function CalendarioClientPage() {
   const [cronogramaId, setCronogramaId] = useState<string | null>(null)
 
   useEffect(() => {
+    function logCronogramaError(error: unknown) {
+      const e = error as {
+        message?: string
+        code?: string
+        details?: string
+        hint?: string
+        status?: number
+        name?: string
+      }
+
+      console.error('Erro ao buscar cronograma:', {
+        name: e?.name,
+        code: e?.code,
+        status: e?.status,
+        message: e?.message,
+        details: e?.details,
+        hint: e?.hint,
+      })
+    }
+
     async function checkCronograma() {
       const supabase = createClient()
       const {
@@ -42,7 +62,7 @@ export default function CalendarioClientPage() {
         .maybeSingle<{ id: string }>()
 
       if (error) {
-        console.error('Erro ao buscar cronograma:', error)
+        logCronogramaError(error)
       }
 
       if (data) {
