@@ -64,6 +64,7 @@ export default function CronogramaClientPage() {
         .maybeSingle<{ id: string }>()
 
       if (error) {
+        console.error('DEBUG: Erro ao buscar cronograma:', error)
         // Ignorar erro 400 se for relacionado a coluna 'ativo' inexistente
         // (pode ser cache do navegador com código antigo)
         if (error.code === 'PGRST116' || error.message?.includes('ativo')) {
@@ -74,9 +75,13 @@ export default function CronogramaClientPage() {
         }
       }
 
+      console.log('DEBUG: Resultado da busca de cronograma:', { data, error, userId: user.id })
+
       if (data) {
         setHasCronograma(true)
         setCronogramaId(data.id)
+      } else {
+        console.log('DEBUG: Nenhum cronograma encontrado para o usuário')
       }
 
       setLoading(false)

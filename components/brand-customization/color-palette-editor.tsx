@@ -92,53 +92,48 @@ function ColorInput({ label, value, onChange, description, required = false, dis
   }, [value]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label htmlFor={label} className="text-sm font-medium">
+        <Label htmlFor={label} className="text-sm font-medium text-foreground">
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </Label>
-        {value && (
-          <Button
-            onClick={copyToClipboard}
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-xs"
-          >
-            {copied ? (
-              <Check className="h-3 w-3" />
-            ) : (
-              <Copy className="h-3 w-3" />
-            )}
-          </Button>
-        )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Input
-            id={label}
-            type="text"
-            value={localValue}
-            onChange={(e) => handleChange(e.target.value)}
-            onBlur={handleBlur}
-            placeholder="#000000"
-            disabled={disabled}
-            className={`pr-12 ${!isValid ? 'border-destructive' : ''}`}
-          />
+      <div className="relative flex items-center group">
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center">
           <div
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-border"
-            style={{ backgroundColor: isValid ? localValue : '#transparent' }}
-          />
+            className="w-6 h-6 rounded-full border border-border shadow-sm overflow-hidden relative cursor-pointer hover:scale-105 transition-transform"
+            style={{ backgroundColor: isValid ? localValue : 'transparent' }}
+          >
+            <input
+              type="color"
+              value={isValid ? localValue : '#000000'}
+              onChange={(e) => handleChange(e.target.value)}
+              disabled={disabled}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full p-0 border-0"
+            />
+          </div>
         </div>
-
-        <input
-          type="color"
-          value={isValid ? localValue : '#000000'}
+        <Input
+          id={label}
+          type="text"
+          value={localValue}
           onChange={(e) => handleChange(e.target.value)}
+          onBlur={handleBlur}
+          placeholder="#000000"
           disabled={disabled}
-          className="w-10 h-9 rounded border border-border cursor-pointer disabled:cursor-not-allowed"
+          className={`pl-10 pr-10 font-mono text-sm uppercase ${!isValid ? 'border-destructive focus-visible:ring-destructive' : ''}`}
         />
+        <Button
+          onClick={copyToClipboard}
+          variant="ghost"
+          size="icon"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+          title="Copiar código HEX"
+        >
+          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+        </Button>
       </div>
 
       {description && (
@@ -146,7 +141,7 @@ function ColorInput({ label, value, onChange, description, required = false, dis
       )}
 
       {!isValid && (
-        <p className="text-xs text-destructive">Por favor, insira uma cor hexadecimal válida (ex: #FF0000)</p>
+        <p className="text-xs text-destructive">Cor inválida (ex: #FF0000)</p>
       )}
     </div>
   );
@@ -485,36 +480,45 @@ export function ColorPaletteEditor({
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Color Editor */}
-        <div className="space-y-4">
+        {/* Left Column - Color Editor */}
+        <div className="space-y-8">
           {/* Palette Name */}
-          <div>
-            <Label htmlFor="palette-name">Nome da Paleta</Label>
+          <div className="space-y-2">
+            <Label htmlFor="palette-name" className="text-base font-semibold">Nome da Paleta</Label>
             <Input
               id="palette-name"
               value={paletteData.name}
               onChange={(e) => updatePaletteData('name', e.target.value)}
               placeholder="Ex: Minha Marca"
-              className="mt-1"
+              className="max-w-md"
             />
+            <p className="text-sm text-muted-foreground">Dê um nome único para identificar sua personalização.</p>
           </div>
 
           <Separator />
 
           {/* Core Colors */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Cores Principais</h4>
-            <div className="grid grid-cols-2 gap-3">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h4 className="text-base font-semibold text-foreground">Cores Principais</h4>
+                <p className="text-sm text-muted-foreground">Define a identidade visual primária da sua marca.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
               <ColorInput
                 label="Primária"
                 value={paletteData.primaryColor}
                 onChange={(value) => updatePaletteData('primaryColor', value)}
                 required
+                description="Cor principal da marca, usada em botões e destaques."
               />
               <ColorInput
                 label="Texto Primário"
                 value={paletteData.primaryForeground}
                 onChange={(value) => updatePaletteData('primaryForeground', value)}
                 required
+                description="Cor do texto sobre a cor primária."
               />
               <ColorInput
                 label="Secundária"
@@ -541,28 +545,29 @@ export function ColorPaletteEditor({
                 required
               />
             </div>
-          </div>
-
-          <Separator />
+          </section>
 
           {/* Background & Surface */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Fundos</h4>
-            <div className="grid grid-cols-2 gap-3">
+          <section className="space-y-4">
+            <div className="space-y-1">
+              <h4 className="text-base font-semibold text-foreground">Fundos e Superfícies</h4>
+              <p className="text-sm text-muted-foreground">Cores de fundo para páginas, cartões e áreas de conteúdo.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
               <ColorInput
-                label="Fundo"
+                label="Fundo da Página"
                 value={paletteData.backgroundColor}
                 onChange={(value) => updatePaletteData('backgroundColor', value)}
                 required
               />
               <ColorInput
-                label="Texto"
+                label="Texto Principal"
                 value={paletteData.foregroundColor}
                 onChange={(value) => updatePaletteData('foregroundColor', value)}
                 required
               />
               <ColorInput
-                label="Card"
+                label="Card (Cartões)"
                 value={paletteData.cardColor}
                 onChange={(value) => updatePaletteData('cardColor', value)}
                 required
@@ -574,7 +579,7 @@ export function ColorPaletteEditor({
                 required
               />
               <ColorInput
-                label="Suave"
+                label="Suave (Muted)"
                 value={paletteData.mutedColor}
                 onChange={(value) => updatePaletteData('mutedColor', value)}
                 required
@@ -586,14 +591,15 @@ export function ColorPaletteEditor({
                 required
               />
             </div>
-          </div>
-
-          <Separator />
+          </section>
 
           {/* Sidebar & System */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Barra Lateral</h4>
-            <div className="grid grid-cols-2 gap-3">
+          <section className="space-y-4">
+            <div className="space-y-1">
+              <h4 className="text-base font-semibold text-foreground">Barra Lateral</h4>
+              <p className="text-sm text-muted-foreground">Personalize a aparência do menu de navegação.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
               <ColorInput
                 label="Fundo Sidebar"
                 value={paletteData.sidebarBackground}
@@ -607,10 +613,11 @@ export function ColorPaletteEditor({
                 required
               />
               <ColorInput
-                label="Ativo Sidebar"
+                label="Item Ativo"
                 value={paletteData.sidebarPrimary}
                 onChange={(value) => updatePaletteData('sidebarPrimary', value)}
                 required
+                description="Fundo do item de menu selecionado."
               />
               <ColorInput
                 label="Texto Ativo"
@@ -619,14 +626,12 @@ export function ColorPaletteEditor({
                 required
               />
             </div>
-          </div>
-
-          <Separator />
+          </section>
 
           {/* Destructive */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Sistema</h4>
-            <div className="grid grid-cols-2 gap-3">
+          <section className="space-y-4">
+            <h4 className="text-base font-semibold text-foreground">Sistema e Alertas</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
               <ColorInput
                 label="Erro/Perigo"
                 value={paletteData.destructiveColor}
@@ -640,7 +645,7 @@ export function ColorPaletteEditor({
                 required
               />
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Right Column - Live Preview */}
