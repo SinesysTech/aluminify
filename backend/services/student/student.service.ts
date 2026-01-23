@@ -186,7 +186,7 @@ export class StudentService {
       studentId = authUser.user.id;
     }
 
-    return this.repository.create({
+    const student = await this.repository.create({
       id: studentId,
       empresaId: payload.empresaId, // Para isolamento multi-tenant
       fullName,
@@ -205,6 +205,22 @@ export class StudentService {
       mustChangePassword: true,
       temporaryPassword,
     });
+
+    // Vincular aluno à turma se turmaId foi fornecido
+    if (payload.turmaId) {
+      try {
+        const { turmaService } = await import("@/backend/services/turma");
+        await turmaService.vincularAluno({
+          turmaId: payload.turmaId,
+          alunoId: student.id,
+        });
+      } catch (turmaError) {
+        console.error("Error linking student to turma:", turmaError);
+        // Não lançar erro aqui - o aluno já foi criado
+      }
+    }
+
+    return student;
   }
 
   async update(id: string, payload: UpdateStudentInput): Promise<Student> {

@@ -1,15 +1,16 @@
-﻿import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/server'
 import { InstitutionDashboardClient } from '@/components/dashboard/institution'
 import { ProfessorDashboardClient } from '@/components/dashboard/professor'
+import { isAdminRoleTipo } from '@/lib/roles'
 
 export default async function ProfessorDashboardPage(props: {
   params: Promise<{ tenant: string }>
 }) {
   const params = await props.params
   const { tenant } = params
-  const user = await requireUser({ allowedRoles: ['professor', 'usuario', 'superadmin'] })
+  const user = await requireUser()
 
   // Verificar se precisa completar cadastro da empresa
   let shouldRedirectToComplete = false
@@ -44,7 +45,8 @@ export default async function ProfessorDashboardPage(props: {
 
   // Se é admin da empresa (ou superadmin), mostrar dashboard da instituição
   // Caso contrário, mostrar dashboard do professor
-  if (user.isEmpresaAdmin || user.role === 'superadmin') {
+  const isAdmin = user.role === 'superadmin' || (user.roleType && isAdminRoleTipo(user.roleType))
+  if (isAdmin) {
     return <InstitutionDashboardClient />
   }
 

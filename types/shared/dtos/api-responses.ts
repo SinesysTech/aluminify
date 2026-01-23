@@ -21,4 +21,6 @@ export interface PaginationParams {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   query?: string;
+  courseId?: string;
+  turmaId?: string;
 }

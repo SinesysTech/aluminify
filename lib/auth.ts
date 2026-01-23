@@ -19,13 +19,9 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/server";
 import { getDatabaseClient } from "@/backend/clients/database";
-import type { AppUser, AppUserRole, LegacyAppUserRole } from "@/types/user";
+import type { AppUser, AppUserRole } from "@/types/user";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
-import {
-  getDefaultRouteForRole,
-  hasRequiredRole,
-  isAdminRoleTipo,
-} from "@/lib/roles";
+import { getDefaultRouteForRole } from "@/lib/roles";
 import { getImpersonationContext } from "@/lib/auth-impersonate";
 
 export async function getAuthenticatedUser(): Promise<AppUser | null> {
@@ -51,18 +47,13 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     targetUserId = impersonationContext.impersonatedUserId;
   }
 
-  // Get role from metadata - map legacy roles to new ones
+  // Get role from metadata
   const metadataRole =
     isImpersonating && impersonationContext
       ? impersonationContext.impersonatedUserRole
-      : (user.user_metadata?.role as LegacyAppUserRole | AppUserRole) ||
-        "aluno";
+      : (user.user_metadata?.role as AppUserRole) || "aluno";
 
-  // Map legacy "professor" and "empresa" roles to "usuario"
-  let role: AppUserRole =
-    metadataRole === "professor" || metadataRole === "empresa"
-      ? "usuario"
-      : (metadataRole as AppUserRole);
+  let role: AppUserRole = metadataRole as AppUserRole;
 
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password);
   let roleType: RoleTipo | undefined;
@@ -88,7 +79,6 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
   let empresaId: string | undefined;
   let empresaNome: string | undefined;
   let empresaSlug: string | undefined;
-  let isEmpresaAdmin: boolean | undefined;
 
   // Se estiver impersonando, buscar dados do aluno impersonado
   if (isImpersonating && impersonationContext) {
@@ -117,12 +107,7 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
   // Load empresa context for usuarios (staff) and superadmin
   // First check if user exists in usuarios table (institution staff)
   // Note: Using service role client to bypass RLS for auth queries
-  if (
-    role === "usuario" ||
-    role === "superadmin" ||
-    metadataRole === "professor" ||
-    metadataRole === "empresa"
-  ) {
+  if (role === "usuario" || role === "superadmin") {
     // Use service role client to bypass RLS for authentication queries
     const adminClient = getDatabaseClient();
 
@@ -151,7 +136,6 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
         if (papelRow) {
           roleType = papelRow.tipo as RoleTipo;
           permissions = papelRow.permissoes as unknown as RolePermissions;
-          isEmpresaAdmin = roleType ? isAdminRoleTipo(roleType) : false;
         }
       }
 
@@ -188,13 +172,9 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
               roleType,
               empresaId,
               empresaSlug,
-              isEmpresaAdmin,
             }),
         );
       }
-    } else if (role === "superadmin") {
-      // Superadmin may not have usuario record, that's ok
-      isEmpresaAdmin = true;
     }
   }
 
@@ -255,7 +235,6 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
     empresaId,
     empresaSlug,
     empresaNome,
-    isEmpresaAdmin,
     // Adicionar contexto de impersonação se estiver impersonando
     ...(isImpersonating && impersonationContext
       ? { _impersonationContext: impersonationContext }
@@ -264,7 +243,6 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
 }
 
 type RequireUserOptions = {
-  allowedRoles?: (AppUserRole | LegacyAppUserRole)[];
   ignorePasswordRequirement?: boolean;
 };
 
@@ -275,13 +253,6 @@ export async function requireUser(
 
   if (!user) {
     redirect("/auth");
-  }
-
-  if (
-    options?.allowedRoles &&
-    !hasRequiredRole(user.role, options.allowedRoles)
-  ) {
-    redirect(getDefaultRouteForRole(user.role));
   }
 
   if (!options?.ignorePasswordRequirement && user.mustChangePassword) {

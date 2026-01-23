@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
 import { institutionAnalyticsService } from "@/backend/services/dashboard-analytics";
+import { isAdminRoleTipo } from "@/lib/roles";
 
 /**
  * GET /api/dashboard/institution
  *
  * Retorna dados agregados do dashboard da instituição.
- * Apenas para professores com isEmpresaAdmin = true.
+ * Apenas para usuários com papel administrativo (admin, professor_admin) ou superadmin.
  *
  * Agrega dados de:
  * - Total de alunos, professores e cursos
@@ -19,7 +20,8 @@ async function getHandler(request: AuthenticatedRequest) {
   try {
     const userId = request.user?.id;
     const empresaId = request.user?.empresaId;
-    const isAdmin = request.user?.isAdmin;
+    const roleType = request.user?.roleType;
+    const isSuperAdmin = request.user?.isSuperAdmin;
 
     if (!userId) {
       return NextResponse.json(
@@ -28,8 +30,8 @@ async function getHandler(request: AuthenticatedRequest) {
       );
     }
 
-    // Verificar se é professor/usuario (staff da empresa)
-    if (!["professor", "usuario", "superadmin"].includes(request.user?.role || "")) {
+    // Verificar se é usuario (staff da empresa) ou superadmin
+    if (!["usuario", "superadmin"].includes(request.user?.role || "")) {
       return NextResponse.json(
         {
           error:
@@ -40,7 +42,8 @@ async function getHandler(request: AuthenticatedRequest) {
     }
 
     // Verificar se é admin da empresa (ou superadmin)
-    if (!isAdmin && request.user?.role !== "superadmin") {
+    const isAdmin = isSuperAdmin || (roleType && isAdminRoleTipo(roleType));
+    if (!isAdmin) {
       return NextResponse.json(
         {
           error:

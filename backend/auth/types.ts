@@ -6,9 +6,6 @@ import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
 // - superadmin: system administrator
 export type UserRole = "aluno" | "usuario" | "superadmin";
 
-// Legacy roles (for compatibility during migration)
-export type LegacyUserRole = "aluno" | "professor" | "superadmin" | "empresa";
-
 export interface AuthUser {
   id: string;
   email: string;
@@ -18,8 +15,6 @@ export interface AuthUser {
   // Role permissions
   permissions?: RolePermissions;
   isSuperAdmin?: boolean;
-  // Deprecated: use permissions.usuarios instead
-  isAdmin?: boolean;
   empresaId?: string;
 }
 

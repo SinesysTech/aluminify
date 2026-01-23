@@ -6,6 +6,7 @@ import { ProfessorSidebar } from "@/components/layout/professor-sidebar"
 import { EmpresaSidebar } from "@/components/layout/empresa-sidebar"
 import { useCurrentUser } from "@/components/providers/user-provider"
 import type { Sidebar } from "@/components/ui/sidebar"
+import { isAdminRoleTipo } from "@/lib/roles"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useCurrentUser()
@@ -16,7 +17,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return <AlunoSidebar {...props} />
     case 'usuario':
       // usuario = institution staff (professor, admin, staff, monitor)
-      if (user.isEmpresaAdmin) {
+      // admin and professor_admin see empresa sidebar
+      if (user.roleType && isAdminRoleTipo(user.roleType)) {
         return <EmpresaSidebar {...props} />
       }
       return <ProfessorSidebar {...props} />

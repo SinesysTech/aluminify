@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
 import type { Database } from '@/lib/database.types';
+import type { AppUserRole } from '@/types/shared/entities/user';
+import type { RoleTipo } from '@/types/shared/entities/papel';
+import { isAdminRoleTipo } from '@/lib/roles';
 
 /**
  * GET /api/user/profile
@@ -20,17 +23,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const metadataRole = (user.user_metadata?.role as string) || 'aluno';
-    // Normalize legacy role names
-    const role = metadataRole === 'professor' || metadataRole === 'empresa' ? 'usuario' : metadataRole;
+    const role = (user.user_metadata?.role as AppUserRole) || 'aluno';
 
     // Para usuarios (staff), empresa_id é derivado da tabela `usuarios` (fonte de verdade)
     let empresaId: string | null = null;
-    let isEmpresaAdmin: boolean | null = null;
     let fullName: string | null = null;
-    let roleType: string | null = null;
+    let roleType: RoleTipo | null = null;
 
-    if (role === 'usuario' || role === 'superadmin' || metadataRole === 'professor' || metadataRole === 'empresa') {
+    if (role === 'usuario' || role === 'superadmin') {
       const { data: usuario } = await supabase
         .from('usuarios')
         .select(`
@@ -47,16 +47,13 @@ export async function GET() {
         empresaId = usuario.empresa_id;
         fullName = usuario.nome_completo;
         const papelData = usuario.papeis as unknown as { tipo: string } | null;
-        roleType = papelData?.tipo ?? null;
-        // admin and professor_admin are empresa admins
-        isEmpresaAdmin = roleType === 'admin' || roleType === 'professor_admin';
+        roleType = (papelData?.tipo as RoleTipo) ?? null;
       } else {
-        // Fallback para metadata evita UX quebrada
+        // Fallback para metadata (apenas para superadmin sem registro em usuarios)
         empresaId = (user.user_metadata?.empresa_id as string | undefined) ?? null;
-        isEmpresaAdmin = (user.user_metadata?.is_admin as boolean | undefined) ?? null;
         fullName = (user.user_metadata?.full_name as string | undefined) ?? null;
       }
-    } else {
+    } else if (role === 'aluno') {
       const { data: aluno } = await supabase
         .from('alunos')
         .select('nome_completo')
@@ -77,12 +74,11 @@ export async function GET() {
       roleType,
       fullName,
       empresaId,
-      isEmpresaAdmin,
+      // Derived from roleType for convenience
+      isAdmin: roleType ? isAdminRoleTipo(roleType) : role === 'superadmin',
     });
   } catch (e) {
     console.error('Error in /api/user/profile:', e);
     return NextResponse.json({ error: 'Erro ao buscar perfil' }, { status: 500 });
   }
 }
-
-

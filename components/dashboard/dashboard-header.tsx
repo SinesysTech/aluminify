@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useMemo, useState } from 'react'
 import { Flame, Timer } from 'lucide-react'
@@ -7,6 +7,7 @@ import Link from 'next/link'
 import type { UserInfo } from '@/types/dashboard'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { OrganizationSwitcher } from '@/components/dashboard/organization-switcher'
 
 type FocusContext = {
   cursoId?: string
@@ -76,9 +77,13 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
       <div className="flex flex-col gap-1">
-        <h1 className="page-title">
-          {getGreeting()}, {user.name}!
-        </h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="page-title">
+            {getGreeting()}, {user.name}!
+          </h1>
+          {/* Organization Switcher for multi-org students */}
+          <OrganizationSwitcher variant="compact" />
+        </div>
         <div className="flex items-center gap-2">
           <Flame className="text-[#FB923C] fill-[#FB923C]" size={20} />
           <p className="page-subtitle">

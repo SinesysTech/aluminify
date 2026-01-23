@@ -142,11 +142,57 @@ export class StudentRepositoryImpl implements StudentRepository {
     const from = (page - 1) * perPage;
     const to = from + perPage - 1;
 
+    // Filter by turmaId or courseId if provided
+    let studentIdsToFilter: string[] | null = null;
+
+    if (params?.turmaId) {
+      // Filter by turma - get students in specific turma
+      const { data: turmaLinks, error: turmaError } = await this.client
+        .from("alunos_turmas")
+        .select("aluno_id")
+        .eq("turma_id", params.turmaId);
+
+      if (turmaError) {
+        throw new Error(`Failed to filter by turma: ${turmaError.message}`);
+      }
+
+      studentIdsToFilter = (turmaLinks ?? []).map((link) => link.aluno_id);
+    } else if (params?.courseId) {
+      // Filter by course - get students enrolled in specific course
+      const { data: courseLinks, error: courseError } = await this.client
+        .from(COURSE_LINK_TABLE)
+        .select("aluno_id")
+        .eq("curso_id", params.courseId);
+
+      if (courseError) {
+        throw new Error(`Failed to filter by course: ${courseError.message}`);
+      }
+
+      studentIdsToFilter = (courseLinks ?? []).map((link) => link.aluno_id);
+    }
+
+    // If filtering by course/turma and no students found, return empty result
+    if (studentIdsToFilter !== null && studentIdsToFilter.length === 0) {
+      return {
+        data: [],
+        meta: {
+          page,
+          perPage,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
     // Para count, selecione apenas `id` para evitar falhas por permissões em outras colunas.
     let queryBuilder = this.client
       .from(TABLE)
       .select("id", { count: "exact", head: true })
       .is("deleted_at", null);
+
+    if (studentIdsToFilter !== null) {
+      queryBuilder = queryBuilder.in("id", studentIdsToFilter);
+    }
 
     if (params?.query) {
       const q = params.query;
@@ -172,6 +218,10 @@ export class StudentRepositoryImpl implements StudentRepository {
       .is("deleted_at", null)
       .order(sortBy, { ascending: sortOrder })
       .range(from, to);
+
+    if (studentIdsToFilter !== null) {
+      dataQuery = dataQuery.in("id", studentIdsToFilter);
+    }
 
     if (params?.query) {
       const q = params.query;

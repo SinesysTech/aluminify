@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/backend/clients/database";
-import { AuthUser, UserRole, LegacyUserRole, ApiKeyAuth } from "./types";
+import { AuthUser, UserRole, ApiKeyAuth } from "./types";
 import { apiKeyService } from "@/backend/services/api-key";
 import { getImpersonationContext } from "@/lib/auth-impersonate";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
-import { isAdminRole } from "@/backend/services/permission";
 
 import { createClient } from "@/lib/server";
 import { User } from "@supabase/supabase-js";
@@ -21,7 +20,7 @@ export async function mapSupabaseUserToAuthUser(
   const client = getDatabaseClient();
 
   // Check if user is superadmin from metadata
-  const metadataRole = user.user_metadata?.role as LegacyUserRole | undefined;
+  const metadataRole = user.user_metadata?.role as UserRole | undefined;
   const isSuperAdmin =
     metadataRole === "superadmin" || user.user_metadata?.is_superadmin === true;
 
@@ -31,7 +30,6 @@ export async function mapSupabaseUserToAuthUser(
       email: user.email!,
       role: "superadmin",
       isSuperAdmin: true,
-      isAdmin: true,
       empresaId: user.user_metadata?.empresa_id as string | undefined,
     };
   }
@@ -60,7 +58,6 @@ export async function mapSupabaseUserToAuthUser(
       roleType,
       permissions,
       isSuperAdmin: false,
-      isAdmin: isAdminRole(roleType),
       empresaId: usuarioData.empresa_id,
     };
   }
@@ -79,31 +76,19 @@ export async function mapSupabaseUserToAuthUser(
       email: user.email!,
       role: "aluno",
       isSuperAdmin: false,
-      isAdmin: false,
       empresaId: alunoData.empresa_id ?? undefined,
     };
   }
 
-  // Fallback: use metadata role (for backward compatibility)
+  // Fallback: user not found in any table, use metadata role
   const empresaId = user.user_metadata?.empresa_id as string | undefined;
-  const legacyIsAdmin =
-    user.user_metadata?.is_admin === true ||
-    user.user_metadata?.is_admin === "true";
-
-  // Map legacy "professor" or "empresa" roles to "usuario"
-  let role: UserRole = "aluno";
-  if (metadataRole === "professor" || metadataRole === "empresa") {
-    role = "usuario";
-  } else if (metadataRole === "aluno") {
-    role = "aluno";
-  }
+  const role: UserRole = metadataRole || "aluno";
 
   return {
     id: user.id,
     email: user.email!,
     role,
     isSuperAdmin: false,
-    isAdmin: legacyIsAdmin,
     empresaId,
   };
 }

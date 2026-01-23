@@ -531,34 +531,42 @@ export class FlashcardsService {
       // 2. Verificar se é professor ou aluno
       const { data: professorData } = await this.client
         .from("professores")
-        .select("id")
+        .select("id, empresa_id")
         .eq("id", alunoId)
         .maybeSingle();
 
       const isProfessor = !!professorData;
+      const professorEmpresaIdPersonalizado = professorData?.empresa_id as string | null;
 
       // 3. Verificar acesso ao curso
       let cursoIds: string[] = [];
       let cursoValido = false;
 
       if (isProfessor) {
-        // Professores: verificar se o curso foi criado por eles
-        // Para superadmin, vamos permitir acesso a todos (verificação será feita via RLS)
+        // Professores: verificar se o curso pertence à empresa do professor
+        if (!professorEmpresaIdPersonalizado) {
+          throw new Error("Professor sem empresa associada.");
+        }
         const frente = moduloData.frentes as ModuloRow["frentes"];
         const cursoIdParaVerificar = frente?.curso_id || moduloData.curso_id;
 
         if (cursoIdParaVerificar) {
           const { data: cursoData } = await this.client
             .from("cursos")
-            .select("id, created_by")
+            .select("id, empresa_id")
             .eq("id", cursoIdParaVerificar)
             .maybeSingle();
 
-          // Professor pode acessar se criou o curso (RLS também vai validar)
-          cursoValido = cursoData?.created_by === alunoId || !!cursoData;
+          // Professor pode acessar se o curso pertence à sua empresa (isolamento por tenant)
+          cursoValido = cursoData?.empresa_id === professorEmpresaIdPersonalizado;
         } else {
-          // Módulo sem curso_id (global) - professor pode acessar
-          cursoValido = true;
+          // Módulo sem curso_id (global) - verificar se módulo pertence à empresa
+          const { data: moduloEmpresa } = await this.client
+            .from("modulos")
+            .select("empresa_id")
+            .eq("id", filters.moduloId)
+            .maybeSingle();
+          cursoValido = moduloEmpresa?.empresa_id === professorEmpresaIdPersonalizado;
         }
       } else {
         // Alunos: verificar se estão matriculados no curso
@@ -681,19 +689,25 @@ export class FlashcardsService {
     // Verificar se é professor ou aluno
     const { data: professorData } = await this.client
       .from("professores")
-      .select("id")
+      .select("id, empresa_id")
       .eq("id", alunoId)
       .maybeSingle();
 
     const isProfessor = !!professorData;
+    const professorEmpresaId = professorData?.empresa_id as string | null;
     let cursoIds: string[] = [];
 
     if (isProfessor) {
-      // Professores: buscar todos os cursos (ou cursos criados por eles)
-      console.log(`[flashcards] Usuário é professor, buscando todos os cursos`);
+      // Professores: buscar cursos da empresa do professor (isolamento por tenant)
+      if (!professorEmpresaId) {
+        console.error(`[flashcards] Professor sem empresa_id: ${alunoId}`);
+        return [];
+      }
+      console.log(`[flashcards] Usuário é professor da empresa ${professorEmpresaId}, buscando cursos da empresa`);
       const { data: todosCursos, error: cursosError } = await this.client
         .from("cursos")
-        .select("id");
+        .select("id")
+        .eq("empresa_id", professorEmpresaId);
 
       if (cursosError) {
         console.error(
@@ -705,7 +719,7 @@ export class FlashcardsService {
 
       cursoIds = (todosCursos ?? []).map((c: CursoRow) => c.id);
       console.log(
-        `[flashcards] Professor tem acesso a ${cursoIds.length} cursos`,
+        `[flashcards] Professor tem acesso a ${cursoIds.length} cursos da empresa`,
       );
     } else {
       // Alunos: buscar cursos matriculados
@@ -1461,6 +1475,19 @@ export class FlashcardsService {
 
     await this.ensureProfessor(userId);
 
+    // Buscar empresa_id do professor para isolamento por tenant
+    const { data: professorListAll } = await this.client
+      .from("professores")
+      .select("empresa_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const professorEmpresaIdListAll = professorListAll?.empresa_id as string | null;
+    if (!professorEmpresaIdListAll) {
+      console.error(`[flashcards] Professor sem empresa_id em listAll: ${userId}`);
+      return { data: [], total: 0 };
+    }
+
     // Não cachear se houver busca por texto (resultados podem variar)
     const hasSearch = !!filters.search;
 
@@ -1615,7 +1642,8 @@ export class FlashcardsService {
         .select(
           "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at",
           { count: "exact" },
-        ),
+        )
+        .eq("empresa_id", professorEmpresaIdListAll),
     );
 
     if (!query) {
@@ -1635,7 +1663,8 @@ export class FlashcardsService {
           .from("flashcards")
           .select("id, modulo_id, pergunta, resposta, created_at", {
             count: "exact",
-          }),
+          })
+          .eq("empresa_id", professorEmpresaIdListAll),
       );
       if (!fallbackQuery) {
         return { data: [], total: 0 };
@@ -1929,12 +1958,26 @@ export class FlashcardsService {
   async getById(id: string, userId: string): Promise<FlashcardAdmin | null> {
     await this.ensureProfessor(userId);
 
+    // Buscar empresa_id do professor para isolamento por tenant
+    const { data: professorGetById } = await this.client
+      .from("professores")
+      .select("empresa_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const professorEmpresaIdGetById = professorGetById?.empresa_id as string | null;
+    if (!professorEmpresaIdGetById) {
+      console.error(`[flashcards] Professor sem empresa_id em getById: ${userId}`);
+      return null;
+    }
+
     let { data: flashcard, error } = await this.client
       .from("flashcards")
       .select(
         "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, created_at",
       )
       .eq("id", id)
+      .eq("empresa_id", professorEmpresaIdGetById)
       .maybeSingle();
 
     // Compatibilidade: bancos ainda sem as colunas de imagem
@@ -1946,6 +1989,7 @@ export class FlashcardsService {
         .from("flashcards")
         .select("id, modulo_id, pergunta, resposta, created_at")
         .eq("id", id)
+        .eq("empresa_id", professorEmpresaIdGetById)
         .maybeSingle();
       flashcard = fallback.data
         ? {
@@ -2036,19 +2080,32 @@ export class FlashcardsService {
   ): Promise<FlashcardAdmin> {
     await this.ensureProfessor(userId);
 
+    // Buscar empresa_id do professor para isolamento por tenant
+    const { data: professorCreate } = await this.client
+      .from("professores")
+      .select("empresa_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const professorEmpresaIdCreate = professorCreate?.empresa_id as string | null;
+    if (!professorEmpresaIdCreate) {
+      throw new Error("Professor sem empresa associada.");
+    }
+
     if (!input.moduloId || !input.pergunta?.trim() || !input.resposta?.trim()) {
       throw new Error("Módulo, pergunta e resposta são obrigatórios.");
     }
 
-    // Verificar se módulo existe
+    // Verificar se módulo existe e pertence à empresa do professor
     const { data: moduloCheck, error: moduloCheckError } = await this.client
       .from("modulos")
       .select("id, empresa_id")
       .eq("id", input.moduloId)
+      .eq("empresa_id", professorEmpresaIdCreate)
       .maybeSingle();
 
     if (moduloCheckError || !moduloCheck) {
-      throw new Error("Módulo não encontrado.");
+      throw new Error("Módulo não encontrado ou não pertence à sua empresa.");
     }
 
     const moduloEmpresaId =
@@ -2144,7 +2201,19 @@ export class FlashcardsService {
   ): Promise<FlashcardAdmin> {
     await this.ensureProfessor(userId);
 
-    // Verificar se flashcard existe
+    // Buscar empresa_id do professor para isolamento por tenant
+    const { data: professorUpdate } = await this.client
+      .from("professores")
+      .select("empresa_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const professorEmpresaIdUpdate = professorUpdate?.empresa_id as string | null;
+    if (!professorEmpresaIdUpdate) {
+      throw new Error("Professor sem empresa associada.");
+    }
+
+    // Verificar se flashcard existe (já verifica empresa via getById)
     const existing = await this.getById(id, userId);
     if (!existing) {
       throw new Error("Flashcard não encontrado.");
@@ -2157,15 +2226,16 @@ export class FlashcardsService {
       resposta?: string;
     } = {};
     if (input.moduloId !== undefined) {
-      // Verificar se novo módulo existe
+      // Verificar se novo módulo existe e pertence à empresa do professor
       const { data: moduloCheck, error: moduloCheckError } = await this.client
         .from("modulos")
         .select("id, empresa_id")
         .eq("id", input.moduloId)
+        .eq("empresa_id", professorEmpresaIdUpdate)
         .maybeSingle();
 
       if (moduloCheckError || !moduloCheck) {
-        throw new Error("Módulo não encontrado.");
+        throw new Error("Módulo não encontrado ou não pertence à sua empresa.");
       }
       const moduloEmpresaId =
         (moduloCheck as { empresa_id?: string | null }).empresa_id ?? null;

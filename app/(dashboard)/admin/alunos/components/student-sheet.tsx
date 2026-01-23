@@ -1,14 +1,20 @@
 "use client"
 
-import { useState } from 'react'
-import { X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Loader2 } from 'lucide-react'
 import { createStudentAction } from '../actions'
 import { useRouter } from 'next/navigation'
+import { apiClient } from '@/lib/api-client'
+
+interface Turma {
+    id: string
+    nome: string
+}
 
 interface StudentSheetProps {
     isOpen: boolean
     onClose: () => void
-    courses: { id: string, name: string }[]
+    courses: { id: string, name: string, usaTurmas: boolean }[]
 }
 
 export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
@@ -21,17 +27,71 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
         email: '',
         cpf: '',
         phone: '',
-        courseId: '', // Ideally this would be an array, but for simple UI we start with one
+        courseId: '',
+        turmaId: '',
     })
 
-    // This is a simplified form for the example. In a real app we might want strict Zod validation here.
+    // Turmas state
+    const [turmas, setTurmas] = useState<Turma[]>([])
+    const [loadingTurmas, setLoadingTurmas] = useState(false)
+
+    // Get selected course
+    const selectedCourse = courses.find(c => c.id === formData.courseId)
+    const showTurmaSelector = selectedCourse?.usaTurmas && turmas.length > 0
+
+    // Load turmas when course changes and it uses turmas
+    useEffect(() => {
+        if (!formData.courseId) {
+            setTurmas([])
+            setFormData(prev => ({ ...prev, turmaId: '' }))
+            return
+        }
+
+        const course = courses.find(c => c.id === formData.courseId)
+        if (!course?.usaTurmas) {
+            setTurmas([])
+            setFormData(prev => ({ ...prev, turmaId: '' }))
+            return
+        }
+
+        const fetchTurmas = async () => {
+            setLoadingTurmas(true)
+            try {
+                const response = await apiClient.get<{ data: Turma[] }>(`/api/turma?cursoId=${formData.courseId}`)
+                if (response && 'data' in response) {
+                    setTurmas(response.data)
+                }
+            } catch (err) {
+                console.error('Error fetching turmas:', err)
+                setTurmas([])
+            } finally {
+                setLoadingTurmas(false)
+            }
+        }
+
+        fetchTurmas()
+    }, [formData.courseId, courses])
+
+    // Reset form when sheet closes
+    useEffect(() => {
+        if (!isOpen) {
+            setFormData({ fullName: '', email: '', cpf: '', phone: '', courseId: '', turmaId: '' })
+            setError('')
+            setTurmas([])
+        }
+    }, [isOpen])
+
+    const handleCourseChange = (courseId: string) => {
+        setFormData(prev => ({ ...prev, courseId, turmaId: '' }))
+    }
+
     const handleSubmit = async () => {
         setLoading(true)
         setError('')
 
         // Quick validation
         if (!formData.email) {
-            setError('Email is required')
+            setError('Email é obrigatório')
             setLoading(false)
             return
         }
@@ -41,19 +101,17 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
             fullName: formData.fullName,
             cpf: formData.cpf,
             phone: formData.phone,
-            courseIds: formData.courseId ? [formData.courseId] : [], // TODO: Fetch real courses to select
-            // Add defaults if needed
+            courseIds: formData.courseId ? [formData.courseId] : [],
+            turmaId: formData.turmaId || undefined,
         }
 
         const res = await createStudentAction(payload)
 
         if (res.success) {
             onClose()
-            // Reset form
-            setFormData({ fullName: '', email: '', cpf: '', phone: '', courseId: '' })
             router.refresh()
         } else {
-            setError(res.error || 'Failed to create student')
+            setError(res.error || 'Falha ao criar aluno')
         }
         setLoading(false)
     }
@@ -146,7 +204,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                             <label className="text-xs font-medium text-zinc-700">Curso</label>
                             <select
                                 className="w-full h-9 px-3 rounded-md border border-[#E4E4E7] bg-white text-sm focus:outline-none focus:ring-1 focus:ring-[#09090B] focus:border-[#09090B]"
-                                onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
+                                onChange={(e) => handleCourseChange(e.target.value)}
                                 value={formData.courseId}
                             >
                                 <option value="">Selecionar curso...</option>
@@ -155,6 +213,34 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                                 ))}
                             </select>
                         </div>
+
+                        {/* Turma selector - only shown when course uses turmas */}
+                        {selectedCourse?.usaTurmas && (
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-zinc-700">Turma</label>
+                                {loadingTurmas ? (
+                                    <div className="flex items-center gap-2 h-9 px-3 text-sm text-zinc-500">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Carregando turmas...
+                                    </div>
+                                ) : turmas.length === 0 ? (
+                                    <div className="text-sm text-zinc-500 px-3 py-2 bg-zinc-50 rounded-md border border-dashed border-zinc-200">
+                                        Nenhuma turma cadastrada para este curso.
+                                    </div>
+                                ) : (
+                                    <select
+                                        className="w-full h-9 px-3 rounded-md border border-[#E4E4E7] bg-white text-sm focus:outline-none focus:ring-1 focus:ring-[#09090B] focus:border-[#09090B]"
+                                        onChange={(e) => setFormData({ ...formData, turmaId: e.target.value })}
+                                        value={formData.turmaId}
+                                    >
+                                        <option value="">Selecionar turma (opcional)...</option>
+                                        {turmas.map((turma) => (
+                                            <option key={turma.id} value={turma.id}>{turma.nome}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+                        )}
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium text-zinc-700">Plano de Acesso</label>

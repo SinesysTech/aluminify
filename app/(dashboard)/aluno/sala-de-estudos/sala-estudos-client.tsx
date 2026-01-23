@@ -9,6 +9,7 @@ import { SalaEstudosFilters } from '@/components/aluno/sala-estudos-filters'
 import { ModuloActivitiesAccordion } from '@/components/aluno/modulo-activities-accordion'
 import { ProgressoStatsCard } from '@/components/aluno/progresso-stats-card'
 import { useCurrentUser } from '@/components/providers/user-provider'
+import { OrganizationSwitcher } from '@/components/dashboard/organization-switcher'
 import {
   AtividadeComProgresso,
   ModuloComAtividades,
@@ -988,7 +989,11 @@ export default function SalaEstudosClientPage({
   return (
     <div className="w-full space-y-6">
       <div>
-        <h1 className="page-title">{title}</h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="page-title">{title}</h1>
+          {/* Organization Switcher for multi-org students */}
+          <OrganizationSwitcher variant="compact" />
+        </div>
         <p className="page-subtitle">{description}</p>
       </div>
 

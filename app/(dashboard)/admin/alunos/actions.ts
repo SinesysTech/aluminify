@@ -5,6 +5,7 @@ import { createStudentService } from "@/backend/services/student";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { CreateStudentInput } from "@/types/shared/entities/user";
 import { revalidatePath } from "next/cache";
+import { canDelete } from "@/lib/roles";
 
 export async function deleteStudentAction(studentId: string) {
   try {
@@ -14,8 +15,9 @@ export async function deleteStudentAction(studentId: string) {
       return { success: false, error: "Usuário não autenticado" };
     }
 
-    // Apenas superadmin e empresa admins podem deletar alunos
-    if (user.role !== "superadmin" && !user.isEmpresaAdmin) {
+    // Check permission to delete students
+    const canDeleteStudents = user.role === "superadmin" || canDelete(user.permissions, "alunos");
+    if (!canDeleteStudents) {
       return {
         success: false,
         error: "Permissão negada. Apenas administradores podem excluir alunos.",

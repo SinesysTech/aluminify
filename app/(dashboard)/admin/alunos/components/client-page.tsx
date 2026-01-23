@@ -17,7 +17,7 @@ import {
 interface AlunosClientPageProps {
     students: Student[]
     meta: PaginationMeta
-    courses: { id: string, name: string }[]
+    courses: { id: string, name: string, usaTurmas: boolean }[]
 }
 
 export function AlunosClientPage({ students, meta, courses }: AlunosClientPageProps) {

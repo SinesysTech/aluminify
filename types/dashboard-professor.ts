@@ -1,7 +1,7 @@
 /**
  * Tipos TypeScript para o Dashboard do Professor
  *
- * Usado quando o professor tem isEmpresaAdmin = false
+ * Usado quando o usuário tem papel sem permissões administrativas (professor, staff, monitor)
  */
 
 export interface ProfessorSummary {

@@ -1,7 +1,7 @@
 /**
  * Tipos TypeScript para o Dashboard da Instituição
  *
- * Usado quando o professor tem isEmpresaAdmin = true
+ * Usado quando o usuário tem papel administrativo (admin, professor_admin) ou é superadmin
  */
 
 import type { HeatmapDay } from './dashboard'

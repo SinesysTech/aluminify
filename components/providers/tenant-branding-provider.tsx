@@ -22,6 +22,10 @@ export interface TenantBrandingContextType {
   // New: Logo utilities with cache-busting
   logoVersion: number;
   getLogoUrl: (type: LogoType) => string | null;
+  // Dynamic branding for multi-org students
+  loadBrandingForEmpresa: (empresaId: string | null) => Promise<void>;
+  /** The currently active empresa ID (may be overridden for multi-org students) */
+  activeEmpresaId: string | null;
 }
 
 export const TenantBrandingContext = createContext<TenantBrandingContextType>({
@@ -33,22 +37,45 @@ export const TenantBrandingContext = createContext<TenantBrandingContextType>({
   triggerCrossTabUpdate: () => { },
   logoVersion: 0,
   getLogoUrl: () => null,
+  loadBrandingForEmpresa: async () => { },
+  activeEmpresaId: null,
 });
 
 interface TenantBrandingProviderProps {
   children: React.ReactNode;
   user?: User | null;
+  /**
+   * Override empresa ID for dynamic branding (used by multi-org students).
+   * When set, loads branding for this empresa instead of user.empresaId.
+   * When null, resets to default theme (for "All Organizations" view).
+   * When undefined, uses user.empresaId as normal.
+   */
+  overrideEmpresaId?: string | null;
 }
 
-export function TenantBrandingProvider({ children, user }: TenantBrandingProviderProps) {
+export function TenantBrandingProvider({ children, user, overrideEmpresaId }: TenantBrandingProviderProps) {
   const { applyBrandingToTheme, resetBrandingToDefaults } = useThemeConfig();
   const [loadingBranding, setLoadingBranding] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [currentBranding, setCurrentBranding] = React.useState<CompleteBrandingConfig | null>(null);
   const [logoVersion, setLogoVersion] = React.useState(Date.now());
+  // Track the dynamically selected empresa ID (for multi-org students)
+  const [dynamicEmpresaId, setDynamicEmpresaId] = React.useState<string | null | undefined>(undefined);
+
+  // Determine the effective empresa ID to use for branding
+  // Priority: overrideEmpresaId prop > dynamicEmpresaId state > user.empresaId
+  const effectiveEmpresaId = React.useMemo(() => {
+    if (overrideEmpresaId !== undefined) {
+      return overrideEmpresaId;
+    }
+    if (dynamicEmpresaId !== undefined) {
+      return dynamicEmpresaId;
+    }
+    return user?.empresaId ?? null;
+  }, [overrideEmpresaId, dynamicEmpresaId, user?.empresaId]);
 
   // Keep track of current empresa ID to detect changes
-  const currentEmpresaId = useRef<string | undefined>(undefined);
+  const currentEmpresaId = useRef<string | null | undefined>(undefined);
 
   // Keep track of polling interval for real-time updates
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -147,6 +174,48 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
       setLoadingBranding(false);
     }
   }, [user?.empresaId, loadBrandingData, applyBrandingToTheme, resetBrandingToDefaults, syncManager]);
+
+  /**
+   * Load branding for a specific empresa ID (for multi-org students).
+   * Pass null to reset to default theme (for "All Organizations" view).
+   */
+  const loadBrandingForEmpresa = useCallback(async (empresaId: string | null) => {
+    setDynamicEmpresaId(empresaId);
+
+    if (empresaId === null) {
+      // Reset to default theme for "All Organizations" view
+      setCurrentBranding(null);
+      setLogoVersion(Date.now());
+      resetBrandingToDefaults();
+      return;
+    }
+
+    setLoadingBranding(true);
+    setError(null);
+
+    try {
+      const branding = await loadBrandingData(empresaId);
+
+      if (branding) {
+        setCurrentBranding(branding);
+        setLogoVersion(Date.now());
+        applyBrandingToTheme(branding);
+      } else {
+        // No custom branding for this empresa - reset to defaults
+        setCurrentBranding(null);
+        setLogoVersion(Date.now());
+        resetBrandingToDefaults();
+      }
+    } catch (err) {
+      console.error('Failed to load branding for empresa:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load brand customization';
+      setError(errorMessage);
+      setCurrentBranding(null);
+      resetBrandingToDefaults();
+    } finally {
+      setLoadingBranding(false);
+    }
+  }, [loadBrandingData, applyBrandingToTheme, resetBrandingToDefaults]);
 
   // Setup real-time updates polling
   const setupRealTimeUpdates = useCallback((empresaId: string) => {
@@ -276,7 +345,9 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
     triggerCrossTabUpdate,
     logoVersion,
     getLogoUrl,
-  }), [loadingBranding, error, currentBranding, refreshBranding, clearError, triggerCrossTabUpdate, logoVersion, getLogoUrl]);
+    loadBrandingForEmpresa,
+    activeEmpresaId: effectiveEmpresaId,
+  }), [loadingBranding, error, currentBranding, refreshBranding, clearError, triggerCrossTabUpdate, logoVersion, getLogoUrl, loadBrandingForEmpresa, effectiveEmpresaId]);
 
   return (
     <TenantBrandingContext.Provider value={contextValue}>

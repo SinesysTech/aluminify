@@ -10,9 +10,6 @@ import type { RoleTipo, RolePermissions } from './papel';
 // - superadmin: administrador do sistema
 export type AppUserRole = "aluno" | "usuario" | "superadmin";
 
-// Legacy roles (para compatibilidade durante migração)
-export type LegacyAppUserRole = "aluno" | "professor" | "superadmin" | "empresa";
-
 export interface AppUser {
   id: string;
   email: string;
@@ -27,8 +24,6 @@ export interface AppUser {
   empresaId?: string;
   empresaSlug?: string;
   empresaNome?: string;
-  // Deprecated: use permissions instead
-  isEmpresaAdmin?: boolean;
 }
 
 // Re-export tipos de papel para conveniência
@@ -90,6 +85,7 @@ export interface CreateStudentInput {
   hotmartId?: string;
   origemCadastro?: string;
   courseIds: string[];
+  turmaId?: string;
   temporaryPassword?: string;
   mustChangePassword?: boolean;
 }
