@@ -127,27 +127,27 @@ export function OrganizationSwitcher({
                 <img
                   src={activeOrganization.logoUrl}
                   alt=""
-                  className="h-5 w-5 rounded object-contain flex-shrink-0"
+                  className="h-5 w-5 rounded object-contain shrink-0"
                 />
               ) : (
-                <Building2 className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <Building2 className="h-5 w-5 shrink-0 text-muted-foreground" />
               )}
               <span className="truncate">{activeOrganization.nome}</span>
-              <Badge variant="secondary" className="ml-1 flex-shrink-0">
+              <Badge variant="secondary" className="ml-1 shrink-0">
                 {activeOrganization.courseCount}
               </Badge>
             </>
           ) : (
             <>
-              <Layers className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+              <Layers className="h-5 w-5 shrink-0 text-muted-foreground" />
               <span>Todas as Organizações</span>
-              <Badge variant="secondary" className="ml-1 flex-shrink-0">
+              <Badge variant="secondary" className="ml-1 shrink-0">
                 {totalCourses}
               </Badge>
             </>
           )}
         </div>
-        <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
       </Button>
     );
   };
@@ -194,10 +194,10 @@ export function OrganizationSwitcher({
                 <img
                   src={org.logoUrl}
                   alt=""
-                  className="h-5 w-5 rounded object-contain flex-shrink-0"
+                  className="h-5 w-5 rounded object-contain shrink-0"
                 />
               ) : (
-                <Building2 className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <Building2 className="h-5 w-5 shrink-0 text-muted-foreground" />
               )}
               <span className="truncate">{org.nome}</span>
             </div>
