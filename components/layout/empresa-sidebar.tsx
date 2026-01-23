@@ -10,6 +10,7 @@ import {
   Layers,
   FolderOpen,
   DollarSign,
+  Shield,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
