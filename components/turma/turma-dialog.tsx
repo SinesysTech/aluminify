@@ -63,12 +63,7 @@ export function TurmaDialog({
   const isEditing = !!turma
 
   const form = useForm<TurmaFormData>({
-<<<<<<< HEAD
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(turmaSchema) as any,
-=======
     resolver: zodResolver(turmaSchema),
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
     defaultValues: {
       nome: '',
       dataInicio: null,

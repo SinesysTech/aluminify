@@ -107,20 +107,7 @@ async function postHandler(
 
     const { data: papel, error } = await client
       .from("papeis")
-<<<<<<< HEAD
-      .insert({
-        nome,
-        descricao,
-        permissoes,
-        tipo: "custom",
-        empresa_id: empresaId,
-        is_system: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-=======
       .insert(insertData)
-
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
       .select()
       .single();
 

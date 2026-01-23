@@ -89,38 +89,19 @@ export function PermissionsMatrix({
           create: false,
           edit: false,
           delete: false,
-<<<<<<< HEAD
-        } as any // eslint-disable-line @typescript-eslint/no-explicit-any
-=======
         }
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
       } else if (isSimplePermissions(resourcePerms)) {
         updatedResourcePerms = {
           view: false,
           edit: false,
-<<<<<<< HEAD
-        } as any // eslint-disable-line @typescript-eslint/no-explicit-any
-      } else {
-        newPermissions[resource] = { view: false } as any // eslint-disable-line @typescript-eslint/no-explicit-any
-=======
         }
       } else {
         updatedResourcePerms = { view: false }
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
       }
     }
     // Handle dependency: if enabling create/edit/delete, enable view
     else if (['create', 'edit', 'delete'].includes(action) && checked) {
       if (isResourcePermissions(resourcePerms)) {
-<<<<<<< HEAD
-        (resourcePerms as any)[action] = checked // eslint-disable-line @typescript-eslint/no-explicit-any
-        resourcePerms.view = true
-        newPermissions[resource] = resourcePerms as any // eslint-disable-line @typescript-eslint/no-explicit-any
-      } else if (isSimplePermissions(resourcePerms) && action === 'edit') {
-        (resourcePerms as SimplePermissions).edit = checked
-        resourcePerms.view = true
-        newPermissions[resource] = resourcePerms as any // eslint-disable-line @typescript-eslint/no-explicit-any
-=======
         const next = { ...resourcePerms } as ResourcePermissions
         next[action as keyof ResourcePermissions] = checked
         next.view = true
@@ -130,20 +111,14 @@ export function PermissionsMatrix({
         next.edit = checked
         next.view = true
         updatedResourcePerms = next
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
       }
     }
     // Normal case
     else {
       if (isResourcePermissions(resourcePerms)) {
-<<<<<<< HEAD
-        (resourcePerms as any)[action] = checked // eslint-disable-line @typescript-eslint/no-explicit-any
-        newPermissions[resource] = resourcePerms as any // eslint-disable-line @typescript-eslint/no-explicit-any
-=======
         const next = { ...resourcePerms } as ResourcePermissions
         next[action as keyof ResourcePermissions] = checked
         updatedResourcePerms = next
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
       } else if (isSimplePermissions(resourcePerms)) {
         const next = { ...resourcePerms } as SimplePermissions
         if (action === 'view') {
@@ -151,15 +126,9 @@ export function PermissionsMatrix({
         } else if (action === 'edit') {
           next.edit = checked
         }
-<<<<<<< HEAD
-        newPermissions[resource] = resourcePerms as any // eslint-disable-line @typescript-eslint/no-explicit-any
-      } else if (action === 'view') {
-        newPermissions[resource] = { view: checked } as any // eslint-disable-line @typescript-eslint/no-explicit-any
-=======
         updatedResourcePerms = next
       } else if (action === 'view') {
         updatedResourcePerms = { view: checked }
->>>>>>> 14850b2e1b3b595dfafc362dbb09004e3694c226
       }
     }
 
