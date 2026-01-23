@@ -29,7 +29,9 @@
       "mcp__supabase__generate_typescript_types",
       "mcp__supabase__get_logs",
       "Bash(npx openspec:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(git log:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
