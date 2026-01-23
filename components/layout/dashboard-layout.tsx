@@ -2,6 +2,7 @@ import React from 'react'
 
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { UserProvider } from '@/components/providers/user-provider'
+import { TenantBrandingProvider } from '@/components/providers/tenant-branding-provider'
 import { BottomNavigation } from '@/components/layout/bottom-navigation'
 import { ImpersonationBanner } from '@/components/layout/impersonation-banner'
 import {
@@ -35,25 +36,27 @@ export async function DashboardLayout({
 
     return (
         <UserProvider user={user}>
-            <SidebarProvider
-                // 3. Aplicação das variáveis de fonte e classes base no Provider
-                className={cn(
-                    "font-sans antialiased",
-                    fontSans.variable,
-                    fontMono.variable
-                )}
-            >
-                <AppSidebar />
-                <SidebarInset>
-                    <DashboardHeader />
-                    <ImpersonationBanner />
-                    {/* Main content - scroll nativo do body */}
-                    <div className="p-4 md:px-8 md:py-6 pb-20 md:pb-8 bg-background">
-                        {children}
-                    </div>
-                    <BottomNavigation />
-                </SidebarInset>
-            </SidebarProvider>
+            <TenantBrandingProvider user={user}>
+                <SidebarProvider
+                    // 3. Aplicação das variáveis de fonte e classes base no Provider
+                    className={cn(
+                        "font-sans antialiased",
+                        fontSans.variable,
+                        fontMono.variable
+                    )}
+                >
+                    <AppSidebar />
+                    <SidebarInset>
+                        <DashboardHeader />
+                        <ImpersonationBanner />
+                        {/* Main content - scroll nativo do body */}
+                        <div className="p-4 md:px-8 md:py-6 pb-20 md:pb-8 bg-background">
+                            {children}
+                        </div>
+                        <BottomNavigation />
+                    </SidebarInset>
+                </SidebarProvider>
+            </TenantBrandingProvider>
         </UserProvider>
     )
 }

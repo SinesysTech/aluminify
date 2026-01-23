@@ -40,8 +40,16 @@ async function postHandler(
       );
     }
 
-    // Validate file is actually a File object
-    if (!(file instanceof File)) {
+    // Validate file is a File-like object
+    // In Next.js app router, the File object may not pass instanceof checks
+    const isValidFile = file &&
+      typeof file === 'object' &&
+      'name' in file &&
+      'size' in file &&
+      'type' in file &&
+      typeof (file as File).arrayBuffer === 'function';
+
+    if (!isValidFile) {
       return NextResponse.json(
         { error: 'Invalid file format' },
         { status: 400 }
@@ -60,10 +68,8 @@ async function postHandler(
       },
     });
 
-    // Initialize logo manager
+    // Initialize logo manager and upload
     const logoManager = new LogoManagerImpl(supabase);
-
-    // Upload logo
     const result = await logoManager.uploadLogo(empresaId, file, logoType);
 
     if (!result.success) {

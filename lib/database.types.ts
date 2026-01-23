@@ -326,7 +326,10 @@ export type Database = {
       }
       alunos: {
         Row: {
+          bairro: string | null
           cep: string | null
+          cidade: string | null
+          complemento: string | null
           cpf: string | null
           created_at: string
           data_nascimento: string | null
@@ -334,18 +337,26 @@ export type Database = {
           email: string
           empresa_id: string
           endereco: string | null
+          estado: string | null
+          hotmart_id: string | null
           id: string
           instagram: string | null
           must_change_password: boolean
           nome_completo: string | null
+          numero_endereco: string | null
           numero_matricula: string | null
+          origem_cadastro: string | null
+          pais: string | null
           senha_temporaria: string | null
           telefone: string | null
           twitter: string | null
           updated_at: string
         }
         Insert: {
+          bairro?: string | null
           cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           cpf?: string | null
           created_at?: string
           data_nascimento?: string | null
@@ -353,18 +364,26 @@ export type Database = {
           email: string
           empresa_id: string
           endereco?: string | null
+          estado?: string | null
+          hotmart_id?: string | null
           id: string
           instagram?: string | null
           must_change_password?: boolean
           nome_completo?: string | null
+          numero_endereco?: string | null
           numero_matricula?: string | null
+          origem_cadastro?: string | null
+          pais?: string | null
           senha_temporaria?: string | null
           telefone?: string | null
           twitter?: string | null
           updated_at?: string
         }
         Update: {
+          bairro?: string | null
           cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           cpf?: string | null
           created_at?: string
           data_nascimento?: string | null
@@ -372,11 +391,16 @@ export type Database = {
           email?: string
           empresa_id?: string
           endereco?: string | null
+          estado?: string | null
+          hotmart_id?: string | null
           id?: string
           instagram?: string | null
           must_change_password?: boolean
           nome_completo?: string | null
+          numero_endereco?: string | null
           numero_matricula?: string | null
+          origem_cadastro?: string | null
+          pais?: string | null
           senha_temporaria?: string | null
           telefone?: string | null
           twitter?: string | null
@@ -1116,6 +1140,62 @@ export type Database = {
           },
         ]
       }
+      coupons: {
+        Row: {
+          id: string
+          empresa_id: string
+          code: string
+          description: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          max_uses: number | null
+          current_uses: number
+          valid_from: string
+          valid_until: string | null
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          empresa_id: string
+          code: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          max_uses?: number | null
+          current_uses?: number
+          valid_from?: string
+          valid_until?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          empresa_id?: string
+          code?: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value?: number
+          max_uses?: number | null
+          current_uses?: number
+          valid_from?: string
+          valid_until?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disciplinas: {
         Row: {
           created_at: string
@@ -1547,6 +1627,122 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_providers: {
+        Row: {
+          id: string
+          empresa_id: string
+          provider: string
+          name: string
+          credentials: Json
+          webhook_secret: string | null
+          webhook_url: string | null
+          provider_account_id: string | null
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          empresa_id: string
+          provider: string
+          name: string
+          credentials?: Json
+          webhook_secret?: string | null
+          webhook_url?: string | null
+          provider_account_id?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          empresa_id?: string
+          provider?: string
+          name?: string
+          credentials?: Json
+          webhook_secret?: string | null
+          webhook_url?: string | null
+          provider_account_id?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_providers_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          id: string
+          empresa_id: string
+          curso_id: string | null
+          name: string
+          description: string | null
+          price_cents: number
+          currency: string
+          provider: string
+          provider_product_id: string | null
+          provider_offer_id: string | null
+          active: boolean
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          empresa_id: string
+          curso_id?: string | null
+          name: string
+          description?: string | null
+          price_cents: number
+          currency?: string
+          provider?: string
+          provider_product_id?: string | null
+          provider_offer_id?: string | null
+          active?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          empresa_id?: string
+          curso_id?: string | null
+          name?: string
+          description?: string | null
+          price_cents?: number
+          currency?: string
+          provider?: string
+          provider_product_id?: string | null
+          provider_offer_id?: string | null
+          active?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
             referencedColumns: ["id"]
           },
         ]
@@ -2030,6 +2226,110 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          id: string
+          empresa_id: string
+          aluno_id: string | null
+          product_id: string | null
+          coupon_id: string | null
+          provider: string
+          provider_transaction_id: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          amount_cents: number
+          currency: string
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          installments: number | null
+          buyer_email: string
+          buyer_name: string | null
+          buyer_document: string | null
+          provider_data: Json
+          sale_date: string
+          confirmation_date: string | null
+          refund_date: string | null
+          refund_amount_cents: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          empresa_id: string
+          aluno_id?: string | null
+          product_id?: string | null
+          coupon_id?: string | null
+          provider?: string
+          provider_transaction_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          amount_cents: number
+          currency?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          installments?: number | null
+          buyer_email: string
+          buyer_name?: string | null
+          buyer_document?: string | null
+          provider_data?: Json
+          sale_date?: string
+          confirmation_date?: string | null
+          refund_date?: string | null
+          refund_amount_cents?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          empresa_id?: string
+          aluno_id?: string | null
+          product_id?: string | null
+          coupon_id?: string | null
+          provider?: string
+          provider_transaction_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          amount_cents?: number
+          currency?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          installments?: number | null
+          buyer_email?: string
+          buyer_name?: string | null
+          buyer_document?: string | null
+          provider_data?: Json
+          sale_date?: string
+          confirmation_date?: string | null
+          refund_date?: string | null
+          refund_amount_cents?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       turmas: {
         Row: {
           acesso_apos_termino: boolean | null
@@ -2359,6 +2659,21 @@ export type Database = {
         | "Gabarito"
         | "Outros"
       enum_tipo_servico_agendamento: "plantao" | "mentoria"
+      discount_type: "percentage" | "fixed"
+      payment_method:
+        | "credit_card"
+        | "debit_card"
+        | "pix"
+        | "boleto"
+        | "bank_transfer"
+        | "other"
+      transaction_status:
+        | "pending"
+        | "approved"
+        | "cancelled"
+        | "refunded"
+        | "disputed"
+        | "chargeback"
     }
     CompositeTypes: {
       [_ in never]: never

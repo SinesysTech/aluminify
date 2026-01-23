@@ -156,6 +156,7 @@ export default function InstitutionDashboardClient() {
       {/* Header com filtro de período */}
       <div className="flex items-center justify-between gap-4">
         <InstitutionHeader
+          userName={data.userName}
           empresaNome={data.empresaNome}
           totalAlunos={data.summary.totalAlunos}
           totalProfessores={data.summary.totalProfessores}

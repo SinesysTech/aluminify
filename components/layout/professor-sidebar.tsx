@@ -16,7 +16,7 @@ import { usePathname, useParams } from "next/navigation"
 import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
 import { useCurrentUser } from "@/components/providers/user-provider"
-import { AluminifyLogo } from "@/components/ui/aluminify-logo"
+import { TenantLogo } from "@/components/shared/tenant-logo"
 import {
   Sidebar,
   SidebarContent,
@@ -110,6 +110,10 @@ export function ProfessorSidebar({ ...props }: React.ComponentProps<typeof Sideb
     ? `/${tenantSlug}${getDefaultRouteForRole(user.role)}`
     : getDefaultRouteForRole(user.role)
 
+  // Get organization name and first letter for fallback
+  const organizationName = user.empresaNome || 'Área do Professor'
+  const fallbackLetter = organizationName.charAt(0).toUpperCase()
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -118,10 +122,15 @@ export function ProfessorSidebar({ ...props }: React.ComponentProps<typeof Sideb
             <SidebarMenuButton size="lg" asChild>
               <a href={homeLink}>
                 <div className="flex items-center gap-3">
-                  <AluminifyLogo />
+                  <TenantLogo
+                    logoType="sidebar"
+                    empresaId={user.empresaId}
+                    width={32}
+                    height={32}
+                    fallbackText={fallbackLetter}
+                  />
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">Área do Professor</span>
-                    <span className="truncate text-xs">Sistema de Gestão</span>
+                    <span className="truncate font-medium">{organizationName}</span>
                   </div>
                 </div>
               </a>

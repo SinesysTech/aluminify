@@ -1,9 +1,9 @@
 /**
  * CSS Custom Properties Manager
- * 
+ *
  * Manages dynamic CSS custom properties for tenant branding.
  * Extends existing theme system with tenant-specific customizations.
- * 
+ *
  * Performance optimizations:
  * - Batched CSS property updates to minimize reflows
  * - Caching of computed properties
@@ -11,12 +11,12 @@
  * - Debounced property application
  */
 
-import type { 
-  ColorPalette, 
-  FontScheme, 
+import type {
+  ColorPalette,
+  FontScheme,
   CSSCustomProperties,
-  CompleteBrandingConfig 
-} from '@/types/brand-customization';
+  CompleteBrandingConfig,
+} from "@/types/brand-customization";
 
 export class CSSPropertiesManager {
   private static instance: CSSPropertiesManager;
@@ -29,7 +29,7 @@ export class CSSPropertiesManager {
   private fontLoadPromises: Map<string, Promise<void>> = new Map();
 
   private constructor() {
-    if (typeof document !== 'undefined') {
+    if (typeof document !== "undefined") {
       this.root = document.documentElement;
     }
   }
@@ -51,13 +51,19 @@ export class CSSPropertiesManager {
 
     // Apply color palette if available
     if (branding.colorPalette) {
-      Object.assign(properties, this.generateColorProperties(branding.colorPalette));
+      Object.assign(
+        properties,
+        this.generateColorProperties(branding.colorPalette),
+      );
     }
 
     // Apply font scheme if available
     if (branding.fontScheme) {
-      Object.assign(properties, this.generateFontProperties(branding.fontScheme));
-      
+      Object.assign(
+        properties,
+        this.generateFontProperties(branding.fontScheme),
+      );
+
       // Load Google Fonts asynchronously
       if (branding.fontScheme.googleFonts.length > 0) {
         this.loadGoogleFontsLazy(branding.fontScheme.googleFonts);
@@ -68,7 +74,7 @@ export class CSSPropertiesManager {
     this.setBatchedProperties(properties);
 
     // Apply custom CSS if available
-    if (branding.tenantBranding.customCss) {
+    if (branding.tenantBranding?.customCss) {
       this.applyCustomCSS(branding.tenantBranding.customCss);
     }
   }
@@ -77,15 +83,23 @@ export class CSSPropertiesManager {
    * Generate CSS properties object from branding config
    * Used for caching and performance optimization
    */
-  public generateCSSProperties(branding: CompleteBrandingConfig): CSSCustomProperties {
+  public generateCSSProperties(
+    branding: CompleteBrandingConfig,
+  ): CSSCustomProperties {
     const properties: Partial<CSSCustomProperties> = {};
 
     if (branding.colorPalette) {
-      Object.assign(properties, this.generateColorProperties(branding.colorPalette));
+      Object.assign(
+        properties,
+        this.generateColorProperties(branding.colorPalette),
+      );
     }
 
     if (branding.fontScheme) {
-      Object.assign(properties, this.generateFontProperties(branding.fontScheme));
+      Object.assign(
+        properties,
+        this.generateFontProperties(branding.fontScheme),
+      );
     }
 
     return properties as CSSCustomProperties;
@@ -103,26 +117,28 @@ export class CSSPropertiesManager {
   /**
    * Generate color properties from palette
    */
-  private generateColorProperties(palette: ColorPalette): Record<string, string> {
+  private generateColorProperties(
+    palette: ColorPalette,
+  ): Record<string, string> {
     return {
-      '--primary': palette.primaryColor,
-      '--primary-foreground': palette.primaryForeground,
-      '--secondary': palette.secondaryColor,
-      '--secondary-foreground': palette.secondaryForeground,
-      '--accent': palette.accentColor,
-      '--accent-foreground': palette.accentForeground,
-      '--muted': palette.mutedColor,
-      '--muted-foreground': palette.mutedForeground,
-      '--background': palette.backgroundColor,
-      '--foreground': palette.foregroundColor,
-      '--card': palette.cardColor,
-      '--card-foreground': palette.cardForeground,
-      '--destructive': palette.destructiveColor,
-      '--destructive-foreground': palette.destructiveForeground,
-      '--sidebar-background': palette.sidebarBackground,
-      '--sidebar-foreground': palette.sidebarForeground,
-      '--sidebar-primary': palette.sidebarPrimary,
-      '--sidebar-primary-foreground': palette.sidebarPrimaryForeground,
+      "--primary": palette.primaryColor,
+      "--primary-foreground": palette.primaryForeground,
+      "--secondary": palette.secondaryColor,
+      "--secondary-foreground": palette.secondaryForeground,
+      "--accent": palette.accentColor,
+      "--accent-foreground": palette.accentForeground,
+      "--muted": palette.mutedColor,
+      "--muted-foreground": palette.mutedForeground,
+      "--background": palette.backgroundColor,
+      "--foreground": palette.foregroundColor,
+      "--card": palette.cardColor,
+      "--card-foreground": palette.cardForeground,
+      "--destructive": palette.destructiveColor,
+      "--destructive-foreground": palette.destructiveForeground,
+      "--sidebar-background": palette.sidebarBackground,
+      "--sidebar-foreground": palette.sidebarForeground,
+      "--sidebar-primary": palette.sidebarPrimary,
+      "--sidebar-primary-foreground": palette.sidebarPrimaryForeground,
     };
   }
 
@@ -143,10 +159,12 @@ export class CSSPropertiesManager {
   /**
    * Generate font properties from scheme
    */
-  private generateFontProperties(fontScheme: FontScheme): Record<string, string> {
+  private generateFontProperties(
+    fontScheme: FontScheme,
+  ): Record<string, string> {
     const properties: Record<string, string> = {
-      '--font-sans': fontScheme.fontSans.join(', '),
-      '--font-mono': fontScheme.fontMono.join(', '),
+      "--font-sans": fontScheme.fontSans.join(", "),
+      "--font-mono": fontScheme.fontMono.join(", "),
     };
 
     // Add font sizes
@@ -173,18 +191,20 @@ export class CSSPropertiesManager {
     }
 
     // Remove existing custom CSS
-    const existingStyle = document.querySelector('style[data-tenant-custom-css]');
+    const existingStyle = document.querySelector(
+      "style[data-tenant-custom-css]",
+    );
     if (existingStyle) {
       existingStyle.remove();
     }
 
     // Add new custom CSS
     if (customCss.trim()) {
-      const style = document.createElement('style');
-      style.setAttribute('data-tenant-custom-css', 'true');
+      const style = document.createElement("style");
+      style.setAttribute("data-tenant-custom-css", "true");
       style.textContent = customCss;
       document.head.appendChild(style);
-      
+
       // Cache the applied CSS
       this.propertyCache.set(cacheKey, customCss);
     }
@@ -198,7 +218,7 @@ export class CSSPropertiesManager {
     // Clear caches
     this.propertyCache.clear();
     this.pendingUpdates.clear();
-    
+
     // Cancel pending updates
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
@@ -206,23 +226,25 @@ export class CSSPropertiesManager {
     }
 
     // Remove all applied properties in batch
-    if (typeof document !== 'undefined') {
-      this.appliedProperties.forEach(property => {
+    if (typeof document !== "undefined") {
+      this.appliedProperties.forEach((property) => {
         this.root.style.removeProperty(property);
       });
     }
     this.appliedProperties.clear();
 
     // Remove custom CSS
-    const customStyle = document.querySelector('style[data-tenant-custom-css]');
+    const customStyle = document.querySelector("style[data-tenant-custom-css]");
     if (customStyle) {
       customStyle.remove();
     }
 
     // Remove Google Fonts
-    const googleFontsLinks = document.querySelectorAll('link[data-google-fonts]');
-    googleFontsLinks.forEach(link => link.remove());
-    
+    const googleFontsLinks = document.querySelectorAll(
+      "link[data-google-fonts]",
+    );
+    googleFontsLinks.forEach((link) => link.remove());
+
     // Clear font loading state
     this.loadedGoogleFonts.clear();
     this.fontLoadPromises.clear();
@@ -232,8 +254,8 @@ export class CSSPropertiesManager {
    * Get current CSS property value with caching
    */
   public getProperty(property: string): string {
-    if (typeof document === 'undefined') return '';
-    
+    if (typeof document === "undefined") return "";
+
     // Check cache first
     if (this.propertyCache.has(property)) {
       return this.propertyCache.get(property)!;
@@ -263,8 +285,8 @@ export class CSSPropertiesManager {
    */
   public applyThemeCustomizerProperties(radius: number, scale: number): void {
     const properties = {
-      '--radius': `${radius}rem`,
-      '--scale': scale.toString(),
+      "--radius": `${radius}rem`,
+      "--scale": scale.toString(),
     };
 
     this.setBatchedProperties(properties);
@@ -273,15 +295,15 @@ export class CSSPropertiesManager {
   /**
    * Apply dark/light mode efficiently
    */
-  public applyThemeMode(mode: 'light' | 'dark'): void {
-    if (typeof document === 'undefined') return;
-    
+  public applyThemeMode(mode: "light" | "dark"): void {
+    if (typeof document === "undefined") return;
+
     // Use requestAnimationFrame for smooth transitions
     requestAnimationFrame(() => {
-      if (mode === 'dark') {
-        this.root.classList.add('dark');
+      if (mode === "dark") {
+        this.root.classList.add("dark");
       } else {
-        this.root.classList.remove('dark');
+        this.root.classList.remove("dark");
       }
     });
   }
@@ -290,7 +312,7 @@ export class CSSPropertiesManager {
    * Optimized method to set CSS properties with batching and debouncing
    */
   private setBatchedProperties(properties: Record<string, string>): void {
-    if (typeof document === 'undefined') return;
+    if (typeof document === "undefined") return;
 
     // Add properties to pending updates
     Object.entries(properties).forEach(([property, value]) => {
@@ -313,7 +335,7 @@ export class CSSPropertiesManager {
    * Flush all pending property updates to DOM
    */
   private flushPendingUpdates(): void {
-    if (typeof document === 'undefined') return;
+    if (typeof document === "undefined") return;
 
     // Apply all pending updates in a single batch
     this.pendingUpdates.forEach((value, property) => {
@@ -337,14 +359,16 @@ export class CSSPropertiesManager {
    * Load Google Fonts with lazy loading and caching
    */
   private loadGoogleFontsLazy(fonts: string[]): void {
-    if (typeof document === 'undefined') return;
+    if (typeof document === "undefined") return;
 
-    const fontsToLoad = fonts.filter(font => !this.loadedGoogleFonts.has(font));
-    
+    const fontsToLoad = fonts.filter(
+      (font) => !this.loadedGoogleFonts.has(font),
+    );
+
     if (fontsToLoad.length === 0) return;
 
     // Check if we already have a loading promise for these fonts
-    const fontKey = fontsToLoad.sort().join(',');
+    const fontKey = fontsToLoad.sort().join(",");
     if (this.fontLoadPromises.has(fontKey)) {
       return;
     }
@@ -354,11 +378,13 @@ export class CSSPropertiesManager {
     this.fontLoadPromises.set(fontKey, loadPromise);
 
     // Mark fonts as loaded when promise resolves
-    loadPromise.then(() => {
-      fontsToLoad.forEach(font => this.loadedGoogleFonts.add(font));
-    }).catch(error => {
-      console.warn('Failed to load Google Fonts:', error);
-    });
+    loadPromise
+      .then(() => {
+        fontsToLoad.forEach((font) => this.loadedGoogleFonts.add(font));
+      })
+      .catch((error) => {
+        console.warn("Failed to load Google Fonts:", error);
+      });
   }
 
   /**
@@ -367,10 +393,14 @@ export class CSSPropertiesManager {
   private async createGoogleFontsLink(fonts: string[]): Promise<void> {
     return new Promise((resolve, reject) => {
       // Remove existing Google Fonts link for these fonts
-      const existingLinks = document.querySelectorAll('link[data-google-fonts]');
-      existingLinks.forEach(link => {
-        const href = link.getAttribute('href') || '';
-        const hasAnyFont = fonts.some(font => href.includes(font.replace(/\s+/g, '+')));
+      const existingLinks = document.querySelectorAll(
+        "link[data-google-fonts]",
+      );
+      existingLinks.forEach((link) => {
+        const href = link.getAttribute("href") || "";
+        const hasAnyFont = fonts.some((font) =>
+          href.includes(font.replace(/\s+/g, "+")),
+        );
         if (hasAnyFont) {
           link.remove();
         }
@@ -383,23 +413,24 @@ export class CSSPropertiesManager {
 
       // Create optimized Google Fonts URL
       const fontFamilies = fonts
-        .map(font => font.replace(/\s+/g, '+'))
-        .join('&family=');
-      
-      const link = document.createElement('link');
+        .map((font) => font.replace(/\s+/g, "+"))
+        .join("&family=");
+
+      const link = document.createElement("link");
       link.href = `https://fonts.googleapis.com/css2?family=${fontFamilies}:wght@300;400;500;600;700&display=swap`;
-      link.rel = 'stylesheet';
-      link.setAttribute('data-google-fonts', 'true');
-      
+      link.rel = "stylesheet";
+      link.setAttribute("data-google-fonts", "true");
+
       // Add loading optimization attributes
-      link.setAttribute('crossorigin', 'anonymous');
-      
+      link.setAttribute("crossorigin", "anonymous");
+
       // Handle load events
       link.onload = () => resolve();
-      link.onerror = () => reject(new Error(`Failed to load fonts: ${fonts.join(', ')}`));
-      
+      link.onerror = () =>
+        reject(new Error(`Failed to load fonts: ${fonts.join(", ")}`));
+
       // Use requestIdleCallback for non-blocking loading
-      if ('requestIdleCallback' in window) {
+      if ("requestIdleCallback" in window) {
         requestIdleCallback(() => {
           document.head.appendChild(link);
         });
@@ -416,7 +447,7 @@ export class CSSPropertiesManager {
    * Preload Google Fonts for better performance
    */
   public preloadGoogleFonts(fonts: string[]): Promise<void[]> {
-    const preloadPromises = fonts.map(font => {
+    const preloadPromises = fonts.map((font) => {
       if (this.loadedGoogleFonts.has(font)) {
         return Promise.resolve();
       }
@@ -447,7 +478,7 @@ export class CSSPropertiesManager {
   public clearCaches(): void {
     this.propertyCache.clear();
     this.pendingUpdates.clear();
-    
+
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
       this.updateTimeout = null;
@@ -462,36 +493,40 @@ export class CSSPropertiesManager {
 /**
  * Convert color palette to CSS custom properties object
  */
-export function colorPaletteToCSSProperties(palette: ColorPalette): Partial<CSSCustomProperties> {
+export function colorPaletteToCSSProperties(
+  palette: ColorPalette,
+): Partial<CSSCustomProperties> {
   return {
-    '--primary': palette.primaryColor,
-    '--primary-foreground': palette.primaryForeground,
-    '--secondary': palette.secondaryColor,
-    '--secondary-foreground': palette.secondaryForeground,
-    '--accent': palette.accentColor,
-    '--accent-foreground': palette.accentForeground,
-    '--muted': palette.mutedColor,
-    '--muted-foreground': palette.mutedForeground,
-    '--background': palette.backgroundColor,
-    '--foreground': palette.foregroundColor,
-    '--card': palette.cardColor,
-    '--card-foreground': palette.cardForeground,
-    '--destructive': palette.destructiveColor,
-    '--destructive-foreground': palette.destructiveForeground,
-    '--sidebar-background': palette.sidebarBackground,
-    '--sidebar-foreground': palette.sidebarForeground,
-    '--sidebar-primary': palette.sidebarPrimary,
-    '--sidebar-primary-foreground': palette.sidebarPrimaryForeground,
+    "--primary": palette.primaryColor,
+    "--primary-foreground": palette.primaryForeground,
+    "--secondary": palette.secondaryColor,
+    "--secondary-foreground": palette.secondaryForeground,
+    "--accent": palette.accentColor,
+    "--accent-foreground": palette.accentForeground,
+    "--muted": palette.mutedColor,
+    "--muted-foreground": palette.mutedForeground,
+    "--background": palette.backgroundColor,
+    "--foreground": palette.foregroundColor,
+    "--card": palette.cardColor,
+    "--card-foreground": palette.cardForeground,
+    "--destructive": palette.destructiveColor,
+    "--destructive-foreground": palette.destructiveForeground,
+    "--sidebar-background": palette.sidebarBackground,
+    "--sidebar-foreground": palette.sidebarForeground,
+    "--sidebar-primary": palette.sidebarPrimary,
+    "--sidebar-primary-foreground": palette.sidebarPrimaryForeground,
   };
 }
 
 /**
  * Convert font scheme to CSS custom properties object
  */
-export function fontSchemeToCSSProperties(fontScheme: FontScheme): Partial<CSSCustomProperties> {
+export function fontSchemeToCSSProperties(
+  fontScheme: FontScheme,
+): Partial<CSSCustomProperties> {
   return {
-    '--font-sans': fontScheme.fontSans.join(', '),
-    '--font-mono': fontScheme.fontMono.join(', '),
+    "--font-sans": fontScheme.fontSans.join(", "),
+    "--font-mono": fontScheme.fontMono.join(", "),
   };
 }
 
@@ -499,7 +534,7 @@ export function fontSchemeToCSSProperties(fontScheme: FontScheme): Partial<CSSCu
  * Validate CSS property name
  */
 export function isValidCSSProperty(property: string): boolean {
-  return property.startsWith('--') && property.length > 2;
+  return property.startsWith("--") && property.length > 2;
 }
 
 /**
@@ -507,7 +542,7 @@ export function isValidCSSProperty(property: string): boolean {
  */
 export function isValidCSSValue(value: string): boolean {
   // Basic validation - not empty and doesn't contain dangerous characters
-  return value.trim().length > 0 && !value.includes('<script>');
+  return value.trim().length > 0 && !value.includes("<script>");
 }
 
 /**

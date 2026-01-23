@@ -5,10 +5,10 @@
  * Provides utilities for components that need to react to branding changes.
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import { useTenantBranding } from '@/components/providers/tenant-branding-provider';
+import { useCallback, useEffect, useState, useContext } from 'react';
+import { useTenantBranding, TenantBrandingContext, type TenantBrandingContextType } from '@/components/providers/tenant-branding-provider';
 import { getCSSPropertiesManager } from '@/lib/services/css-properties-manager';
-import type { CompleteBrandingConfig, ColorPalette, FontScheme } from '@/types/brand-customization';
+import type { CompleteBrandingConfig, ColorPalette, FontScheme, LogoType } from '@/types/brand-customization';
 
 export interface TenantBrandingHookReturn {
   // State
@@ -254,5 +254,95 @@ export function useBrandingChangeDetection(): {
     hasChanged,
     lastChangeTime,
     resetChangeFlag,
+  };
+}
+
+/**
+ * Optional hook that returns null when used outside of TenantBrandingProvider
+ * Useful for components that need to work in both authenticated and unauthenticated contexts
+ */
+export function useTenantBrandingOptional(): TenantBrandingContextType | null {
+  const context = useContext(TenantBrandingContext);
+
+  // Check if we have a valid context with actual data
+  // The default context has empty functions, so we check if refreshBranding is the default no-op
+  if (!context || context.refreshBranding.toString() === 'async () => {}') {
+    return null;
+  }
+
+  return context;
+}
+
+/**
+ * Hook for getting a specific logo URL with cache-busting
+ * Works in both connected (via provider) and standalone modes
+ */
+export function useLogoUrl(logoType: LogoType, empresaId?: string): {
+  url: string | null;
+  loading: boolean;
+  error: boolean;
+  mode: 'connected' | 'standalone';
+} {
+  const context = useTenantBrandingOptional();
+  const [standaloneUrl, setStandaloneUrl] = useState<string | null>(null);
+  const [standaloneLoading, setStandaloneLoading] = useState(false);
+  const [standaloneError, setStandaloneError] = useState(false);
+
+  // Determine if we're in connected mode
+  const isConnected = !!(context && context.currentBranding);
+
+  // Standalone mode: fetch from API (hook must be called unconditionally)
+  useEffect(() => {
+    // Skip if in connected mode or no empresaId
+    if (isConnected || !empresaId) return;
+
+    const fetchLogo = async () => {
+      setStandaloneLoading(true);
+      setStandaloneError(false);
+
+      try {
+        const response = await fetch(`/api/tenant-branding/${empresaId}/logos/${logoType}/public`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data?.logoUrl) {
+            setStandaloneUrl(result.data.logoUrl);
+          } else {
+            setStandaloneUrl(null);
+          }
+        } else {
+          setStandaloneUrl(null);
+        }
+      } catch {
+        setStandaloneError(true);
+        setStandaloneUrl(null);
+      } finally {
+        setStandaloneLoading(false);
+      }
+    };
+
+    fetchLogo();
+  }, [empresaId, logoType, isConnected]);
+
+  // Connected mode: use context
+  if (isConnected && context) {
+    const logo = context.currentBranding!.logos[logoType];
+    const url = logo?.logoUrl || null;
+    const versionedUrl = url && context.logoVersion
+      ? `${url}${url.includes('?') ? '&' : '?'}v=${context.logoVersion}`
+      : url;
+
+    return {
+      url: versionedUrl,
+      loading: context.loadingBranding,
+      error: !!context.error,
+      mode: 'connected',
+    };
+  }
+
+  return {
+    url: standaloneUrl,
+    loading: standaloneLoading,
+    error: standaloneError,
+    mode: 'standalone',
   };
 }

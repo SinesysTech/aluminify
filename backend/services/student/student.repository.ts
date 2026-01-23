@@ -108,9 +108,17 @@ function mapRow(
     birthDate: row.data_nascimento ? new Date(row.data_nascimento) : null,
     address: row.endereco,
     zipCode: row.cep,
+    cidade: row.cidade ?? null,
+    estado: row.estado ?? null,
+    bairro: row.bairro ?? null,
+    pais: row.pais ?? null,
+    numeroEndereco: row.numero_endereco ?? null,
+    complemento: row.complemento ?? null,
     enrollmentNumber: row.numero_matricula,
     instagram: row.instagram,
     twitter: row.twitter,
+    hotmartId: row.hotmart_id ?? null,
+    origemCadastro: row.origem_cadastro ?? null,
     courses,
     mustChangePassword: row.must_change_password,
     temporaryPassword: row.senha_temporaria,
@@ -283,7 +291,7 @@ export class StudentRepositoryImpl implements StudentRepository {
       );
     }
 
-    // Cast para incluir empresa_id (será gerado após migration)
+    // Cast para incluir empresa_id e novos campos Hotmart
     const insertData = {
       id: payload.id,
       empresa_id: payload.empresaId ?? null,
@@ -294,9 +302,17 @@ export class StudentRepositoryImpl implements StudentRepository {
       data_nascimento: payload.birthDate ?? null,
       endereco: payload.address ?? null,
       cep: payload.zipCode ?? null,
+      cidade: payload.cidade ?? null,
+      estado: payload.estado ?? null,
+      bairro: payload.bairro ?? null,
+      pais: payload.pais ?? null,
+      numero_endereco: payload.numeroEndereco ?? null,
+      complemento: payload.complemento ?? null,
       numero_matricula: payload.enrollmentNumber ?? null,
       instagram: payload.instagram ?? null,
       twitter: payload.twitter ?? null,
+      hotmart_id: payload.hotmartId ?? null,
+      origem_cadastro: payload.origemCadastro ?? null,
       must_change_password: payload.mustChangePassword ?? false,
       senha_temporaria: payload.temporaryPassword ?? null,
     } as StudentInsert & { empresa_id?: string | null };
@@ -358,6 +374,38 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     if (payload.twitter !== undefined) {
       updateData.twitter = payload.twitter;
+    }
+
+    if (payload.cidade !== undefined) {
+      updateData.cidade = payload.cidade;
+    }
+
+    if (payload.estado !== undefined) {
+      updateData.estado = payload.estado;
+    }
+
+    if (payload.bairro !== undefined) {
+      updateData.bairro = payload.bairro;
+    }
+
+    if (payload.pais !== undefined) {
+      updateData.pais = payload.pais;
+    }
+
+    if (payload.numeroEndereco !== undefined) {
+      updateData.numero_endereco = payload.numeroEndereco;
+    }
+
+    if (payload.complemento !== undefined) {
+      updateData.complemento = payload.complemento;
+    }
+
+    if (payload.hotmartId !== undefined) {
+      updateData.hotmart_id = payload.hotmartId;
+    }
+
+    if (payload.origemCadastro !== undefined) {
+      updateData.origem_cadastro = payload.origemCadastro;
     }
 
     if (payload.mustChangePassword !== undefined) {

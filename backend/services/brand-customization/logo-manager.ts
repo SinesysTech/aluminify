@@ -116,7 +116,7 @@ export class LogoManagerImpl implements LogoManager {
       // Remove existing logo of the same type
       await this.removeExistingLogo(tenantBrandingId, type);
 
-      // Save logo metadata to database (using snake_case for DB columns)
+      // Save logo metadata to database
       const { error: saveError } = await this.client
         .from('tenant_logos')
         .insert({
@@ -443,13 +443,11 @@ export class LogoManagerImpl implements LogoManager {
       return existing.id;
     }
 
-    // Create new tenant branding (using snake_case for DB columns)
+    // Create new tenant branding
     const { data: created, error } = await this.client
       .from('tenant_branding')
       .insert({
         empresa_id: empresaId,
-        created_by: 'system', // TODO: Get from context
-        updated_by: 'system',
       })
       .select('id')
       .single();

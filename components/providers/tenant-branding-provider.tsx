@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 import { useThemeConfig } from '@/components/active-theme';
 import { getBrandingSyncManager } from '@/lib/services/branding-sync-manager';
-import type { CompleteBrandingConfig } from '@/types/brand-customization';
+import type { CompleteBrandingConfig, LogoType } from '@/types/brand-customization';
+import { createClient } from '@/lib/client';
 
 interface User {
   empresaId?: string;
@@ -11,22 +12,27 @@ interface User {
   // Add other user properties as needed
 }
 
-interface TenantBrandingContextType {
+export interface TenantBrandingContextType {
   loadingBranding: boolean;
   error: string | null;
   currentBranding: CompleteBrandingConfig | null;
   refreshBranding: () => Promise<void>;
   clearError: () => void;
   triggerCrossTabUpdate: () => void;
+  // New: Logo utilities with cache-busting
+  logoVersion: number;
+  getLogoUrl: (type: LogoType) => string | null;
 }
 
-const TenantBrandingContext = createContext<TenantBrandingContextType>({
+export const TenantBrandingContext = createContext<TenantBrandingContextType>({
   loadingBranding: false,
   error: null,
   currentBranding: null,
-  refreshBranding: async () => {},
-  clearError: () => {},
-  triggerCrossTabUpdate: () => {},
+  refreshBranding: async () => { },
+  clearError: () => { },
+  triggerCrossTabUpdate: () => { },
+  logoVersion: 0,
+  getLogoUrl: () => null,
 });
 
 interface TenantBrandingProviderProps {
@@ -39,15 +45,28 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
   const [loadingBranding, setLoadingBranding] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [currentBranding, setCurrentBranding] = React.useState<CompleteBrandingConfig | null>(null);
-  
+  const [logoVersion, setLogoVersion] = React.useState(Date.now());
+
   // Keep track of current empresa ID to detect changes
   const currentEmpresaId = useRef<string | undefined>(undefined);
-  
+
   // Keep track of polling interval for real-time updates
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Sync manager for cross-tab communication
   const syncManager = getBrandingSyncManager();
+
+  // Get logo URL with cache-busting parameter
+  const getLogoUrl = useCallback((type: LogoType): string | null => {
+    if (!currentBranding?.logos) return null;
+    const logo = currentBranding.logos[type];
+    if (!logo?.logoUrl) return null;
+
+    // Add cache-busting parameter
+    const url = logo.logoUrl;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${logoVersion}`;
+  }, [currentBranding, logoVersion]);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -55,7 +74,17 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
 
   const loadBrandingData = useCallback(async (empresaId: string): Promise<CompleteBrandingConfig | null> => {
     try {
-      const response = await fetch(`/api/tenant-branding/${empresaId}`);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/tenant-branding/${empresaId}`, {
+        headers
+      });
       if (response.ok) {
         const branding: CompleteBrandingConfig = await response.json();
         return branding;
@@ -78,11 +107,13 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
 
     try {
       const branding = await loadBrandingData(user.empresaId);
-      
+
       if (branding) {
         setCurrentBranding(branding);
+        // Increment logo version for cache-busting on any branding update
+        setLogoVersion(Date.now());
         applyBrandingToTheme(branding);
-        
+
         // Broadcast update to other tabs
         if (user?.empresaId) {
           syncManager.broadcastBrandingUpdate(user.empresaId, branding);
@@ -91,8 +122,9 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
       } else {
         // No custom branding - reset to defaults
         setCurrentBranding(null);
+        setLogoVersion(Date.now());
         resetBrandingToDefaults();
-        
+
         // Broadcast reset to other tabs
         if (user?.empresaId) {
           syncManager.broadcastBrandingReset(user.empresaId);
@@ -102,12 +134,12 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
       console.error('Failed to load tenant branding:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to load brand customization';
       setError(errorMessage);
-      
+
       // Broadcast error to other tabs
       if (user?.empresaId) {
         syncManager.broadcastBrandingError(user.empresaId, errorMessage);
       }
-      
+
       // Reset to defaults on error
       setCurrentBranding(null);
       resetBrandingToDefaults();
@@ -127,7 +159,7 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
     pollingInterval.current = setInterval(async () => {
       try {
         const branding = await loadBrandingData(empresaId);
-        
+
         // Only update if branding has changed
         if (JSON.stringify(branding) !== JSON.stringify(currentBranding)) {
           if (branding) {
@@ -174,7 +206,7 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
       if (empresaId) {
         // Load branding for new empresa
         refreshBranding();
-        
+
         // Setup real-time updates
         setupRealTimeUpdates(empresaId);
       } else {
@@ -242,7 +274,9 @@ export function TenantBrandingProvider({ children, user }: TenantBrandingProvide
     refreshBranding,
     clearError,
     triggerCrossTabUpdate,
-  }), [loadingBranding, error, currentBranding, refreshBranding, clearError, triggerCrossTabUpdate]);
+    logoVersion,
+    getLogoUrl,
+  }), [loadingBranding, error, currentBranding, refreshBranding, clearError, triggerCrossTabUpdate, logoVersion, getLogoUrl]);
 
   return (
     <TenantBrandingContext.Provider value={contextValue}>

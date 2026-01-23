@@ -18,6 +18,7 @@ export class InstitutionAnalyticsService {
   async getInstitutionDashboard(
     empresaId: string,
     period: DashboardPeriod = "mensal",
+    userId?: string,
   ): Promise<InstitutionDashboardData> {
     const client = getDatabaseClient();
 
@@ -29,6 +30,21 @@ export class InstitutionAnalyticsService {
       .single();
 
     const empresaNome = empresa?.nome ?? "Instituição";
+
+    // Buscar nome do usuário (primeiro nome)
+    let userName = "Usuário";
+    if (userId) {
+      const { data: usuario } = await client
+        .from("usuarios")
+        .select("nome_completo")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (usuario?.nome_completo) {
+        // Extrair primeiro nome
+        userName = usuario.nome_completo.split(" ")[0];
+      }
+    }
 
     // Buscar métricas em paralelo
     const [
@@ -49,6 +65,7 @@ export class InstitutionAnalyticsService {
 
     return {
       empresaNome,
+      userName,
       summary,
       engagement,
       heatmap,

@@ -134,6 +134,7 @@ function logUnauthorizedAccess(
 
 /**
  * Verifies that the user has empresa admin privileges for brand customization
+ * Now supports both the new usuarios/papeis system and legacy professores.is_admin
  */
 export async function verifyEmpresaAdminAccess(
   userId: string,
@@ -142,28 +143,46 @@ export async function verifyEmpresaAdminAccess(
   const client = getDatabaseClient();
 
   try {
-    // Check if user is a professor in the specified empresa and has admin privileges
-    const { data: professor, error } = await client
+    // First, check the new usuarios/papeis system
+    const { data: usuario, error: usuarioError } = await client
+      .from('usuarios')
+      .select(`
+        id,
+        empresa_id,
+        papel_id,
+        papeis!inner(id, tipo)
+      `)
+      .eq('id', userId)
+      .eq('empresa_id', empresaId)
+      .maybeSingle();
+
+    if (!usuarioError && usuario) {
+      // Check if the user has an admin role
+      const papel = usuario.papeis as { id: string; tipo: string } | null;
+      if (papel && (papel.tipo === 'admin' || papel.tipo === 'professor_admin')) {
+        return { isAdmin: true };
+      }
+    }
+
+    // Fallback: Check legacy professores.is_admin for backward compatibility
+    const { data: professor, error: professorError } = await client
       .from('professores')
       .select('id, empresa_id, is_admin')
       .eq('id', userId)
       .eq('empresa_id', empresaId)
       .maybeSingle();
 
-    if (error) {
-      console.error('[Brand Customization] Error checking professor admin status:', error);
+    if (professorError) {
+      console.error('[Brand Customization] Error checking professor admin status:', professorError);
       return { isAdmin: false, error: 'Database error while checking permissions' };
     }
 
-    if (!professor) {
-      return { isAdmin: false, error: 'User is not a professor in the specified empresa' };
+    if (professor && professor.is_admin) {
+      return { isAdmin: true };
     }
 
-    if (!professor.is_admin) {
-      return { isAdmin: false, error: 'User does not have admin privileges in the empresa' };
-    }
-
-    return { isAdmin: true };
+    // No admin access found in either system
+    return { isAdmin: false, error: 'User does not have admin privileges in the empresa' };
   } catch (err) {
     console.error('[Brand Customization] Exception checking admin access:', err);
     return { isAdmin: false, error: 'Unexpected error while checking permissions' };

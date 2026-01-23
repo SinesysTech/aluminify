@@ -116,7 +116,7 @@ export function ThemeConfigProvider({ children, initialTheme }: ActiveThemeProvi
     };
 
     // If there's a default custom preset, apply it
-    const defaultPreset = branding.customThemePresets.find(p => p.isDefault);
+    const defaultPreset = branding.customThemePresets?.find(p => p.isDefault);
     if (defaultPreset) {
       updatedTheme.preset = defaultPreset.id;
       updatedTheme.radius = defaultPreset.radius;

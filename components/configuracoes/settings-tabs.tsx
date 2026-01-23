@@ -29,7 +29,7 @@ export function SettingsTabs({ user, initialTab }: SettingsTabsProps) {
 
     return (
         <div className="flex flex-col gap-8 h-full">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" id="settings-tabs">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="branding">Customizações de Marca</TabsTrigger>
                     <TabsTrigger value="empresa">Dados da Empresa</TabsTrigger>

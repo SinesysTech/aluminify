@@ -9,7 +9,7 @@ export default async function ProfessorDashboardPage(props: {
 }) {
   const params = await props.params
   const { tenant } = params
-  const user = await requireUser({ allowedRoles: ['professor', 'superadmin'] })
+  const user = await requireUser({ allowedRoles: ['professor', 'usuario', 'superadmin'] })
 
   // Verificar se precisa completar cadastro da empresa
   let shouldRedirectToComplete = false

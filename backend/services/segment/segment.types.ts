@@ -2,6 +2,7 @@ export interface Segment {
   id: string;
   name: string;
   slug: string | null;
+  empresaId: string;
   createdAt: Date;
   updatedAt: Date;
 }

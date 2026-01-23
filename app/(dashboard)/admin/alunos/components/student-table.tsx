@@ -1,17 +1,17 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { MoreHorizontal, Eye, Trash2 } from 'lucide-react'
+import { Eye, Trash2, UserCog } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Student } from '@/types/shared/entities/user'
 import { createClient } from '@/lib/client'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 import { DeleteStudentDialog } from './delete-student-dialog'
 import { toast } from '@/hooks/use-toast'
 
@@ -105,7 +105,7 @@ export function StudentTable({ students }: StudentTableProps) {
     }
 
     return (
-        <>
+        <TooltipProvider>
             <div className="overflow-hidden flex-1">
                 <table className="w-full text-left text-sm">
                 <thead className="border-b border-[#E4E4E7]">
@@ -168,35 +168,62 @@ export function StudentTable({ students }: StudentTableProps) {
                                     </td>
                                     <td className="p-4 text-right">
                                         {mounted ? (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="text-zinc-400 hover:text-zinc-900 transition-colors">
-                                                        <MoreHorizontal className="w-5 h-5" strokeWidth={1.5} />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleViewAsStudent(student.id)}
-                                                        disabled={loadingId === student.id}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        <Eye className="mr-2 h-4 w-4" />
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={() => router.push(`/admin/alunos/${student.id}`)}
+                                                        >
+                                                            <UserCog className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Ver Perfil</TooltipContent>
+                                                </Tooltip>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={() => handleViewAsStudent(student.id)}
+                                                            disabled={loadingId === student.id}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
                                                         {loadingId === student.id ? 'Carregando...' : 'Visualizar como Aluno'}
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleDeleteClick(student)}
-                                                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                                                    >
-                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                        Excluir Aluno
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                                            onClick={() => handleDeleteClick(student)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Excluir Aluno</TooltipContent>
+                                                </Tooltip>
+                                            </div>
                                         ) : (
-                                            <button className="text-zinc-400" disabled>
-                                                <MoreHorizontal className="w-5 h-5" strokeWidth={1.5} />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                                                    <UserCog className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
@@ -221,6 +248,6 @@ export function StudentTable({ students }: StudentTableProps) {
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
             />
-        </>
+        </TooltipProvider>
     )
 }

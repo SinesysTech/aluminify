@@ -28,12 +28,12 @@ async function getHandler(request: AuthenticatedRequest) {
       );
     }
 
-    // Verificar se é professor
-    if (!["professor", "superadmin"].includes(request.user?.role || "")) {
+    // Verificar se é professor/usuario (staff da empresa)
+    if (!["professor", "usuario", "superadmin"].includes(request.user?.role || "")) {
       return NextResponse.json(
         {
           error:
-            "Acesso negado. Apenas professores podem acessar este dashboard.",
+            "Acesso negado. Apenas membros da equipe podem acessar este dashboard.",
         },
         { status: 403 },
       );
@@ -77,6 +77,7 @@ async function getHandler(request: AuthenticatedRequest) {
       await institutionAnalyticsService.getInstitutionDashboard(
         empresaId,
         period,
+        userId,
       );
 
     return NextResponse.json({ success: true, data: dashboardData });

@@ -11,7 +11,7 @@ export default async function ConfiguracoesPage({ searchParams }: ConfiguracoesP
   const { tab } = await searchParams
 
   // Only empresa admins can access this page
-  const allowedRoles = ['professor', 'superadmin', 'empresa']
+  const allowedRoles = ['professor', 'usuario', 'superadmin']
   if (!allowedRoles.includes(user.role)) {
     redirect('/dashboard')
   }

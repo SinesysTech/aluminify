@@ -32,8 +32,11 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
             });
 
             if (response.ok) {
-                const brandingData = await response.json();
-                setCurrentBranding(brandingData);
+                const result = await response.json();
+                // API returns { success: true, data: CompleteBrandingConfig }
+                if (result.success && result.data) {
+                    setCurrentBranding(result.data);
+                }
             }
         } catch (error) {
             console.error('Error fetching branding:', error);
@@ -61,7 +64,7 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
             }
 
             const response = await fetch(`/api/tenant-branding/${empresaId}`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`,
@@ -74,8 +77,11 @@ export function BrandingSettings({ empresaId }: BrandingSettingsProps) {
                 throw new Error(errorData.error || 'Erro ao salvar branding');
             }
 
-            const updatedBranding = await response.json();
-            setCurrentBranding(updatedBranding);
+            const result = await response.json();
+            // API returns { success: true, data: CompleteBrandingConfig }
+            if (result.success && result.data) {
+                setCurrentBranding(result.data);
+            }
 
             toast({
                 title: 'Sucesso',

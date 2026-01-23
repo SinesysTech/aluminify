@@ -2,7 +2,7 @@
 import { requireUser } from '@/lib/auth'
 
 export default async function ConteudosRedirectPage() {
-  const user = await requireUser({ allowedRoles: ['professor', 'usuario'] })
+  const user = await requireUser({ allowedRoles: ['usuario'] })
 
   if (user.empresaSlug) {
     redirect(`/${user.empresaSlug}/conteudos`)

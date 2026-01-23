@@ -27,7 +27,10 @@ export class SegmentService {
     const name = this.validateName(payload.name);
     const slug = payload.slug ? this.validateSlug(payload.slug) : undefined;
 
-    const existingByName = await this.repository.findByName(name);
+    const existingByName = await this.repository.findByName(
+      name,
+      payload.empresaId,
+    );
     if (existingByName) {
       throw new SegmentConflictError(
         `Segment with name "${name}" already exists`,
@@ -35,7 +38,10 @@ export class SegmentService {
     }
 
     if (slug) {
-      const existingBySlug = await this.repository.findBySlug(slug);
+      const existingBySlug = await this.repository.findBySlug(
+        slug,
+        payload.empresaId,
+      );
       if (existingBySlug) {
         throw new SegmentConflictError(
           `Segment with slug "${slug}" already exists`,
@@ -52,8 +58,10 @@ export class SegmentService {
   }
 
   async update(id: string, payload: UpdateSegmentInput): Promise<Segment> {
+    const currentSegment = await this.ensureExists(id);
+
     if (!payload.name && !payload.slug) {
-      return this.ensureExists(id);
+      return currentSegment;
     }
 
     const name = payload.name ? this.validateName(payload.name) : undefined;
@@ -65,7 +73,10 @@ export class SegmentService {
         : undefined;
 
     if (name) {
-      const existingByName = await this.repository.findByName(name);
+      const existingByName = await this.repository.findByName(
+        name,
+        currentSegment.empresaId,
+      );
       if (existingByName && existingByName.id !== id) {
         throw new SegmentConflictError(
           `Segment with name "${name}" already exists`,
@@ -74,7 +85,10 @@ export class SegmentService {
     }
 
     if (slug !== undefined && slug !== null) {
-      const existingBySlug = await this.repository.findBySlug(slug);
+      const existingBySlug = await this.repository.findBySlug(
+        slug,
+        currentSegment.empresaId,
+      );
       if (existingBySlug && existingBySlug.id !== id) {
         throw new SegmentConflictError(
           `Segment with slug "${slug}" already exists`,

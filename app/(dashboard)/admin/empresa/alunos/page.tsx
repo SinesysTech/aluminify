@@ -6,7 +6,7 @@ import { requireUser } from '@/lib/auth'
 
 export default async function EmpresaAlunosPage({ searchParams }: { searchParams: { page?: string, query?: string } }) {
   // Ensure only empresa admins and superadmins can access
-  await requireUser({ allowedRoles: ['professor', 'empresa', 'superadmin'] })
+  await requireUser({ allowedRoles: ['professor', 'usuario', 'superadmin'] })
 
   const { page: pageStr, query: queryStr } = await searchParams
   const page = Number(pageStr) || 1

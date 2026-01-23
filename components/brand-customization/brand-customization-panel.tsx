@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Palette,
   Upload,
@@ -18,6 +18,7 @@ import { createClient } from '@/lib/client';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';
+import { useTenantBrandingOptional } from '@/hooks/use-tenant-branding';
 import type {
   BrandCustomizationState,
   BrandCustomizationPanelProps,
@@ -46,6 +47,9 @@ export function BrandCustomizationPanel({
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Get branding context for refresh and cross-tab sync
+  const brandingContext = useTenantBrandingOptional();
 
   const getAuthHeaders = async (): Promise<Record<string, string>> => {
     const supabase = createClient();
@@ -91,15 +95,14 @@ export function BrandCustomizationPanel({
     }
   }, [currentBranding]);
 
-  const handleLogoUpload = async (file: File, type: LogoType): Promise<LogoUploadResult> => {
+  const handleLogoUpload = useCallback(async (file: File, type: LogoType): Promise<LogoUploadResult> => {
     try {
-      console.log('Uploading logo for empresa:', empresaId);
-
       const formData = new FormData();
       formData.append('file', file);
       formData.append('logoType', type);
 
       const authHeaders = await getAuthHeaders();
+
       const response = await fetch(`/api/tenant-branding/${empresaId}/logos`, {
         method: 'POST',
         headers: authHeaders,
@@ -112,7 +115,7 @@ export function BrandCustomizationPanel({
         throw new Error(data.error || 'Falha no upload do logo');
       }
 
-      // Update local state with the returned URL (not blob)
+      // Update local state with the returned URL
       setBrandingState(prev => ({
         ...prev,
         logos: {
@@ -121,20 +124,22 @@ export function BrandCustomizationPanel({
         }
       }));
 
-      // Logos are saved instantly, so we don't set hasUnsavedChanges
-      // setHasUnsavedChanges(true); 
+      // Refresh branding context to propagate changes to all components (sidebar, etc.)
+      if (brandingContext) {
+        await brandingContext.refreshBranding();
+        brandingContext.triggerCrossTabUpdate();
+      }
 
       return { success: true, logoUrl: data.logoUrl };
     } catch (error) {
-      console.error('Upload failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Falha no upload do logo'
       };
     }
-  };
+  }, [empresaId, brandingContext]);
 
-  const handleLogoRemove = async (type: LogoType): Promise<void> => {
+  const handleLogoRemove = useCallback(async (type: LogoType): Promise<void> => {
     try {
       const authHeaders = await getAuthHeaders();
       const response = await fetch(`/api/tenant-branding/${empresaId}/logos/${type}`, {
@@ -153,13 +158,16 @@ export function BrandCustomizationPanel({
         return { ...prev, logos: newLogos };
       });
 
-      // Logos are removed instantly
-      // setHasUnsavedChanges(true);
+      // Refresh branding context to propagate changes to all components
+      if (brandingContext) {
+        await brandingContext.refreshBranding();
+        brandingContext.triggerCrossTabUpdate();
+      }
     } catch (error) {
       console.error('Removal failed:', error);
-      throw error; // Re-throw to let child component handle if needed, though handleLogoRemove signature returns Promise<void>
+      throw error;
     }
-  };
+  }, [empresaId, brandingContext]);
 
   const handleColorPaletteSave = async (paletteRequest: CreateColorPaletteRequest): Promise<void> => {
     try {

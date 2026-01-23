@@ -6,122 +6,150 @@ import { getImpersonationContext } from "@/lib/auth-impersonate";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
 import { isAdminRole } from "@/backend/services/permission";
 
+import { createClient } from "@/lib/server";
+import { User } from "@supabase/supabase-js";
+
 export interface AuthenticatedRequest extends NextRequest {
   user?: AuthUser;
   apiKey?: ApiKeyAuth;
   impersonationContext?: Awaited<ReturnType<typeof getImpersonationContext>>;
 }
 
-export async function getAuthUser(
-  request: NextRequest,
+export async function mapSupabaseUserToAuthUser(
+  user: User,
 ): Promise<AuthUser | null> {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("[Auth] No authorization header found");
-    return null;
-  }
-
-  const token = authHeader.substring(7);
   const client = getDatabaseClient();
 
-  try {
-    const {
-      data: { user },
-      error,
-    } = await client.auth.getUser(token);
+  // Check if user is superadmin from metadata
+  const metadataRole = user.user_metadata?.role as LegacyUserRole | undefined;
+  const isSuperAdmin =
+    metadataRole === "superadmin" || user.user_metadata?.is_superadmin === true;
 
-    if (error || !user) {
-      console.log(
-        "[Auth] Error getting user:",
-        error?.message || "No user found",
-      );
-      return null;
-    }
+  if (isSuperAdmin) {
+    return {
+      id: user.id,
+      email: user.email!,
+      role: "superadmin",
+      isSuperAdmin: true,
+      isAdmin: true,
+      empresaId: user.user_metadata?.empresa_id as string | undefined,
+    };
+  }
 
-    // Check if user is superadmin from metadata
-    const metadataRole = user.user_metadata?.role as LegacyUserRole | undefined;
-    const isSuperAdmin =
-      metadataRole === "superadmin" || user.user_metadata?.is_superadmin === true;
+  // Check if user exists in usuarios table (institution staff)
+  const { data: usuarioData, error: usuarioError } = await client
+    .from("usuarios")
+    .select("empresa_id, papeis!inner(tipo, permissoes)")
+    .eq("id", user.id)
+    .eq("ativo", true)
+    .is("deleted_at", null)
+    .maybeSingle();
 
-    if (isSuperAdmin) {
-      return {
-        id: user.id,
-        email: user.email!,
-        role: "superadmin",
-        isSuperAdmin: true,
-        isAdmin: true,
-        empresaId: user.user_metadata?.empresa_id as string | undefined,
-      };
-    }
-
-    // Check if user exists in usuarios table (institution staff)
-    const { data: usuarioData, error: usuarioError } = await client
-      .from("usuarios")
-      .select("empresa_id, papeis!inner(tipo, permissoes)")
-      .eq("id", user.id)
-      .eq("ativo", true)
-      .is("deleted_at", null)
-      .maybeSingle();
-
-    if (!usuarioError && usuarioData) {
-      const papelData = usuarioData.papeis as { tipo: string; permissoes: unknown };
-      const roleType = papelData.tipo as RoleTipo;
-      const permissions = papelData.permissoes as RolePermissions;
-
-      return {
-        id: user.id,
-        email: user.email!,
-        role: "usuario",
-        roleType,
-        permissions,
-        isSuperAdmin: false,
-        isAdmin: isAdminRole(roleType),
-        empresaId: usuarioData.empresa_id,
-      };
-    }
-
-    // Check if user exists in alunos table
-    const { data: alunoData, error: alunoError } = await client
-      .from("alunos")
-      .select("empresa_id")
-      .eq("id", user.id)
-      .is("deleted_at", null)
-      .maybeSingle();
-
-    if (!alunoError && alunoData) {
-      return {
-        id: user.id,
-        email: user.email!,
-        role: "aluno",
-        isSuperAdmin: false,
-        isAdmin: false,
-        empresaId: alunoData.empresa_id ?? undefined,
-      };
-    }
-
-    // Fallback: use metadata role (for backward compatibility)
-    const empresaId = user.user_metadata?.empresa_id as string | undefined;
-    const legacyIsAdmin =
-      user.user_metadata?.is_admin === true ||
-      user.user_metadata?.is_admin === "true";
-
-    // Map legacy "professor" or "empresa" roles to "usuario"
-    let role: UserRole = "aluno";
-    if (metadataRole === "professor" || metadataRole === "empresa") {
-      role = "usuario";
-    } else if (metadataRole === "aluno") {
-      role = "aluno";
-    }
+  if (!usuarioError && usuarioData) {
+    const papelData = usuarioData.papeis as {
+      tipo: string;
+      permissoes: unknown;
+    };
+    const roleType = papelData.tipo as RoleTipo;
+    const permissions = papelData.permissoes as RolePermissions;
 
     return {
       id: user.id,
       email: user.email!,
-      role,
+      role: "usuario",
+      roleType,
+      permissions,
       isSuperAdmin: false,
-      isAdmin: legacyIsAdmin,
-      empresaId,
+      isAdmin: isAdminRole(roleType),
+      empresaId: usuarioData.empresa_id,
     };
+  }
+
+  // Check if user exists in alunos table
+  const { data: alunoData, error: alunoError } = await client
+    .from("alunos")
+    .select("empresa_id")
+    .eq("id", user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (!alunoError && alunoData) {
+    return {
+      id: user.id,
+      email: user.email!,
+      role: "aluno",
+      isSuperAdmin: false,
+      isAdmin: false,
+      empresaId: alunoData.empresa_id ?? undefined,
+    };
+  }
+
+  // Fallback: use metadata role (for backward compatibility)
+  const empresaId = user.user_metadata?.empresa_id as string | undefined;
+  const legacyIsAdmin =
+    user.user_metadata?.is_admin === true ||
+    user.user_metadata?.is_admin === "true";
+
+  // Map legacy "professor" or "empresa" roles to "usuario"
+  let role: UserRole = "aluno";
+  if (metadataRole === "professor" || metadataRole === "empresa") {
+    role = "usuario";
+  } else if (metadataRole === "aluno") {
+    role = "aluno";
+  }
+
+  return {
+    id: user.id,
+    email: user.email!,
+    role,
+    isSuperAdmin: false,
+    isAdmin: legacyIsAdmin,
+    empresaId,
+  };
+}
+
+export async function getAuthUser(
+  request: NextRequest,
+): Promise<AuthUser | null> {
+  try {
+    const authHeader = request.headers.get("authorization");
+    let user = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      // 1. Bearer Token Auth
+      const token = authHeader.substring(7);
+      const client = getDatabaseClient();
+      const {
+        data: { user: supabaseUser },
+        error,
+      } = await client.auth.getUser(token);
+
+      if (!error && supabaseUser) {
+        user = supabaseUser;
+      } else {
+        console.log(
+          "[Auth] Error getting user from token:",
+          error?.message || "No user found",
+        );
+      }
+    } else {
+      // 2. Cookie Auth (Fallback)
+      const supabase = await createClient();
+      const {
+        data: { user: supabaseUser },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (!error && supabaseUser) {
+        user = supabaseUser;
+      }
+    }
+
+    if (!user) {
+      return null;
+    }
+
+    return await mapSupabaseUserToAuthUser(user);
   } catch (err) {
     console.error("[Auth] Exception getting user:", err);
     return null;
@@ -362,7 +390,11 @@ export function requirePermission(
         authenticatedRequest.user = user;
 
         let unwrappedContext = context;
-        if (context && "params" in context && context.params instanceof Promise) {
+        if (
+          context &&
+          "params" in context &&
+          context.params instanceof Promise
+        ) {
           const params = await context.params;
           unwrappedContext = { ...context, params };
         }
@@ -376,7 +408,9 @@ export function requirePermission(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      const hasPermission = (resourcePermissions as Record<string, boolean>)[action];
+      const hasPermission = (resourcePermissions as Record<string, boolean>)[
+        action
+      ];
       if (!hasPermission) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }

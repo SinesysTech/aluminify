@@ -18,8 +18,8 @@ export interface PaginatedResult<T> {
 export interface SegmentRepository {
   list(params?: PaginationParams): Promise<PaginatedResult<Segment>>;
   findById(id: string): Promise<Segment | null>;
-  findByName(name: string): Promise<Segment | null>;
-  findBySlug(slug: string): Promise<Segment | null>;
+  findByName(name: string, empresaId?: string): Promise<Segment | null>;
+  findBySlug(slug: string, empresaId?: string): Promise<Segment | null>;
   create(payload: CreateSegmentInput): Promise<Segment>;
   update(id: string, payload: UpdateSegmentInput): Promise<Segment>;
   delete(id: string): Promise<void>;
@@ -37,6 +37,7 @@ function mapRow(row: SegmentRow): Segment {
     id: row.id,
     name: row.nome,
     slug: row.slug,
+    empresaId: row.empresa_id,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -102,12 +103,15 @@ export class SegmentRepositoryImpl implements SegmentRepository {
     return data ? mapRow(data) : null;
   }
 
-  async findByName(name: string): Promise<Segment | null> {
-    const { data, error } = await this.client
-      .from(TABLE)
-      .select("*")
-      .eq("nome", name)
-      .maybeSingle();
+  async findByName(name: string, empresaId?: string): Promise<Segment | null> {
+    let query = this.client.from(TABLE).select("*").eq("nome", name);
+
+    if (empresaId) {
+      query = query.eq("empresa_id", empresaId);
+    }
+
+    // Limit 1 to prevent generic error if multiple rows exist (duplicate data)
+    const { data, error } = await query.limit(1).maybeSingle();
 
     if (error) {
       throw new Error(`Failed to fetch segment by name: ${error.message}`);
@@ -116,12 +120,15 @@ export class SegmentRepositoryImpl implements SegmentRepository {
     return data ? mapRow(data) : null;
   }
 
-  async findBySlug(slug: string): Promise<Segment | null> {
-    const { data, error } = await this.client
-      .from(TABLE)
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
+  async findBySlug(slug: string, empresaId?: string): Promise<Segment | null> {
+    let query = this.client.from(TABLE).select("*").eq("slug", slug);
+
+    if (empresaId) {
+      query = query.eq("empresa_id", empresaId);
+    }
+
+    // Limit 1 to prevent generic error if multiple rows exist (duplicate data)
+    const { data, error } = await query.limit(1).maybeSingle();
 
     if (error) {
       throw new Error(`Failed to fetch segment by slug: ${error.message}`);

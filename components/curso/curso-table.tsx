@@ -13,7 +13,8 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, BookOpen, Search } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2, Plus, BookOpen, Search, Eye, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -66,13 +67,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { apiClient, ApiClientError } from '@/lib/api-client'
@@ -130,6 +129,7 @@ const cursoSchema = z.object({
 type CursoFormValues = z.infer<typeof cursoSchema>
 
 export function CursoTable() {
+  const router = useRouter()
   const [data, setData] = React.useState<Curso[]>([])
   const [segmentos, setSegmentos] = React.useState<Segmento[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
@@ -148,6 +148,7 @@ export function CursoTable() {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [deletingCurso, setDeletingCurso] = React.useState<Curso | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [enrollmentCounts, setEnrollmentCounts] = React.useState<Record<string, number>>({})
 
   React.useEffect(() => {
     setMounted(true)
@@ -247,11 +248,23 @@ export function CursoTable() {
     }
   }, [])
 
+  const fetchEnrollmentCounts = React.useCallback(async () => {
+    try {
+      const response = await apiClient.get<{ data: Record<string, number> }>('/api/course/enrollments-count')
+      if (response && 'data' in response) {
+        setEnrollmentCounts(response.data)
+      }
+    } catch (err) {
+      console.error('Error fetching enrollment counts:', err)
+    }
+  }, [])
+
   React.useEffect(() => {
     fetchCursos()
     fetchSegmentos()
     fetchDisciplinas()
-  }, [fetchCursos, fetchSegmentos, fetchDisciplinas])
+    fetchEnrollmentCounts()
+  }, [fetchCursos, fetchSegmentos, fetchDisciplinas, fetchEnrollmentCounts])
 
   const handleCreate = async (values: CursoFormValues) => {
     try {
@@ -413,6 +426,34 @@ export function CursoTable() {
       cell: ({ row }) => <div>{row.getValue('year')}</div>,
     },
     {
+      id: 'enrollmentCount',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Alunos
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const count = enrollmentCounts[row.original.id] || 0
+        return (
+          <div className="flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-zinc-400" />
+            <span className="font-medium">{count}</span>
+          </div>
+        )
+      },
+      sortingFn: (rowA, rowB) => {
+        const countA = enrollmentCounts[rowA.original.id] || 0
+        const countB = enrollmentCounts[rowB.original.id] || 0
+        return countA - countB
+      },
+    },
+    {
       accessorKey: 'createdAt',
       header: ({ column }) => {
         return (
@@ -432,34 +473,53 @@ export function CursoTable() {
     },
     {
       id: 'actions',
+      header: 'Ações',
       enableHiding: false,
       cell: ({ row }) => {
         const curso = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEdit(curso)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleDeleteClick(curso)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => router.push(`/admin/cursos/${curso.id}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Visualizar alunos</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleEdit(curso)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Editar</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                  onClick={() => handleDeleteClick(curso)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Excluir</TooltipContent>
+            </Tooltip>
+          </div>
         )
       },
     },
@@ -483,6 +543,7 @@ export function CursoTable() {
   })
 
   return (
+    <TooltipProvider>
     <div className="flex flex-col gap-8 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
         <div>
@@ -498,115 +559,127 @@ export function CursoTable() {
                   Novo Curso
                 </button>
               </DialogTrigger>
-              <DialogContent className="max-w-[95vw] md:max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle>Criar Curso</DialogTitle>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="pb-4 border-b">
+                  <DialogTitle className="text-xl">Criar Curso</DialogTitle>
                   <DialogDescription>
                     Adicione um novo curso ao sistema.
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...createForm}>
-                  <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-3">
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                      <FormField
-                        control={createForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem className="md:col-span-2">
-                            <FormLabel>Nome *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Matemática Básica" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="year"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ano *</FormLabel>
-                            <FormControl>
-                              <Input type="number" placeholder="2024" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                      <FormField
-                        control={createForm.control}
-                        name="modality"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Modalidade *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-6 py-4">
+                    {/* Seção: Identificação */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                        <FormField
+                          control={createForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem className="sm:col-span-3">
+                              <FormLabel>Nome *</FormLabel>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione a modalidade" />
-                                </SelectTrigger>
+                                <Input placeholder="Ex: Matemática Básica" {...field} />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="EAD">EAD</SelectItem>
-                                <SelectItem value="LIVE">LIVE</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="year"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ano *</FormLabel>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo" />
-                                </SelectTrigger>
+                                <Input type="number" placeholder="2024" {...field} />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Superextensivo">Superextensivo</SelectItem>
-                                <SelectItem value="Extensivo">Extensivo</SelectItem>
-                                <SelectItem value="Intensivo">Intensivo</SelectItem>
-                                <SelectItem value="Superintensivo">Superintensivo</SelectItem>
-                                <SelectItem value="Revisão">Revisão</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="accessMonths"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Meses de Acesso</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="12"
-                                {...field}
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+
+                    {/* Seção: Configuração */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Configuração</h3>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <FormField
+                          control={createForm.control}
+                          name="modality"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Modalidade *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="EAD">EAD</SelectItem>
+                                  <SelectItem value="LIVE">LIVE</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="type"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Superextensivo">Superextensivo</SelectItem>
+                                  <SelectItem value="Extensivo">Extensivo</SelectItem>
+                                  <SelectItem value="Intensivo">Intensivo</SelectItem>
+                                  <SelectItem value="Superintensivo">Superintensivo</SelectItem>
+                                  <SelectItem value="Revisão">Revisão</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="accessMonths"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Meses de Acesso</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="12"
+                                  {...field}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Seção: Categorização */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Categorização</h3>
                       <FormField
                         control={createForm.control}
                         name="segmentId"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="sm:max-w-xs">
                             <FormLabel>Segmento</FormLabel>
                             <Select
                               onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
@@ -636,44 +709,45 @@ export function CursoTable() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Disciplinas</FormLabel>
-                            <div className="space-y-2">
-                              <FormDescription>
-                                Selecione uma ou mais disciplinas para este curso
-                              </FormDescription>
-                              <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto border rounded-md p-4">
-                                {disciplinas.map((disciplina) => (
-                                  <div key={disciplina.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      checked={field.value?.includes(disciplina.id) || false}
-                                      onCheckedChange={(checked) => {
-                                        const currentValue = field.value || []
-                                        if (checked) {
-                                          field.onChange([...currentValue, disciplina.id])
-                                        } else {
-                                          field.onChange(currentValue.filter((id) => id !== disciplina.id))
-                                        }
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor={`discipline-${disciplina.id}`}
-                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                    >
-                                      {disciplina.name}
-                                    </label>
-                                  </div>
-                                ))}
-                                {disciplinas.length === 0 && (
-                                  <p className="text-sm text-muted-foreground col-span-2">
-                                    Nenhuma disciplina cadastrada
-                                  </p>
-                                )}
-                              </div>
+                            <FormDescription className="text-xs">
+                              Selecione uma ou mais disciplinas para este curso
+                            </FormDescription>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border rounded-lg p-4 bg-muted/30">
+                              {disciplinas.map((disciplina) => (
+                                <div key={disciplina.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`create-discipline-${disciplina.id}`}
+                                    checked={field.value?.includes(disciplina.id) || false}
+                                    onCheckedChange={(checked) => {
+                                      const currentValue = field.value || []
+                                      if (checked) {
+                                        field.onChange([...currentValue, disciplina.id])
+                                      } else {
+                                        field.onChange(currentValue.filter((id) => id !== disciplina.id))
+                                      }
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor={`create-discipline-${disciplina.id}`}
+                                    className="text-sm leading-none cursor-pointer"
+                                  >
+                                    {disciplina.name}
+                                  </label>
+                                </div>
+                              ))}
+                              {disciplinas.length === 0 && (
+                                <p className="text-sm text-muted-foreground col-span-full">
+                                  Nenhuma disciplina cadastrada
+                                </p>
+                              )}
                             </div>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
+
+                    {/* Seção: Descrição */}
                     <FormField
                       control={createForm.control}
                       name="description"
@@ -685,86 +759,100 @@ export function CursoTable() {
                               placeholder="Descrição do curso..."
                               {...field}
                               value={field.value || ''}
-                              rows={2}
+                              rows={3}
+                              className="resize-none"
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                      <FormField
-                        control={createForm.control}
-                        name="startDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Data de Início</FormLabel>
-                            <FormControl>
-                              <DatePicker
-                                value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
-                                onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                                placeholder="dd/mm/yyyy"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="endDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Data de Término</FormLabel>
-                            <FormControl>
-                              <DatePicker
-                                value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
-                                onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                                placeholder="dd/mm/yyyy"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={createForm.control}
-                        name="planningUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>URL do Planejamento</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="url"
-                                placeholder="https://..."
-                                {...field}
-                                value={field.value || ''}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+
+                    {/* Seção: Período */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Período</h3>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FormField
+                          control={createForm.control}
+                          name="startDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Data de Início</FormLabel>
+                              <FormControl>
+                                <DatePicker
+                                  value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
+                                  onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                  placeholder="dd/mm/yyyy"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="endDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Data de Término</FormLabel>
+                              <FormControl>
+                                <DatePicker
+                                  value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
+                                  onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                  placeholder="dd/mm/yyyy"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
-                    <FormField
-                      control={createForm.control}
-                      name="coverImageUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL da Imagem de Capa</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://..."
-                              {...field}
-                              value={field.value || ''}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
+
+                    {/* Seção: Links */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Links</h3>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FormField
+                          control={createForm.control}
+                          name="planningUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL do Planejamento</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="url"
+                                  placeholder="https://..."
+                                  {...field}
+                                  value={field.value || ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="coverImageUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL da Imagem de Capa</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="url"
+                                  placeholder="https://..."
+                                  {...field}
+                                  value={field.value || ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                       <Button
                         type="button"
                         variant="outline"
@@ -837,31 +925,53 @@ export function CursoTable() {
                           <Badge variant="outline" className="text-xs">{curso.modality}</Badge>
                           <Badge variant="outline" className="text-xs">{curso.type}</Badge>
                           <Badge variant="outline" className="text-xs">{curso.year}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            <Users className="h-3 w-3 mr-1" />
+                            {enrollmentCounts[curso.id] || 0} alunos
+                          </Badge>
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEdit(curso)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteClick(curso)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => router.push(`/admin/cursos/${curso.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Visualizar alunos</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEdit(curso)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteClick(curso)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
                     {curso.description && (
                       <p className="text-sm text-muted-foreground line-clamp-2">{curso.description}</p>
@@ -879,7 +989,7 @@ export function CursoTable() {
                   <TableRow key={headerGroup.id} className="hover:bg-transparent">
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id} className="h-10 px-4 font-mono text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                        <TableHead key={header.id} className="h-10 px-4 font-mono text-xs font-medium text-[#71717A] tracking-wider">
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -936,7 +1046,7 @@ export function CursoTable() {
       {table.getRowModel().rows?.length > 0 && (
         <div className="border-t border-[#E4E4E7] px-4 py-3 flex items-center justify-between">
           <span className="text-xs text-[#71717A]">
-            Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
+            Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> {table.getFilteredRowModel().rows.length === 1 ? 'resultado' : 'resultados'}
           </span>
           <div className="flex gap-2">
             <button
@@ -960,115 +1070,127 @@ export function CursoTable() {
       {/* Edit Dialog */}
       {mounted && editingCurso && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Editar Curso</DialogTitle>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="pb-4 border-b">
+              <DialogTitle className="text-xl">Editar Curso</DialogTitle>
               <DialogDescription>
                 Atualize as informações do curso.
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-3">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <FormField
-                    control={editForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel>Nome *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Matemática Básica" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="year"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ano *</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="2024" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <FormField
-                    control={editForm.control}
-                    name="modality"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Modalidade *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-6 py-4">
+                {/* Seção: Identificação */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                    <FormField
+                      control={editForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem className="sm:col-span-3">
+                          <FormLabel>Nome *</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a modalidade" />
-                            </SelectTrigger>
+                            <Input placeholder="Ex: Matemática Básica" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="EAD">EAD</SelectItem>
-                            <SelectItem value="LIVE">LIVE</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="year"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ano *</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
+                            <Input type="number" placeholder="2024" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Superextensivo">Superextensivo</SelectItem>
-                            <SelectItem value="Extensivo">Extensivo</SelectItem>
-                            <SelectItem value="Intensivo">Intensivo</SelectItem>
-                            <SelectItem value="Superintensivo">Superintensivo</SelectItem>
-                            <SelectItem value="Revisão">Revisão</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="accessMonths"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meses de Acesso</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="12"
-                            {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+
+                {/* Seção: Configuração */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Configuração</h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <FormField
+                      control={editForm.control}
+                      name="modality"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Modalidade *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="EAD">EAD</SelectItem>
+                              <SelectItem value="LIVE">LIVE</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Superextensivo">Superextensivo</SelectItem>
+                              <SelectItem value="Extensivo">Extensivo</SelectItem>
+                              <SelectItem value="Intensivo">Intensivo</SelectItem>
+                              <SelectItem value="Superintensivo">Superintensivo</SelectItem>
+                              <SelectItem value="Revisão">Revisão</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="accessMonths"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Meses de Acesso</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="12"
+                              {...field}
+                              value={field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Seção: Categorização */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Categorização</h3>
                   <FormField
                     control={editForm.control}
                     name="segmentId"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="sm:max-w-xs">
                         <FormLabel>Segmento</FormLabel>
                         <Select
                           onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
@@ -1098,44 +1220,45 @@ export function CursoTable() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Disciplinas</FormLabel>
-                        <div className="space-y-2">
-                          <FormDescription>
-                            Selecione uma ou mais disciplinas para este curso
-                          </FormDescription>
-                          <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto border rounded-md p-4">
-                            {disciplinas.map((disciplina) => (
-                              <div key={disciplina.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  checked={field.value?.includes(disciplina.id) || false}
-                                  onCheckedChange={(checked) => {
-                                    const currentValue = field.value || []
-                                    if (checked) {
-                                      field.onChange([...currentValue, disciplina.id])
-                                    } else {
-                                      field.onChange(currentValue.filter((id) => id !== disciplina.id))
-                                    }
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`edit-discipline-${disciplina.id}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                >
-                                  {disciplina.name}
-                                </label>
-                              </div>
-                            ))}
-                            {disciplinas.length === 0 && (
-                              <p className="text-sm text-muted-foreground col-span-2">
-                                Nenhuma disciplina cadastrada
-                              </p>
-                            )}
-                          </div>
+                        <FormDescription className="text-xs">
+                          Selecione uma ou mais disciplinas para este curso
+                        </FormDescription>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border rounded-lg p-4 bg-muted/30">
+                          {disciplinas.map((disciplina) => (
+                            <div key={disciplina.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`edit-discipline-${disciplina.id}`}
+                                checked={field.value?.includes(disciplina.id) || false}
+                                onCheckedChange={(checked) => {
+                                  const currentValue = field.value || []
+                                  if (checked) {
+                                    field.onChange([...currentValue, disciplina.id])
+                                  } else {
+                                    field.onChange(currentValue.filter((id) => id !== disciplina.id))
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`edit-discipline-${disciplina.id}`}
+                                className="text-sm leading-none cursor-pointer"
+                              >
+                                {disciplina.name}
+                              </label>
+                            </div>
+                          ))}
+                          {disciplinas.length === 0 && (
+                            <p className="text-sm text-muted-foreground col-span-full">
+                              Nenhuma disciplina cadastrada
+                            </p>
+                          )}
                         </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+
+                {/* Seção: Descrição */}
                 <FormField
                   control={editForm.control}
                   name="description"
@@ -1147,86 +1270,100 @@ export function CursoTable() {
                           placeholder="Descrição do curso..."
                           {...field}
                           value={field.value || ''}
-                          rows={2}
+                          rows={3}
+                          className="resize-none"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <FormField
-                    control={editForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data de Início</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            value={field.value ? new Date(field.value) : null}
-                            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data de Término</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            value={field.value ? new Date(field.value) : null}
-                            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="planningUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL do Planejamento</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="url"
-                            placeholder="https://..."
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+                {/* Seção: Período */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Período</h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={editForm.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data de Início</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value ? new Date(field.value) : null}
+                              onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                              placeholder="dd/mm/yyyy"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data de Término</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value ? new Date(field.value) : null}
+                              onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                              placeholder="dd/mm/yyyy"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
-                <FormField
-                  control={editForm.control}
-                  name="coverImageUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL da Imagem de Capa</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="url"
-                          placeholder="https://..."
-                          {...field}
-                          value={field.value || ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
+
+                {/* Seção: Links */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Links</h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={editForm.control}
+                      name="planningUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL do Planejamento</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://..."
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="coverImageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL da Imagem de Capa</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://..."
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                   <Button
                     type="button"
                     variant="outline"
@@ -1270,6 +1407,7 @@ export function CursoTable() {
         </AlertDialog>
       )}
     </div>
+    </TooltipProvider>
   )
 }
 

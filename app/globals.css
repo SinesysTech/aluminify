@@ -67,8 +67,9 @@
     --sidebar-foreground: hsl(var(--foreground));
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: hsl(var(--accent));
-    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    /* sidebar-accent: cor de destaque para itens selecionados (mais escura para contraste) */
+    --sidebar-accent: hsl(240 5% 88%);
+    --sidebar-accent-foreground: hsl(var(--foreground));
     --sidebar-border: hsl(var(--border));
     --sidebar-ring: hsl(var(--ring));
   }
@@ -111,8 +112,9 @@
     --sidebar-foreground: hsl(var(--foreground));
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: hsl(var(--accent));
-    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    /* sidebar-accent: cor de destaque para itens selecionados (mais clara para contraste) */
+    --sidebar-accent: hsl(240 5% 20%);
+    --sidebar-accent-foreground: hsl(var(--foreground));
     --sidebar-border: hsl(var(--border));
     --sidebar-ring: hsl(var(--ring));
   }

@@ -50,6 +50,7 @@
     "codebase-cleanup",
     "dist",
     "build",
-    "coverage"
+    "coverage",
+    "scripts"
   ]
 }

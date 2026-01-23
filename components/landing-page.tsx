@@ -75,7 +75,7 @@ export function LandingPage() {
                                 v2.0 Beta já disponível
                             </span>
                         </div>
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight mb-6 text-transparent bg-clip-text bg-linear-to-b from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight mb-6 text-transparent bg-clip-text bg-linear-to-b from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 pb-2">
                             A infraestrutura invisível <br className="hidden md:block" /> da
                             educação.
                         </h1>

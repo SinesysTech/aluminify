@@ -3,6 +3,7 @@
 import { Building2, Users, GraduationCap, BookOpen } from 'lucide-react'
 
 interface InstitutionHeaderProps {
+  userName: string
   empresaNome: string
   totalAlunos: number
   totalProfessores: number
@@ -10,7 +11,8 @@ interface InstitutionHeaderProps {
 }
 
 export function InstitutionHeader({
-  empresaNome,
+  userName,
+  empresaNome: _empresaNome,
   totalAlunos,
   totalProfessores,
   totalCursos,
@@ -29,7 +31,7 @@ export function InstitutionHeader({
       </div>
       <div>
         <h1 className="page-title">
-          {getGreeting()}, {empresaNome}!
+          {getGreeting()}, {userName}!
         </h1>
         <div className="flex items-center gap-4 page-subtitle">
           <span className="flex items-center gap-1.5">

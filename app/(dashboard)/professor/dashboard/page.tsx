@@ -2,8 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 
 export default async function ProfessorDashboardRedirectPage() {
-    // Accept both legacy 'professor' role and new 'usuario' role
-    const user = await requireUser({ allowedRoles: ['professor', 'usuario'] })
+    const user = await requireUser({ allowedRoles: ['usuario'] })
 
     if (user.empresaSlug) {
         redirect(`/${user.empresaSlug}/professor/dashboard`)

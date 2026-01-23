@@ -307,7 +307,7 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       biografia: payload.biografia ?? null,
       especialidade: payload.especialidade ?? null,
       ativo: true,
-    };
+    } as unknown as UsuarioInsert;
 
     const { data, error } = await this.client
       .from(TABLE)

@@ -13,6 +13,24 @@ export type LogoType = "login" | "sidebar" | "favicon";
 
 export type ThemeMode = "light" | "dark";
 
+/**
+ * Mode of operation for TenantLogo component
+ * - connected: Uses data from TenantBrandingProvider context
+ * - standalone: Fetches data via API (for unauthenticated pages)
+ */
+export type TenantLogoMode = "connected" | "standalone";
+
+/**
+ * Processed logos state for the provider
+ * Contains URLs with cache-busting parameters
+ */
+export interface LogosState {
+  login: string | null;
+  sidebar: string | null;
+  favicon: string | null;
+  version: number; // Incremented on each update for cache-busting
+}
+
 // ============================================================================
 // Database Entity Types
 // ============================================================================

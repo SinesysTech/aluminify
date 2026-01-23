@@ -47,7 +47,7 @@ import AddActivityModal from '../../../components/conteudos/add-activity-modal'
 import InlineEditableTitle from '@/components/shared/inline-editable-title'
 import { formatTipoAtividade } from '@/lib/utils'
 
-async function loadExcelJS() {
+async function loadExcelJS(): Promise<import('exceljs/dist/exceljs.min.js').ExcelJSModule> {
   const mod = await import('exceljs/dist/exceljs.min.js')
   return mod?.default ?? mod
 }
@@ -799,7 +799,7 @@ export default function ConteudosClientPage() {
       // Adicionar bordas nas celulas
       for (let i = 1; i <= exemplos.length + 1; i++) {
         const row = worksheet.getRow(i)
-        row.eachCell({ includeEmpty: true }, (cell) => {
+        row.eachCell({ includeEmpty: true }, (cell: import('exceljs/dist/exceljs.min.js').ExcelJSCell) => {
           cell.border = {
             top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
             left: { style: 'thin', color: { argb: 'FFD1D5DB' } },

@@ -48,6 +48,7 @@ export interface DisciplinaPerformance {
 
 export interface InstitutionDashboardData {
   empresaNome: string
+  userName: string
   summary: InstitutionSummary
   engagement: InstitutionEngagement
   heatmap: HeatmapDay[]

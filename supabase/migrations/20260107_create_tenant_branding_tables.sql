@@ -138,9 +138,9 @@ create table if not exists public.custom_theme_presets (
     color_palette_id uuid references public.color_palettes(id) on delete set null,
     font_scheme_id uuid references public.font_schemes(id) on delete set null,
     
-    -- Theme customizer settings
-    radius number default 0.5,
-    scale number default 1.0,
+    -- Theme customizer settings (changed from number to numeric)
+    radius numeric default 0.5,
+    scale numeric default 1.0,
     mode text default 'light' check (mode in ('light', 'dark')),
     
     -- Preview colors for UI (JSON array)

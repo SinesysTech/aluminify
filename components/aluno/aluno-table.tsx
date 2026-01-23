@@ -12,8 +12,9 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  RowSelectionState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Plus, Users, UploadCloud, FileDown, Eye, Search } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2, Plus, Users, UploadCloud, FileDown, Eye, Search, ChevronDown } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -60,16 +61,23 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
 import { formatBRPhone, formatCPF, isValidBRPhone, isValidCPF } from '@/lib/br'
+import { BulkActionsBar } from './bulk-actions-bar'
+import { TransferStudentsDialog } from './transfer-students-dialog'
 
 export type CourseOption = {
   id: string
@@ -179,6 +187,10 @@ export function AlunoTable() {
   const [importSummary, setImportSummary] = React.useState<StudentImportApiSummary | null>(null)
   const [importLoading, setImportLoading] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+
+  // Selection and transfer states
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
+  const [transferDialogOpen, setTransferDialogOpen] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
@@ -634,6 +646,28 @@ export function AlunoTable() {
 
   const columns: ColumnDef<Aluno>[] = [
     {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Selecionar todos"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Selecionar linha"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: 'fullName',
       header: ({ column }) => {
         return (
@@ -737,39 +771,53 @@ export function AlunoTable() {
     },
     {
       id: 'actions',
+      header: 'Ações',
       enableHiding: false,
       cell: ({ row }) => {
         const aluno = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEdit(aluno)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleDeleteClick(aluno)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleImpersonate(aluno)}>
-                <Eye className="mr-2 h-4 w-4" />
-                Visualizar como Aluno
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleEdit(aluno)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Editar</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleImpersonate(aluno)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Visualizar como Aluno</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                  onClick={() => handleDeleteClick(aluno)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Excluir</TooltipContent>
+            </Tooltip>
+          </div>
         )
       },
     },
@@ -785,14 +833,42 @@ export function AlunoTable() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      rowSelection,
     },
   })
 
+  // Get selected students
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const selectedStudents = React.useMemo(() => {
+    return table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+  }, [table, rowSelection])
+
+  // Selection helpers
+  const selectN = (n: number) => {
+    const rows = table.getFilteredRowModel().rows.slice(0, n)
+    const newSelection: RowSelectionState = {}
+    rows.forEach((row) => {
+      newSelection[row.id] = true
+    })
+    setRowSelection(newSelection)
+  }
+
+  const clearSelection = () => {
+    setRowSelection({})
+  }
+
+  const handleTransferComplete = () => {
+    clearSelection()
+    fetchAlunos()
+  }
+
   return (
+    <TooltipProvider>
     <div className="flex flex-col gap-8 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
         <div>
@@ -1209,6 +1285,32 @@ export function AlunoTable() {
             }}
           />
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-10">
+              Selecionar
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => selectN(10)}>
+              10 primeiros
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => selectN(20)}>
+              20 primeiros
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => selectN(30)}>
+              30 primeiros
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => table.toggleAllRowsSelected(true)}>
+              Selecionar todos ({data.length})
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={clearSelection}>
+              Limpar selecao
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {loading ? (
@@ -1227,29 +1329,47 @@ export function AlunoTable() {
                         <h3 className="font-semibold">{aluno.fullName || '-'}</h3>
                         <p className="text-sm text-muted-foreground">{aluno.email}</p>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEdit(aluno)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteClick(aluno)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEdit(aluno)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleImpersonate(aluno)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Visualizar como Aluno</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteClick(aluno)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {aluno.cpf && (
@@ -1691,7 +1811,24 @@ export function AlunoTable() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedStudents.length}
+        onTransfer={() => setTransferDialogOpen(true)}
+        onClearSelection={clearSelection}
+      />
+
+      {/* Transfer Students Dialog */}
+      <TransferStudentsDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        selectedStudents={selectedStudents}
+        courses={courseOptions}
+        onTransferComplete={handleTransferComplete}
+      />
     </div>
+    </TooltipProvider>
   )
 }
 

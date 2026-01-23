@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation"
 import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
 import { useCurrentUser } from "@/components/providers/user-provider"
-import { AluminifyLogo } from "@/components/ui/aluminify-logo"
+import { TenantLogo } from "@/components/shared/tenant-logo"
 import {
   Sidebar,
   SidebarContent,
@@ -80,6 +80,10 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
   }))
 
+  // Get organization name and first letter for fallback
+  const organizationName = user.empresaNome || 'Área do Aluno'
+  const fallbackLetter = organizationName.charAt(0).toUpperCase()
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -88,10 +92,15 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             <SidebarMenuButton size="lg" asChild>
               <a href={getDefaultRouteForRole(user.role)}>
                 <div className="flex items-center gap-3">
-                  <AluminifyLogo />
+                  <TenantLogo
+                    logoType="sidebar"
+                    empresaId={user.empresaId}
+                    width={32}
+                    height={32}
+                    fallbackText={fallbackLetter}
+                  />
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">Aluminify</span>
-                    <span className="truncate text-xs">Sistema de Gestão</span>
+                    <span className="truncate font-medium">{organizationName}</span>
                   </div>
                 </div>
               </a>

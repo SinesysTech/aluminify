@@ -2885,7 +2885,7 @@ export class CronogramaService {
       throw new CronogramaValidationError("Cronograma não encontrado");
     }
 
-    const cronograma = cronogramaRaw as {
+    const cronograma = cronogramaRaw as unknown as {
       id: string;
       aluno_id: string;
       data_inicio: string;
@@ -2893,7 +2893,7 @@ export class CronogramaService {
       horas_estudo_dia: number;
       dias_estudo_semana: number;
       periodos_ferias: unknown;
-      velocidade_reproducao?: number | null;
+      velocidade_reproducao: number | null;
     };
 
     if (cronograma.aluno_id !== userId) {

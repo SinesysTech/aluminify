@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
   Upload,
-  X,
   Image as ImageIcon,
   AlertTriangle,
   CheckCircle2,
@@ -18,7 +17,6 @@ import {
 import type {
   LogoUploadComponentProps,
   LogoType,
-  LogoUploadResult,
 } from '@/types/brand-customization';
 
 interface UploadState {
@@ -57,6 +55,7 @@ export function LogoUploadComponent({
   maxFileSize = DEFAULT_MAX_FILE_SIZE,
   acceptedFormats = DEFAULT_ACCEPTED_FORMATS
 }: LogoUploadComponentProps) {
+
   // State management
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
@@ -154,21 +153,12 @@ export function LogoUploadComponent({
     };
   }, [maxFileSize, acceptedFormats, logoType]);
 
-  // Handle file selection
-  const handleFileSelect = useCallback((file: File) => {
+  // Handle file selection - automatically uploads after validation
+  const handleFileSelect = useCallback(async (file: File) => {
     const validation = validateFile(file);
     setValidationState(validation);
 
-    if (validation.isValid) {
-      setSelectedFile(file);
-
-      // Create preview URL
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
-
-      // Clear previous messages
-      setUploadState(prev => ({ ...prev, error: null, success: null }));
-    } else {
+    if (!validation.isValid) {
       setSelectedFile(null);
       setPreviewUrl(currentLogoUrl || null);
       setUploadState(prev => ({
@@ -176,8 +166,66 @@ export function LogoUploadComponent({
         error: validation.errors.join('. '),
         success: null
       }));
+      return;
     }
-  }, [validateFile, currentLogoUrl]);
+
+    // Create preview URL immediately for better UX
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
+    setUploadState({
+      isUploading: true,
+      progress: 0,
+      error: null,
+      success: null
+    });
+
+    // Simulate progress for better UX
+    const progressInterval = setInterval(() => {
+      setUploadState(prev => ({
+        ...prev,
+        progress: Math.min(prev.progress + 10, 90)
+      }));
+    }, 200);
+
+    try {
+      const result = await onUpload(file, logoType);
+
+      if (result.success && result.logoUrl) {
+        setUploadState({
+          isUploading: false,
+          progress: 100,
+          error: null,
+          success: `${LOGO_TYPE_LABELS[logoType]} enviada com sucesso`
+        });
+
+        // Clean up the blob URL and use the server URL
+        URL.revokeObjectURL(objectUrl);
+        setPreviewUrl(result.logoUrl);
+        setSelectedFile(null);
+
+        // Clear file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      setUploadState({
+        isUploading: false,
+        progress: 0,
+        error: error instanceof Error ? error.message : 'Falha ao enviar logo',
+        success: null
+      });
+
+      // Clean up blob URL and revert preview on error
+      URL.revokeObjectURL(objectUrl);
+      setPreviewUrl(currentLogoUrl || null);
+    } finally {
+      clearInterval(progressInterval);
+    }
+  }, [validateFile, currentLogoUrl, onUpload, logoType]);
 
   // Handle file input change
   const handleFileInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,67 +270,6 @@ export function LogoUploadComponent({
     }
   }, [handleFileSelect]);
 
-  // Handle upload
-  const handleUpload = useCallback(async () => {
-    if (!selectedFile) return;
-
-    try {
-      setUploadState(prev => ({
-        ...prev,
-        isUploading: true,
-        progress: 0,
-        error: null,
-        success: null
-      }));
-
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadState(prev => ({
-          ...prev,
-          progress: Math.min(prev.progress + 10, 90)
-        }));
-      }, 200);
-
-      const result: LogoUploadResult = await onUpload(selectedFile, logoType);
-
-      clearInterval(progressInterval);
-
-      if (result.success && result.logoUrl) {
-        setUploadState({
-          isUploading: false,
-          progress: 100,
-          error: null,
-          success: `${LOGO_TYPE_LABELS[logoType]} enviada com sucesso`
-        });
-
-        // Update preview to the uploaded logo
-        setPreviewUrl(result.logoUrl);
-        setSelectedFile(null);
-
-        // Clear file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      } else {
-        throw new Error(result.error || 'Upload failed');
-      }
-    } catch (error) {
-      console.error('Logo upload failed:', error);
-
-      let errorMessage = 'Falha ao enviar logo';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
-      setUploadState({
-        isUploading: false,
-        progress: 0,
-        error: errorMessage,
-        success: null
-      });
-    }
-  }, [selectedFile, onUpload, logoType]);
-
   // Handle remove
   const handleRemove = useCallback(async () => {
     if (!currentLogoUrl) return;
@@ -318,8 +305,6 @@ export function LogoUploadComponent({
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('Logo removal failed:', error);
-
       let errorMessage = 'Falha ao remover logo';
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -425,10 +410,7 @@ export function LogoUploadComponent({
                 src={previewUrl}
                 alt={`${LOGO_TYPE_LABELS[logoType]} preview`}
                 className="max-h-20 max-w-full object-contain"
-                onError={() => {
-                  console.error('Failed to load logo preview');
-                  setPreviewUrl(null);
-                }}
+                onError={() => setPreviewUrl(null)}
               />
             </div>
           </div>
@@ -483,60 +465,7 @@ export function LogoUploadComponent({
           </div>
         </div>
 
-        {/* Selected File Info */}
-        {selectedFile && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">{selectedFile.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatFileSize(selectedFile.size)} • {selectedFile.type}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {validationState.isValid && (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                )}
-                <Button
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewUrl(currentLogoUrl || null);
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = '';
-                    }
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Upload Button */}
-            <Button
-              onClick={handleUpload}
-              disabled={!validationState.isValid || uploadState.isUploading}
-              className="w-full"
-            >
-              {uploadState.isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Enviar {LOGO_TYPE_LABELS[logoType]}
-                </>
-              )}
-            </Button>
-          </div>
-        )}
+        {/* Upload is now automatic - no manual button needed */}
 
         {/* File Requirements */}
         <div className="text-xs text-muted-foreground space-y-1">

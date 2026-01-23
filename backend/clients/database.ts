@@ -1,28 +1,28 @@
 /**
  * Database Client Module
- * 
+ *
  * Provides typed Supabase client instances for database operations.
- * 
+ *
  * Key Functions:
  * - getDatabaseClient(): Server-side client with service role permissions
  * - getDatabaseClientAsUser(token): User-scoped client that respects RLS policies
- * 
+ *
  * Usage Examples:
  * ```typescript
  * // Server-side operations (bypasses RLS)
  * const client = getDatabaseClient();
  * const { data } = await client.from('professores').select('*');
- * 
+ *
  * // User-scoped operations (respects RLS)
  * const client = getDatabaseClientAsUser(accessToken);
  * const { data } = await client.from('professores').select('*');
  * ```
- * 
+ *
  * For detailed documentation, see: docs/TYPESCRIPT_SUPABASE_GUIDE.md
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/database.types';
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 
 let cachedClient: SupabaseClient<Database> | null = null;
 
@@ -31,13 +31,13 @@ function getDatabaseCredentials() {
   // Prioriza as novas chaves (sb_secret_... ou sb_publishable_...), depois as antigas para compatibilidade
   const DATABASE_KEY =
     process.env.SUPABASE_SECRET_KEY ??
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
     process.env.SUPABASE_ANON_KEY;
 
   if (!DATABASE_URL || !DATABASE_KEY) {
     throw new Error(
-      'Database credentials are not configured. Set SUPABASE_URL and either SUPABASE_SECRET_KEY (recommended) or SUPABASE_SERVICE_ROLE_KEY.',
+      "Database credentials are not configured. Set SUPABASE_URL and either SUPABASE_SECRET_KEY (recommended) or SUPABASE_SERVICE_ROLE_KEY.",
     );
   }
 
@@ -59,7 +59,7 @@ function getDatabaseUserCredentials() {
 
   if (!DATABASE_URL || !DATABASE_API_KEY) {
     throw new Error(
-      'Database user credentials are not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY). If you only have server keys, set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.',
+      "Database user credentials are not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY). If you only have server keys, set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.",
     );
   }
 
@@ -68,15 +68,15 @@ function getDatabaseUserCredentials() {
 
 /**
  * Get a server-side Supabase client with service role permissions.
- * 
+ *
  * This client bypasses Row Level Security (RLS) policies and should only be used
  * for server-side operations that require elevated permissions.
- * 
+ *
  * The client is cached globally for performance.
- * 
+ *
  * @returns {SupabaseClient<Database>} Typed Supabase client instance
  * @throws {Error} If database credentials are not configured
- * 
+ *
  * @example
  * ```typescript
  * const client = getDatabaseClient();
@@ -94,7 +94,7 @@ export function getDatabaseClient(): SupabaseClient<Database> {
         persistSession: false,
       },
       db: {
-        schema: 'public',
+        schema: "public",
       },
     });
   }
@@ -103,22 +103,22 @@ export function getDatabaseClient(): SupabaseClient<Database> {
 
 /**
  * Create a user-scoped Supabase client that respects Row Level Security (RLS).
- * 
+ *
  * This client uses the user's access token to enforce RLS policies and database functions
  * like get_user_empresa_id() that depend on the authenticated user context.
- * 
+ *
  * ⚠️ Important: Do NOT cache this client globally as the token varies per request.
- * 
+ *
  * @param {string} accessToken - User's JWT access token from authentication
  * @returns {SupabaseClient<Database>} Typed Supabase client instance with user context
  * @throws {Error} If accessToken is missing or empty
- * 
+ *
  * @example
  * ```typescript
  * // In an API route
  * const token = request.headers.get('Authorization')?.replace('Bearer ', '');
  * const client = getDatabaseClientAsUser(token);
- * 
+ *
  * // This query respects RLS policies for the authenticated user
  * const { data, error } = await client
  *   .from('professores')
@@ -126,10 +126,12 @@ export function getDatabaseClient(): SupabaseClient<Database> {
  *   .eq('id', userId);
  * ```
  */
-export function getDatabaseClientAsUser(accessToken: string): SupabaseClient<Database> {
+export function getDatabaseClientAsUser(
+  accessToken: string,
+): SupabaseClient<Database> {
   const token = accessToken?.trim();
   if (!token) {
-    throw new Error('accessToken é obrigatório para getDatabaseClientAsUser');
+    throw new Error("accessToken é obrigatório para getDatabaseClientAsUser");
   }
 
   const { DATABASE_URL, DATABASE_API_KEY } = getDatabaseUserCredentials();
@@ -143,17 +145,17 @@ export function getDatabaseClientAsUser(accessToken: string): SupabaseClient<Dat
       },
     },
     db: {
-      schema: 'public',
+      schema: "public",
     },
   });
 }
 
 /**
  * Clear the cached database client.
- * 
+ *
  * Useful when schema changes require a fresh client instance.
  * The next call to getDatabaseClient() will create a new client.
- * 
+ *
  * @example
  * ```typescript
  * // After regenerating database types
@@ -164,4 +166,3 @@ export function getDatabaseClientAsUser(accessToken: string): SupabaseClient<Dat
 export function clearDatabaseClientCache(): void {
   cachedClient = null;
 }
-

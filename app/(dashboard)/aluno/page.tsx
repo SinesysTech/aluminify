@@ -2,7 +2,7 @@
 import { requireUser } from '@/lib/auth'
 
 export default async function AlunoRedirectPage() {
-  const user = await requireUser({ allowedRoles: ['professor', 'superadmin'] })
+  const user = await requireUser({ allowedRoles: ['usuario', 'superadmin'] })
 
   if (user.empresaSlug) {
     redirect(`/${user.empresaSlug}/aluno`)
