@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/server";
 import { requireUser } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { TransactionFilters } from "@/components/financial/transaction-filters";
 import { TransactionStatusBadge } from "@/components/financial/transaction-status-badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -161,11 +163,13 @@ export default async function TransacoesPage({
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <TransactionFilters
-            currentStatus={params.status}
-            currentProvider={params.provider}
-            currentSearch={params.buyerEmail}
-          />
+          <Suspense fallback={<div className="flex gap-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-10 w-[180px]" /><Skeleton className="h-10 w-[180px]" /></div>}>
+            <TransactionFilters
+              currentStatus={params.status}
+              currentProvider={params.provider}
+              currentSearch={params.buyerEmail}
+            />
+          </Suspense>
         </CardContent>
       </Card>
 
