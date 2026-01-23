@@ -114,13 +114,35 @@ export class DashboardAnalyticsService {
    * - Aluno: cursos matriculados
    * - Professor/superadmin: todos os cursos
    */
-  async getAvailableCourses(alunoId: string): Promise<Array<{ id: string; nome: string }>> {
+  async getAvailableCourses(alunoId: string): Promise<Array<{
+    id: string
+    nome: string
+    empresa_id: string | null
+    empresaNome: string | null
+    empresaLogoUrl: string | null
+  }>> {
     const client = getDatabaseClient()
     const { cursoIds } = await this.resolveCursoScope(alunoId, client)
     if (cursoIds.length === 0) return []
-    const { data: cursos, error } = await client.from('cursos').select('id, nome').in('id', cursoIds)
+    const { data: cursos, error } = await client
+      .from('cursos')
+      .select('id, nome, empresa_id, empresas:empresa_id(nome, logo_url)')
+      .in('id', cursoIds)
     if (error) throw new Error(`Erro ao buscar cursos: ${error.message}`)
-    return ((cursos ?? []) as Array<{ id: string; nome: string }>).sort((a, b) => a.nome.localeCompare(b.nome))
+    return ((cursos ?? []) as Array<{
+      id: string
+      nome: string
+      empresa_id: string | null
+      empresas: { nome: string; logo_url: string | null } | null
+    }>)
+      .map((c) => ({
+        id: c.id,
+        nome: c.nome,
+        empresa_id: c.empresa_id,
+        empresaNome: c.empresas?.nome ?? null,
+        empresaLogoUrl: c.empresas?.logo_url ?? null,
+      }))
+      .sort((a, b) => a.nome.localeCompare(b.nome))
   }
 
   /**

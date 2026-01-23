@@ -20,7 +20,9 @@ import {
 import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { fetchDashboardCourses, fetchPerformance } from '@/lib/services/dashboardService'
+import { fetchDashboardCourses, fetchPerformance, type DashboardCourse } from '@/lib/services/dashboardService'
+import { OrganizationBadge } from '@/components/dashboard/organization-switcher'
+import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 
 interface SubjectPerformanceListProps {
   subjects: SubjectPerformance[] // usado como fallback inicial
@@ -35,8 +37,9 @@ export function SubjectPerformanceList({
 }: SubjectPerformanceListProps) {
   const [sortOption, setSortOption] = useState<SortOption>('worst-best')
   const [groupBy, setGroupBy] = useState<DashboardGroupBy>('frente')
+  const { isMultiOrg, activeOrganization } = useStudentOrganizations()
 
-  const [courses, setCourses] = useState<Array<{ id: string; nome: string }>>([])
+  const [courses, setCourses] = useState<DashboardCourse[]>([])
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [selectedDisciplineId, setSelectedDisciplineId] = useState<string | null>(null)
   const [selectedFrontId, setSelectedFrontId] = useState<string | null>(null)
@@ -53,6 +56,23 @@ export function SubjectPerformanceList({
     if (groupBy === 'frente') return { scope: 'disciplina', scopeId: selectedDisciplineId ?? undefined }
     return { scope: 'frente', scopeId: selectedFrontId ?? undefined } // modulo
   }, [groupBy, selectedCourseId, selectedDisciplineId, selectedFrontId])
+
+  // Map of courseId -> organization data for showing badges when groupBy=curso
+  const courseOrgMap = useMemo(() => {
+    const map = new Map<string, { nome: string; logoUrl: string | null }>()
+    for (const c of courses) {
+      if (c.empresa_id && c.empresaNome) {
+        map.set(c.id, { nome: c.empresaNome, logoUrl: c.empresaLogoUrl })
+      }
+    }
+    return map
+  }, [courses])
+
+  // Check if there are multiple organizations in the courses (for showing badges)
+  const hasMultipleOrgs = useMemo(() => {
+    const orgIds = new Set(courses.map((c) => c.empresa_id).filter(Boolean))
+    return orgIds.size > 1
+  }, [courses])
 
   useEffect(() => {
     let cancelled = false
@@ -363,10 +383,23 @@ export function SubjectPerformanceList({
                             </Badge>
                           )}
                         </span>
+                      ) : groupBy === 'curso' ? (
+                        <span className="inline-flex items-center gap-2 flex-wrap">
+                          <span>{subject.name}</span>
+                          {/* Show organization badge for multi-org students viewing all orgs */}
+                          {isMultiOrg && hasMultipleOrgs && !activeOrganization && courseOrgMap.has(subject.id) && (
+                            <OrganizationBadge
+                              organization={{
+                                nome: courseOrgMap.get(subject.id)!.nome,
+                                logoUrl: courseOrgMap.get(subject.id)!.logoUrl,
+                              }}
+                            />
+                          )}
+                        </span>
                       ) : (
                         subject.name
                       )}
-                      {groupBy !== 'modulo' && subject.subLabel ? (
+                      {groupBy !== 'modulo' && groupBy !== 'curso' && subject.subLabel ? (
                         <span className="text-muted-foreground font-normal"> ({subject.subLabel})</span>
                       ) : null}
                     </span>

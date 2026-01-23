@@ -88,8 +88,16 @@ export async function fetchDashboardData(
   }
 }
 
-export async function fetchDashboardCourses(): Promise<Array<{ id: string; nome: string }>> {
-  const response = await apiClient.get<{ data: Array<{ id: string; nome: string }> }>(`/api/dashboard/courses`)
+export interface DashboardCourse {
+  id: string
+  nome: string
+  empresa_id: string | null
+  empresaNome: string | null
+  empresaLogoUrl: string | null
+}
+
+export async function fetchDashboardCourses(): Promise<DashboardCourse[]> {
+  const response = await apiClient.get<{ data: DashboardCourse[] }>(`/api/dashboard/courses`)
   return response.data ?? []
 }
 
