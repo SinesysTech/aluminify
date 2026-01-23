@@ -16,7 +16,7 @@ async function getHandler(
   request: AuthenticatedRequest,
   context?: RouteContext,
 ) {
-  const { id: empresaId } = await context.params;
+  const { id: empresaId } = await context!.params;
   const user = request.user;
 
   if (!user) {
@@ -53,7 +53,7 @@ async function postHandler(
   request: AuthenticatedRequest,
   context?: RouteContext,
 ) {
-  const { id: empresaId } = await context.params;
+  const { id: empresaId } = await context!.params;
   const user = request.user;
 
   if (!user) {

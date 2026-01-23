@@ -227,8 +227,15 @@ export function requireAuth<TContext = Record<string, unknown>>(
 
     // Unwrap params if it's a Promise (Next.js 16+)
     let unwrappedContext = context;
-    if (context && "params" in context && context.params instanceof Promise) {
-      const params = await context.params;
+    if (
+      context &&
+      typeof context === "object" &&
+      "params" in context &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (context as any).params instanceof Promise
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const params = await (context as any).params;
       unwrappedContext = { ...context, params } as TContext;
     }
 
