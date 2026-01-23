@@ -143,13 +143,13 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                         <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Configuração Acadêmica</h4>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-700">Turma / Cohort</label>
+                            <label className="text-xs font-medium text-zinc-700">Curso</label>
                             <select
                                 className="w-full h-9 px-3 rounded-md border border-[#E4E4E7] bg-white text-sm focus:outline-none focus:ring-1 focus:ring-[#09090B] focus:border-[#09090B]"
                                 onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
                                 value={formData.courseId}
                             >
-                                <option value="">Selecionar turma...</option>
+                                <option value="">Selecionar curso...</option>
                                 {courses.map((course) => (
                                     <option key={course.id} value={course.id}>{course.name}</option>
                                 ))}

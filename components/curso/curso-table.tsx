@@ -74,6 +74,7 @@ import {
 } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 import { apiClient, ApiClientError } from '@/lib/api-client'
 import { format, parse } from 'date-fns'
 import { TableSkeleton } from '@/components/ui/table-skeleton'
@@ -93,6 +94,7 @@ export type Curso = {
   accessMonths: number | null
   planningUrl: string | null
   coverImageUrl: string | null
+  usaTurmas?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -124,6 +126,7 @@ const cursoSchema = z.object({
   accessMonths: z.coerce.number().optional().nullable(),
   planningUrl: z.string().url('URL inválida').optional().nullable().or(z.literal('')),
   coverImageUrl: z.string().url('URL inválida').optional().nullable().or(z.literal('')),
+  usaTurmas: z.boolean().optional().default(false),
 })
 
 type CursoFormValues = z.infer<typeof cursoSchema>
@@ -171,6 +174,7 @@ export function CursoTable() {
       accessMonths: null,
       planningUrl: null,
       coverImageUrl: null,
+      usaTurmas: false,
     },
   })
 
@@ -191,6 +195,7 @@ export function CursoTable() {
       accessMonths: null,
       planningUrl: null,
       coverImageUrl: null,
+      usaTurmas: false,
     },
   })
 
@@ -277,6 +282,7 @@ export function CursoTable() {
         disciplineIds: values.disciplineIds || [], // Sempre enviar array, mesmo se vazio
         planningUrl: values.planningUrl || undefined,
         coverImageUrl: values.coverImageUrl || undefined,
+        usaTurmas: values.usaTurmas || false,
       })
       setSuccessMessage('Curso criado com sucesso!')
       setCreateDialogOpen(false)
@@ -321,6 +327,7 @@ export function CursoTable() {
       accessMonths: curso.accessMonths,
       planningUrl: curso.planningUrl,
       coverImageUrl: curso.coverImageUrl,
+      usaTurmas: curso.usaTurmas || false,
     })
     setEditDialogOpen(true)
   }
@@ -338,6 +345,7 @@ export function CursoTable() {
         disciplineIds: values.disciplineIds || [], // Sempre enviar array, mesmo se vazio
         planningUrl: values.planningUrl || null,
         coverImageUrl: values.coverImageUrl || null,
+        usaTurmas: values.usaTurmas,
       })
       setSuccessMessage('Curso atualizado com sucesso!')
       setEditDialogOpen(false)
@@ -670,6 +678,26 @@ export function CursoTable() {
                           )}
                         />
                       </div>
+                      <FormField
+                        control={createForm.control}
+                        name="usaTurmas"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Habilitar Turmas</FormLabel>
+                              <FormDescription>
+                                Permite organizar alunos em turmas dentro do curso (ex: Manhã, Tarde, Turno A).
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                     </div>
 
                     {/* Seção: Categorização */}
@@ -1181,6 +1209,26 @@ export function CursoTable() {
                       )}
                     />
                   </div>
+                  <FormField
+                    control={editForm.control}
+                    name="usaTurmas"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Habilitar Turmas</FormLabel>
+                          <FormDescription>
+                            Permite organizar alunos em turmas dentro do curso (ex: Manhã, Tarde, Turno A).
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Seção: Categorização */}

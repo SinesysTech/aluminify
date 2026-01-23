@@ -20,6 +20,7 @@ export interface Course {
   accessMonths: number | null;
   planningUrl: string | null;
   coverImageUrl: string | null;
+  usaTurmas: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +40,7 @@ export interface CreateCourseInput {
   accessMonths?: number;
   planningUrl?: string;
   coverImageUrl?: string;
+  usaTurmas?: boolean;
 }
 
 export interface UpdateCourseInput {
@@ -55,5 +57,6 @@ export interface UpdateCourseInput {
   accessMonths?: number | null;
   planningUrl?: string | null;
   coverImageUrl?: string | null;
+  usaTurmas?: boolean;
 }
 

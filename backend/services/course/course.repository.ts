@@ -52,6 +52,7 @@ type CourseRow = {
   meses_acesso: number | null;
   planejamento_url: string | null;
   imagem_capa_url: string | null;
+  usa_turmas: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -76,6 +77,7 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Course> {
     accessMonths: row.meses_acesso,
     planningUrl: row.planejamento_url,
     coverImageUrl: row.imagem_capa_url,
+    usaTurmas: row.usa_turmas ?? false,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -207,6 +209,7 @@ export class CourseRepositoryImpl implements CourseRepository {
       meses_acesso: payload.accessMonths ?? null,
       planejamento_url: payload.planningUrl ?? null,
       imagem_capa_url: payload.coverImageUrl ?? null,
+      usa_turmas: payload.usaTurmas ?? false,
     };
 
     const { data, error } = await this.client
@@ -288,6 +291,10 @@ export class CourseRepositoryImpl implements CourseRepository {
 
     if (payload.coverImageUrl !== undefined) {
       updateData.imagem_capa_url = payload.coverImageUrl;
+    }
+
+    if (payload.usaTurmas !== undefined) {
+      updateData.usa_turmas = payload.usaTurmas;
     }
 
     const { data, error } = await this.client

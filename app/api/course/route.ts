@@ -27,6 +27,7 @@ const serializeCourse = (
   accessMonths: course.accessMonths,
   planningUrl: course.planningUrl,
   coverImageUrl: course.coverImageUrl,
+  usaTurmas: course.usaTurmas,
   createdAt: course.createdAt.toISOString(),
   updatedAt: course.updatedAt.toISOString(),
 });
@@ -76,6 +77,7 @@ async function getHandler(request: AuthenticatedRequest) {
         meses_acesso,
         planejamento_url,
         imagem_capa_url,
+        usa_turmas,
         created_at,
         updated_at,
         cursos_disciplinas (disciplina_id)
@@ -106,6 +108,7 @@ async function getHandler(request: AuthenticatedRequest) {
         accessMonths: c.meses_acesso,
         planningUrl: c.planejamento_url,
         coverImageUrl: c.imagem_capa_url,
+        usaTurmas: c.usa_turmas ?? false,
         createdAt: c.created_at,
         updatedAt: c.updated_at,
       })),
@@ -234,6 +237,7 @@ async function postHandler(request: AuthenticatedRequest) {
       accessMonths: body?.accessMonths,
       planningUrl: body?.planningUrl,
       coverImageUrl: body?.coverImageUrl,
+      usaTurmas: body?.usaTurmas,
     });
     return NextResponse.json(
       { data: serializeCourse(course) },

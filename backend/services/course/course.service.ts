@@ -199,6 +199,10 @@ export class CourseService {
       updateData.coverImageUrl = payload.coverImageUrl;
     }
 
+    if (payload.usaTurmas !== undefined) {
+      updateData.usaTurmas = payload.usaTurmas;
+    }
+
     const course = await this.repository.update(id, updateData);
 
     // Invalidar cache de estrutura hierárquica e listagem
