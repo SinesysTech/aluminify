@@ -843,10 +843,9 @@ export function AlunoTable() {
   })
 
   // Get selected students
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectedStudents = React.useMemo(() => {
     return table.getFilteredSelectedRowModel().rows.map((row) => row.original)
-  }, [table, rowSelection])
+  }, [table])
 
   // Selection helpers
   const selectN = (n: number) => {
