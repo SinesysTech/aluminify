@@ -21,7 +21,7 @@ import {
   Lightbulb,
   CheckCircle2,
 } from 'lucide-react'
-import { FlashcardSessionSummary } from '@/components/aluno/flashcard-session-summary'
+import { FlashcardSessionSummary } from '../../components/flashcard-session-summary'
 import {
   Tooltip,
   TooltipContent,
@@ -120,7 +120,7 @@ export default function FlashcardsClient() {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const didMountRef = React.useRef(false)
-  
+
   // Estados para modo personalizado
   const [cursos, setCursos] = React.useState<Curso[]>([])
   const [cursoSelecionado, setCursoSelecionado] = React.useState<string>('')
@@ -132,12 +132,12 @@ export default function FlashcardsClient() {
   const [moduloSelecionado, setModuloSelecionado] = React.useState<string>('')
   const [loadingFiltros, setLoadingFiltros] = React.useState(false)
   const [loadingCursos, setLoadingCursos] = React.useState(true)
-  
+
   // Estados para rastreamento de sessão
   const [_cardsVistos, setCardsVistos] = React.useState<Set<string>>(new Set())
   const [feedbacks, setFeedbacks] = React.useState<number[]>([])
   const [sessaoCompleta, setSessaoCompleta] = React.useState(false)
-  
+
   const current = cards[idx]
   const SESSION_SIZE = 10
   const progresso = cards.length > 0 ? ((idx + 1) / SESSION_SIZE) * 100 : 0
@@ -179,34 +179,34 @@ export default function FlashcardsClient() {
         setLoading(true)
         setError(null)
         setShowAnswer(false)
-        
+
         if (resetSession) {
           setIdx(0)
           setCardsVistos(new Set())
           setFeedbacks([])
           setSessaoCompleta(false)
         }
-        
+
         // Construir URL com excludeIds
         let url = `/api/flashcards/revisao?modo=${modoSelecionado}&scope=${scopeSelecionado}`
         if (cursoId) url += `&cursoId=${cursoId}`
         if (frenteId) url += `&frenteId=${frenteId}`
         if (moduloId) url += `&moduloId=${moduloId}`
-        
+
         // Adicionar IDs já vistos na sessão
         if (excludeIds && excludeIds.length > 0 && !resetSession) {
           url += `&excludeIds=${excludeIds.join(',')}`
         }
-        
+
         const res = await fetchWithAuth(url)
         const body = await res.json()
         if (!res.ok) {
           throw new Error(body?.error || 'Não foi possível carregar os flashcards')
         }
-        
+
         const newCards = body.data || []
         setCards(newCards)
-        
+
         // Se resetou, garantir que idx está em 0
         if (resetSession) {
           setIdx(0)
@@ -281,7 +281,7 @@ export default function FlashcardsClient() {
           // Alunos: buscar cursos através de alunos_cursos
           console.log('[flashcards] Carregando cursos para aluno:', user.id)
           console.log('[flashcards] Role detectado:', role)
-          
+
           try {
             // Primeiro, buscar os curso_ids de alunos_cursos (sem relacionamento para evitar problemas de RLS)
             const { data: alunosCursos, error: alunosCursosError } = await supabase
@@ -374,34 +374,34 @@ export default function FlashcardsClient() {
       return
     }
 
-        const loadDisciplinas = async () => {
-          try {
-            setLoadingFiltros(true)
-            const { data: cursosDisciplinas, error } = await supabase
-              .from('cursos_disciplinas')
-              .select('disciplina:disciplina_id ( id, nome )')
-              .eq('curso_id', cursoSelecionado)
-              .returns<Array<{ disciplina: { id: string; nome: string } | null }>>()
+    const loadDisciplinas = async () => {
+      try {
+        setLoadingFiltros(true)
+        const { data: cursosDisciplinas, error } = await supabase
+          .from('cursos_disciplinas')
+          .select('disciplina:disciplina_id ( id, nome )')
+          .eq('curso_id', cursoSelecionado)
+          .returns<Array<{ disciplina: { id: string; nome: string } | null }>>()
 
-            if (error) throw error
+        if (error) throw error
 
-            if (cursosDisciplinas) {
-              const disciplinasData = cursosDisciplinas
-                .map((cd) => cd.disciplina)
-                .filter((d): d is { id: string; nome: string } => d !== null)
-                .map((d) => ({ id: d.id, nome: d.nome }))
-              
-              // Remover duplicatas
-              const unique = Array.from(new Map(disciplinasData.map((d) => [d.id, d])).values())
-              setDisciplinas(unique)
-            }
-          } catch (err) {
-            console.error('Erro ao carregar disciplinas:', err)
-            setError('Erro ao carregar disciplinas. Tente novamente.')
-          } finally {
-            setLoadingFiltros(false)
-          }
+        if (cursosDisciplinas) {
+          const disciplinasData = cursosDisciplinas
+            .map((cd) => cd.disciplina)
+            .filter((d): d is { id: string; nome: string } => d !== null)
+            .map((d) => ({ id: d.id, nome: d.nome }))
+
+          // Remover duplicatas
+          const unique = Array.from(new Map(disciplinasData.map((d) => [d.id, d])).values())
+          setDisciplinas(unique)
         }
+      } catch (err) {
+        console.error('Erro ao carregar disciplinas:', err)
+        setError('Erro ao carregar disciplinas. Tente novamente.')
+      } finally {
+        setLoadingFiltros(false)
+      }
+    }
 
     loadDisciplinas()
     setDisciplinaSelecionada('')
@@ -520,11 +520,11 @@ export default function FlashcardsClient() {
 
   const handleFeedback = async (feedback: number) => {
     if (!current) return
-    
+
     // Adicionar card aos vistos e feedback à lista
     setCardsVistos((prev) => new Set([...prev, current.id]))
     setFeedbacks((prev) => [...prev, feedback])
-    
+
     try {
       await fetchWithAuth('/api/flashcards/feedback', {
         method: 'POST',
@@ -533,7 +533,7 @@ export default function FlashcardsClient() {
     } catch (err) {
       console.error('Erro ao enviar feedback', err)
     }
-    
+
     // Verificar se completou a sessão (10 cards)
     const nextIdx = idx + 1
     if (nextIdx >= SESSION_SIZE || nextIdx >= cards.length) {
@@ -545,7 +545,7 @@ export default function FlashcardsClient() {
       setShowAnswer(false)
     }
   }
-  
+
   const handleFinishSession = () => {
     // Resetar tudo e voltar ao menu
     setModo(null)
@@ -556,7 +556,7 @@ export default function FlashcardsClient() {
     setSessaoCompleta(false)
     setShowAnswer(false)
   }
-  
+
   const handleStudyMore = () => {
     // Manter modo e filtros, mas resetar sessão
     if (modo === 'personalizado') {
@@ -653,9 +653,8 @@ export default function FlashcardsClient() {
                     <Card
                       role="button"
                       tabIndex={0}
-                      className={`cursor-pointer transition hover:border-primary ${className ?? ''} ${
-                        modo === m.id ? 'border-primary shadow-md' : ''
-                      }`}
+                      className={`cursor-pointer transition hover:border-primary ${className ?? ''} ${modo === m.id ? 'border-primary shadow-md' : ''
+                        }`}
                       onClick={() => handleSelectModo(m.id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -726,7 +725,7 @@ export default function FlashcardsClient() {
                   disabled={loadingFiltros || loadingCursos}
                 >
                   <SelectTrigger>
-                    <SelectValue 
+                    <SelectValue
                       placeholder={
                         loadingCursos
                           ? 'Carregando cursos...'
@@ -764,7 +763,7 @@ export default function FlashcardsClient() {
                   disabled={!cursoSelecionado || loadingFiltros}
                 >
                   <SelectTrigger>
-                    <SelectValue 
+                    <SelectValue
                       placeholder={
                         loadingFiltros
                           ? 'Carregando...'
@@ -798,7 +797,7 @@ export default function FlashcardsClient() {
                   disabled={!disciplinaSelecionada || !cursoSelecionado || loadingFiltros}
                 >
                   <SelectTrigger>
-                    <SelectValue 
+                    <SelectValue
                       placeholder={
                         loadingFiltros
                           ? 'Carregando...'
@@ -832,7 +831,7 @@ export default function FlashcardsClient() {
                   disabled={!frenteSelecionada || loadingFiltros}
                 >
                   <SelectTrigger>
-                    <SelectValue 
+                    <SelectValue
                       placeholder={
                         loadingFiltros
                           ? 'Carregando...'
@@ -1019,28 +1018,28 @@ export default function FlashcardsClient() {
           <div className="space-y-2 mt-6">
             <h3 className="text-sm font-semibold text-foreground">Indique aqui o seu desempenho:</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-              <Button 
+              <Button
                 onClick={() => handleFeedback(1)}
                 className="flex flex-col items-center gap-1 h-auto py-2 bg-[#F87171] text-white shadow-lg transition hover:bg-[#F87171]/90 hover:shadow-xl active:bg-[#F87171]/80 active:shadow-md"
               >
                 <XCircle className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Errei o item</span>
               </Button>
-              <Button 
+              <Button
                 onClick={() => handleFeedback(2)}
                 className="flex flex-col items-center gap-1 h-auto py-2 bg-[#FB923C] text-white shadow-lg transition hover:bg-[#FB923C]/90 hover:shadow-xl active:bg-[#FB923C]/80 active:shadow-md"
               >
                 <AlertTriangle className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei parcialmente</span>
               </Button>
-              <Button 
+              <Button
                 onClick={() => handleFeedback(3)}
                 className="flex flex-col items-center gap-1 h-auto py-2 bg-[#FACC15] text-white shadow-lg transition hover:bg-[#FACC15]/90 hover:shadow-xl active:bg-[#FACC15]/80 active:shadow-md"
               >
                 <Lightbulb className="h-6 w-6 drop-shadow-sm" />
                 <span className="text-xs font-semibold">Acertei com dificuldade</span>
               </Button>
-              <Button 
+              <Button
                 onClick={() => handleFeedback(4)}
                 className="flex flex-col items-center gap-1 h-auto py-2 bg-[#34D399] text-white shadow-lg transition hover:bg-[#34D399]/90 hover:shadow-xl active:bg-[#34D399]/80 active:shadow-md"
               >

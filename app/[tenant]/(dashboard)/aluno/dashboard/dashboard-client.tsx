@@ -6,19 +6,19 @@ import type { DashboardData } from '@/types/dashboard'
 import {
   fetchDashboardData,
   type DashboardServiceError,
-} from '@/lib/services/dashboardService'
+} from '../services/dashboard.service'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
-import { ScheduleProgress } from '@/components/dashboard/schedule-progress'
-import { MetricCard } from '@/components/dashboard/metric-card'
+import { ScheduleProgress } from '../components/dashboard/schedule-progress'
+import { MetricCard } from '../components/dashboard/metric-card'
 import {
   ConsistencyHeatmap,
   type HeatmapPeriod,
-} from '@/components/dashboard/consistency-heatmap'
-import { SubjectPerformanceList } from '@/components/dashboard/subject-performance-list'
-import { FocusEfficiencyChart } from '@/components/dashboard/focus-efficiency-chart'
-import { SubjectDistribution } from '@/components/dashboard/subject-distribution'
-import { StrategicDomain } from '@/components/dashboard/strategic-domain'
+} from '../components/dashboard/consistency-heatmap'
+import { SubjectPerformanceList } from '../components/dashboard/subject-performance-list'
+import { FocusEfficiencyChart } from '../components/dashboard/focus-efficiency-chart'
+import { SubjectDistribution } from '../components/dashboard/subject-distribution'
+import { StrategicDomain } from '../components/dashboard/strategic-domain'
 import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -125,8 +125,8 @@ export default function StudentDashboardClientPage() {
   useEffect(() => {
     let channel:
       | ReturnType<
-          ReturnType<typeof import('@/lib/client').createClient>['channel']
-        >
+        ReturnType<typeof import('@/lib/client').createClient>['channel']
+      >
       | null = null
     let supabaseInstance:
       | ReturnType<typeof import('@/lib/client').createClient>

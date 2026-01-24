@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScheduleList } from '@/components/aluno/schedule-list'
+import { ScheduleList } from './schedule-list'
 import { Download, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import {
   AlertDialog,
@@ -148,7 +148,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
       try {
         const supabase = createClient()
-        
+
         const { data: userResponse } = await supabase.auth.getUser()
         setUserId(userResponse?.user?.id ?? null)
 
@@ -225,36 +225,36 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         let itensCompletos: CronogramaItem[] = []
         if (itensData && itensData.length > 0) {
           const aulaIds = [...new Set(itensData.map(item => item.aula_id).filter(Boolean))]
-          
+
           if (aulaIds.length > 0) {
             console.log('[ScheduleDashboard] Buscando aulas:', aulaIds.length, 'aulas')
-            
+
             // Load aulas with their relationships - usando joins mais simples
             // Primeiro buscar aulas básicas - garantir que temos pelo menos os dados básicos
             console.log('[ScheduleDashboard] Buscando', aulaIds.length, 'aulas com IDs:', aulaIds.slice(0, 3), '...')
-            
+
             // Dividir em lotes de 100 IDs para evitar problemas com queries muito grandes
             const LOTE_SIZE = 100
             const lotes = []
             for (let i = 0; i < aulaIds.length; i += LOTE_SIZE) {
               lotes.push(aulaIds.slice(i, i + LOTE_SIZE))
             }
-            
+
             console.log('[ScheduleDashboard] Dividindo em', lotes.length, 'lotes de até', LOTE_SIZE, 'IDs cada')
-            
+
             // Buscar aulas em lotes
             const todasAulas: AulaData[] = []
             let aulasBasicasError: { message: string; details?: string; hint?: string; code?: string } | null = null
-            
+
             for (let i = 0; i < lotes.length; i++) {
               const lote = lotes[i]
               console.log(`[ScheduleDashboard] Buscando lote ${i + 1}/${lotes.length} com ${lote.length} IDs...`)
-              
+
               const { data: loteData, error: loteError } = await supabase
                 .from('aulas')
                 .select('id, nome, numero_aula, tempo_estimado_minutos, curso_id, modulo_id')
                 .in('id', lote)
-              
+
               if (loteError) {
                 console.error(`[ScheduleDashboard] Erro no lote ${i + 1}/${lotes.length}:`, {
                   message: loteError.message,
@@ -275,7 +275,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 console.warn(`[ScheduleDashboard] ⚠️ Lote ${i + 1}/${lotes.length} retornou null/undefined`)
               }
             }
-            
+
             const aulasBasicas = todasAulas.length > 0 ? todasAulas : null
 
             if (aulasBasicasError) {
@@ -294,7 +294,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               console.error('[ScheduleDashboard] ⚠️ Nenhuma aula encontrada após buscar em lotes!')
               console.error('[ScheduleDashboard] IDs buscados:', aulaIds.length, 'IDs:', aulaIds.slice(0, 10))
               console.error('[ScheduleDashboard] Erro da query:', aulasBasicasError)
-              
+
               // Tentar buscar uma por uma para debug
               if (aulaIds.length > 0) {
                 console.log('[ScheduleDashboard] Tentando buscar primeira aula individualmente para debug...')
@@ -303,7 +303,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   .select('id, nome, modulo_id')
                   .eq('id', aulaIds[0])
                   .single()
-                
+
                 console.log('[ScheduleDashboard] Teste individual - aula:', testAula)
                 console.log('[ScheduleDashboard] Teste individual - erro:', testError)
                 if (testError) {
@@ -332,7 +332,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             // Buscar módulos das aulas
             const moduloIds = [...new Set((aulasBasicas || []).map(a => a.modulo_id).filter((id): id is string => !!id))]
             let modulosMap = new Map()
-            
+
             if (moduloIds.length > 0) {
               // Type assertion needed because database types are currently out of sync with actual schema
               const { data: modulosData, error: modulosError } = (await supabase
@@ -350,7 +350,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             // Buscar frentes dos módulos
             const frenteIds = [...new Set(Array.from(modulosMap.values()).map((m: ModuloMapValue) => m.frente_id).filter(Boolean))]
             let frentesMap = new Map()
-            
+
             if (frenteIds.length > 0) {
               // Type assertion needed because database types are currently out of sync with actual schema
               const { data: frentesData, error: frentesError } = (await supabase
@@ -368,7 +368,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             // Buscar disciplinas das frentes
             const disciplinaIds = [...new Set(Array.from(frentesMap.values()).map((f: FrenteMapValue) => f.disciplina_id).filter(Boolean))]
             let disciplinasMap = new Map()
-            
+
             if (disciplinaIds.length > 0) {
               // Type assertion needed because database types are currently out of sync with actual schema
               const { data: disciplinasData, error: disciplinasError } = (await supabase
@@ -431,7 +431,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 aulas: aula || null,
               }
             })
-            
+
             console.log('[ScheduleDashboard] Itens completos montados:', itensCompletos.length)
             console.log('[ScheduleDashboard] Itens com aulas:', itensCompletos.filter(item => item.aulas !== null).length)
             console.log('[ScheduleDashboard] Itens sem aulas:', itensCompletos.filter(item => item.aulas === null).length)
@@ -448,16 +448,16 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         // Converter periodos_ferias de Json para o tipo esperado
         const periodosFeriasConvertidos = cronogramaData.periodos_ferias
           ? (Array.isArray(cronogramaData.periodos_ferias)
-              ? (cronogramaData.periodos_ferias as unknown[])
-                  .map((p: unknown): { inicio: string; fim: string } | null => {
-                    if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
-                      const obj = p as { inicio: unknown; fim: unknown }
-                      return { inicio: String(obj.inicio), fim: String(obj.fim) }
-                    }
-                    return null
-                  })
-                  .filter((p): p is { inicio: string; fim: string } => p !== null)
-              : [])
+            ? (cronogramaData.periodos_ferias as unknown[])
+              .map((p: unknown): { inicio: string; fim: string } | null => {
+                if (typeof p === 'object' && p !== null && 'inicio' in p && 'fim' in p) {
+                  const obj = p as { inicio: unknown; fim: unknown }
+                  return { inicio: String(obj.inicio), fim: String(obj.fim) }
+                }
+                return null
+              })
+              .filter((p): p is { inicio: string; fim: string } => p !== null)
+            : [])
           : undefined
 
         // Combine the data
@@ -493,7 +493,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             .select('id, nome')
             .eq('id', data.curso_alvo_id)
             .single()
-          
+
           if (cursoData) {
             setCurso(cursoData)
           }
@@ -505,7 +505,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             .select('id, nome')
             .in('id', data.disciplinas_selecionadas)
             .order('nome', { ascending: true })
-          
+
           if (disciplinasData) {
             setDisciplinas(disciplinasData)
           }
@@ -559,7 +559,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             })
           } else if (payload.eventType === 'DELETE' && payload.old) {
             // Remover item deletado
-            const deletedItem = payload.old as { id: string; [key: string]: unknown }
+            const deletedItem = payload.old as { id: string;[key: string]: unknown }
             const deletedId = deletedItem.id
             setCronograma((prev) => {
               if (!prev) return prev
@@ -578,7 +578,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
   const toggleConcluido = async (itemId: string, concluido: boolean) => {
     const supabase = createClient()
-    
+
     const updateData: { concluido: boolean; data_conclusao: string | null } = { concluido, data_conclusao: null }
     if (concluido) {
       updateData.data_conclusao = new Date().toISOString()
@@ -753,15 +753,15 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
       let isFerias = false
       for (const periodo of ferias || []) {
         if (!periodo.inicio || !periodo.fim) continue
-        
+
         const inicioFerias = new Date(periodo.inicio)
         const fimFerias = new Date(periodo.fim)
-        
+
         // Validar se as datas são válidas
         if (isNaN(inicioFerias.getTime()) || isNaN(fimFerias.getTime())) {
           continue
         }
-        
+
         if (
           (dataAtual >= inicioFerias && dataAtual <= fimFerias) ||
           (fimSemana >= inicioFerias && fimSemana <= fimFerias) ||
@@ -797,7 +797,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const todasSemanas: number[] = []
   let semanaNumero = 1
   const dataAtual = new Date(dataInicio)
-  
+
   while (dataAtual <= dataFim) {
     todasSemanas.push(semanaNumero)
     dataAtual.setDate(dataAtual.getDate() + 7)
@@ -954,8 +954,8 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               </Button>
               <AlertDialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
                 <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="destructive" 
+                  <Button
+                    variant="destructive"
                     className="w-full sm:w-auto"
                     disabled={deleting}
                   >
