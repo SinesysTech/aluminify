@@ -212,10 +212,10 @@ export function LandingPage() {
                         </div>
 
                         <div className="mt-10">
-                            <a href="/manifesto.html" className="inline-flex items-center gap-2 text-primary dark:text-white font-medium border-b border-primary dark:border-white pb-0.5 hover:opacity-70 transition-opacity group">
+                            <Link href="/manifesto" className="inline-flex items-center gap-2 text-primary dark:text-white font-medium border-b border-primary dark:border-white pb-0.5 hover:opacity-70 transition-opacity group">
                                 Ler manifesto completo
                                 <span className="material-icons-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </section>
