@@ -37,7 +37,11 @@
       "Bash(npm view:*)",
       "Bash(npm install)",
       "Skill(openspec:archive)",
-      "Skill(openspec:archive:*)"
+      "Skill(openspec:archive:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(echo:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []
