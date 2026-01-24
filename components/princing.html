@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Planos e Investimento - Aluminify</title>
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#09090B",
+              background: "#FAFAFA",
+              surface: "#FFFFFF",
+              border: "#E4E4E7",
+              muted: "#71717A",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Plus Jakarta Sans", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-background text-primary font-sans antialiased">
+    <nav
+      class="sticky top-0 z-50 w-full border-b border-border bg-white/80 backdrop-blur-md"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+      >
+        <a class="flex items-center gap-2" href="index.html">
+          <div
+            class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl"
+          >
+            A
+          </div>
+          <span class="font-display font-bold text-lg tracking-tight"
+            >Aluminify</span
+          >
+        </a>
+        <div class="flex items-center gap-4">
+          <a
+            class="text-sm font-medium text-muted hover:text-primary transition-colors"
+            href="index.html"
+            >Voltar para Home</a
+          >
+          <a
+            class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:opacity-90"
+            href="signup.html"
+            >Criar Instância</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <section class="py-20 text-center px-4">
+        <h1
+          class="text-4xl md:text-5xl font-display font-bold tracking-tight mb-6"
+        >
+          Investimento Justo e Escalável
+        </h1>
+        <p class="text-lg text-muted max-w-2xl mx-auto leading-relaxed">
+          Um modelo cumulativo desenhado para o crescimento. Você paga uma base
+          fixa pela sua faixa atual e um valor pequeno apenas pelos alunos
+          excedentes.
+        </p>
+      </section>
+
+      <section class="pb-12 px-4">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-6">
+          <div
+            class="bg-white border border-border rounded-xl p-6 shadow-sm flex flex-col hover:border-zinc-300 transition-colors"
+          >
+            <div class="mb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons-outlined text-zinc-400"
+                  >psychology_alt</span
+                >
+                <h3 class="text-lg font-bold">Inicial</h3>
+              </div>
+              <p class="text-sm text-muted">Para validação mínima.</p>
+            </div>
+            <div class="mb-6">
+              <span class="text-3xl font-bold">R$ 500</span>
+              <span class="text-xs text-muted block mt-1"
+                >Valor fixo mensal</span
+              >
+            </div>
+            <div
+              class="text-sm text-muted mb-6 flex-grow border-t border-border pt-4"
+            >
+              <p class="mb-2 font-medium text-primary">Até 300 alunos</p>
+              <p class="mb-2">
+                Incluso na taxa. Ideal para quem está começando a digitalizar o
+                preparatório.
+              </p>
+            </div>
+            <a
+              href="signup.html"
+              class="w-full py-2 border border-border rounded-lg text-center text-sm font-medium hover:bg-zinc-50 transition-colors"
+              >Escolher Inicial</a
+            >
+          </div>
+
+          <div
+            class="bg-primary text-white border border-primary rounded-xl p-6 shadow-lg transform md:-translate-y-4 flex flex-col relative overflow-hidden"
+          >
+            <div
+              class="absolute top-0 right-0 bg-blue-600 text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase"
+            >
+              Acelerado
+            </div>
+            <div class="mb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons-outlined text-white"
+                  >rocket_launch</span
+                >
+                <h3 class="text-lg font-bold">Crescimento</h3>
+              </div>
+              <p class="text-sm text-zinc-400">Para expansão acelerada.</p>
+            </div>
+            <div class="mb-2">
+              <span class="text-3xl font-bold">R$ 500</span
+              ><span class="text-sm text-zinc-400"> base</span>
+            </div>
+            <div
+              class="text-xs font-mono text-blue-200 mb-6 bg-white/10 p-2 rounded"
+            >
+              + R$ 1,50 por aluno extra (>300)
+            </div>
+            <div
+              class="text-sm text-zinc-300 mb-6 flex-grow border-t border-zinc-700 pt-4"
+            >
+              <p class="mb-2 text-white font-medium">301 a 500 alunos</p>
+              <p class="text-xs">
+                Ex: 400 alunos = R$ 500 + (100 x 1,50) =
+                <strong>R$ 650/mês</strong>.
+              </p>
+            </div>
+            <a
+              href="signup.html"
+              class="w-full py-2 bg-white text-primary rounded-lg text-center text-sm font-bold hover:bg-zinc-100 transition-colors"
+              >Escolher Crescimento</a
+            >
+          </div>
+
+          <div
+            class="bg-white border border-border rounded-xl p-6 shadow-sm flex flex-col hover:border-zinc-300 transition-colors"
+          >
+            <div class="mb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons-outlined text-zinc-600"
+                  >trending_up</span
+                >
+                <h3 class="text-lg font-bold">Escala</h3>
+              </div>
+              <p class="text-sm text-muted">Melhor custo-benefício.</p>
+            </div>
+            <div class="mb-2">
+              <span class="text-3xl font-bold">R$ 800</span
+              ><span class="text-sm text-muted"> base</span>
+            </div>
+            <div
+              class="text-xs font-mono text-zinc-500 mb-6 bg-zinc-50 p-2 rounded"
+            >
+              + R$ 1,00 por aluno extra (>500)
+            </div>
+            <div
+              class="text-sm text-muted mb-6 flex-grow border-t border-border pt-4"
+            >
+              <p class="mb-2 font-medium text-primary">501 a 1.000 alunos</p>
+              <p class="text-xs">
+                Ex: 800 alunos = R$ 800 + (300 x 1,00) =
+                <strong>R$ 1.100/mês</strong>.
+              </p>
+            </div>
+            <a
+              href="signup.html"
+              class="w-full py-2 border border-border rounded-lg text-center text-sm font-medium hover:bg-zinc-50 transition-colors"
+              >Escolher Escala</a
+            >
+          </div>
+
+          <div
+            class="bg-zinc-50 border border-border rounded-xl p-6 shadow-sm flex flex-col"
+          >
+            <div class="mb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons-outlined text-zinc-500"
+                  >domain</span
+                >
+                <h3 class="text-lg font-bold">Enterprise</h3>
+              </div>
+              <p class="text-sm text-muted">Estrutura robusta.</p>
+            </div>
+            <div class="mb-6">
+              <span class="text-2xl font-bold">Sob Consulta</span>
+              <span class="text-xs text-muted block mt-1"
+                >A partir de R$ 1.599</span
+              >
+            </div>
+            <div
+              class="text-sm text-muted mb-6 flex-grow border-t border-border pt-4"
+            >
+              <p class="mb-2 font-medium text-primary">Acima de 1.000 alunos</p>
+              <p>Condições especiais e infraestrutura dedicada.</p>
+            </div>
+            <a
+              href="mailto:comercial@aluminify.com"
+              class="w-full py-2 border border-border rounded-lg text-center text-sm font-medium hover:bg-zinc-100 transition-colors"
+              >Falar com Consultor</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="py-20 bg-white border-y border-border">
+        <div class="max-w-5xl mx-auto px-6">
+          <div class="flex flex-col md:flex-row gap-12">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-6">
+                <div
+                  class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-primary"
+                >
+                  <span class="material-icons-outlined">build</span>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold">Setup e Implantação</h3>
+                  <p class="text-xs text-muted">
+                    Fase inicial de calibração técnica
+                  </p>
+                </div>
+              </div>
+
+              <div class="bg-zinc-50 rounded-xl p-6 border border-border">
+                <div class="flex justify-between items-center mb-4">
+                  <span class="text-sm font-medium text-muted"
+                    >Investimento Único</span
+                  >
+                  <span class="text-2xl font-bold text-primary"
+                    >R$ 1.600,00</span
+                  >
+                </div>
+
+                <ul class="space-y-3 text-sm text-muted mb-6">
+                  <li class="flex gap-2">
+                    <span class="material-icons-outlined text-green-600 text-sm"
+                      >check_circle</span
+                    >
+                    Configuração dos Agentes de IA e Base de Conhecimento
+                  </li>
+                  <li class="flex gap-2">
+                    <span class="material-icons-outlined text-green-600 text-sm"
+                      >check_circle</span
+                    >
+                    Integração com Plataforma de Vendas
+                  </li>
+                  <li class="flex gap-2">
+                    <span class="material-icons-outlined text-green-600 text-sm"
+                      >check_circle</span
+                    >
+                    Prazo estimado: 10 dias
+                  </li>
+                </ul>
+
+                <div class="border-t border-border pt-4">
+                  <span
+                    class="text-xs font-bold uppercase tracking-wider text-muted block mb-3"
+                    >Condições Especiais</span
+                  >
+                  <div class="grid grid-cols-2 gap-4">
+                    <div
+                      class="bg-white p-3 rounded border border-border text-center"
+                    >
+                      <span class="block text-xs text-muted"
+                        >Contrato 12 meses</span
+                      >
+                      <span class="block font-bold text-green-600"
+                        >25% OFF</span
+                      >
+                      <span class="text-[10px] text-muted"
+                        >Setup: R$ 1.200</span
+                      >
+                    </div>
+                    <div
+                      class="bg-white p-3 rounded border border-blue-200 bg-blue-50 text-center"
+                    >
+                      <span class="block text-xs text-blue-800"
+                        >Contrato 24 meses</span
+                      >
+                      <span class="block font-bold text-blue-600"
+                        >SETUP GRÁTIS</span
+                      >
+                      <span class="text-[10px] text-blue-800">100% OFF</span>
+                    </div>
+                  </div>
+                  <div class="mt-4 text-xs text-muted text-center">
+                    Pagamento facilitado: 5% OFF à vista ou 3x sem juros.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-6">
+                <div
+                  class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-primary"
+                >
+                  <span class="material-icons-outlined">extension</span>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold">Melhorias Opcionais</h3>
+                  <p class="text-xs text-muted">
+                    Potencialize sua infraestrutura
+                  </p>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div
+                  class="border border-border rounded-lg p-5 hover:border-primary transition-colors"
+                >
+                  <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-bold text-sm">Agente WhatsApp 24/7</h4>
+                    <span
+                      class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded font-mono"
+                      >Popular</span
+                    >
+                  </div>
+                  <p class="text-xs text-muted mb-3 leading-relaxed">
+                    Automação integrada ao Chatwoot. Responde dúvidas frequentes
+                    e faz triagem de alunos a qualquer hora do dia.
+                  </p>
+                  <div class="flex items-baseline gap-2 text-sm">
+                    <span class="font-mono font-bold">R$ 2.000,00</span>
+                    <span class="text-xs text-muted"
+                      >(Setup Único) + Variável mensal</span
+                    >
+                  </div>
+                </div>
+
+                <div
+                  class="border border-border rounded-lg p-5 hover:border-primary transition-colors"
+                >
+                  <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-bold text-sm">
+                      Conteúdo Especializado (RAG)
+                    </h4>
+                  </div>
+                  <p class="text-xs text-muted mb-3 leading-relaxed">
+                    Transcrição e organização das suas aulas para treinar a IA
+                    com sua metodologia exata. Reduz alucinações drasticamente.
+                  </p>
+                  <div class="flex items-baseline gap-2 text-sm">
+                    <span class="font-mono font-bold">R$ 10,00</span>
+                    <span class="text-xs text-muted"
+                      >por hora de conteúdo processado</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-20 bg-zinc-50 border-b border-border">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+          <div
+            class="inline-flex items-center gap-2 text-primary font-bold mb-4"
+          >
+            <span class="material-icons-outlined">visibility</span>
+            <h3>Diferencial Ético: Transparência Total</h3>
+          </div>
+          <p class="text-muted leading-relaxed mb-8">
+            Ao contrário de plataformas que lucram com um percentual sobre o seu
+            consumo de IA, nós optamos pela independência.
+            <strong
+              >O custo de consumo dos agentes (tokens) é pago diretamente por
+              você aos provedores</strong
+            >
+            (OpenAI/Anthropic). Nós não temos lucro sobre o seu uso. Você paga
+            apenas pelo que consome, com total controle.
+          </p>
+          <div
+            class="p-4 bg-white border border-border rounded-lg shadow-sm inline-block text-left max-w-lg"
+          >
+            <p class="text-sm italic text-muted">
+              "A Sinesys opta por dar controle de gastos e qualidade ao
+              cliente... sem conflito de interesses."
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-20 px-4">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-2xl font-bold text-center mb-10">Dúvidas Comuns</h2>
+
+          <div class="space-y-3">
+            <details
+              class="group bg-white border border-border rounded-lg p-4 cursor-pointer"
+            >
+              <summary
+                class="flex justify-between items-center font-medium list-none text-sm"
+              >
+                <span>Como funciona o contrato mínimo?</span>
+                <span
+                  class="material-icons-outlined text-muted transition group-open:rotate-180"
+                  >expand_more</span
+                >
+              </summary>
+              <div class="text-muted text-sm mt-3 leading-relaxed">
+                O contrato mínimo é de 6 meses. Isso garante que tenhamos tempo
+                hábil para implementar a cultura da plataforma e você ver
+                resultados reais na retenção dos alunos.
+              </div>
+            </details>
+
+            <details
+              class="group bg-white border border-border rounded-lg p-4 cursor-pointer"
+            >
+              <summary
+                class="flex justify-between items-center font-medium list-none text-sm"
+              >
+                <span
+                  >O que está incluso na Integração de Plataforma
+                  Gratuita?</span
+                >
+                <span
+                  class="material-icons-outlined text-muted transition group-open:rotate-180"
+                  >expand_more</span
+                >
+              </summary>
+              <div class="text-muted text-sm mt-3 leading-relaxed">
+                Conectamos seu sistema de vendas (Hotmart, Eduzz, Kiwify, etc.)
+                para que o cadastro do aluno no Aluminify seja automático assim
+                que a compra for aprovada.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-border bg-white py-12 text-center">
+      <p class="text-xs text-muted font-mono">
+        © 2026 Aluminify Inc. A infraestrutura invisível da educação.
+      </p>
+    </footer>
+  </body>
+</html>

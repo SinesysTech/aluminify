@@ -34,12 +34,12 @@ export function LandingPage() {
                                 >
                                     Manifesto
                                 </a>
-                                <a
+                                <Link
                                     className="hover:text-primary dark:hover:text-white transition-colors"
-                                    href="/pricing.html"
+                                    href="/pricing"
                                 >
                                     Planos
-                                </a>
+                                </Link>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -315,84 +315,55 @@ export function LandingPage() {
                 </section>
                 <section className="py-24 bg-background-light dark:bg-background-dark">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
+                        <div className="text-center mb-12">
+                            <h3 className="text-2xl font-bold text-primary dark:text-white mb-4">Investimento Cloud</h3>
+                            <p className="text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
+                                Modelo justo e cumulativo. Você paga um valor base pela faixa e um adicional pequeno apenas por aluno excedente.
+                            </p>
+                        </div>
+                        <div className="overflow-x-auto border border-border-light dark:border-border-dark rounded-xl shadow-sm">
+                            <table className="w-full text-left border-collapse bg-white dark:bg-surface-dark">
                                 <thead>
-                                    <tr className="border-b border-border-light dark:border-border-dark">
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                                            Plano
-                                        </th>
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                                            Capacidade
-                                        </th>
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                                            Investimento
-                                        </th>
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                                            Destaques
-                                        </th>
+                                    <tr className="border-b border-border-light dark:border-border-dark bg-zinc-50 dark:bg-zinc-900/50">
+                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Plano</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Capacidade</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Investimento Mensal</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Modelo</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-light dark:divide-border-dark">
-                                    <tr
-                                        className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
-                                        onClick={() => (window.location.href = "/pricing.html")}
-                                    >
+                                    <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer" onClick={() => window.location.href = '/pricing.html'}>
                                         <td className="py-6 px-6 font-bold text-lg">Start</td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">
-                                            Até 500 alunos
-                                        </td>
-                                        <td className="py-6 px-6 font-mono">
-                                            R$ 299
-                                            <span className="text-xs text-zinc-500">/mês</span>
-                                        </td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">
-                                            LMS Completo, Domínio personalizado, Hospedagem básica
-                                        </td>
+                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">Até 300 alunos</td>
+                                        <td className="py-6 px-6 font-mono font-medium">R$ 500,00<span className="text-xs text-zinc-500 font-sans">/fixo</span></td>
+                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Valor único para validação inicial.</td>
                                     </tr>
-
-                                    <tr
-                                        className="bg-blue-50/30 dark:bg-blue-900/10 border-2 border-blue-500 shadow-md relative z-10 cursor-pointer transform scale-[1.01] transition-transform"
-                                        onClick={() => (window.location.href = "/pricing.html")}
-                                    >
+                                    <tr className="bg-blue-50/30 dark:bg-blue-900/10 relative z-10 cursor-pointer transition-colors" onClick={() => window.location.href = '/pricing.html'}>
                                         <td className="py-6 px-6 font-bold text-lg text-primary dark:text-white flex items-center gap-2">
-                                            Crescimento
-                                            <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded font-bold uppercase border border-blue-200">
-                                                Recomendado
-                                            </span>
+                                            Growth
+                                            <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded font-bold uppercase border border-blue-200">Recomendado</span>
                                         </td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark font-medium">
-                                            Até 5.000 alunos
-                                        </td>
-                                        <td className="py-6 px-6 font-mono text-blue-700 dark:text-blue-300 font-bold">
-                                            R$ 899
-                                            <span className="text-xs text-zinc-500 font-normal">
-                                                /mês
-                                            </span>
-                                        </td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">
-                                            Tutor IA (RAG), Relatórios de Desempenho, Espaço Ilimitado
-                                        </td>
+                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark font-medium">301 a 500 alunos</td>
+                                        <td className="py-6 px-6 font-mono text-blue-700 dark:text-blue-300 font-bold">R$ 500,00<span className="text-xs text-zinc-500 font-normal dark:text-zinc-400"> + R$ 1,50/extra</span></td>
+                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Base + valor por aluno excedente.</td>
                                     </tr>
-
-                                    <tr
-                                        className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
-                                        onClick={() => (window.location.href = "/pricing.html")}
-                                    >
-                                        <td className="py-6 px-6 font-bold text-lg">Escala</td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">
-                                            Até 25.000 alunos
-                                        </td>
-                                        <td className="py-6 px-6 font-mono">
-                                            R$ 2.499
-                                            <span className="text-xs text-zinc-500">/mês</span>
-                                        </td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">
-                                            Gerente de conta, Personalização Visual, API Aberta
-                                        </td>
+                                    <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer" onClick={() => window.location.href = '/pricing.html'}>
+                                        <td className="py-6 px-6 font-bold text-lg">Scale</td>
+                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">501 a 1.000 alunos</td>
+                                        <td className="py-6 px-6 font-mono font-medium">R$ 800,00<span className="text-xs text-zinc-500 font-sans"> + R$ 1,00/extra</span></td>
+                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Custo marginal reduzido para escala.</td>
+                                    </tr>
+                                    <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer" onClick={() => window.location.href = '/pricing.html'}>
+                                        <td className="py-6 px-6 font-bold text-lg">Enterprise</td>
+                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">1.001+ alunos</td>
+                                        <td className="py-6 px-6 font-mono font-medium">Sob Consulta</td>
+                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Condições especiais e infra dedicada.</td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="mt-6 text-center">
+                            <a href="/pricing.html" className="text-sm font-medium text-primary hover:underline dark:text-white">Ver detalhes completos e opcionais →</a>
                         </div>
                     </div>
                 </section>
