@@ -234,7 +234,7 @@ export function AtividadeRow({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Link
-                                        href={`/aluno/modo-foco?cursoId=${atividade.cursoId}&atividadeId=${atividade.id}&disciplinaId=${atividade.disciplinaId}&frenteId=${atividade.frenteId}&moduloId=${atividade.moduloId}`}
+                                        href={`/aluno/foco?cursoId=${atividade.cursoId}&atividadeId=${atividade.id}&disciplinaId=${atividade.disciplinaId}&frenteId=${atividade.frenteId}&moduloId=${atividade.moduloId}`}
                                     >
                                         <Button type="button" variant="secondary" size="sm">
                                             <Timer className="h-4 w-4 mr-1" />

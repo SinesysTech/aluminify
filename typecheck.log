@@ -1,0 +1,3 @@
+app/[tenant]/(dashboard)/aluno/sala-de-estudos/sala-estudos-client.tsx(1051,11): error TS2552: Cannot find name 'setFilters'. Did you mean 'hasFilters'?
+app/[tenant]/(dashboard)/aluno/sala-de-estudos/sala-estudos-client.tsx(1051,23): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/[tenant]/(dashboard)/aluno/sala-de-estudos/sala-estudos-client.tsx(1096,26): error TS2739: Type '{ key: string; modulo: ModuloComAtividades; onStatusChange: ((atividadeId: string, status: StatusAtividade) => Promise<void>) | undefined; onStatusChangeWithDesempenho: ((atividadeId: string, status: StatusAtividade, desempenho: { ...; }) => Promise<...>) | undefined; }' is missing the following properties from type 'ModuloActivitiesAccordionProps': isExpanded, onToggle

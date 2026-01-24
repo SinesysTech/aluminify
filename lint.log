@@ -1,0 +1,17 @@
+
+> aluminify@0.1.1 lint
+> eslint --cache
+
+
+E:\Development\aluminify\app\[tenant]\(dashboard)\aluno\sala-de-estudos\client.tsx
+  116:8   warning  React Hook React.useEffect has a missing dependency: 'cursoSelecionado'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  195:38  error    Unexpected any. Specify a different type                                                                                   @typescript-eslint/no-explicit-any
+  196:38  error    Unexpected any. Specify a different type                                                                                   @typescript-eslint/no-explicit-any
+  197:38  error    Unexpected any. Specify a different type                                                                                   @typescript-eslint/no-explicit-any
+
+E:\Development\aluminify\app\[tenant]\(dashboard)\aluno\sala-de-estudos\services\sala-estudos.service.ts
+  281:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+✖ 5 problems (3 errors, 2 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

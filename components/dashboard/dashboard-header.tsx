@@ -63,7 +63,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
 
     const query = qs.toString()
-    return query ? `/aluno/modo-foco?${query}` : '/aluno/modo-foco'
+    return query ? `/aluno/foco?${query}` : '/aluno/foco'
   }, [searchParams, storedContext])
 
   // Determinar saudação baseada no horário

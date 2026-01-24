@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from 'next'
 import { requireUser } from '@/lib/auth'
-import SalaEstudosClientPage from './sala-estudos-client'
+import SalaEstudosClientPage from './client'
 
 export const metadata: Metadata = {
   title: 'Sala de Estudos'
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default async function SalaDeEstudosPage() {
   await requireUser()
-  
+
   return <SalaEstudosClientPage />
 }
 

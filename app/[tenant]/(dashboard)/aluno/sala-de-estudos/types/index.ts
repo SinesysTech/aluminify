@@ -1,5 +1,8 @@
-import { TipoAtividade } from '@/backend/services/atividade';
-import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progresso-atividade';
+import { TipoAtividade } from "@/backend/services/atividade";
+import {
+  StatusAtividade,
+  DificuldadePercebida,
+} from "@/backend/services/progresso-atividade";
 
 export interface AtividadeComProgresso {
   id: string;
@@ -65,3 +68,9 @@ export interface Frente {
   disciplina_id: string;
 }
 
+export interface DesempenhoData {
+  questoesTotais: number;
+  questoesAcertos: number;
+  dificuldadePercebida: DificuldadePercebida;
+  anotacoesPessoais?: string | null;
+}

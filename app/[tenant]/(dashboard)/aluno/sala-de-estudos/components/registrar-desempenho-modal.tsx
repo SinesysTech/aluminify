@@ -23,7 +23,7 @@ import {
 import { Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { DificuldadePercebida } from '@/backend/services/progresso-atividade'
-import type { AtividadeComProgresso } from '@/app/[tenant]/(dashboard)/aluno/sala-de-estudos/types'
+import type { AtividadeComProgresso } from '../types'
 
 interface DesempenhoData {
   questoesTotais: number

@@ -7,15 +7,12 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { AtividadeChecklistRow } from './atividade-checklist-row'
-import { ModuloComAtividades, AtividadeComProgresso } from '@/app/[tenant]/(dashboard)/aluno/sala-de-estudos/types'
+import { ModuloComAtividades, AtividadeComProgresso } from '../types'
 import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progresso-atividade'
-import { cn } from '@/lib/utils'
+
 
 interface ModuloActivitiesAccordionProps {
   modulo: ModuloComAtividades
-  isExpanded: boolean
-  onToggle: () => void
-  isLocked?: boolean
   onStatusChange?: (atividadeId: string, status: StatusAtividade) => Promise<void>
   onStatusChangeWithDesempenho?: (
     atividadeId: string,
@@ -31,9 +28,6 @@ interface ModuloActivitiesAccordionProps {
 
 export function ModuloActivitiesAccordion({
   modulo,
-  isExpanded,
-  onToggle,
-  isLocked = false,
   onStatusChange,
   onStatusChangeWithDesempenho,
 }: ModuloActivitiesAccordionProps) {

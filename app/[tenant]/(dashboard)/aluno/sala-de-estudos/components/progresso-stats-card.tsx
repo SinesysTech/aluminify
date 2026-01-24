@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, CheckCircle2, Circle, PlayCircle, Info } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { AtividadeComProgresso } from '@/app/[tenant]/(dashboard)/aluno/sala-de-estudos/types'
+import { AtividadeComProgresso } from '../types'
 
 interface ProgressoStatsCardProps {
   atividades: AtividadeComProgresso[]
