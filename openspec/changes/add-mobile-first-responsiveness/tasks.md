@@ -31,7 +31,7 @@
 - [x] 3.2 Atualizar `Input`, `Select` para min 44px height em mobile
 - [x] 3.3 Atualizar SelectItem para espaçamento adequado entre itens (py-2.5 md:py-1.5)
 - [x] 3.4 Atualizar `Checkbox` para área de toque expandida em mobile (size-5, after pseudo-element)
-- [ ] 3.5 Atualizar `Badge` e elementos pequenos (baixa prioridade)
+- [x] 3.5 Atualizar `Badge` e elementos pequenos (melhor contraste dark mode)
 
 ## 4. Tabelas Responsivas
 
@@ -133,6 +133,9 @@
 - `components/ui/checkbox.tsx` - Área de toque expandida
 - `components/ui/dialog.tsx` - Prop fullScreenMobile, botão fechar maior
 - `components/ui/sidebar.tsx` - Fechamento automático ao navegar
-- `components/layout/bottom-navigation.tsx` - Itens por role, safe area
+- `components/ui/badge.tsx` - Melhor contraste de texto em dark mode
+- `components/layout/bottom-navigation.tsx` - Itens por role, safe area, texto maior (12px)
 - `components/admin/professor-table.tsx` - Dialog max-width responsivo
 - `components/turma/turmas-list.tsx` - Card view para mobile
+- `components/dashboard/dashboard-header.tsx` - Texto tooltip legível (12px)
+- `components/dashboard/metric-card.tsx` - Cores de trend com melhor contraste

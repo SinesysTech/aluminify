@@ -97,7 +97,7 @@ export function MetricCard({
         </div>
         <p className="text-foreground text-2xl font-bold leading-none">{value}</p>
         {trend ? (
-          <p className={cn('text-sm mt-1', trend.isPositive ? 'text-emerald-500' : 'text-red-400')}>
+          <p className={cn('text-sm mt-1', trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>
             {trend.isPositive ? '+' : ''}{trend.value}
           </p>
         ) : subtext ? (

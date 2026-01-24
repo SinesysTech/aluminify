@@ -114,7 +114,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 <li>Salva a sessão de estudo para métricas (ex.: eficiência de foco)</li>
                 <li>Mostra quantas pessoas estão estudando no mesmo contexto</li>
               </ul>
-              <p className="text-[11px] text-slate-200/90">
+              <p className="text-xs text-slate-200">
                 Dica: o botão tenta reutilizar o último contexto (curso/disciplina/módulo/atividade) quando disponível.
               </p>
             </div>

@@ -108,7 +108,7 @@ export function BottomNavigation() {
               />
               <span
                 className={cn(
-                  'text-[10px] font-medium leading-tight truncate max-w-full px-1',
+                  'text-xs font-medium leading-tight truncate max-w-full px-1',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
