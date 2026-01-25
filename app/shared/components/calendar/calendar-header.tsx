@@ -2,7 +2,7 @@
 import { useDateFormatter } from "@react-aria/i18n";
 import { VisuallyHidden } from "@react-aria/visually-hidden";
 import type { CalendarState } from "@react-stately/calendar";
-import type { DOMAttributes, FocusableElement } from "@react-types/shared";
+import type { DOMAttributes, FocusableElement } from "@react-@/app/shared/types";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "./calendar-button";
 

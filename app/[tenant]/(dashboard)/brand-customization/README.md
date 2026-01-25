@@ -129,7 +129,7 @@ npm run build
 ### Integration Points
 - **Settings Integration**: `app/[tenant]/(dashboard)/configuracoes/components/perfil/branding-settings.tsx`
 - **Theme Customizer**: `app/shared/components/ui/theme-customizer/panel.tsx`
-- **Type Definitions**: `types/brand-customization.ts`
+- **Type Definitions**: `@/brand-customization/services/brand-customization.types.ts`
 
 ## Migration Notes
 
