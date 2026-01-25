@@ -1,4 +1,4 @@
-﻿import { ProfessorTable } from '@/components/admin/professor-table'
+﻿import { ProfessorTable } from '../admin/professores/components/professor-table'
 import { requireUser } from '@/lib/auth'
 
 export default async function ProfessorPage() {
