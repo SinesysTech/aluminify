@@ -1,8 +1,8 @@
 ﻿import type { Metadata } from 'next'
 import { ProfessorSelector } from "./components/professor-selector"
 import { ProfessorAgendamentosView } from "./components/agendamentos-professor-view"
-import { createClient } from "@/lib/server" // Keeping for getUser which is used inside requireUser equivalent if we switched, but here we can just use requireUser
-import { requireUser } from "@/lib/auth"
+import { createClient } from "@/app/shared/core/server" // Keeping for getUser which is used inside requireUser equivalent if we switched, but here we can just use requireUser
+import { requireUser } from "@/app/shared/core/auth"
 import { redirect } from "next/navigation"
 import { getProfessoresDisponiveis } from "@/app/[tenant]/(dashboard)/agendamentos/lib/actions"
 import { Suspense } from "react"

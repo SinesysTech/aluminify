@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { Button } from '@/components/ui/button'
 import {
 

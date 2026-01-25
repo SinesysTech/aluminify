@@ -3,7 +3,7 @@ import { getDatabaseClient } from "@/backend/clients/database";
 import { createCouponRepository } from "@/app/[tenant]/(dashboard)/admin/services/financial";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type { UpdateCouponInput } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";
-import { isAdminRoleTipo } from "@/lib/roles";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 interface RouteContext {
   params: { id: string };

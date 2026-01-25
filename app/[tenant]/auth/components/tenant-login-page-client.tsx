@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/client';
+import { createClient } from '@/app/shared/core/client';
 import { toast } from 'sonner';
 
 interface TenantLoginPageClientProps {
@@ -279,7 +279,7 @@ export function TenantLoginPageClient({
       // Identify user roles for this tenant
       console.log('[DEBUG] Identificando roles do usuário...');
       // Use Server Action instead of broken API route
-      const { identifyUserRoleAction } = await import('@/lib/actions/auth-actions');
+      const { identifyUserRoleAction } = await import('@/app/shared/core/actions/auth-actions');
       const roleResult = await identifyUserRoleAction(data.user.id);
 
       if (roleResult.success) {

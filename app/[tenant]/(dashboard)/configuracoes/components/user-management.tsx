@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import Link from 'next/link'
 import type { RoleTipo } from '@/types/shared/entities/papel'
 

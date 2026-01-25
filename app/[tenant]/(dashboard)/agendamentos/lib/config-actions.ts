@@ -1,13 +1,13 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { revalidatePath } from "next/cache";
 import {
   ConfiguracoesProfessor,
   ProfessorIntegracao,
   DbProfessorIntegracao,
 } from "./types";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 
 export async function getConfiguracoesProfessor(
   professorId: string,

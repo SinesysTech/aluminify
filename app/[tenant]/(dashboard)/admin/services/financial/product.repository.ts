@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Json } from "@/lib/database.types";
+import type { Database, Json } from "@/app/shared/core/database.types";
 import type {
   Product,
   CreateProductInput,

@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/app/shared/core/utils"
 import { Children, useCallback, useEffect, useRef, useState } from "react"
 
 const useAutoScroll = (

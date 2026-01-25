@@ -1,6 +1,6 @@
 ﻿
 import { IntegracaoManager } from "../../components/integracao-manager"
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 
 export default async function IntegracoesPage() {

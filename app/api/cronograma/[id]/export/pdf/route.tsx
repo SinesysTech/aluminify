@@ -3,7 +3,7 @@ import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/
 import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database'
 import { pdf, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
-import { fetchCronogramaCompleto } from '@/lib/cronograma-export-utils'
+import { fetchCronogramaCompleto } from '@/app/shared/core/cronograma-export-utils'
 
 export const runtime = 'nodejs'
 

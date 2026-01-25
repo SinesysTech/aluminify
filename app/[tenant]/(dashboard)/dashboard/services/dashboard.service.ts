@@ -7,7 +7,7 @@ import type {
   StrategicDomainResponse,
   SubjectDistributionResponse,
 } from "../types";
-import { apiClient, ApiClientError } from "@/lib/api-client";
+import { apiClient, ApiClientError } from "@/app/shared/core/api-client";
 import type { HeatmapPeriod } from "../components/consistency-heatmap";
 
 export interface DashboardServiceError extends Error {

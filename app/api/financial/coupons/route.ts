@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 import { createCouponRepository, type CouponListParams } from "@/app/[tenant]/(dashboard)/admin/services/financial";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import { isAdminRoleTipo } from "@/lib/roles";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 const serializeCoupon = (
   coupon: Awaited<ReturnType<ReturnType<typeof createCouponRepository>["findById"]>>

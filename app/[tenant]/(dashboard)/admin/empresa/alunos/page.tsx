@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/server'
+import { createClient } from '@/app/shared/core/server'
 import { createStudentService } from '@/app/[tenant]/(dashboard)/aluno/services'
 import { createCursoService } from '@/app/[tenant]/(dashboard)/curso/services'
 import { AlunosClientPage } from '@/app/(dashboard)/admin/alunos/components/client-page'
-import { requireUser } from '@/lib/auth'
+import { requireUser } from '@/app/shared/core/auth'
 
 export const metadata: Metadata = {
   title: 'Alunos da Empresa'

@@ -1,5 +1,5 @@
 import { AgendamentoScheduler } from "../components/scheduler"
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect, notFound } from "next/navigation"
 import {
   getAvailableSlots,

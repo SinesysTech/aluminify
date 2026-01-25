@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Save } from 'lucide-react'
 
 import type { AppUser } from '@/types/user'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'

@@ -4,7 +4,7 @@ import {
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
 import { StudentTemplateService } from "@/app/[tenant]/(dashboard)/aluno/services/student-template.service";
-import { isAdminRoleTipo } from "@/lib/roles";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 async function getHandler(request: AuthenticatedRequest) {
   try {

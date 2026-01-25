@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from "react";
-import { createClient } from "@/lib/server";
-import { requireUser } from "@/lib/auth";
+import { createClient } from "@/app/shared/core/server";
+import { requireUser } from "@/app/shared/core/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/server";
-import type { Database } from "@/lib/database.types";
+import { createClient } from "@/app/shared/core/server";
+import type { Database } from "@/app/shared/core/database.types";
 import type {
   Conversation,
   ChatMessage,

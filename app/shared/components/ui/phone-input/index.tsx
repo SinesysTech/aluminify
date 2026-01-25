@@ -15,7 +15,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/shared/core/utils";
 import parsePhoneNumberFromString, {
 	AsYouType,
 	type CarrierCode,

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { Flashcard, Curso, Disciplina, Frente, Modulo } from './types'
 import { flashcardsService } from './services/flashcards.service'
 import { ModeSelector } from './components/mode-selector'

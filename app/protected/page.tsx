@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
-import { getAuthenticatedUser } from '@/lib/auth'
-import { getDefaultRouteForRole } from '@/lib/roles'
+import { getAuthenticatedUser } from '@/app/shared/core/auth'
+import { getDefaultRouteForRole } from '@/app/shared/core/roles'
 
 export const dynamic = 'force-dynamic'
 

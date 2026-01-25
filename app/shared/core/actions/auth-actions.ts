@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 import { createUserRoleIdentifier } from "@/app/[tenant]/(dashboard)/usuario/services/user-role-identifier.service";
 

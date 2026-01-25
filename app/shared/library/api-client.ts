@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 
 export interface ApiError {
   error: string

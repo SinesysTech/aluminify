@@ -1,6 +1,6 @@
-import { requireUser } from '@/lib/auth'
+import { requireUser } from '@/app/shared/core/auth'
 import { redirect } from 'next/navigation'
-import { isAdminRoleTipo } from '@/lib/roles'
+import { isAdminRoleTipo } from '@/app/shared/core/roles'
 import { NovoPapelClient } from './novo-papel-client'
 
 export default async function NovoPapelPage() {

@@ -11,12 +11,12 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar'
 import { DashboardHeader } from '@/components/layout/dashboard-header'
-import { requireUser } from '@/lib/auth'
+import { requireUser } from '@/app/shared/core/auth'
 import { StudentBrandingCoordinator } from '@/components/layout/student-branding-coordinator'
 
 // 1. Importação das fontes do Design System (Aluminify)
 import { Inter, JetBrains_Mono } from "next/font/google"
-import { cn } from "@/lib/utils"
+import { cn } from "@/app/shared/core/utils"
 
 // 2. Configuração das fontes
 const fontSans = Inter({

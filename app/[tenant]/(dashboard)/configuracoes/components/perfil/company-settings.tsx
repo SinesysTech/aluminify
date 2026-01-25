@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 // Note: Card is only used for error state
 import { useToast } from '@/hooks/use-toast';
-import { formatBRPhone, formatCNPJ } from '@/lib/br';
-import { createClient } from '@/lib/client';
+import { formatBRPhone, formatCNPJ } from '@/app/shared/core/br';
+import { createClient } from '@/app/shared/core/client';
 import { CardSkeleton } from '@/components/ui/card-skeleton';
 
 interface CompanySettingsProps {

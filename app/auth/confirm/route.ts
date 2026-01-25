@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/server'
-import { clearImpersonationContext } from '@/lib/auth-impersonate'
+import { createClient } from '@/app/shared/core/server'
+import { clearImpersonationContext } from '@/app/shared/core/auth-impersonate'
 import { type EmailOtpType } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { type NextRequest } from 'next/server'

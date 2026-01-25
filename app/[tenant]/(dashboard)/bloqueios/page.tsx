@@ -1,6 +1,6 @@
 ﻿
 import { BloqueiosManager } from "./components/bloqueios-manager"
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 
 export default async function BloqueiosPage() {

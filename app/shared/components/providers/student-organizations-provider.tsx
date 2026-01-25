@@ -8,7 +8,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { createClient } from "@/lib/client";
+import { createClient } from "@/app/shared/core/client";
 
 /**
  * Student Organization - represents an organization where the student is enrolled

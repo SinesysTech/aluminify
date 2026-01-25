@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 import { useThemeConfig } from '@/components/active-theme';
-import { getBrandingSyncManager } from '@/lib/services/branding-sync-manager';
+import { getBrandingSyncManager } from '@/app/shared/core/services/branding-sync-manager';
 import type { CompleteBrandingConfig, LogoType } from '@/types/brand-customization';
-import { createClient } from '@/lib/client';
+import { createClient } from '@/app/shared/core/client';
 
 interface User {
   empresaId?: string;

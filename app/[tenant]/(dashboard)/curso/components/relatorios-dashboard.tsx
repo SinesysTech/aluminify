@@ -36,7 +36,7 @@ import {
   type Relatorio,
   type RelatorioTipo,
 } from "@/app/[tenant]/(dashboard)/agendamentos/lib/actions"
-import { cn } from "@/lib/utils"
+import { cn } from "@/app/shared/core/utils"
 
 interface RelatoriosDashboardProps {
   empresaId: string

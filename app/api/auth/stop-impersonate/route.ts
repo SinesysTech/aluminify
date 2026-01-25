@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
-import { clearImpersonationContext, getImpersonationContext } from '@/lib/auth-impersonate'
-import { getDefaultRouteForRole } from '@/lib/roles'
+import { clearImpersonationContext, getImpersonationContext } from '@/app/shared/core/auth-impersonate'
+import { getDefaultRouteForRole } from '@/app/shared/core/roles'
 
 async function postHandler(request: AuthenticatedRequest) {
   try {

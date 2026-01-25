@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "@/backend/clients/database";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 import {
   MetodoEstudo,
   SessaoEstudo,

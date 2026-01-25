@@ -1,5 +1,5 @@
 ﻿import type { Metadata } from 'next'
-import { requireUser } from '@/lib/auth'
+import { requireUser } from '@/app/shared/core/auth'
 import BibliotecaClient from './client'
 
 export const metadata: Metadata = {

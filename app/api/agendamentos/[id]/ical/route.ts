@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
 import { getDatabaseClient } from '@/backend/clients/database'
 import ical from 'ical-generator'
-import type { Database } from '@/lib/database.types'
+import type { Database } from '@/app/shared/core/database.types'
 
 export const runtime = 'nodejs'
 

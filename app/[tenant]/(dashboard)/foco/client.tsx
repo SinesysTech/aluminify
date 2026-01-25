@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams as useNextSearchParams } from 'next/navigation'
 import { useStudyTimer } from '@/hooks/use-study-timer'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { MetodoEstudo } from '@/types/sessao-estudo'
 import {
     Option,

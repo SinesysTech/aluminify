@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
-import { requireUser } from '@/lib/auth'
-import { createClient } from '@/lib/server'
+import { requireUser } from '@/app/shared/core/auth'
+import { createClient } from '@/app/shared/core/server'
 import { InstitutionDashboardClient } from '@/app/[tenant]/(dashboard)/dashboard/components/institution'
 import { ProfessorDashboardClient } from '@/app/[tenant]/(dashboard)/professor/dashboard/components'
-import { isAdminRoleTipo } from '@/lib/roles'
+import { isAdminRoleTipo } from '@/app/shared/core/roles'
 
 export default async function ProfessorDashboardPage(props: {
   params: Promise<{ tenant: string }>

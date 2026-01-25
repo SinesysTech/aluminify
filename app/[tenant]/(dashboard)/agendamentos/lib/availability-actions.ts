@@ -1,8 +1,8 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { revalidatePath } from "next/cache";
-import { generateAvailableSlots } from "@/lib/agendamento-validations";
+import { generateAvailableSlots } from "@/app/shared/core/agendamento-validations";
 import {
   Disponibilidade,
   DbAgendamentoRecorrencia,

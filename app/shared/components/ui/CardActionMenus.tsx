@@ -1,5 +1,5 @@
 import { FolderUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/shared/core/utils";
 
 import {
   DropdownMenu,

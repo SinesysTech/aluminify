@@ -15,7 +15,7 @@ import {
 import { getDatabaseClient } from '@/backend/clients/database';
 import { randomBytes } from 'crypto';
 import type { PaginationParams } from '@/types/shared/dtos/api-responses';
-import { isValidBRPhone, isValidCPF, normalizeBRPhone, normalizeCpf } from '@/lib/br';
+import { isValidBRPhone, isValidCPF, normalizeBRPhone, normalizeCpf } from '@/app/shared/core/br';
 
 const FULL_NAME_MIN_LENGTH = 3;
 const FULL_NAME_MAX_LENGTH = 200;

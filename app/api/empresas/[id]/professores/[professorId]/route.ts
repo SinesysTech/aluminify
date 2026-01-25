@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/server';
+import { createClient } from '@/app/shared/core/server';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
-import type { Database } from '@/lib/database.types';
+import type { Database } from '@/app/shared/core/database.types';
 
 interface RouteContext {
   params: Promise<{ id: string; professorId: string }>;

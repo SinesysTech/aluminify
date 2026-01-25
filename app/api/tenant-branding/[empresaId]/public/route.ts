@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { BrandCustomizationManager } from "@/brand-customization/services";
-import { getPublicSupabaseConfig } from "@/lib/supabase-public-env";
+import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
 
 /**
  * GET /api/tenant-branding/[empresaId]/public - Load public tenant branding

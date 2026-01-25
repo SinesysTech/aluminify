@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/server';
+import { createClient } from '@/app/shared/core/server';
 import { TenantContextProvider } from './tenant-context';
 
 interface TenantLayoutProps {

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { createClient } from '@/lib/client';
+import { createClient } from '@/app/shared/core/client';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';

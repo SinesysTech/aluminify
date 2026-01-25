@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { revalidatePath } from "next/cache";
-import { generateMeetingLink } from "@/lib/agendamento-utils";
-import { validateCancellation } from "@/lib/agendamento-validations";
+import { generateMeetingLink } from "@/app/shared/core/agendamento-utils";
+import { validateCancellation } from "@/app/shared/core/agendamento-validations";
 import {
   Agendamento,
   AgendamentoComDetalhes,

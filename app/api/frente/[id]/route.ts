@@ -8,7 +8,7 @@ import {
   courseStructureCacheService,
   activityCacheService,
 } from "@/backend/services/cache";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 
 interface RouteContext {
   params: Promise<{ id: string }>;

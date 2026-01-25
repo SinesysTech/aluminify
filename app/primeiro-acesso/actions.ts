@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 
 export type FinalizeFirstAccessResult = {

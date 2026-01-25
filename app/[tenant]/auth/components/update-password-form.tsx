@@ -3,7 +3,7 @@
 import React from 'react'
 
 import { cn } from '@/shared/library/utils'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { Button } from '@/components/ui/button'
 import {
   Card,

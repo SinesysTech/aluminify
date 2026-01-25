@@ -4,7 +4,7 @@ import React from 'react'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import type { ChangeEvent } from 'react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import {
   Conversation,
   ConversationContent,

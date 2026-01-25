@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { toast } from 'sonner'
 
 function safeNextPath(next: string | null | undefined) {
@@ -149,7 +149,7 @@ export function LoginPageClient() {
       }
 
       // Identify user role to determine redirect URL
-      const { identifyUserRoleAction } = await import('@/lib/actions/auth-actions')
+      const { identifyUserRoleAction } = await import('@/app/shared/core/actions/auth-actions')
       const roleResult = await identifyUserRoleAction(data.user.id)
 
       let targetUrl = next

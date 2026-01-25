@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { createClient } from '@/lib/client'
-import type { Database } from '@/lib/database.types'
+import { createClient } from '@/app/shared/core/client'
+import type { Database } from '@/app/shared/core/database.types'
 import { Button } from '@/components/ui/button'
 import {
   Card,

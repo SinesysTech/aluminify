@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Metadata } from 'next'
-import { requireUser } from '@/lib/auth'
+import { requireUser } from '@/app/shared/core/auth'
 import FocoClient from './client'
 
 export const metadata: Metadata = {

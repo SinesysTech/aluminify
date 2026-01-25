@@ -2,7 +2,7 @@
 'use client'
 
 import * as React from 'react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { MaterialsFilters } from './shared/materials-filters'
 import { ModuleAccordion } from './shared/module-accordion'

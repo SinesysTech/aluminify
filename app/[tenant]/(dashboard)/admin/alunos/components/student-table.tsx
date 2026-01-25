@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Eye, Trash2, UserCog } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Student } from '@/types/shared/entities/user'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import {
     Tooltip,
     TooltipContent,

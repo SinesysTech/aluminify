@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/server'
+import { createClient } from '@/app/shared/core/server'
 import { NextResponse } from 'next/server'
 
 const AVATAR_BUCKET = 'avatars'

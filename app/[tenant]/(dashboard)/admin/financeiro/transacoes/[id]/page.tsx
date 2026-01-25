@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/server";
-import { requireUser } from "@/lib/auth";
+import { createClient } from "@/app/shared/core/server";
+import { requireUser } from "@/app/shared/core/auth";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

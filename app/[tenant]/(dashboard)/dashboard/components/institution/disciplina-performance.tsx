@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { DisciplinaPerformance } from '@/types/dashboard-institution'
-import { cn } from '@/lib/utils'
+import { cn } from '@/app/shared/core/utils'
 
 interface DisciplinaPerformanceListProps {
   disciplinas: DisciplinaPerformance[]

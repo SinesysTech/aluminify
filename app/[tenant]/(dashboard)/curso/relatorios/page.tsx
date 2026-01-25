@@ -1,5 +1,5 @@
 ﻿
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 import { RelatoriosDashboard } from "../components/relatorios-dashboard"
 

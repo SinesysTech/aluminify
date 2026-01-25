@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/server';
+import { createClient } from '@/app/shared/core/server';
 import { createStudentTransferService } from '@/app/[tenant]/(dashboard)/aluno/services';
 
 interface RouteContext {

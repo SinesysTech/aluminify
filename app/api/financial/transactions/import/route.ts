@@ -6,7 +6,7 @@ import type {
   TransactionImportResult,
   CreateTransactionInput,
 } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";
-import { isAdminRoleTipo } from "@/lib/roles";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 function handleError(error: unknown) {
   console.error("Transaction Import API Error:", error);

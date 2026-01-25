@@ -45,8 +45,8 @@ import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { useComposedRefs } from "@/lib/compose-refs";
-import { cn } from "@/lib/utils";
+import { useComposedRefs } from "@/app/shared/core/compose-refs";
+import { cn } from "@/app/shared/core/utils";
 
 const directions: string[] = [
   KeyboardCode.Down,

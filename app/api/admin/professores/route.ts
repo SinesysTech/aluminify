@@ -3,7 +3,7 @@ import { getDatabaseClient } from '@/backend/clients/database';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { TeacherRepositoryImpl } from '@/app/[tenant]/(dashboard)/professor/services';
 import { EmpresaRepositoryImpl } from '@/app/[tenant]/(dashboard)/empresa/services';
-import { createClient } from '@/lib/server';
+import { createClient } from '@/app/shared/core/server';
 
 /**
  * POST /api/admin/professores

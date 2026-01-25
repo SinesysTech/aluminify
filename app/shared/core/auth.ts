@@ -17,12 +17,12 @@
 
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 import type { AppUser, AppUserRole } from "@/types/user";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
-import { getImpersonationContext } from "@/lib/auth-impersonate";
-import { getDefaultRouteForRole } from "@/lib/roles";
+import { getImpersonationContext } from "@/app/shared/core/auth-impersonate";
+import { getDefaultRouteForRole } from "@/app/shared/core/roles";
 
 type LegacyAppUserRole = "professor" | "empresa";
 

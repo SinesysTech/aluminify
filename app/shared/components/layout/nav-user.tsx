@@ -31,7 +31,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { createClient } from "@/lib/client"
+import { createClient } from "@/app/shared/core/client"
 
 export function NavUser() {
   const { isMobile } = useSidebar()

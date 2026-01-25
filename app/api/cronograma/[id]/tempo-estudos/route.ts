@@ -5,7 +5,7 @@ import {
   AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
 import { CronogramaValidationError } from "@/app/[tenant]/(dashboard)/cronograma/services";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 
 interface RouteContext {
   params: Promise<{ id: string }> | { id: string };

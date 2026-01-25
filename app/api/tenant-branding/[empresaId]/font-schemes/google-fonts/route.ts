@@ -5,7 +5,7 @@ import {
   requireBrandCustomizationAccess,
   BrandCustomizationRequest,
 } from "@/backend/middleware/brand-customization-access";
-import { getPublicSupabaseConfig } from "@/lib/supabase-public-env";
+import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
 
 interface RouteContext {
   params: Promise<{ empresaId: string }>;

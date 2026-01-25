@@ -42,7 +42,7 @@ import type {
   PaginationParams,
   PaginationMeta,
 } from "@/types/shared/dtos/api-responses";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 
 export interface PaginatedResult<T> {
   data: T[];

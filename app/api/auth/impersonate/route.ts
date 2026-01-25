@@ -7,9 +7,9 @@ import { getDatabaseClient } from "@/backend/clients/database";
 import {
   setImpersonationContext,
   canImpersonateUser,
-} from "@/lib/auth-impersonate";
+} from "@/app/shared/core/auth-impersonate";
 import type { AppUserRole } from "@/types/user";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 
 async function postHandler(request: AuthenticatedRequest) {
   try {

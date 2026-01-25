@@ -1,11 +1,11 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { createStudentService } from "@/app/[tenant]/(dashboard)/aluno/services";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getAuthenticatedUser } from "@/app/shared/core/auth";
 import { CreateStudentInput } from "@/types/shared/entities/user";
 import { revalidatePath } from "next/cache";
-import { canDelete } from "@/lib/roles";
+import { canDelete } from "@/app/shared/core/roles";
 
 export async function deleteStudentAction(studentId: string) {
   try {

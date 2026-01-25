@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { formatBRPhone, formatCNPJ } from '@/shared/library/br';
-import { createClient } from '@/lib/client';
+import { createClient } from '@/app/shared/core/client';
 import Link from 'next/link';
 import { CardSkeleton } from '@/components/ui/card-skeleton';
 

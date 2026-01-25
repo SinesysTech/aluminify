@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/client";
+import { createClient } from "@/app/shared/core/client";
 import type { Option, ModuloOption } from "../types";
 import { MetodoEstudo, LogPausa } from "@/types/sessao-estudo";
 

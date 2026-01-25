@@ -1,5 +1,5 @@
 
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 import { SettingsTabs } from "../components/settings-tabs"
 

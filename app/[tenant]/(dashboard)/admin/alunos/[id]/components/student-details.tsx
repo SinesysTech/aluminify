@@ -44,7 +44,7 @@ import {
 } from '@/components/ui/tooltip'
 import { toast } from '@/hooks/use-toast'
 import { apiClient } from '@/shared/library/api-client'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { StudentEditForm } from './student-edit-form'
 
 interface StudentData {

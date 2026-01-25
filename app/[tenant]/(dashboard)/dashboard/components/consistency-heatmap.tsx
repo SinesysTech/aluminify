@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Info } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/app/shared/core/utils'
 
 export type HeatmapPeriod = 'semanal' | 'mensal' | 'anual'
 

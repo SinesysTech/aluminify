@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Info } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/app/shared/core/utils'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { fetchDashboardCourses, fetchPerformance, type DashboardCourse } from '../services/dashboard.service'
 import { OrganizationBadge } from '@/app/[tenant]/(dashboard)/dashboard/components/organization-switcher'

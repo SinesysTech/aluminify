@@ -1,17 +1,17 @@
 import React from "react";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/shared/core/utils";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import GoogleAnalyticsInit from "@/lib/ga";
-import { fontVariables } from "@/lib/fonts";
+import GoogleAnalyticsInit from "@/app/shared/core/ga";
+import { fontVariables } from "@/app/shared/core/fonts";
 import NextTopLoader from "nextjs-toploader";
 
 import "./globals.css";
 
 
-import { DEFAULT_THEME } from "@/lib/themes";
+import { DEFAULT_THEME } from "@/app/shared/core/themes";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {

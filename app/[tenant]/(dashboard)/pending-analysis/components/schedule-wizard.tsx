@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -37,7 +37,7 @@ import {
 import { Loader2, X, AlertCircle, Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
-import { cn } from '@/lib/utils'
+import { cn } from '@/app/shared/core/utils'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,

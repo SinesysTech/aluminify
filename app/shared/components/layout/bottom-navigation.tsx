@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/shared/library/utils'
 import { useCurrentUser } from '@/components/providers/user-provider'
-import { isAdminRoleTipo } from '@/lib/roles'
+import { isAdminRoleTipo } from '@/app/shared/core/roles'
 
 interface NavItem {
   name: string

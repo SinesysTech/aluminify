@@ -3,7 +3,7 @@ import {
   requireAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { createStudentOrganizationsService } from "@/app/[tenant]/(dashboard)/aluno/services";
 
 function handleError(error: unknown) {

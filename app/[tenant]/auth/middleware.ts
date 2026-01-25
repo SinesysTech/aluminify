@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 import { AuthUser, UserRole, ApiKeyAuth } from "./types";
 import { apiKeyService } from "@/backend/services/api-key";
-import { getImpersonationContext } from "@/lib/auth-impersonate";
+import { getImpersonationContext } from "@/app/shared/core/auth-impersonate";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { User } from "@supabase/supabase-js";
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -14,7 +14,7 @@ export interface AuthenticatedRequest extends NextRequest {
   impersonationContext?: Awaited<ReturnType<typeof getImpersonationContext>>;
 }
 
-import { isAdminRoleTipo } from "@/lib/roles";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 export async function mapSupabaseUserToAuthUser(
   user: User,

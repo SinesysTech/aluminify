@@ -1,7 +1,7 @@
 ﻿import { redirect } from 'next/navigation'
 
-import { requireUser } from '@/lib/auth'
-import { getDefaultRouteForRole } from '@/lib/roles'
+import { requireUser } from '@/app/shared/core/auth'
+import { getDefaultRouteForRole } from '@/app/shared/core/roles'
 import { FirstAccessForm } from '@/app/[tenant]/auth/components/first-access-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 

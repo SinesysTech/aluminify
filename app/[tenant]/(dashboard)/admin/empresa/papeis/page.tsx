@@ -1,8 +1,8 @@
-import { requireUser } from '@/lib/auth'
-import { createClient } from '@/lib/server'
+import { requireUser } from '@/app/shared/core/auth'
+import { createClient } from '@/app/shared/core/server'
 import { redirect } from 'next/navigation'
 import { PapeisListClient } from './papeis-list-client'
-import { isAdminRoleTipo } from '@/lib/roles'
+import { isAdminRoleTipo } from '@/app/shared/core/roles'
 
 export default async function PapeisPage() {
   const user = await requireUser()

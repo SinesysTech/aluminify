@@ -30,9 +30,9 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { CalendarIcon, Plus, Trash2, Edit, AlertTriangle, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { createClient } from "@/lib/client"
-import { cn } from "@/lib/utils"
-import type { Database } from "@/lib/database.types"
+import { createClient } from "@/app/shared/core/client"
+import { cn } from "@/app/shared/core/utils"
+import type { Database } from "@/app/shared/core/database.types"
 
 const TIPOS_BLOQUEIO = [
   { value: 'feriado', label: 'Feriado' },

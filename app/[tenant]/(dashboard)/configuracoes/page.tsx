@@ -1,5 +1,5 @@
 ﻿
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 import { getConfiguracoesProfessor } from "@/app/[tenant]/(dashboard)/agendamentos/lib/actions"
 import { ConfiguracoesForm } from "./components/configuracoes-form"

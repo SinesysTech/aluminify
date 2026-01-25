@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/server';
-import type { Database } from '@/lib/database.types';
+import { createClient } from '@/app/shared/core/server';
+import type { Database } from '@/app/shared/core/database.types';
 import type { AppUserRole } from '@/types/shared/entities/user';
 import type { RoleTipo } from '@/types/shared/entities/papel';
-import { isAdminRoleTipo } from '@/lib/roles';
+import { isAdminRoleTipo } from '@/app/shared/core/roles';
 
 /**
  * GET /api/user/profile

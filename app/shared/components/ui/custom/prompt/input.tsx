@@ -2,7 +2,7 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/shared/core/utils";
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type PromptInputContextType = {

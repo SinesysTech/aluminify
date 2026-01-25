@@ -125,15 +125,15 @@ export default function StudentDashboardClientPage() {
     useEffect(() => {
         let channel:
             | ReturnType<
-                ReturnType<typeof import('@/lib/client').createClient>['channel']
+                ReturnType<typeof import('@/app/shared/core/client').createClient>['channel']
             >
             | null = null
         let supabaseInstance:
-            | ReturnType<typeof import('@/lib/client').createClient>
+            | ReturnType<typeof import('@/app/shared/core/client').createClient>
             | null = null
 
         async function setupRealtimeSubscription() {
-            const { createClient } = await import('@/lib/client')
+            const { createClient } = await import('@/app/shared/core/client')
             supabaseInstance = createClient()
 
             // Buscar ID do aluno atual

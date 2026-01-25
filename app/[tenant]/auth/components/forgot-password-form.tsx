@@ -2,8 +2,8 @@
 
 import React from 'react'
 
-import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/client'
+import { cn } from '@/app/shared/core/utils'
+import { createClient } from '@/app/shared/core/client'
 import { Button } from '@/components/ui/button'
 import {
   Card,

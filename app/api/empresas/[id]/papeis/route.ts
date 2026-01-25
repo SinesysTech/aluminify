@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/backend/clients/database";
-import { isAdminRoleTipo } from "@/lib/roles";
-import type { Database } from "@/lib/database.types";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
+import type { Database } from "@/app/shared/core/database.types";
 import type { RolePermissions, RoleTipo } from "@/types/shared/entities/papel";
 
 interface RouteContext {

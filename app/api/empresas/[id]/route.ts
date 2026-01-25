@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/database.types';
+import type { Database } from '@/app/shared/core/database.types';
 import { EmpresaService, EmpresaRepositoryImpl } from '@/app/[tenant]/(dashboard)/empresa/services';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
-import { getPublicSupabaseConfig } from '@/lib/supabase-public-env';
+import { getPublicSupabaseConfig } from '@/app/shared/core/supabase-public-env';
 
 interface RouteContext {
   params: Promise<{ id: string }>;

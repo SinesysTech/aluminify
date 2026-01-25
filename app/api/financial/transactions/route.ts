@@ -7,7 +7,7 @@ import type {
   TransactionStatus,
   Provider,
 } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";
-import { isAdminRoleTipo } from "@/lib/roles";
+import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 const serializeTransaction = (
   transaction: Awaited<ReturnType<ReturnType<typeof createFinancialService>["getTransaction"]>>

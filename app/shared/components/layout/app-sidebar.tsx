@@ -6,7 +6,7 @@ import { ProfessorSidebar } from "@/components/layout/professor-sidebar"
 import { EmpresaSidebar } from "@/components/layout/empresa-sidebar"
 import { useCurrentUser } from "@/components/providers/user-provider"
 import type { Sidebar } from "@/components/ui/sidebar"
-import { isAdminRoleTipo } from "@/lib/roles"
+import { isAdminRoleTipo } from "@/app/shared/core/roles"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useCurrentUser()

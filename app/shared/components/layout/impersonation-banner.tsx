@@ -6,7 +6,7 @@ import { AlertTriangle, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useCurrentUser } from "@/components/providers/user-provider"
-import { createClient } from "@/lib/client"
+import { createClient } from "@/app/shared/core/client"
 
 export function ImpersonationBanner() {
   const user = useCurrentUser()

@@ -397,7 +397,7 @@ export function AlunoTable() {
       formData.append('file', file)
 
       // Usar fetch diretamente para FormData
-      const { createClient } = await import('@/lib/client')
+      const { createClient } = await import('@/app/shared/core/client')
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token

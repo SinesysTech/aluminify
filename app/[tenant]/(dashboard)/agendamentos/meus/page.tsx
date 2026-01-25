@@ -1,5 +1,5 @@
 ﻿import type { Metadata } from 'next'
-import { createClient } from "@/lib/server"
+import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 import { getAgendamentosAluno } from "@/app/[tenant]/(dashboard)/agendamentos/lib/actions";
 import { MeusAgendamentosList } from "../components/meus-agendamentos-list"

@@ -13,9 +13,9 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { CalendarIcon, ChevronLeft, ChevronRight, Loader2, Save } from "lucide-react"
 import { toast } from "sonner"
-import { createClient } from "@/lib/client"
-import { cn } from "@/lib/utils"
-import type { Database } from "@/lib/database.types"
+import { createClient } from "@/app/shared/core/client"
+import { cn } from "@/app/shared/core/utils"
+import type { Database } from "@/app/shared/core/database.types"
 
 const DAYS = [
   { value: 0, label: "Domingo" },

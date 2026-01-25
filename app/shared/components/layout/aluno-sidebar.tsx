@@ -24,7 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { getDefaultRouteForRole } from "@/lib/roles"
+import { getDefaultRouteForRole } from "@/app/shared/core/roles"
 
 type NavItem = {
   title: string

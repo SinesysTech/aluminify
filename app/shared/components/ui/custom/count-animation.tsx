@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/shared/core/utils";
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
 
 export default function CountAnimation({

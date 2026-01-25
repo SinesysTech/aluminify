@@ -25,7 +25,7 @@ import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
 import { format, addDays } from 'date-fns'
 import { GripVertical } from 'lucide-react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/app/shared/core/client'
 import { cn } from '@/shared/library/utils'
 
 interface CronogramaItem {

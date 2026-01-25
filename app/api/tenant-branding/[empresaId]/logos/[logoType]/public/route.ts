@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { LogoManagerImpl } from "@/brand-customization/services";
-import { getPublicSupabaseConfig } from "@/lib/supabase-public-env";
+import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
 import type { LogoType } from "@/types/brand-customization";
 
 /**

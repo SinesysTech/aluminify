@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/server";
+import { createClient } from "@/app/shared/core/server";
 import { getConfiguracoesProfessor } from "./config-actions";
 
 export async function checkConflitos(

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@/lib/client';
+import { createClient } from '@/app/shared/core/client';
 import { CardSkeleton } from '@/components/ui/card-skeleton';
 import { BrandCustomizationPanel } from '@/brand-customization/components';
 import type { CompleteBrandingConfig, SaveTenantBrandingRequest } from '@/types/brand-customization';

@@ -7,7 +7,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
-import type { Database } from "@/lib/database.types";
+import type { Database } from "@/app/shared/core/database.types";
 import type {
   Usuario,
   UsuarioWithPapel,
