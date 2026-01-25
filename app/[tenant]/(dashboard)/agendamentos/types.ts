@@ -69,6 +69,22 @@ export type DbAgendamentoRelatorio = {
 // Application Types
 // =============================================
 
+export type AgendamentoStatus =
+  | "pendente"
+  | "confirmado"
+  | "cancelado"
+  | "concluido";
+export type TipoServico = "plantao" | "mentoria";
+export type TipoBloqueio = "feriado" | "recesso" | "imprevisto" | "outro";
+export type IntegrationProvider = "google" | "zoom" | "default";
+export type TipoNotificacao =
+  | "criacao"
+  | "confirmacao"
+  | "cancelamento"
+  | "lembrete"
+  | "alteracao"
+  | "rejeicao";
+
 export type Disponibilidade = {
   id?: string;
   professor_id?: string;
@@ -84,7 +100,7 @@ export type Agendamento = {
   aluno_id: string;
   data_inicio: string | Date;
   data_fim: string | Date;
-  status: "pendente" | "confirmado" | "cancelado" | "concluido";
+  status: AgendamentoStatus;
   link_reuniao?: string | null;
   observacoes?: string | null;
   motivo_cancelamento?: string | null;
@@ -124,7 +140,7 @@ export type ConfiguracoesProfessor = {
 };
 
 export type AgendamentoFilters = {
-  status?: string | string[];
+  status?: AgendamentoStatus | AgendamentoStatus[];
   dateStart?: Date;
   dateEnd?: Date;
 };
@@ -133,7 +149,7 @@ export type Recorrencia = {
   id?: string;
   professor_id: string;
   empresa_id: string;
-  tipo_servico: "plantao" | "mentoria";
+  tipo_servico: TipoServico;
   data_inicio: string; // YYYY-MM-DD
   data_fim?: string | null; // YYYY-MM-DD, null = indefinida
   dia_semana: number; // 0-6
@@ -149,7 +165,7 @@ export type Bloqueio = {
   id?: string;
   professor_id?: string | null; // null = bloqueio para toda empresa
   empresa_id: string;
-  tipo: "feriado" | "recesso" | "imprevisto" | "outro";
+  tipo: TipoBloqueio;
   data_inicio: string | Date;
   data_fim: string | Date;
   motivo?: string | null;

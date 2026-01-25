@@ -11,25 +11,4 @@ export type {
   IniciarSessaoInput,
   FinalizarSessaoInput,
   CalculoTempoResultado,
-} from './shared/entities/activity';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} from "@/app/shared/types/entities/activity";
