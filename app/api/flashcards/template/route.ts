@@ -3,7 +3,7 @@ import {
   requireUserAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { FlashcardsTemplateService } from "@/backend/services/flashcards/flashcards-template.service";
+import { FlashcardsTemplateService } from "@/app/[tenant]/(dashboard)/flashcards/services/flashcards-template.service";
 
 export const runtime = "nodejs";
 

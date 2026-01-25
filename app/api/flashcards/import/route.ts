@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { createFlashcardsService, FlashcardImportRow } from '@/backend/services/flashcards/flashcards.service';
+import { createFlashcardsService, FlashcardImportRow } from '@/app/[tenant]/(dashboard)/flashcards/services/flashcards.service';
 
 async function handler(request: AuthenticatedRequest) {
   if (request.method !== 'POST') {

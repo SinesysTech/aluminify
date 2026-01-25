@@ -7,7 +7,7 @@ import {
     fetchDashboardData,
     type DashboardServiceError,
 } from './services/dashboard.service'
-import { DashboardHeader } from '@/components/dashboard/dashboard-header'
+import { DashboardHeader } from '@/app/shared/components/dashboard/dashboard-header'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 import { ScheduleProgress } from './components/schedule-progress'
 import { MetricCard } from './components/metric-card'
@@ -19,7 +19,7 @@ import { SubjectPerformanceList } from './components/subject-performance-list'
 import { FocusEfficiencyChart } from './components/focus-efficiency-chart'
 import { SubjectDistribution } from './components/subject-distribution'
 import { StrategicDomain } from './components/strategic-domain'
-import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton'
+import { DashboardSkeleton } from '@/app/shared/components/dashboard/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 

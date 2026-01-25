@@ -3,7 +3,7 @@ import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middl
 import {
   sessaoEstudoService,
   SessaoEstudoValidationError,
-} from '@/backend/services/sessao-estudo';
+} from '@/app/[tenant]/(dashboard)/sala-de-estudos/services';
 import { SessaoEstudo } from '@/types/sessao-estudo';
 
 function serialize(sessao: SessaoEstudo) {
