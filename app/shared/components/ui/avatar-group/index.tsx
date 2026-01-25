@@ -104,7 +104,7 @@ function AvatarStackItem({ children, index, size, className }: AvatarStackItemPr
     <div
       className={cn(
         'size-full shrink-0 overflow-hidden rounded-full',
-        '[&_[data-slot="avatar"]]:size-full',
+        '**:data-[slot="avatar"]:size-full',
         className
       )}
       style={{
@@ -160,7 +160,7 @@ function AvatarGroup({
         ref={ref}
         className={cn(
           '-space-x-1 flex items-center',
-          animate && 'hover:space-x-0 [&>*]:transition-all',
+          animate && 'hover:space-x-0 *:transition-all',
           className
         )}
         {...props}
@@ -200,7 +200,7 @@ function AvatarGroup({
       >
         {children?.map((child, index) => {
           const zIndex = invertOverlap ? React.Children.count(children) - index : index;
-          
+
           if (variant === 'motion') {
             return (
               <AvatarMotionContainer
@@ -214,7 +214,7 @@ function AvatarGroup({
               </AvatarMotionContainer>
             );
           }
-          
+
           return (
             <AvatarCSSContainer
               key={index}
