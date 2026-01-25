@@ -2,7 +2,7 @@ import { createClient } from "@/lib/client";
 import {
   StatusAtividade,
   DificuldadePercebida,
-} from "@/backend/services/progresso-atividade";
+} from "@/app/[tenant]/(dashboard)/atividades/services";
 import {
   AtividadeComProgresso,
   CursoComDisciplinas,

@@ -1,24 +1,27 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from "@supabase/supabase-js";
 import {
   RegraAtividade,
   CreateRegraAtividadeInput,
   UpdateRegraAtividadeInput,
-} from './regras-atividade.types';
+} from "./regras.types";
 
 export interface RegraAtividadeRepository {
   listByCurso(cursoId: string): Promise<RegraAtividade[]>;
   findById(id: string): Promise<RegraAtividade | null>;
   create(input: CreateRegraAtividadeInput): Promise<RegraAtividade>;
-  update(id: string, payload: UpdateRegraAtividadeInput): Promise<RegraAtividade>;
+  update(
+    id: string,
+    payload: UpdateRegraAtividadeInput,
+  ): Promise<RegraAtividade>;
   delete(id: string): Promise<void>;
 }
 
-const TABLE = 'regras_atividades';
+const TABLE = "regras_atividades";
 
 type RegraAtividadeRow = {
   id: string;
   curso_id: string | null;
-  tipo_atividade: RegraAtividade['tipoAtividade'];
+  tipo_atividade: RegraAtividade["tipoAtividade"];
   nome_padrao: string;
   frequencia_modulos: number;
   comecar_no_modulo: number;
@@ -46,10 +49,14 @@ function mapRow(row: RegraAtividadeRow): RegraAtividade {
 }
 
 function isMissingTable(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false;
+  if (!error || typeof error !== "object") return false;
   const code = (error as { code?: string }).code;
   const message = (error as { message?: string }).message;
-  return code === 'PGRST116' || code === '42P01' || (typeof message === 'string' && message.includes('regras_atividades'));
+  return (
+    code === "PGRST116" ||
+    code === "42P01" ||
+    (typeof message === "string" && message.includes("regras_atividades"))
+  );
 }
 
 export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
@@ -58,9 +65,9 @@ export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
   async listByCurso(cursoId: string): Promise<RegraAtividade[]> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .eq('curso_id', cursoId)
-      .order('created_at', { ascending: true });
+      .select("*")
+      .eq("curso_id", cursoId)
+      .order("created_at", { ascending: true });
 
     if (error) {
       if (isMissingTable(error)) {
@@ -74,7 +81,11 @@ export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
   }
 
   async findById(id: string): Promise<RegraAtividade | null> {
-    const { data, error } = await this.client.from(TABLE).select('*').eq('id', id).maybeSingle();
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to fetch rule: ${error.message}`);
@@ -96,12 +107,14 @@ export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
         acumulativo_desde_inicio: input.acumulativoDesdeInicio ?? false,
         gerar_no_ultimo: input.gerarNoUltimo ?? false,
       })
-      .select('*')
+      .select("*")
       .single();
 
     if (error) {
       if (isMissingTable(error)) {
-        throw new Error('Regras de atividade não estão habilitadas. Aplique a migração para criar a tabela regras_atividades.');
+        throw new Error(
+          "Regras de atividade não estão habilitadas. Aplique a migração para criar a tabela regras_atividades.",
+        );
       }
       throw new Error(`Failed to create rule: ${error.message}`);
     }
@@ -109,7 +122,10 @@ export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
     return mapRow(data);
   }
 
-  async update(id: string, payload: UpdateRegraAtividadeInput): Promise<RegraAtividade> {
+  async update(
+    id: string,
+    payload: UpdateRegraAtividadeInput,
+  ): Promise<RegraAtividade> {
     const { data, error } = await this.client
       .from(TABLE)
       .update({
@@ -121,13 +137,15 @@ export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
         acumulativo_desde_inicio: payload.acumulativoDesdeInicio,
         gerar_no_ultimo: payload.gerarNoUltimo,
       })
-      .eq('id', id)
-      .select('*')
+      .eq("id", id)
+      .select("*")
       .single();
 
     if (error) {
       if (isMissingTable(error)) {
-        throw new Error('Regras de atividade não estão habilitadas. Aplique a migração para criar a tabela regras_atividades.');
+        throw new Error(
+          "Regras de atividade não estão habilitadas. Aplique a migração para criar a tabela regras_atividades.",
+        );
       }
       throw new Error(`Failed to update rule: ${error.message}`);
     }
@@ -136,7 +154,7 @@ export class RegraAtividadeRepositoryImpl implements RegraAtividadeRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.client.from(TABLE).delete().eq('id', id);
+    const { error } = await this.client.from(TABLE).delete().eq("id", id);
 
     if (error) {
       throw new Error(`Failed to delete rule: ${error.message}`);

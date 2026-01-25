@@ -2,33 +2,33 @@ import {
   RegraAtividade,
   CreateRegraAtividadeInput,
   UpdateRegraAtividadeInput,
-} from './regras-atividade.types';
-import { RegraAtividadeRepository } from './regras-atividade.repository';
+} from "./regras.types";
+import { RegraAtividadeRepository } from "./regras.repository";
 import {
   RegraAtividadeNotFoundError,
   RegraAtividadeValidationError,
-} from './errors';
-import { TipoAtividade } from '../atividade';
+} from "./regras.errors";
+import { TipoAtividade } from "../atividade";
 
 const VALID_TIPOS: TipoAtividade[] = [
-  'Nivel_1',
-  'Nivel_2',
-  'Nivel_3',
-  'Nivel_4',
-  'Conceituario',
-  'Lista_Mista',
-  'Simulado_Diagnostico',
-  'Simulado_Cumulativo',
-  'Simulado_Global',
-  'Flashcards',
-  'Revisao',
+  "Nivel_1",
+  "Nivel_2",
+  "Nivel_3",
+  "Nivel_4",
+  "Conceituario",
+  "Lista_Mista",
+  "Simulado_Diagnostico",
+  "Simulado_Cumulativo",
+  "Simulado_Global",
+  "Flashcards",
+  "Revisao",
 ];
 
 export class RegraAtividadeService {
   constructor(private readonly repository: RegraAtividadeRepository) {}
 
   async listByCurso(cursoId: string): Promise<RegraAtividade[]> {
-    this.ensureId(cursoId, 'curso_id');
+    this.ensureId(cursoId, "curso_id");
     return this.repository.listByCurso(cursoId);
   }
 
@@ -37,16 +37,16 @@ export class RegraAtividadeService {
   }
 
   async create(input: CreateRegraAtividadeInput): Promise<RegraAtividade> {
-    this.ensureId(input.cursoId, 'curso_id');
+    this.ensureId(input.cursoId, "curso_id");
     this.ensureTipo(input.tipoAtividade);
     const nomePadrao = this.ensureNome(input.nomePadrao);
     const frequencia = this.ensurePositiveInt(
       input.frequenciaModulos ?? 1,
-      'frequencia_modulos',
+      "frequencia_modulos",
     );
     const comecarNoModulo = this.ensurePositiveInt(
       input.comecarNoModulo ?? 1,
-      'comecar_no_modulo',
+      "comecar_no_modulo",
     );
 
     return this.repository.create({
@@ -60,7 +60,10 @@ export class RegraAtividadeService {
     });
   }
 
-  async update(id: string, payload: UpdateRegraAtividadeInput): Promise<RegraAtividade> {
+  async update(
+    id: string,
+    payload: UpdateRegraAtividadeInput,
+  ): Promise<RegraAtividade> {
     await this.ensureExists(id);
 
     const updateData: UpdateRegraAtividadeInput = {};
@@ -77,14 +80,14 @@ export class RegraAtividadeService {
     if (payload.frequenciaModulos !== undefined) {
       updateData.frequenciaModulos = this.ensurePositiveInt(
         payload.frequenciaModulos,
-        'frequencia_modulos',
+        "frequencia_modulos",
       );
     }
 
     if (payload.comecarNoModulo !== undefined) {
       updateData.comecarNoModulo = this.ensurePositiveInt(
         payload.comecarNoModulo,
-        'comecar_no_modulo',
+        "comecar_no_modulo",
       );
     }
 
@@ -110,33 +113,37 @@ export class RegraAtividadeService {
 
   private ensureId(value?: string, field?: string) {
     if (!value || !value.trim()) {
-      throw new RegraAtividadeValidationError(`${field ?? 'id'} é obrigatório`);
+      throw new RegraAtividadeValidationError(`${field ?? "id"} é obrigatório`);
     }
   }
 
   private ensureNome(nome?: string): string {
     const trimmed = nome?.trim();
     if (!trimmed) {
-      throw new RegraAtividadeValidationError('nome_padrao é obrigatório');
+      throw new RegraAtividadeValidationError("nome_padrao é obrigatório");
     }
     if (trimmed.length < 3) {
-      throw new RegraAtividadeValidationError('nome_padrao deve ter ao menos 3 caracteres');
+      throw new RegraAtividadeValidationError(
+        "nome_padrao deve ter ao menos 3 caracteres",
+      );
     }
     return trimmed;
   }
 
   private ensureTipo(tipo?: TipoAtividade) {
     if (!tipo) {
-      throw new RegraAtividadeValidationError('tipo_atividade é obrigatório');
+      throw new RegraAtividadeValidationError("tipo_atividade é obrigatório");
     }
     if (!VALID_TIPOS.includes(tipo)) {
-      throw new RegraAtividadeValidationError('tipo_atividade inválido');
+      throw new RegraAtividadeValidationError("tipo_atividade inválido");
     }
   }
 
   private ensurePositiveInt(value: number, field: string): number {
     if (!Number.isInteger(value) || value <= 0) {
-      throw new RegraAtividadeValidationError(`${field} deve ser um inteiro positivo`);
+      throw new RegraAtividadeValidationError(
+        `${field} deve ser um inteiro positivo`,
+      );
     }
     return value;
   }

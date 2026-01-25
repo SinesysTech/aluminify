@@ -1,6 +1,6 @@
-import { getDatabaseClient } from '@/backend/clients/database';
-import { AtividadeRepositoryImpl } from './atividade.repository';
-import { AtividadeService } from './atividade.service';
+import { getDatabaseClient } from "@/backend/clients/database";
+import { AtividadeRepositoryImpl } from "./atividade.repository";
+import { AtividadeService } from "./atividade.service";
 
 let _atividadeService: AtividadeService | null = null;
 
@@ -19,10 +19,9 @@ export const atividadeService = new Proxy({} as AtividadeService, {
   },
 });
 
-export * from './atividade.types';
-export * from './atividade.service';
-export * from './atividade.repository';
-export * from './errors';
-
-
-
+export * from "./atividade.types";
+export * from "./atividade.service";
+export * from "./atividade.repository";
+export * from "./errors";
+export * from "./progresso-index";
+export * from "./regras-index";

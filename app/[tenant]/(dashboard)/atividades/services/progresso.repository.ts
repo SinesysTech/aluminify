@@ -1,40 +1,53 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/database.types';
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import {
   ProgressoAtividade,
   CreateProgressoInput,
   UpdateProgressoInput,
   StatusAtividade,
   DificuldadePercebida,
-} from './progresso-atividade.types';
+} from "./progresso.types";
 
 export interface ProgressoAtividadeRepository {
   findById(id: string): Promise<ProgressoAtividade | null>;
-  findByAlunoAndAtividade(alunoId: string, atividadeId: string): Promise<ProgressoAtividade | null>;
+  findByAlunoAndAtividade(
+    alunoId: string,
+    atividadeId: string,
+  ): Promise<ProgressoAtividade | null>;
   listByAluno(alunoId: string): Promise<ProgressoAtividade[]>;
   create(payload: CreateProgressoInput): Promise<ProgressoAtividade>;
-  update(id: string, payload: UpdateProgressoInput): Promise<ProgressoAtividade>;
-  findOrCreateProgresso(alunoId: string, atividadeId: string, status?: StatusAtividade): Promise<ProgressoAtividade>;
+  update(
+    id: string,
+    payload: UpdateProgressoInput,
+  ): Promise<ProgressoAtividade>;
+  findOrCreateProgresso(
+    alunoId: string,
+    atividadeId: string,
+    status?: StatusAtividade,
+  ): Promise<ProgressoAtividade>;
 }
 
-const TABLE = 'progresso_atividades';
+const TABLE = "progresso_atividades";
 
 // Use generated Database types instead of manual definitions
-type ProgressoRow = Database['public']['Tables']['progresso_atividades']['Row'];
-type _ProgressoInsert = Database['public']['Tables']['progresso_atividades']['Insert'];
-type ProgressoUpdate = Database['public']['Tables']['progresso_atividades']['Update'];
+type ProgressoRow = Database["public"]["Tables"]["progresso_atividades"]["Row"];
+type _ProgressoInsert =
+  Database["public"]["Tables"]["progresso_atividades"]["Insert"];
+type ProgressoUpdate =
+  Database["public"]["Tables"]["progresso_atividades"]["Update"];
 
 function mapRow(row: ProgressoRow): ProgressoAtividade {
   return {
     id: row.id,
-    alunoId: row.aluno_id ?? '',
-    atividadeId: row.atividade_id ?? '',
-    status: (row.status as StatusAtividade) ?? 'Pendente',
+    alunoId: row.aluno_id ?? "",
+    atividadeId: row.atividade_id ?? "",
+    status: (row.status as StatusAtividade) ?? "Pendente",
     dataInicio: row.data_inicio ? new Date(row.data_inicio) : null,
     dataConclusao: row.data_conclusao ? new Date(row.data_conclusao) : null,
     questoesTotais: row.questoes_totais ?? 0,
     questoesAcertos: row.questoes_acertos ?? 0,
-    dificuldadePercebida: (row.dificuldade_percebida as DificuldadePercebida) ?? null,
+    dificuldadePercebida:
+      (row.dificuldade_percebida as DificuldadePercebida) ?? null,
     anotacoesPessoais: row.anotacoes_pessoais ?? null,
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
@@ -47,8 +60,8 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
   async findById(id: string): Promise<ProgressoAtividade | null> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .eq('id', id)
+      .select("*")
+      .eq("id", id)
       .maybeSingle();
 
     if (error) {
@@ -58,12 +71,15 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     return data ? mapRow(data) : null;
   }
 
-  async findByAlunoAndAtividade(alunoId: string, atividadeId: string): Promise<ProgressoAtividade | null> {
+  async findByAlunoAndAtividade(
+    alunoId: string,
+    atividadeId: string,
+  ): Promise<ProgressoAtividade | null> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .eq('aluno_id', alunoId)
-      .eq('atividade_id', atividadeId)
+      .select("*")
+      .eq("aluno_id", alunoId)
+      .eq("atividade_id", atividadeId)
       .maybeSingle();
 
     if (error) {
@@ -76,9 +92,9 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
   async listByAluno(alunoId: string): Promise<ProgressoAtividade[]> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .eq('aluno_id', alunoId)
-      .order('created_at', { ascending: false });
+      .select("*")
+      .eq("aluno_id", alunoId)
+      .order("created_at", { ascending: false });
 
     if (error) {
       throw new Error(`Failed to list progresso by aluno: ${error.message}`);
@@ -91,7 +107,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     const insertData = {
       aluno_id: payload.alunoId,
       atividade_id: payload.atividadeId,
-      status: payload.status ?? 'Pendente',
+      status: payload.status ?? "Pendente",
       data_inicio: payload.dataInicio?.toISOString() ?? null,
       data_conclusao: payload.dataConclusao?.toISOString() ?? null,
       questoes_totais: payload.questoesTotais ?? 0,
@@ -103,7 +119,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     const { data, error } = await this.client
       .from(TABLE)
       .insert(insertData)
-      .select('*')
+      .select("*")
       .single();
 
     if (error) {
@@ -113,7 +129,10 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     return mapRow(data);
   }
 
-  async update(id: string, payload: UpdateProgressoInput): Promise<ProgressoAtividade> {
+  async update(
+    id: string,
+    payload: UpdateProgressoInput,
+  ): Promise<ProgressoAtividade> {
     const updateData: ProgressoUpdate = {};
 
     if (payload.status !== undefined) {
@@ -141,8 +160,8 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     const { data, error } = await this.client
       .from(TABLE)
       .update(updateData)
-      .eq('id', id)
-      .select('*')
+      .eq("id", id)
+      .select("*")
       .single();
 
     if (error) {
@@ -155,7 +174,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
   async findOrCreateProgresso(
     alunoId: string,
     atividadeId: string,
-    status: StatusAtividade = 'Pendente',
+    status: StatusAtividade = "Pendente",
   ): Promise<ProgressoAtividade> {
     // Primeiro tentar encontrar
     const existing = await this.findByAlunoAndAtividade(alunoId, atividadeId);
@@ -171,4 +190,3 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     });
   }
 }
-

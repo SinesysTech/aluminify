@@ -1,6 +1,6 @@
-import { getDatabaseClient } from '@/backend/clients/database';
-import { RegraAtividadeRepositoryImpl } from './regras-atividade.repository';
-import { RegraAtividadeService } from './regras-atividade.service';
+import { getDatabaseClient } from "@/backend/clients/database";
+import { RegraAtividadeRepositoryImpl } from "./regras.repository";
+import { RegraAtividadeService } from "./regras.service";
 
 let _regraAtividadeService: RegraAtividadeService | null = null;
 
@@ -20,7 +20,7 @@ export const regraAtividadeService = new Proxy({} as RegraAtividadeService, {
   },
 });
 
-export * from './regras-atividade.types';
-export * from './regras-atividade.service';
-export * from './regras-atividade.repository';
-export * from './errors';
+export * from "./regras.types";
+export * from "./regras.service";
+export * from "./regras.repository";
+export * from "./regras.errors";

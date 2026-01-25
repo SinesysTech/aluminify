@@ -7,7 +7,7 @@ import {
   ModuloComAtividades,
   DesempenhoData,
 } from "../types";
-import { StatusAtividade } from "@/backend/services/progresso-atividade";
+import { StatusAtividade } from "@/app/[tenant]/(dashboard)/atividades/services";
 
 export class SalaEstudosService {
   private supabase = createClient();

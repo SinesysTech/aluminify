@@ -3,13 +3,16 @@ import {
   progressoAtividadeService,
   ProgressoNotFoundError,
   ProgressoValidationError,
-} from "@/backend/services/progresso-atividade";
+} from "@/app/[tenant]/(dashboard)/atividades/services";
 import {
   atividadeService,
   atividadeRequerDesempenho,
 } from "@/app/[tenant]/(dashboard)/atividades/services";
-import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import type { StatusAtividade } from "@/backend/services/progresso-atividade";
+import {
+  requireAuth,
+  AuthenticatedRequest,
+} from "@/app/[tenant]/auth/middleware";
+import type { StatusAtividade } from "@/app/[tenant]/(dashboard)/atividades/services";
 
 const serializeProgresso = (
   progresso: Awaited<
