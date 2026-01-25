@@ -1,7 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import { requireUser } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 import FlashcardsClient from './client'
-import FlashcardsAdminClient from './components/flashcards-admin-client'
 
 export const metadata: Metadata = {
   title: 'Flashcards | Aluminify'
@@ -14,5 +14,6 @@ export default async function FlashcardsPage() {
     return <FlashcardsClient />
   }
 
-  return <FlashcardsAdminClient />
+  // Admins e professores devem usar o módulo de administração
+  redirect('/admin/flashcards')
 }
