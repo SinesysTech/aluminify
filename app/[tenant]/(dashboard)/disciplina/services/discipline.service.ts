@@ -20,7 +20,7 @@ export class DisciplineService {
   async list(params?: PaginationParams): Promise<PaginatedResult<Discipline>> {
     // Cache apenas para listagem completa sem paginação ou primeira página
     if (!params || (params.page === 1 && !params.sortBy)) {
-      const { cacheService } = await import("@/backend/services/cache");
+      const { cacheService } = await import("@/app/shared/core/services/cache");
       const cacheKey = "disciplines:list:all";
       const cached =
         await cacheService.get<PaginatedResult<Discipline>>(cacheKey);
@@ -57,7 +57,7 @@ export class DisciplineService {
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =
-      await import("@/backend/services/cache");
+      await import("@/app/shared/core/services/cache");
     await courseStructureCacheService.invalidateDisciplines([discipline.id]);
     await cacheService.del("disciplines:list:all");
 
@@ -83,7 +83,7 @@ export class DisciplineService {
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =
-      await import("@/backend/services/cache");
+      await import("@/app/shared/core/services/cache");
     await courseStructureCacheService.invalidateDisciplines([id]);
     await cacheService.del("disciplines:list:all");
 
@@ -102,7 +102,7 @@ export class DisciplineService {
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =
-      await import("@/backend/services/cache");
+      await import("@/app/shared/core/services/cache");
     await courseStructureCacheService.invalidateDisciplines([id]);
     await cacheService.del("disciplines:list:all");
   }

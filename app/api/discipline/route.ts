@@ -5,7 +5,7 @@ import {
   DisciplineValidationError,
 } from "@/app/[tenant]/(dashboard)/disciplina/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import { getDatabaseClientAsUser } from "@/backend/clients/database";
+import { getDatabaseClientAsUser } from "@/app/shared/core/database/database";
 
 const serializeDiscipline = (
   discipline: Awaited<ReturnType<typeof disciplineService.getById>>,

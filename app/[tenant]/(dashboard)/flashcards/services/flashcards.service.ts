@@ -1,6 +1,6 @@
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 // DificuldadePercebida imported but unused - kept for future use
-import { cacheService } from "@/backend/services/cache";
+import { cacheService } from "@/app/shared/core/services/cache";
 import { calculateNextReview, isValidFeedback } from "./srs-algorithm";
 import type { FeedbackValue } from "./srs-algorithm.types";
 import type {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
-import { getDatabaseClientAsUser } from '@/backend/clients/database'
+import { getDatabaseClientAsUser } from '@/app/shared/core/database/database'
 import { fetchCronogramaCompleto } from '@/app/shared/core/cronograma-export-utils'
 import ical from 'ical-generator'
 

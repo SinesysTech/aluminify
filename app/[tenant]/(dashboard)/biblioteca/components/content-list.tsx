@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/accordion'
 import { AtividadeRow } from './atividade-row'
 import { ModuloComAtividades } from '../types'
-import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progresso-atividade'
+import { StatusAtividade, DificuldadePercebida } from '@/app/shared/core/services/progresso-atividade'
 
 interface ContentListProps {
     modulo: ModuloComAtividades

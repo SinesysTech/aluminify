@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/app/shared/core/server";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 export type FinalizeFirstAccessResult = {
   success: boolean;

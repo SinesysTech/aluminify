@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import {
   requireUserAuth,
   AuthenticatedRequest,
@@ -7,7 +7,7 @@ import {
 import {
   courseStructureCacheService,
   activityCacheService,
-} from "@/backend/services/cache";
+} from "@/app/shared/core/services/cache";
 import type { Database } from "@/app/shared/core/database.types";
 
 interface RouteContext {

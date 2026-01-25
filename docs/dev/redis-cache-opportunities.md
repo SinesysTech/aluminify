@@ -387,7 +387,7 @@ export const cacheService = new CacheService();
 
 ```typescript
 // backend/services/course/course-structure.service.ts
-import { cacheService } from '@/backend/services/cache/cache.service';
+import { cacheService } from '@/app/shared/core/services/cache/cache.service';
 
 async function getCourseStructure(courseId: string) {
   const cacheKey = `cache:curso:${courseId}:estrutura`;

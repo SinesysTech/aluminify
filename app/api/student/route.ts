@@ -118,7 +118,7 @@ async function getHandler(request: AuthenticatedRequest) {
     if (token && request.user) {
       console.log("[API Student] Switching to user-scoped client");
       const { getDatabaseClientAsUser } =
-        await import("@/backend/clients/database");
+        await import("@/app/shared/core/database/database");
       const { StudentRepositoryImpl } =
         await import("@/app/[tenant]/(dashboard)/aluno/services/student.repository");
       const { StudentService } =
@@ -183,7 +183,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
     if (token && request.user) {
       const { getDatabaseClientAsUser } =
-        await import("@/backend/clients/database");
+        await import("@/app/shared/core/database/database");
       const { StudentRepositoryImpl } =
         await import("@/app/[tenant]/(dashboard)/aluno/services/student.repository");
       const { StudentService } =

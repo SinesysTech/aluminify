@@ -1,7 +1,7 @@
 import {
   getDatabaseClient,
   clearDatabaseClientCache,
-} from "@/backend/clients/database";
+} from "@/app/shared/core/database/database";
 import type { Database } from "@/app/shared/core/database.types";
 import {
   GerarCronogramaInput,

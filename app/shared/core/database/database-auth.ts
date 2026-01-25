@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { AuthenticatedRequest } from '@/backend/auth/middleware';
+import { AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 import type { Database } from '@/lib/database.types';
 
 let cachedClient: SupabaseClient<Database> | null = null;

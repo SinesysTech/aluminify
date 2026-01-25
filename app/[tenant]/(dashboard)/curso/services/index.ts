@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { CursoRepositoryImpl } from "./curso.repository";
 import { CursoService } from "./curso.service";
 

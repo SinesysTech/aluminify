@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 import { StudentRepositoryImpl } from './student.repository';
 import { StudentService } from './student.service';
 import { StudentImportService } from './student-import.service';

@@ -6,8 +6,8 @@ import {
 import {
   getEmpresaContext,
   validateEmpresaAccess,
-} from "@/backend/middleware/empresa-context";
-import { getDatabaseClient } from "@/backend/clients/database";
+} from "@/app/shared/core/middleware/empresa-context";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 /**
  * Rate limiting store for file uploads

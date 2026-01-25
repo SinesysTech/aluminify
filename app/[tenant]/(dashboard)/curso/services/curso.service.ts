@@ -39,7 +39,7 @@ export class CursoService {
         !params.sortOrder &&
         !params.perPage)
     ) {
-      const { cacheService } = await import("@/backend/services/cache");
+      const { cacheService } = await import("@/app/shared/core/services/cache");
       const cacheKey = "courses:list:all";
       const cached = await cacheService.get<PaginatedResult<Curso>>(cacheKey);
 
@@ -57,7 +57,7 @@ export class CursoService {
 
     // Se houver parâmetros de paginação/ordenação, incluir na chave do cache ou pular cache
     // Para garantir que dados corretos sejam retornados, vamos incluir na chave do cache
-    const { cacheService } = await import("@/backend/services/cache");
+    const { cacheService } = await import("@/app/shared/core/services/cache");
     const page = params?.page ?? 1;
     const perPage = params?.perPage ?? 50;
     const sortBy = params?.sortBy ?? "nome";
@@ -138,7 +138,7 @@ export class CursoService {
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =
-      await import("@/backend/services/cache");
+      await import("@/app/shared/core/services/cache");
     await courseStructureCacheService.invalidateCourse(course.id);
     await cacheService.del("courses:list:all");
 
@@ -240,7 +240,7 @@ export class CursoService {
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =
-      await import("@/backend/services/cache");
+      await import("@/app/shared/core/services/cache");
     await courseStructureCacheService.invalidateCourse(id);
     await cacheService.del("courses:list:all");
 
@@ -253,7 +253,7 @@ export class CursoService {
 
     // Invalidar cache de estrutura hierárquica e listagem
     const { courseStructureCacheService, cacheService } =
-      await import("@/backend/services/cache");
+      await import("@/app/shared/core/services/cache");
     await courseStructureCacheService.invalidateCourse(id);
     await cacheService.del("courses:list:all");
   }

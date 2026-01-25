@@ -6,14 +6,14 @@
  */
 
 import fc from 'fast-check';
-import { TeacherRepositoryImpl } from '@/backend/services/teacher/teacher.repository';
-import { TeacherService } from '@/backend/services/teacher/teacher.service';
-import { StudentRepositoryImpl } from '@/backend/services/student/student.repository';
-import { StudentService } from '@/backend/services/student/student.service';
+import { TeacherRepositoryImpl } from '@/app/shared/core/services/teacher/teacher.repository';
+import { TeacherService } from '@/app/shared/core/services/teacher/teacher.service';
+import { StudentRepositoryImpl } from '@/app/shared/core/services/student/student.repository';
+import { StudentService } from '@/app/shared/core/services/student/student.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/database.types';
 import type { Teacher } from '@/types/shared/entities/user';
-import type { Student } from '@/backend/services/student/student.types';
+import type { Student } from '@/app/shared/core/services/student/student.types';
 
 // Mock Supabase client for type checking tests
 const mockSupabaseUrl = 'https://test.supabase.co';

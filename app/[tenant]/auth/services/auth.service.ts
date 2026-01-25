@@ -1,4 +1,4 @@
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 import { AuthUser, SignUpInput, SignInInput, AuthResponse, UserRole } from './types';
 
 export class AuthService {

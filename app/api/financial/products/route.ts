@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { createProductRepository, type ProductListParams } from "@/app/[tenant]/(dashboard)/admin/services/financial";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type { Provider } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";

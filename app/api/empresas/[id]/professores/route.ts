@@ -7,7 +7,7 @@ import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,
   validateEmpresaAccess,
-} from "@/backend/middleware/empresa-context";
+} from "@/app/shared/core/middleware/empresa-context";
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

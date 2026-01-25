@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { createClient } from '@supabase/supabase-js';
-import { BrandCustomizationManager } from '@/backend/services/brand-customization';
+import { BrandCustomizationManager } from '@/app/shared/core/services/brand-customization';
 import { CSSPropertiesManager } from '@/lib/services/css-properties-manager';
 import { BrandingSyncManager } from '@/lib/services/branding-sync-manager';
 import type { 

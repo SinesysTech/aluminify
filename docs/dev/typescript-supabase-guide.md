@@ -74,7 +74,7 @@ const client = createClient<Database>(url, key);
 Use the centralized client functions from `backend/clients/database.ts`:
 
 ```typescript
-import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database';
+import { getDatabaseClient, getDatabaseClientAsUser } from '@/app/shared/core/database/database';
 
 // For server-side operations (service role)
 const client = getDatabaseClient();

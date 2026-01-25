@@ -6,7 +6,7 @@
  */
 
 import { cacheService } from './cache.service';
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 
 export interface CourseStructure {
   cursoId: string;

@@ -15,7 +15,7 @@ import {
   verifyEmpresaAdminAccess,
   checkBrandCustomizationAccess,
   requireEmpresaAdmin,
-} from '@/backend/middleware/brand-customization-access'
+} from '@/app/shared/core/middleware/brand-customization-access'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -207,7 +207,7 @@ describe('Property 17: Access Control Validation', () => {
             )
 
             // Mock the auth middleware to return our test user
-            const originalGetAuthUser = require('@/backend/auth/middleware').getAuthUser
+            const originalGetAuthUser = require('@/app/[tenant]/auth/middleware').getAuthUser
             const mockGetAuthUser = jest.fn().mockResolvedValue(
               scenario.hasValidSession && testUser
                 ? {
@@ -230,9 +230,9 @@ describe('Property 17: Access Control Validation', () => {
             )
 
             // Apply mocks
-            require('@/backend/auth/middleware').getAuthUser = mockGetAuthUser
-            require('@/backend/middleware/empresa-context').getEmpresaContext = mockGetEmpresaContext
-            require('@/backend/middleware/empresa-context').validateEmpresaAccess = mockValidateEmpresaAccess
+            require('@/app/[tenant]/auth/middleware').getAuthUser = mockGetAuthUser
+            require('@/app/shared/core/middleware/empresa-context').getEmpresaContext = mockGetEmpresaContext
+            require('@/app/shared/core/middleware/empresa-context').validateEmpresaAccess = mockValidateEmpresaAccess
 
             try {
               const mockHandler = jest.fn().mockResolvedValue(
@@ -264,7 +264,7 @@ describe('Property 17: Access Control Validation', () => {
               }
             } finally {
               // Restore original functions
-              require('@/backend/auth/middleware').getAuthUser = originalGetAuthUser
+              require('@/app/[tenant]/auth/middleware').getAuthUser = originalGetAuthUser
             }
 
           } catch (error) {
@@ -414,8 +414,8 @@ describe('Property 17: Access Control Validation', () => {
               }
 
               // Apply mocks
-              require('@/backend/auth/middleware').getAuthUser = mockGetAuthUser
-              require('@/backend/clients/database').getDatabaseClient = jest.fn(() => mockClient)
+              require('@/app/[tenant]/auth/middleware').getAuthUser = mockGetAuthUser
+              require('@/app/shared/core/database/database').getDatabaseClient = jest.fn(() => mockClient)
 
               const mockHandler = jest.fn().mockResolvedValue(
                 new Response(JSON.stringify({ success: true }), { status: 200 })

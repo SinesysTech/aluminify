@@ -9,7 +9,7 @@ import {
   CourseMaterialNotFoundError,
   CourseMaterialValidationError,
 } from "./errors";
-import { cacheService } from "@/backend/services/cache";
+import { cacheService } from "@/app/shared/core/services/cache";
 
 const TITLE_MIN_LENGTH = 3;
 const TITLE_MAX_LENGTH = 200;

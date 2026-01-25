@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 
 const FLASHCARDS_IMAGES_BUCKET = 'flashcards-images';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB

@@ -3,7 +3,7 @@ import {
   apiKeyService,
   ApiKeyNotFoundError,
   ApiKeyValidationError,
-} from '@/backend/services/api-key';
+} from '@/app/shared/core/services/api-key';
 import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 
 const serializeApiKey = (apiKey: Awaited<ReturnType<typeof apiKeyService.getById>>) => ({

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 import type { Database } from "@/app/shared/core/database.types";
 import type { RolePermissions, RoleTipo } from "@/types/shared/entities/papel";

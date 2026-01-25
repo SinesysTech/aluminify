@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { conversationService } from '@/app/[tenant]/(dashboard)/tobias/services/conversation';
 import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { cacheService } from '@/backend/services/cache';
+import { cacheService } from '@/app/shared/core/services/cache';
 
 /**
  * GET /api/conversations

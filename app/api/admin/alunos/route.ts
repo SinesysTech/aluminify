@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { StudentRepositoryImpl } from '@/app/[tenant]/(dashboard)/aluno/services';
 import { studentService } from '@/app/[tenant]/(dashboard)/aluno/services';

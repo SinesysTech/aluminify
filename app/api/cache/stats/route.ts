@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { cacheMonitorService } from '@/backend/services/cache/cache-monitor.service';
+import { cacheMonitorService } from '@/app/shared/core/services/cache/cache-monitor.service';
 
 /**
  * GET /api/cache/stats

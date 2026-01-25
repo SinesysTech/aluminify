@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   apiKeyService,
   ApiKeyValidationError,
-} from "@/backend/services/api-key";
+} from "@/app/shared/core/services/api-key";
 import {
   requireUserAuth,
   AuthenticatedRequest,

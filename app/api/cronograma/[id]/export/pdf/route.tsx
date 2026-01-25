@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
-import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database'
+import { getDatabaseClient, getDatabaseClientAsUser } from '@/app/shared/core/database/database'
 import { pdf, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
 import { fetchCronogramaCompleto } from '@/app/shared/core/cronograma-export-utils'

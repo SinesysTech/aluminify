@@ -1,10 +1,10 @@
 let fakeClient: any;
 
-jest.mock('@/backend/clients/database', () => ({
+jest.mock('@/app/shared/core/database/database', () => ({
   getDatabaseClient: () => fakeClient,
 }));
 
-import { FlashcardsService } from '@/backend/services/flashcards/flashcards.service';
+import { FlashcardsService } from '@/app/shared/core/services/flashcards/flashcards.service';
 
 type QueryResult = { data: any; error: any; count?: number | null };
 

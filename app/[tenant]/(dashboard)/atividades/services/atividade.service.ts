@@ -7,8 +7,8 @@ import {
 } from "./atividade.types";
 import { AtividadeRepository } from "./atividade.repository";
 import { AtividadeNotFoundError, AtividadeValidationError } from "./errors";
-import { getDatabaseClient } from "@/backend/clients/database";
-import { activityCacheService } from "@/backend/services/cache/activity-cache.service";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
+import { activityCacheService } from "@/app/shared/core/services/cache/activity-cache.service";
 
 export class AtividadeService {
   constructor(private readonly repository: AtividadeRepository) {}

@@ -1,4 +1,4 @@
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { AtividadeRepositoryImpl } from "./atividade.repository";
 import { AtividadeService } from "./atividade.service";
 

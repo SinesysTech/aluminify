@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/shared/core/server';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
-import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
+import { getEmpresaContext, validateEmpresaAccess } from '@/app/shared/core/middleware/empresa-context';
 
 interface RouteContext {
   params: Promise<{ id: string; userId: string }>;

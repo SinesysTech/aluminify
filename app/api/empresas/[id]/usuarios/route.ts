@@ -8,7 +8,7 @@ import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,
   validateEmpresaAccess,
-} from "@/backend/middleware/empresa-context";
+} from "@/app/shared/core/middleware/empresa-context";
 import type { CreateUsuarioInput } from "@/types/shared/entities/usuario";
 
 function createAdminClient() {

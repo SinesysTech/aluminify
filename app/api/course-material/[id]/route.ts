@@ -13,7 +13,7 @@ import {
 import {
   getDatabaseClient,
   getDatabaseClientAsUser,
-} from "@/backend/clients/database";
+} from "@/app/shared/core/database/database";
 
 const serializeCourseMaterial = (
   material: Awaited<ReturnType<typeof materialCursoService.getById>>,

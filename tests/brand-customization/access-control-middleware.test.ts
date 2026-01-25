@@ -3,8 +3,8 @@ import {
   requireEmpresaAdmin,
   withUploadRateLimit,
   verifyEmpresaAdminAccess,
-} from '@/backend/middleware/brand-customization-access';
-import { validateUploadedFile, sanitizeFilename } from '@/backend/middleware/file-security';
+} from '@/app/shared/core/middleware/brand-customization-access';
+import { validateUploadedFile, sanitizeFilename } from '@/app/shared/core/middleware/file-security';
 
 // Mock the database client
 const mockMaybeSingle = jest.fn();
@@ -19,17 +19,17 @@ const mockDbClient = {
   },
 };
 
-jest.mock('@/backend/clients/database', () => ({
+jest.mock('@/app/shared/core/database/database', () => ({
   getDatabaseClient: jest.fn(() => mockDbClient),
 }));
 
 // Mock the auth middleware
-jest.mock('@/backend/auth/middleware', () => ({
+jest.mock('@/app/[tenant]/auth/middleware', () => ({
   getAuthUser: jest.fn(),
 }));
 
 // Mock the empresa context
-jest.mock('@/backend/middleware/empresa-context', () => ({
+jest.mock('@/app/shared/core/middleware/empresa-context', () => ({
   getEmpresaContext: jest.fn(),
   validateEmpresaAccess: jest.fn(),
 }));
@@ -94,7 +94,7 @@ describe('Brand Customization Access Control Middleware', () => {
 
   describe('verifyEmpresaAdminAccess', () => {
     it('should return true for valid admin user', async () => {
-      const mockClient = require('@/backend/clients/database').getDatabaseClient();
+      const mockClient = require('@/app/shared/core/database/database').getDatabaseClient();
       const mockMaybeSingle = mockClient.from().select().eq().eq().maybeSingle;
       mockMaybeSingle.mockResolvedValue({
         data: { id: 'user1', empresa_id: 'empresa1', is_admin: true },
@@ -107,7 +107,7 @@ describe('Brand Customization Access Control Middleware', () => {
     });
 
     it('should return false for non-admin user', async () => {
-      const mockClient = require('@/backend/clients/database').getDatabaseClient();
+      const mockClient = require('@/app/shared/core/database/database').getDatabaseClient();
       const mockMaybeSingle = mockClient.from().select().eq().eq().maybeSingle;
       mockMaybeSingle.mockResolvedValue({
         data: { id: 'user1', empresa_id: 'empresa1', is_admin: false },
@@ -120,7 +120,7 @@ describe('Brand Customization Access Control Middleware', () => {
     });
 
     it('should return false for user not in empresa', async () => {
-      const mockClient = require('@/backend/clients/database').getDatabaseClient();
+      const mockClient = require('@/app/shared/core/database/database').getDatabaseClient();
       const mockMaybeSingle = mockClient.from().select().eq().eq().maybeSingle;
       mockMaybeSingle.mockResolvedValue({
         data: null,
@@ -169,7 +169,7 @@ describe('Brand Customization Access Control Middleware', () => {
   describe('Integration Tests', () => {
     it('should handle complete access control flow', async () => {
       // Mock successful authentication
-      const { getAuthUser } = require('@/backend/auth/middleware');
+      const { getAuthUser } = require('@/app/[tenant]/auth/middleware');
       getAuthUser.mockResolvedValue({
         id: 'user1',
         email: 'admin@empresa1.com',
@@ -179,14 +179,14 @@ describe('Brand Customization Access Control Middleware', () => {
       });
 
       // Mock successful admin verification
-      const mockClient = require('@/backend/clients/database').getDatabaseClient();
+      const mockClient = require('@/app/shared/core/database/database').getDatabaseClient();
       mockClient.from().select().eq().eq().maybeSingle.mockResolvedValue({
         data: { id: 'user1', empresa_id: 'empresa1', is_admin: true },
         error: null,
       });
 
       // Mock empresa context access as allowed
-      const { getEmpresaContext, validateEmpresaAccess } = require('@/backend/middleware/empresa-context');
+      const { getEmpresaContext, validateEmpresaAccess } = require('@/app/shared/core/middleware/empresa-context');
       getEmpresaContext.mockResolvedValue({ empresaId: 'empresa1' });
       validateEmpresaAccess.mockReturnValue(true);
 
@@ -205,7 +205,7 @@ describe('Brand Customization Access Control Middleware', () => {
 
     it('should reject unauthorized access', async () => {
       // Mock failed authentication
-      const { getAuthUser } = require('@/backend/auth/middleware');
+      const { getAuthUser } = require('@/app/[tenant]/auth/middleware');
       getAuthUser.mockResolvedValue(null);
 
       const mockHandler = jest.fn();

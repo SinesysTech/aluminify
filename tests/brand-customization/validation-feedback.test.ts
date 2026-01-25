@@ -10,8 +10,8 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { createClient } from '@supabase/supabase-js'
 import fc from 'fast-check'
-import { LogoManagerImpl, ColorPaletteManagerImpl } from '@/backend/services/brand-customization'
-import { getDatabaseClient } from '@/backend/clients/database'
+import { LogoManagerImpl, ColorPaletteManagerImpl } from '@/app/shared/core/services/brand-customization'
+import { getDatabaseClient } from '@/app/shared/core/database/database'
 import type { LogoType, ColorPalette } from '@/types/brand-customization'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL

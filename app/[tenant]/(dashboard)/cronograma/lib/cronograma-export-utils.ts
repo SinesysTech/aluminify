@@ -1,4 +1,4 @@
-import { getDatabaseClient } from '@/backend/clients/database'
+import { getDatabaseClient } from '@/app/shared/core/database/database'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface CronogramaData {

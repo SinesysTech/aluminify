@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { courseStructureCacheService } from '@/backend/services/cache';
+import { courseStructureCacheService } from '@/app/shared/core/services/cache';
 
 /**
  * GET /api/course-structure

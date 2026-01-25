@@ -4,7 +4,7 @@ import { FontSchemeManagerImpl } from "@/brand-customization/services";
 import {
   requireBrandCustomizationAccess,
   BrandCustomizationRequest,
-} from "@/backend/middleware/brand-customization-access";
+} from "@/app/shared/core/middleware/brand-customization-access";
 import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
 
 interface RouteContext {

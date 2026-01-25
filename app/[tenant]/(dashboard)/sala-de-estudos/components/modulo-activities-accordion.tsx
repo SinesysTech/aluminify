@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/accordion'
 import { AtividadeChecklistRow } from './atividade-checklist-row'
 import { ModuloComAtividades, AtividadeComProgresso } from '../types'
-import { StatusAtividade, DificuldadePercebida } from '@/backend/services/progresso-atividade'
+import { StatusAtividade, DificuldadePercebida } from '@/app/shared/core/services/progresso-atividade'
 
 
 interface ModuloActivitiesAccordionProps {

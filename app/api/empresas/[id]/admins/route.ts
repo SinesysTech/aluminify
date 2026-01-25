@@ -4,7 +4,7 @@ import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,
   validateEmpresaAccess,
-} from "@/backend/middleware/empresa-context";
+} from "@/app/shared/core/middleware/empresa-context";
 
 interface RouteContext {
   params: Promise<{ id: string }>;

@@ -162,7 +162,7 @@ const upperCpf = data.cpf?.toUpperCase() ?? 'N/A';
 ## Client Functions
 
 ```typescript
-import { getDatabaseClient, getDatabaseClientAsUser } from '@/backend/clients/database';
+import { getDatabaseClient, getDatabaseClientAsUser } from '@/app/shared/core/database/database';
 
 // Server-side (bypasses RLS)
 const client = getDatabaseClient();

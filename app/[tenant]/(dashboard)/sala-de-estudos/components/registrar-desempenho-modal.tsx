@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/shared/library/utils'
-import type { DificuldadePercebida } from '@/backend/services/progresso-atividade'
+import type { DificuldadePercebida } from '@/app/shared/core/services/progresso-atividade'
 import type { AtividadeComProgresso } from '../types'
 
 interface DesempenhoData {

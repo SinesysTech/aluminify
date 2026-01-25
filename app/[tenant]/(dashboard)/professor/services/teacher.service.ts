@@ -12,7 +12,7 @@ import {
   TeacherNotFoundError,
   TeacherValidationError,
 } from './errors';
-import { getDatabaseClient } from '@/backend/clients/database';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 import { randomBytes } from 'crypto';
 import type { PaginationParams } from '@/types/shared/dtos/api-responses';
 import { isValidBRPhone, isValidCPF, normalizeBRPhone, normalizeCpf } from '@/app/shared/library/br';

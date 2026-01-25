@@ -7,7 +7,7 @@ import {
 } from '@/types/sessao-estudo';
 import { SessaoEstudoRepository } from './sessao-estudo.repository';
 import { SessaoEstudoNotFoundError, SessaoEstudoValidationError } from './errors';
-import { cacheService } from '@/backend/services/cache';
+import { cacheService } from '@/app/shared/core/services/cache';
 
 function isISODate(value: string): boolean {
   return !Number.isNaN(Date.parse(value));

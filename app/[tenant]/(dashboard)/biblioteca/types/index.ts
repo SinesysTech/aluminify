@@ -2,7 +2,7 @@ import { TipoAtividade } from "@/app/[tenant]/(dashboard)/atividades/services";
 import {
   StatusAtividade,
   DificuldadePercebida,
-} from "@/backend/services/progresso-atividade";
+} from "@/app/shared/core/services/progresso-atividade";
 
 export interface AtividadeComProgresso {
   id: string;

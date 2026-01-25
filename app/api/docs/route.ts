@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getOpenApiSpec } from '@/backend/swagger';
+import { getOpenApiSpec } from '@/app/shared/swagger';
 
 export async function GET() {
   const spec = getOpenApiSpec();

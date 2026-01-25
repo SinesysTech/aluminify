@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { AuthUser, UserRole, ApiKeyAuth } from "./types";
-import { apiKeyService } from "@/backend/services/api-key";
+import { apiKeyService } from "@/app/shared/core/services/api-key";
 import { getImpersonationContext } from "@/app/shared/core/auth-impersonate";
 import type { RoleTipo, RolePermissions } from "@/types/shared/entities/papel";
 

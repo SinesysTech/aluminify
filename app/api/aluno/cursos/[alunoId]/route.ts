@@ -63,7 +63,7 @@ async function getHandler(
     }
 
     // Não usamos RLS aqui; o backend já validou o JWT e faz a checagem de permissão acima.
-    const { getDatabaseClient } = await import("@/backend/clients/database");
+    const { getDatabaseClient } = await import("@/app/shared/core/database/database");
     const client = getDatabaseClient();
 
     const { data, error } = await client

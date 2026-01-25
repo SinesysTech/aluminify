@@ -199,7 +199,7 @@ async function postHandler(request: AuthenticatedRequest) {
     }
 
     // Buscar cursos para validação
-    const { getDatabaseClient } = await import("@/backend/clients/database");
+    const { getDatabaseClient } = await import("@/app/shared/core/database/database");
     const client = getDatabaseClient();
     let coursesQuery = client.from("cursos").select("id, nome");
     if (request.user.empresaId) {

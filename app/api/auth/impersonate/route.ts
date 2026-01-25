@@ -3,7 +3,7 @@ import {
   requireUserAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import {
   setImpersonationContext,
   canImpersonateUser,

@@ -8,7 +8,7 @@ import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middlewar
 import {
   getDatabaseClient,
   getDatabaseClientAsUser,
-} from "@/backend/clients/database";
+} from "@/app/shared/core/database/database";
 
 const serializeCourse = (
   course: Awaited<ReturnType<typeof courseService.getById>>,

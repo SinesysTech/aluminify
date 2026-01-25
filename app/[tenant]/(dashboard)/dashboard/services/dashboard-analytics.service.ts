@@ -1,5 +1,5 @@
-import { getDatabaseClient } from "@/backend/clients/database";
-import { getServiceRoleClient } from "@/backend/clients/database-auth";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
+import { getServiceRoleClient } from "@/app/shared/core/database/database-auth";
 import type {
   DashboardData,
   ModuloImportancia,

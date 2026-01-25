@@ -8,9 +8,9 @@
 import fc from 'fast-check';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/database.types';
-import { TeacherRepositoryImpl } from '@/backend/services/teacher/teacher.repository';
-import { StudentRepositoryImpl } from '@/backend/services/student/student.repository';
-import { DisciplineRepositoryImpl } from '@/backend/services/discipline/discipline.repository';
+import { TeacherRepositoryImpl } from '@/app/shared/core/services/teacher/teacher.repository';
+import { StudentRepositoryImpl } from '@/app/shared/core/services/student/student.repository';
+import { DisciplineRepositoryImpl } from '@/app/shared/core/services/discipline/discipline.repository';
 
 // Mock Supabase client for type checking tests
 const mockSupabaseUrl = 'https://test.supabase.co';
@@ -394,19 +394,19 @@ describe('Property 10: Backward Compatibility', () => {
         async () => {
           // Verify that core modules can still be imported
           const { TeacherRepositoryImpl: TeacherRepo } = await import(
-            '@/backend/services/teacher/teacher.repository'
+            '@/app/shared/core/services/teacher/teacher.repository'
           );
           expect(TeacherRepo).toBeDefined();
           expect(typeof TeacherRepo).toBe('function');
           
           const { StudentRepositoryImpl: StudentRepo } = await import(
-            '@/backend/services/student/student.repository'
+            '@/app/shared/core/services/student/student.repository'
           );
           expect(StudentRepo).toBeDefined();
           expect(typeof StudentRepo).toBe('function');
           
           const { DisciplineRepositoryImpl: DisciplineRepo } = await import(
-            '@/backend/services/discipline/discipline.repository'
+            '@/app/shared/core/services/discipline/discipline.repository'
           );
           expect(DisciplineRepo).toBeDefined();
           expect(typeof DisciplineRepo).toBe('function');

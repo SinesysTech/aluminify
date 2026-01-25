@@ -3,7 +3,7 @@ import {
   EmpresaService,
   EmpresaRepositoryImpl,
 } from "@/app/[tenant]/(dashboard)/empresa/services";
-import { getDatabaseClient } from "@/backend/clients/database";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 /**
  * Endpoint de cadastro que cria empresa automaticamente quando professor se cadastra sem empresa_id.
