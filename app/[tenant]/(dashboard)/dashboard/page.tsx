@@ -2,8 +2,8 @@
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/server'
-import { InstitutionDashboardClient } from '@/app/shared/components/dashboard/institution'
-import { ProfessorDashboardClient } from '@/app/shared/components/dashboard/professor'
+import { InstitutionDashboardClient } from '@/app/[tenant]/(dashboard)/dashboard/components/institution'
+import { ProfessorDashboardClient } from '@/app/[tenant]/(dashboard)/professor/dashboard/components'
 import StudentDashboardClientPage from './client'
 import { isAdminRoleTipo } from '@/lib/roles'
 

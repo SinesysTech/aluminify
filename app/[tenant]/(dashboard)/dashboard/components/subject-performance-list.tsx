@@ -21,7 +21,7 @@ import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { fetchDashboardCourses, fetchPerformance, type DashboardCourse } from '../services/dashboard.service'
-import { OrganizationBadge } from '@/app/shared/components/dashboard/organization-switcher'
+import { OrganizationBadge } from '@/app/[tenant]/(dashboard)/dashboard/components/organization-switcher'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 
 interface SubjectPerformanceListProps {

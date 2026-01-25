@@ -7,7 +7,7 @@ import { SalaEstudosFilters } from './components/sala-estudos-filters'
 import { ModuloActivitiesAccordion } from './components/modulo-activities-accordion'
 import { ProgressoStatsCard } from './components/progresso-stats-card'
 import { useCurrentUser } from '@/components/providers/user-provider'
-import { OrganizationSwitcher } from '@/app/shared/components/dashboard/organization-switcher'
+import { OrganizationSwitcher } from '@/app/[tenant]/(dashboard)/dashboard/components/organization-switcher'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 import {
     AtividadeComProgresso,
