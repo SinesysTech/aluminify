@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
-import { dashboardAnalyticsService } from '@/backend/services/dashboard-analytics'
+import { dashboardAnalyticsService } from '@/app/[tenant]/(dashboard)/dashboard/services'
 
 /**
  * GET /api/dashboard/analytics
