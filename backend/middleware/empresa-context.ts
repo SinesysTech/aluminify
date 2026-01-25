@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { AuthUser } from '@/backend/auth/types';
+import { NextRequest } from "next/server";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { AuthUser } from "@/app/[tenant]/auth/middleware";
 
 export interface EmpresaContext {
   empresaId: string | null;
@@ -15,7 +15,7 @@ export async function getEmpresaContext(
   client: SupabaseClient,
   userId: string | null,
   request?: NextRequest,
-  authUser?: AuthUser | null
+  authUser?: AuthUser | null,
 ): Promise<EmpresaContext> {
   if (!userId) {
     return { empresaId: null, isSuperAdmin: false };
@@ -25,14 +25,14 @@ export async function getEmpresaContext(
   // Não tentar obter do client.auth.getUser() pois pode causar erro de permissão
   let isSuperAdmin = false;
   if (authUser) {
-    isSuperAdmin = authUser.isSuperAdmin || authUser.role === 'superadmin';
+    isSuperAdmin = authUser.isSuperAdmin || authUser.role === "superadmin";
   }
   // Se authUser não foi fornecido, assumir que não é superadmin
   // (evita tentar acessar auth.users que pode causar erro de permissão)
 
   // Se for superadmin, permitir acessar empresa via query param
   if (isSuperAdmin && request) {
-    const empresaIdParam = request.nextUrl.searchParams.get('empresa_id');
+    const empresaIdParam = request.nextUrl.searchParams.get("empresa_id");
     if (empresaIdParam) {
       return { empresaId: empresaIdParam, isSuperAdmin: true };
     }
@@ -40,21 +40,27 @@ export async function getEmpresaContext(
 
   // Buscar empresa_id do usuário (tabela usuarios)
   const { data: usuario, error } = await client
-    .from('usuarios')
-    .select('empresa_id')
-    .eq('id', userId)
-    .eq('ativo', true)
-    .is('deleted_at', null)
+    .from("usuarios")
+    .select("empresa_id")
+    .eq("id", userId)
+    .eq("ativo", true)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching usuario empresa_id:', error);
+    console.error("Error fetching usuario empresa_id:", error);
     // Se não encontrar registro do usuário, tentar buscar do metadata
     // Isso pode acontecer se a trigger ainda não executou
     // Usar authUser se disponível, senão não tentar acessar client.auth.getUser()
     if (authUser) {
-      const empresaIdFromMetadata = (authUser as { user_metadata?: { empresa_id?: string }; empresaId?: string })?.user_metadata?.empresa_id ||
-                                     (authUser as { empresaId?: string })?.empresaId;
+      const empresaIdFromMetadata =
+        (
+          authUser as {
+            user_metadata?: { empresa_id?: string };
+            empresaId?: string;
+          }
+        )?.user_metadata?.empresa_id ||
+        (authUser as { empresaId?: string })?.empresaId;
       if (empresaIdFromMetadata) {
         return {
           empresaId: empresaIdFromMetadata,
@@ -85,7 +91,7 @@ export async function getEmpresaContext(
  */
 export function validateEmpresaAccess(
   context: EmpresaContext,
-  empresaId: string | null
+  empresaId: string | null,
 ): boolean {
   if (!empresaId) {
     return false;
@@ -99,4 +105,3 @@ export function validateEmpresaAccess(
   // Usuário deve pertencer à empresa
   return context.empresaId === empresaId;
 }
-
