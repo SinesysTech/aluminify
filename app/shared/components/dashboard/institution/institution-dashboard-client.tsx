@@ -13,7 +13,7 @@ import { StudentRankingList } from './student-ranking-list'
 import { ProfessorRankingList } from './professor-ranking-list'
 import { DisciplinaPerformanceList } from './disciplina-performance'
 import { ConsistencyHeatmap, type HeatmapPeriod } from '@/app/[tenant]/(dashboard)/aluno/dashboard/components/consistency-heatmap'
-import { DashboardSkeleton } from '@/app/[tenant]/(dashboard)/dashboard/components/dashboard-skeleton'
+import { DashboardSkeleton } from '@/app/shared/components/dashboard/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {

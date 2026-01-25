@@ -12,7 +12,7 @@ import { ProfessorMetrics } from './professor-metrics'
 import { StudentsUnderCareList } from './students-under-care-list'
 import { UpcomingAppointments } from './upcoming-appointments'
 import { ProfessorDisciplinaPerformanceList } from './professor-disciplina-performance'
-import { DashboardSkeleton } from '@/app/[tenant]/(dashboard)/dashboard/components/dashboard-skeleton'
+import { DashboardSkeleton } from '@/app/shared/components/dashboard/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 

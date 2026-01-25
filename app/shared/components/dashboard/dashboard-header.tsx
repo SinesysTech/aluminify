@@ -7,7 +7,7 @@ import Link from 'next/link'
 import type { UserInfo } from '@/app/[tenant]/(dashboard)/aluno/dashboard/types'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { OrganizationSwitcher } from '@/app/[tenant]/(dashboard)/dashboard/components/organization-switcher'
+import { OrganizationSwitcher } from '@/app/shared/components/dashboard/organization-switcher'
 
 type FocusContext = {
   cursoId?: string

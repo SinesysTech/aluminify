@@ -1,0 +1,6 @@
+export { default as ProfessorDashboardClient } from './professor-dashboard-client'
+export { ProfessorHeader } from './professor-header'
+export { ProfessorMetrics } from './professor-metrics'
+export { StudentsUnderCareList } from './students-under-care-list'
+export { UpcomingAppointments } from './upcoming-appointments'
+export { ProfessorDisciplinaPerformanceList } from './professor-disciplina-performance'

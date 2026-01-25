@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { RankingList, type RankingItem } from '@/app/shared/components/ui/ranking-list'
+import { RankingList, type RankingItem } from '@/app/shared/components/dashboard/shared/ranking-list'
 import type { ProfessorRankingItem } from '@/types/dashboard-institution'
 
 interface ProfessorRankingListProps {
