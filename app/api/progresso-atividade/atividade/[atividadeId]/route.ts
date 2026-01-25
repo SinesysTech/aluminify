@@ -7,8 +7,8 @@ import {
 import {
   atividadeService,
   atividadeRequerDesempenho,
-} from "@/backend/services/atividade";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+} from "@/app/[tenant]/(dashboard)/atividades/services";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type { StatusAtividade } from "@/backend/services/progresso-atividade";
 
 const serializeProgresso = (

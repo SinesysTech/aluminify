@@ -4,7 +4,7 @@ import {
   RegraAtividadeNotFoundError,
   RegraAtividadeValidationError,
 } from "@/backend/services/regras-atividade";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 const serializeRegra = (
   regra: Awaited<ReturnType<typeof regraAtividadeService.getById>>,

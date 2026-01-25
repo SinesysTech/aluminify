@@ -3,7 +3,7 @@ import {
   studentImportService,
   StudentValidationError,
 } from "@/backend/services/student";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import Papa from "papaparse";
 import ExcelJS from "exceljs";
 import type { Database } from "@/lib/database.types";

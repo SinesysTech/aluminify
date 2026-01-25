@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authService } from "@/backend/auth/auth.service";
+import { authService } from "@/app/[tenant]/auth/services/auth.service";
 
 /**
  * Endpoint de cadastro (signup) genérico.

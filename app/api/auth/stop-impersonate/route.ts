@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireUserAuth, type AuthenticatedRequest } from '@/backend/auth/middleware'
+import { requireUserAuth, type AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
 import { clearImpersonationContext, getImpersonationContext } from '@/lib/auth-impersonate'
 import { getDefaultRouteForRole } from '@/lib/roles'
 

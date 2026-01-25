@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseClient } from '@/backend/clients/database';
-import { getAuthUser } from '@/backend/auth/middleware';
+import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { StudentRepositoryImpl } from '@/backend/services/student';
 import { studentService } from '@/backend/services/student';
 import { randomBytes } from 'crypto';

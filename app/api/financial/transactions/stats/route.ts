@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 import { createFinancialService } from "@/backend/services/financial";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {
   console.error("Financial Stats API Error:", error);

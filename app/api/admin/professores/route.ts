@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseClient } from '@/backend/clients/database';
-import { getAuthUser } from '@/backend/auth/middleware';
+import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { TeacherRepositoryImpl } from '@/backend/services/teacher';
 import { EmpresaRepositoryImpl } from '@/backend/services/empresa';
 import { createClient } from '@/lib/server';

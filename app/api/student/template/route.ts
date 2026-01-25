@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   requireAuth,
   type AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import { StudentTemplateService } from "@/backend/services/student/student-template.service";
 import { isAdminRoleTipo } from "@/lib/roles";
 

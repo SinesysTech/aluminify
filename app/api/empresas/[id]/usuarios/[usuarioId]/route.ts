@@ -4,7 +4,7 @@ import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/server";
 import { UsuarioRepositoryImpl } from "@/backend/services/usuario";
 import { PapelRepositoryImpl } from "@/backend/services/papel";
-import { getAuthUser } from "@/backend/auth/middleware";
+import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,
   validateEmpresaAccess,

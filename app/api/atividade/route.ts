@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   atividadeService,
   AtividadeValidationError,
-} from "@/backend/services/atividade";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+} from "@/app/[tenant]/(dashboard)/atividades/services";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 const serializeAtividade = (
   atividade: Awaited<ReturnType<typeof atividadeService.getById>>,

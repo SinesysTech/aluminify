@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/backend/clients/database";
 import { isAdminRoleTipo } from "@/lib/roles";
 import type { RolePermissions } from "@/types/shared/entities/papel";

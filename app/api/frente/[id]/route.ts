@@ -3,7 +3,7 @@ import { getDatabaseClient } from "@/backend/clients/database";
 import {
   requireUserAuth,
   AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import {
   courseStructureCacheService,
   activityCacheService,

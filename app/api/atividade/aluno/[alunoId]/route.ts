@@ -2,8 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   atividadeService,
   AtividadeValidationError,
-} from "@/backend/services/atividade";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+} from "@/app/[tenant]/(dashboard)/atividades/services";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 function serializeAtividadeComProgresso(
   atividade: Awaited<

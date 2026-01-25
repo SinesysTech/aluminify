@@ -4,7 +4,7 @@ import {
   TeacherConflictError,
   TeacherValidationError,
 } from "@/backend/services/teacher";
-import { getAuthUser } from "@/backend/auth/middleware";
+import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 
 const serializeTeacher = (
   teacher: Awaited<ReturnType<typeof teacherService.getById>>,

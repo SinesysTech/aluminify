@@ -4,7 +4,7 @@ import {
   CourseConflictError,
   CourseValidationError,
 } from "@/backend/services/course";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import {
   getDatabaseClient,
   getDatabaseClientAsUser,

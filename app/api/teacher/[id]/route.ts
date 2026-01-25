@@ -5,7 +5,7 @@ import {
   TeacherNotFoundError,
   TeacherValidationError,
 } from '@/backend/services/teacher';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 
 const serializeTeacher = (teacher: Awaited<ReturnType<typeof teacherService.getById>>) => ({
   id: teacher.id,

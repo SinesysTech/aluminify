@@ -8,7 +8,7 @@ import {
 import {
   requireUserAuth,
   AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {
   if (error instanceof CronogramaValidationError) {

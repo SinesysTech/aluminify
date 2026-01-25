@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDatabaseClient } from '@/backend/clients/database';
-import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 import { CronogramaValidationError } from '@/backend/services/cronograma';
 import type { Database } from '@/lib/database.types';
 

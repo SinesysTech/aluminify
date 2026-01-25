@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   requireAuth,
   type AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import { createClient } from "@/lib/server";
 import { createStudentOrganizationsService } from "@/backend/services/student";
 

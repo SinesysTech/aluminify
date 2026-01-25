@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/server';
-import { getAuthUser } from '@/backend/auth/middleware';
+import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
 
 interface RouteContext {

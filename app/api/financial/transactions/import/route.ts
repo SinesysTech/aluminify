@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/backend/clients/database";
 import { createTransactionRepository } from "@/backend/services/financial";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type {
   TransactionImportResult,
   CreateTransactionInput,

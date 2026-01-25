@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { conversationService } from '@/backend/services/conversation';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 import { cacheService } from '@/backend/services/cache';
 
 interface RouteContext {

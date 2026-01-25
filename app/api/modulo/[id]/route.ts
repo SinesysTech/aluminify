@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   requireUserAuth,
   AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/backend/clients/database";
 
 interface RouteContext {

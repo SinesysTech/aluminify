@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { authService } from '@/backend/auth/auth.service';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { authService } from '@/app/[tenant]/auth/services/auth.service';
+import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 import { clearImpersonationContext } from '@/lib/auth-impersonate';
 
 async function handler() {

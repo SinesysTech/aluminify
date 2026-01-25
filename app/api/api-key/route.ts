@@ -6,7 +6,7 @@ import {
 import {
   requireUserAuth,
   AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 
 const serializeApiKey = (
   apiKey: Awaited<ReturnType<typeof apiKeyService.getById>>,

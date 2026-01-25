@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   requireUserAuth,
   type AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/backend/clients/database";
 import {
   setImpersonationContext,

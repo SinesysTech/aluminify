@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   requireUserAuth,
   type AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import { FlashcardsTemplateService } from "@/backend/services/flashcards/flashcards-template.service";
 
 export const runtime = "nodejs";

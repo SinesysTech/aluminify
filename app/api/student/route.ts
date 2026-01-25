@@ -4,7 +4,7 @@ import {
   StudentConflictError,
   StudentValidationError,
 } from "@/backend/services/student";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type { PaginationParams } from "@/types/shared/dtos/api-responses";
 
 const serializeStudent = (

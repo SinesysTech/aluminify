@@ -6,7 +6,7 @@ import {
 } from '@/backend/services/chat';
 import { conversationService } from '@/backend/services/conversation';
 import type { ChatMessage } from '@/backend/services/conversation';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 import { saveChatAttachments, cleanupChatAttachments } from '@/backend/services/chat/attachments.service';
 import type { ChatAttachment } from '@/backend/services/chat/chat.types';
 

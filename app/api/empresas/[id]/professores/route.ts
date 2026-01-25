@@ -3,7 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { createClient } from "@/lib/server";
 import { TeacherRepositoryImpl } from "@/backend/services/teacher";
-import { getAuthUser } from "@/backend/auth/middleware";
+import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,
   validateEmpresaAccess,

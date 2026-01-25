@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/database.types';
 import { EmpresaService, EmpresaRepositoryImpl } from '@/backend/services/empresa';
-import { getAuthUser } from '@/backend/auth/middleware';
+import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 import { getEmpresaContext, validateEmpresaAccess } from '@/backend/middleware/empresa-context';
 import { getPublicSupabaseConfig } from '@/lib/supabase-public-env';
 

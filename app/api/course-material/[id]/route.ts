@@ -9,7 +9,7 @@ import {
   requireAuth,
   requireUserAuth,
   AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import {
   getDatabaseClient,
   getDatabaseClientAsUser,

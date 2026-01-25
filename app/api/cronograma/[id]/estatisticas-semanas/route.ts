@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cronogramaService, CronogramaValidationError } from '@/backend/services/cronograma';
-import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 
 function handleError(error: unknown) {
   if (error instanceof CronogramaValidationError) {

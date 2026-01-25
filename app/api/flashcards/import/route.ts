@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireUserAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 import { createFlashcardsService, FlashcardImportRow } from '@/backend/services/flashcards/flashcards.service';
 
 async function handler(request: AuthenticatedRequest) {

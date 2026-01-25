@@ -1,4 +1,4 @@
-import { TipoAtividade } from "@/backend/services/atividade";
+import { TipoAtividade } from "@/app/[tenant]/(dashboard)/atividades/services";
 import {
   StatusAtividade,
   DificuldadePercebida,

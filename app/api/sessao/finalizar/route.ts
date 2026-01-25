@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   requireUserAuth,
   AuthenticatedRequest,
-} from "@/backend/auth/middleware";
+} from "@/app/[tenant]/auth/middleware";
 import {
   sessaoEstudoService,
   SessaoEstudoValidationError,

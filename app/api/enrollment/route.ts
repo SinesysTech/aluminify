@@ -4,7 +4,7 @@ import {
   EnrollmentConflictError,
   EnrollmentValidationError,
 } from "@/backend/services/enrollment";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 const serializeEnrollment = (
   enrollment: Awaited<ReturnType<typeof enrollmentService.getById>>,

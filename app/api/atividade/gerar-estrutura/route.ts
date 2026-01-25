@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   atividadeService,
   AtividadeValidationError,
-} from "@/backend/services/atividade";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+} from "@/app/[tenant]/(dashboard)/atividades/services";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {
   if (error instanceof AtividadeValidationError) {

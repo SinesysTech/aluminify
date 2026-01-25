@@ -4,7 +4,7 @@ import {
   DisciplineConflictError,
   DisciplineValidationError,
 } from "@/backend/services/discipline";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClientAsUser } from "@/backend/clients/database";
 
 const serializeDiscipline = (

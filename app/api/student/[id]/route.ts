@@ -5,7 +5,7 @@ import {
   StudentNotFoundError,
   StudentValidationError,
 } from '@/backend/services/student';
-import { requireAuth, AuthenticatedRequest } from '@/backend/auth/middleware';
+import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 
 const serializeStudent = (student: Awaited<ReturnType<typeof studentService.getById>>) => ({
   id: student.id,

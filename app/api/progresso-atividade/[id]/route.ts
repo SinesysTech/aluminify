@@ -4,7 +4,7 @@ import {
   ProgressoNotFoundError,
   ProgressoValidationError,
 } from "@/backend/services/progresso-atividade";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 const serializeProgresso = (
   progresso: Awaited<

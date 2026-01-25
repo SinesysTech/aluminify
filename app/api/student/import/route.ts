@@ -4,7 +4,7 @@ import {
   StudentValidationError,
   StudentImportInputRow,
 } from "@/backend/services/student";
-import { requireAuth, AuthenticatedRequest } from "@/backend/auth/middleware";
+import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {
   if (error instanceof StudentValidationError) {

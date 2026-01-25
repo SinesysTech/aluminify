@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseClient } from '@/backend/clients/database';
 import { EmpresaService, EmpresaRepositoryImpl } from '@/backend/services/empresa';
-import { getAuthUser } from '@/backend/auth/middleware';
+import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 
 // GET /api/empresas - Listar empresas (apenas superadmin)
 export async function GET(request: NextRequest) {
