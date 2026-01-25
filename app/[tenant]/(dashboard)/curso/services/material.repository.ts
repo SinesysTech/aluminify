@@ -1,23 +1,23 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from "@supabase/supabase-js";
 import {
-  CourseMaterial,
-  CreateCourseMaterialInput,
-  UpdateCourseMaterialInput,
+  MaterialCurso,
+  CreateMaterialCursoInput,
+  UpdateMaterialCursoInput,
   MaterialType,
-} from './course-material.types';
+} from "./material.types";
 
-export interface CourseMaterialRepository {
-  list(): Promise<CourseMaterial[]>;
-  findById(id: string): Promise<CourseMaterial | null>;
-  findByCourseId(courseId: string): Promise<CourseMaterial[]>;
-  create(payload: CreateCourseMaterialInput): Promise<CourseMaterial>;
-  update(id: string, payload: UpdateCourseMaterialInput): Promise<CourseMaterial>;
+export interface MaterialCursoRepository {
+  list(): Promise<MaterialCurso[]>;
+  findById(id: string): Promise<MaterialCurso | null>;
+  findByCourseId(courseId: string): Promise<MaterialCurso[]>;
+  create(payload: CreateMaterialCursoInput): Promise<MaterialCurso>;
+  update(id: string, payload: UpdateMaterialCursoInput): Promise<MaterialCurso>;
   delete(id: string): Promise<void>;
   courseExists(courseId: string): Promise<boolean>;
 }
 
-const TABLE = 'materiais_curso';
-const COURSE_TABLE = 'cursos';
+const TABLE = "materiais_curso";
+const COURSE_TABLE = "cursos";
 
 type CourseMaterialRow = {
   id: string;
@@ -31,7 +31,7 @@ type CourseMaterialRow = {
   updated_at: string;
 };
 
-function mapRow(row: CourseMaterialRow): CourseMaterial {
+function mapRow(row: CourseMaterialRow): MaterialCurso {
   return {
     id: row.id,
     courseId: row.curso_id,
@@ -45,15 +45,15 @@ function mapRow(row: CourseMaterialRow): CourseMaterial {
   };
 }
 
-export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
+export class MaterialCursoRepositoryImpl implements MaterialCursoRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(): Promise<CourseMaterial[]> {
+  async list(): Promise<MaterialCurso[]> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .order('ordem', { ascending: true })
-      .order('created_at', { ascending: false });
+      .select("*")
+      .order("ordem", { ascending: true })
+      .order("created_at", { ascending: false });
 
     if (error) {
       throw new Error(`Failed to list course materials: ${error.message}`);
@@ -62,8 +62,12 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
     return (data ?? []).map(mapRow);
   }
 
-  async findById(id: string): Promise<CourseMaterial | null> {
-    const { data, error } = await this.client.from(TABLE).select('*').eq('id', id).maybeSingle();
+  async findById(id: string): Promise<MaterialCurso | null> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to fetch course material: ${error.message}`);
@@ -72,35 +76,42 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
     return data ? mapRow(data) : null;
   }
 
-  async findByCourseId(courseId: string): Promise<CourseMaterial[]> {
+  async findByCourseId(courseId: string): Promise<MaterialCurso[]> {
     const { data, error } = await this.client
       .from(TABLE)
-      .select('*')
-      .eq('curso_id', courseId)
-      .order('ordem', { ascending: true })
-      .order('created_at', { ascending: false });
+      .select("*")
+      .eq("curso_id", courseId)
+      .order("ordem", { ascending: true })
+      .order("created_at", { ascending: false });
 
     if (error) {
-      throw new Error(`Failed to fetch course materials by course: ${error.message}`);
+      throw new Error(
+        `Failed to fetch course materials by course: ${error.message}`,
+      );
     }
 
     return (data ?? []).map(mapRow);
   }
 
-  async create(payload: CreateCourseMaterialInput): Promise<CourseMaterial> {
+  async create(payload: CreateMaterialCursoInput): Promise<MaterialCurso> {
     const { data: course, error: courseError } = await this.client
       .from(COURSE_TABLE)
-      .select('empresa_id')
-      .eq('id', payload.courseId)
+      .select("empresa_id")
+      .eq("id", payload.courseId)
       .maybeSingle();
 
     if (courseError) {
-      throw new Error(`Failed to fetch course empresa_id: ${courseError.message}`);
+      throw new Error(
+        `Failed to fetch course empresa_id: ${courseError.message}`,
+      );
     }
 
-    const empresaId = (course as { empresa_id?: string | null } | null)?.empresa_id ?? null;
+    const empresaId =
+      (course as { empresa_id?: string | null } | null)?.empresa_id ?? null;
     if (!empresaId) {
-      throw new Error(`Course "${payload.courseId}" does not have empresa_id (inconsistent data)`);
+      throw new Error(
+        `Course "${payload.courseId}" does not have empresa_id (inconsistent data)`,
+      );
     }
 
     const insertData: Record<string, unknown> = {
@@ -108,7 +119,7 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
       empresa_id: empresaId,
       titulo: payload.title,
       descricao_opcional: payload.description ?? null,
-      tipo: payload.type || 'Apostila',
+      tipo: payload.type || "Apostila",
       arquivo_url: payload.fileUrl,
       ordem: payload.order ?? 0,
     };
@@ -116,7 +127,7 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
     const { data, error } = await this.client
       .from(TABLE)
       .insert(insertData)
-      .select('*')
+      .select("*")
       .single();
 
     if (error) {
@@ -126,7 +137,10 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
     return mapRow(data);
   }
 
-  async update(id: string, payload: UpdateCourseMaterialInput): Promise<CourseMaterial> {
+  async update(
+    id: string,
+    payload: UpdateMaterialCursoInput,
+  ): Promise<MaterialCurso> {
     const updateData: Record<string, unknown> = {};
 
     if (payload.title !== undefined) {
@@ -152,8 +166,8 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
     const { data, error } = await this.client
       .from(TABLE)
       .update(updateData)
-      .eq('id', id)
-      .select('*')
+      .eq("id", id)
+      .select("*")
       .single();
 
     if (error) {
@@ -164,7 +178,7 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.client.from(TABLE).delete().eq('id', id);
+    const { error } = await this.client.from(TABLE).delete().eq("id", id);
 
     if (error) {
       throw new Error(`Failed to delete course material: ${error.message}`);
@@ -174,8 +188,8 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
   async courseExists(courseId: string): Promise<boolean> {
     const { data, error } = await this.client
       .from(COURSE_TABLE)
-      .select('id')
-      .eq('id', courseId)
+      .select("id")
+      .eq("id", courseId)
       .maybeSingle();
 
     if (error) {
@@ -185,4 +199,3 @@ export class CourseMaterialRepositoryImpl implements CourseMaterialRepository {
     return !!data;
   }
 }
-

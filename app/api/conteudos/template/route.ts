@@ -3,7 +3,7 @@ import {
   requireUserAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { ConteudosTemplateService } from "@/backend/services/conteudos/conteudos-template.service";
+import { ConteudosTemplateService } from "@/app/[tenant]/(dashboard)/conteudos/services/conteudos-template.service";
 
 export const runtime = "nodejs";
 
@@ -21,9 +21,9 @@ async function getHandler(request: AuthenticatedRequest) {
       buffer.byteOffset + buffer.byteLength,
     ) as ArrayBuffer;
 
-    const filename = `modelo-importacao-conteudos-${new Date()
-      .toISOString()
-      .split("T")[0]}.xlsx`;
+    const filename = `modelo-importacao-conteudos-${
+      new Date().toISOString().split("T")[0]
+    }.xlsx`;
 
     return new NextResponse(body, {
       status: 200,
@@ -46,4 +46,3 @@ async function getHandler(request: AuthenticatedRequest) {
 export async function GET(request: NextRequest) {
   return requireUserAuth(getHandler)(request);
 }
-

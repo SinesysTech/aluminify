@@ -4,7 +4,7 @@ import {
   CourseConflictError,
   CourseNotFoundError,
   CourseValidationError,
-} from '@/backend/services/course';
+} from '@/app/[tenant]/(dashboard)/curso/services';
 import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
 
 const serializeCourse = (course: Awaited<ReturnType<typeof courseService.getById>>) => ({

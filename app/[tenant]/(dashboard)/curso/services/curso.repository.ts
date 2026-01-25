@@ -1,11 +1,11 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
-  Course,
-  CreateCourseInput,
-  UpdateCourseInput,
+  Curso,
+  CreateCursoInput,
+  UpdateCursoInput,
   Modality,
   CourseType,
-} from "./course.types";
+} from "./curso.types";
 import type {
   PaginationParams,
   PaginationMeta,
@@ -16,18 +16,18 @@ export interface PaginatedResult<T> {
   meta: PaginationMeta;
 }
 
-export interface CourseRepository {
-  list(params?: PaginationParams): Promise<PaginatedResult<Course>>;
-  findById(id: string): Promise<Course | null>;
-  create(payload: CreateCourseInput): Promise<Course>;
-  update(id: string, payload: UpdateCourseInput): Promise<Course>;
+export interface CursoRepository {
+  list(params?: PaginationParams): Promise<PaginatedResult<Curso>>;
+  findById(id: string): Promise<Curso | null>;
+  create(payload: CreateCursoInput): Promise<Curso>;
+  update(id: string, payload: UpdateCursoInput): Promise<Curso>;
   delete(id: string): Promise<void>;
-  findByEmpresa(empresaId: string): Promise<Course[]>;
+  findByEmpresa(empresaId: string): Promise<Curso[]>;
   segmentExists(segmentId: string): Promise<boolean>;
   disciplineExists(disciplineId: string): Promise<boolean>;
   setCourseDisciplines(
     courseId: string,
-    disciplineIds: string[]
+    disciplineIds: string[],
   ): Promise<void>;
   getCourseDisciplines(courseId: string): Promise<string[]>;
 }
@@ -57,7 +57,7 @@ type CourseRow = {
   updated_at: string;
 };
 
-async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Course> {
+async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Curso> {
   // Buscar disciplinas relacionadas
   const disciplineIds = await getCourseDisciplinesFromDb(row.id, client);
 
@@ -85,7 +85,7 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Course> {
 
 async function getCourseDisciplinesFromDb(
   courseId: string,
-  client: SupabaseClient
+  client: SupabaseClient,
 ): Promise<string[]> {
   const { data, error } = await client
     .from(COURSE_DISCIPLINES_TABLE)
@@ -98,11 +98,11 @@ async function getCourseDisciplinesFromDb(
   }
 
   return (data ?? []).map(
-    (row: { disciplina_id: string }) => row.disciplina_id
+    (row: { disciplina_id: string }) => row.disciplina_id,
   );
 }
 
-export class CourseRepositoryImpl implements CourseRepository {
+export class CursoRepositoryImpl implements CursoRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   // Map English property names to Portuguese column names
@@ -127,7 +127,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     return columnMap[sortBy] || sortBy;
   }
 
-  async list(params?: PaginationParams): Promise<PaginatedResult<Course>> {
+  async list(params?: PaginationParams): Promise<PaginatedResult<Curso>> {
     const page = params?.page ?? 1;
     const perPage = params?.perPage ?? 50;
     const sortByParam = params?.sortBy ?? "nome";
@@ -161,7 +161,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     }
 
     const courses = await Promise.all(
-      (data ?? []).map((row) => mapRow(row, this.client))
+      (data ?? []).map((row) => mapRow(row, this.client)),
     );
 
     return {
@@ -175,7 +175,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     };
   }
 
-  async findById(id: string): Promise<Course | null> {
+  async findById(id: string): Promise<Curso | null> {
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
@@ -189,7 +189,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     return data ? mapRow(data, this.client) : null;
   }
 
-  async create(payload: CreateCourseInput): Promise<Course> {
+  async create(payload: CreateCursoInput): Promise<Curso> {
     // Determinar disciplineIds: usar disciplineIds se fornecido, senão usar disciplineId (compatibilidade)
     const disciplineIds =
       payload.disciplineIds ??
@@ -230,7 +230,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     return mapRow(data, this.client);
   }
 
-  async update(id: string, payload: UpdateCourseInput): Promise<Course> {
+  async update(id: string, payload: UpdateCursoInput): Promise<Curso> {
     const updateData: Record<string, unknown> = {};
 
     if (payload.segmentId !== undefined) {
@@ -249,7 +249,7 @@ export class CourseRepositoryImpl implements CourseRepository {
       // Atualizar relacionamentos também
       await this.setCourseDisciplines(
         id,
-        payload.disciplineId ? [payload.disciplineId] : []
+        payload.disciplineId ? [payload.disciplineId] : [],
       );
     }
 
@@ -349,7 +349,7 @@ export class CourseRepositoryImpl implements CourseRepository {
 
   async setCourseDisciplines(
     courseId: string,
-    disciplineIds: string[]
+    disciplineIds: string[],
   ): Promise<void> {
     // Remover relacionamentos existentes
     const { error: deleteError } = await this.client
@@ -359,7 +359,7 @@ export class CourseRepositoryImpl implements CourseRepository {
 
     if (deleteError) {
       throw new Error(
-        `Failed to remove course disciplines: ${deleteError.message}`
+        `Failed to remove course disciplines: ${deleteError.message}`,
       );
     }
 
@@ -376,7 +376,7 @@ export class CourseRepositoryImpl implements CourseRepository {
 
       if (insertError) {
         throw new Error(
-          `Failed to set course disciplines: ${insertError.message}`
+          `Failed to set course disciplines: ${insertError.message}`,
         );
       }
     }
@@ -386,7 +386,7 @@ export class CourseRepositoryImpl implements CourseRepository {
     return getCourseDisciplinesFromDb(courseId, this.client);
   }
 
-  async findByEmpresa(empresaId: string): Promise<Course[]> {
+  async findByEmpresa(empresaId: string): Promise<Curso[]> {
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")

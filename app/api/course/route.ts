@@ -3,7 +3,7 @@ import {
   courseService,
   CourseConflictError,
   CourseValidationError,
-} from "@/backend/services/course";
+} from "@/app/[tenant]/(dashboard)/curso/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import {
   getDatabaseClient,

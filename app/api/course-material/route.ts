@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  courseMaterialService,
-  CourseMaterialValidationError,
-  createCourseMaterialService,
-} from "@/backend/services/course-material";
+  materialCursoService,
+  MaterialCursoValidationError,
+  createMaterialCursoService,
+} from "@/app/[tenant]/(dashboard)/curso/services/material.service";
 import {
   requireAuth,
   requireUserAuth,
@@ -15,7 +15,7 @@ import {
 } from "@/backend/clients/database";
 
 const serializeCourseMaterial = (
-  material: Awaited<ReturnType<typeof courseMaterialService.getById>>,
+  material: Awaited<ReturnType<typeof materialCursoService.getById>>,
 ) => ({
   id: material.id,
   courseId: material.courseId,
@@ -29,7 +29,7 @@ const serializeCourseMaterial = (
 });
 
 function handleError(error: unknown) {
-  if (error instanceof CourseMaterialValidationError) {
+  if (error instanceof MaterialCursoValidationError) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
@@ -55,7 +55,7 @@ async function getHandler(request: AuthenticatedRequest) {
     }
 
     const userClient = getDatabaseClientAsUser(token);
-    const userScopedService = createCourseMaterialService(userClient);
+    const userScopedService = createMaterialCursoService(userClient);
 
     let materials: Awaited<ReturnType<typeof userScopedService.list>>;
     if (courseId) {
@@ -95,7 +95,7 @@ async function postHandler(request: AuthenticatedRequest) {
     // JWT: usar client user-scoped (RLS faz a validação)
     if (request.user && token) {
       const userClient = getDatabaseClientAsUser(token);
-      const userScopedService = createCourseMaterialService(userClient);
+      const userScopedService = createMaterialCursoService(userClient);
       const material = await userScopedService.create({
         courseId,
         title: body?.title,
@@ -146,7 +146,7 @@ async function postHandler(request: AuthenticatedRequest) {
       }
 
       // Aqui é seguro usar o service role (empresa_id será derivado do curso no repositório + FK composta)
-      const material = await courseMaterialService.create({
+      const material = await materialCursoService.create({
         courseId,
         title: body?.title,
         description: body?.description,

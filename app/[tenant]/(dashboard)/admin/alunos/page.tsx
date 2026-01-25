@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/server'
 import { createStudentService } from '@/backend/services/student'
-import { createCourseService } from '@/backend/services/course'
+import { createCursoService } from '@/app/[tenant]/(dashboard)/curso/services'
 import { AlunosClientPage } from './components/client-page'
 import { requireUser } from '@/lib/auth'
 
@@ -21,11 +21,11 @@ export default async function AlunosPage({ searchParams }: { searchParams: { pag
   // Usar cliente com contexto do usuário para respeitar RLS
   const supabase = await createClient()
   const studentService = createStudentService(supabase)
-  const courseService = createCourseService(supabase)
+  const cursoService = createCursoService(supabase)
 
   const [studentsResult, coursesResult, allStudentsMetaResult] = await Promise.all([
     studentService.list({ page, perPage: 10, query, courseId, turmaId }),
-    courseService.list({ perPage: 100, sortBy: 'name', sortOrder: 'asc' }),
+    cursoService.list({ perPage: 100, sortBy: 'name', sortOrder: 'asc' }),
     // Para mostrar o total geral no topo (independente de filtros)
     studentService.list({ page: 1, perPage: 1 }),
   ])

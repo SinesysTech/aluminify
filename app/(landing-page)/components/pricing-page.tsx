@@ -209,7 +209,7 @@ export function PricingPage() {
                                                 <span className="block font-bold text-green-600">25% OFF</span>
                                                 <span className="text-[10px] text-text-muted-light dark:text-text-muted-dark">Setup: R$ 1.200</span>
                                             </div>
-                                            <div className="dark:bg-surface-dark p-3 rounded border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 text-center">
+                                            <div className="dark:bg-surface-dark p-3 rounded border border-blue-200 dark:border-blue-900 bg-blue-50 text-center">
                                                 <span className="block text-xs text-blue-800 dark:text-blue-300">Contrato 24 meses</span>
                                                 <span className="block font-bold text-blue-600 dark:text-blue-400">SETUP GRÁTIS</span>
                                                 <span className="text-[10px] text-blue-800 dark:text-blue-300">100% OFF</span>

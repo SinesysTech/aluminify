@@ -1,17 +1,15 @@
 import {
-  CourseMaterial,
-  CreateCourseMaterialInput,
-  UpdateCourseMaterialInput,
+  MaterialCurso,
+  CreateMaterialCursoInput,
+  UpdateMaterialCursoInput,
   MaterialType,
-} from './course-material.types';
-import {
-  CourseMaterialRepository,
-} from './course-material.repository';
+} from "./material.types";
+import { MaterialCursoRepository } from "./material.repository";
 import {
   CourseMaterialNotFoundError,
   CourseMaterialValidationError,
-} from './errors';
-import { cacheService } from '@/backend/services/cache';
+} from "./errors";
+import { cacheService } from "@/backend/services/cache";
 
 const TITLE_MIN_LENGTH = 3;
 const TITLE_MAX_LENGTH = 200;
@@ -20,39 +18,42 @@ const ORDER_MIN = 0;
 const ORDER_MAX = 10000;
 
 const VALID_MATERIAL_TYPES: MaterialType[] = [
-  'Apostila',
-  'Lista de Exercícios',
-  'Planejamento',
-  'Resumo',
-  'Gabarito',
-  'Outros',
+  "Apostila",
+  "Lista de Exercícios",
+  "Planejamento",
+  "Resumo",
+  "Gabarito",
+  "Outros",
 ];
 
-export class CourseMaterialService {
-  constructor(private readonly repository: CourseMaterialRepository) {}
+export class MaterialCursoService {
+  constructor(private readonly repository: MaterialCursoRepository) {}
 
-  async list(): Promise<CourseMaterial[]> {
+  async list(): Promise<MaterialCurso[]> {
     return this.repository.list();
   }
 
-  async listByCourse(courseId: string): Promise<CourseMaterial[]> {
+  async listByCourse(courseId: string): Promise<MaterialCurso[]> {
     const cacheKey = `cache:curso:${courseId}:materiais`;
-    
+
     return cacheService.getOrSet(
       cacheKey,
       () => this.repository.findByCourseId(courseId),
-      1800 // TTL: 30 minutos
+      1800, // TTL: 30 minutos
     );
   }
 
-  async create(payload: CreateCourseMaterialInput): Promise<CourseMaterial> {
+  async create(payload: CreateMaterialCursoInput): Promise<MaterialCurso> {
     await this.ensureCourseExists(payload.courseId);
 
     const title = this.validateTitle(payload.title);
     const type = this.validateMaterialType(payload.type);
     const fileUrl = this.validateFileUrl(payload.fileUrl);
-    const description = payload.description ? this.validateDescription(payload.description) : undefined;
-    const order = payload.order !== undefined ? this.validateOrder(payload.order) : 0;
+    const description = payload.description
+      ? this.validateDescription(payload.description)
+      : undefined;
+    const order =
+      payload.order !== undefined ? this.validateOrder(payload.order) : 0;
 
     const material = await this.repository.create({
       courseId: payload.courseId,
@@ -69,7 +70,10 @@ export class CourseMaterialService {
     return material;
   }
 
-  async update(id: string, payload: UpdateCourseMaterialInput): Promise<CourseMaterial> {
+  async update(
+    id: string,
+    payload: UpdateMaterialCursoInput,
+  ): Promise<MaterialCurso> {
     await this.ensureExists(id);
 
     const updateData: UpdateCourseMaterialInput = {};
@@ -79,7 +83,9 @@ export class CourseMaterialService {
     }
 
     if (payload.description !== undefined) {
-      updateData.description = payload.description ? this.validateDescription(payload.description) : null;
+      updateData.description = payload.description
+        ? this.validateDescription(payload.description)
+        : null;
     }
 
     if (payload.type !== undefined) {
@@ -110,14 +116,14 @@ export class CourseMaterialService {
     await cacheService.del(`cache:curso:${material.courseId}:materiais`);
   }
 
-  async getById(id: string): Promise<CourseMaterial> {
+  async getById(id: string): Promise<MaterialCurso> {
     return this.ensureExists(id);
   }
 
   private validateTitle(title?: string): string {
     const trimmed = title?.trim();
     if (!trimmed) {
-      throw new CourseMaterialValidationError('Title is required');
+      throw new CourseMaterialValidationError("Title is required");
     }
 
     if (trimmed.length < TITLE_MIN_LENGTH) {
@@ -138,7 +144,7 @@ export class CourseMaterialService {
   private validateDescription(description?: string): string {
     const trimmed = description?.trim();
     if (!trimmed) {
-      return '';
+      return "";
     }
 
     if (trimmed.length > DESCRIPTION_MAX_LENGTH) {
@@ -152,12 +158,12 @@ export class CourseMaterialService {
 
   private validateMaterialType(type?: MaterialType): MaterialType {
     if (!type) {
-      return 'Apostila';
+      return "Apostila";
     }
 
     if (!VALID_MATERIAL_TYPES.includes(type)) {
       throw new CourseMaterialValidationError(
-        `Type must be one of: ${VALID_MATERIAL_TYPES.join(', ')}`,
+        `Type must be one of: ${VALID_MATERIAL_TYPES.join(", ")}`,
       );
     }
 
@@ -167,13 +173,13 @@ export class CourseMaterialService {
   private validateFileUrl(fileUrl?: string): string {
     const trimmed = fileUrl?.trim();
     if (!trimmed) {
-      throw new CourseMaterialValidationError('File URL is required');
+      throw new CourseMaterialValidationError("File URL is required");
     }
 
     try {
       new URL(trimmed);
     } catch {
-      throw new CourseMaterialValidationError('File URL must be a valid URL');
+      throw new CourseMaterialValidationError("File URL must be a valid URL");
     }
 
     return trimmed;
@@ -193,10 +199,12 @@ export class CourseMaterialService {
     return order;
   }
 
-  private async ensureExists(id: string): Promise<CourseMaterial> {
+  private async ensureExists(id: string): Promise<MaterialCurso> {
     const material = await this.repository.findById(id);
     if (!material) {
-      throw new CourseMaterialNotFoundError(`Course material with id "${id}" was not found`);
+      throw new CourseMaterialNotFoundError(
+        `Course material with id "${id}" was not found`,
+      );
     }
     return material;
   }
@@ -204,8 +212,9 @@ export class CourseMaterialService {
   private async ensureCourseExists(courseId: string): Promise<void> {
     const exists = await this.repository.courseExists(courseId);
     if (!exists) {
-      throw new CourseMaterialValidationError(`Course with id "${courseId}" does not exist`);
+      throw new CourseMaterialValidationError(
+        `Course with id "${courseId}" does not exist`,
+      );
     }
   }
 }
-

@@ -5,8 +5,7 @@
 export type {
   Modality,
   CourseType,
-  Course,
-  CreateCourseInput,
-  UpdateCourseInput,
-} from '@/types/shared';
-
+  Curso,
+  CreateCursoInput,
+  UpdateCursoInput,
+} from "@/types/shared";

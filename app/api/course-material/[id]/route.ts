@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  courseMaterialService,
-  CourseMaterialNotFoundError,
-  CourseMaterialValidationError,
-  createCourseMaterialService,
-} from "@/backend/services/course-material";
+  materialCursoService,
+  MaterialCursoNotFoundError,
+  MaterialCursoValidationError,
+  createMaterialCursoService,
+} from "@/app/[tenant]/(dashboard)/curso/services/material.service";
 import {
   requireAuth,
   requireUserAuth,
@@ -16,7 +16,7 @@ import {
 } from "@/backend/clients/database";
 
 const serializeCourseMaterial = (
-  material: Awaited<ReturnType<typeof courseMaterialService.getById>>,
+  material: Awaited<ReturnType<typeof materialCursoService.getById>>,
 ) => ({
   id: material.id,
   courseId: material.courseId,
@@ -30,11 +30,11 @@ const serializeCourseMaterial = (
 });
 
 function handleError(error: unknown) {
-  if (error instanceof CourseMaterialValidationError) {
+  if (error instanceof MaterialCursoValidationError) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  if (error instanceof CourseMaterialNotFoundError) {
+  if (error instanceof MaterialCursoNotFoundError) {
     return NextResponse.json({ error: error.message }, { status: 404 });
   }
 
@@ -64,7 +64,7 @@ async function getHandler(
     }
 
     const userClient = getDatabaseClientAsUser(token);
-    const userScopedService = createCourseMaterialService(userClient);
+    const userScopedService = createMaterialCursoService(userClient);
     const material = await userScopedService.getById(params.id);
     return NextResponse.json({ data: serializeCourseMaterial(material) });
   } catch (error) {
@@ -93,7 +93,7 @@ async function putHandler(
     // JWT: usar client user-scoped (RLS faz a validação)
     if (request.user && token) {
       const userClient = getDatabaseClientAsUser(token);
-      const userScopedService = createCourseMaterialService(userClient);
+      const userScopedService = createMaterialCursoService(userClient);
       const material = await userScopedService.update(params.id, {
         title: body?.title,
         description: body?.description,
@@ -140,7 +140,7 @@ async function putHandler(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
 
-      const material = await courseMaterialService.update(params.id, {
+      const material = await materialCursoService.update(params.id, {
         title: body?.title,
         description: body?.description,
         type: body?.type,
@@ -175,7 +175,7 @@ async function deleteHandler(
     // JWT: usar client user-scoped (RLS faz a validação)
     if (request.user && token) {
       const userClient = getDatabaseClientAsUser(token);
-      const userScopedService = createCourseMaterialService(userClient);
+      const userScopedService = createMaterialCursoService(userClient);
       await userScopedService.delete(params.id);
       return NextResponse.json({ success: true });
     }
@@ -216,7 +216,7 @@ async function deleteHandler(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
 
-      await courseMaterialService.delete(params.id);
+      await materialCursoService.delete(params.id);
       return NextResponse.json({ success: true });
     }
 
