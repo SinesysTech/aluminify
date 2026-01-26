@@ -2401,3 +2401,23 @@ export class FlashcardsService {
 // Isso impede erros em build quando variáveis de ambiente do Supabase não estão configuradas,
 // mas ainda garante que em tempo de execução o erro seja lançado se o banco não estiver configurado.
 export const createFlashcardsService = () => new FlashcardsService();
+
+// Singleton instance using lazy initialization proxy
+let _flashcardsServiceInstance: FlashcardsService | null = null;
+
+function getFlashcardsServiceInstance(): FlashcardsService {
+  if (!_flashcardsServiceInstance) {
+    _flashcardsServiceInstance = new FlashcardsService();
+  }
+  return _flashcardsServiceInstance;
+}
+
+/**
+ * Singleton instance of FlashcardsService.
+ * Uses lazy initialization to avoid errors during build when Supabase env vars are not set.
+ */
+export const flashcardsService = new Proxy({} as FlashcardsService, {
+  get(_target, prop) {
+    return getFlashcardsServiceInstance()[prop as keyof FlashcardsService];
+  },
+});

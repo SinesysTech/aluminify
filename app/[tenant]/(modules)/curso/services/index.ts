@@ -42,7 +42,20 @@ export const cursoService = new Proxy({} as CursoService, {
   },
 });
 
+/**
+ * @deprecated Alias for cursoService. Use cursoService or createCursoService instead.
+ */
+export { cursoService as courseService };
+
 export * from "./curso.types";
 export * from "./curso.service";
 export * from "./curso.repository";
 export * from "./errors";
+
+// Material service exports
+export * from "./material.service";
+export * from "./material.repository";
+export * from "./material.types";
+
+// Turma service exports
+export * from "./turma";

@@ -1,15 +1,17 @@
+import { SupabaseClient } from "@supabase/supabase-js";
 import {
   MaterialCurso,
   CreateMaterialCursoInput,
   UpdateMaterialCursoInput,
   MaterialType,
 } from "./material.types";
-import { MaterialCursoRepository } from "./material.repository";
+import { MaterialCursoRepository, MaterialCursoRepositoryImpl } from "./material.repository";
 import {
   CourseMaterialNotFoundError,
   CourseMaterialValidationError,
 } from "./errors";
 import { cacheService } from "@/app/shared/core/services/cache";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 const TITLE_MIN_LENGTH = 3;
 const TITLE_MAX_LENGTH = 200;
@@ -218,3 +220,44 @@ export class MaterialCursoService {
     }
   }
 }
+
+// === FACTORY FUNCTION ===
+
+/**
+ * Factory function to create MaterialCursoService with a specific Supabase client.
+ * Use this when you need RLS policies to be applied.
+ *
+ * @param client - Supabase client with authenticated user context
+ * @returns MaterialCursoService instance that respects RLS
+ */
+export function createMaterialCursoService(client: SupabaseClient): MaterialCursoService {
+  const repository = new MaterialCursoRepositoryImpl(client);
+  return new MaterialCursoService(repository);
+}
+
+// === ADMIN SERVICE (bypasses RLS - use only in secure contexts) ===
+
+let _adminMaterialCursoService: MaterialCursoService | null = null;
+
+function getAdminMaterialCursoService(): MaterialCursoService {
+  if (!_adminMaterialCursoService) {
+    const databaseClient = getDatabaseClient();
+    const repository = new MaterialCursoRepositoryImpl(databaseClient);
+    _adminMaterialCursoService = new MaterialCursoService(repository);
+  }
+  return _adminMaterialCursoService;
+}
+
+/**
+ * @deprecated Use createMaterialCursoService(client) with user client to respect RLS.
+ * This proxy uses admin client and BYPASSES all RLS policies.
+ */
+export const materialCursoService = new Proxy({} as MaterialCursoService, {
+  get(_target, prop) {
+    return getAdminMaterialCursoService()[prop as keyof MaterialCursoService];
+  },
+});
+
+// Re-export error aliases for backwards compatibility
+export { CourseMaterialNotFoundError as MaterialCursoNotFoundError } from "./errors";
+export { CourseMaterialValidationError as MaterialCursoValidationError } from "./errors";
