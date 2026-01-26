@@ -4,7 +4,7 @@ import type {
   ProfessorSummary,
   ProfessorDisciplinaPerformance,
 } from "@/app/[tenant]/(dashboard)/dashboard/types";
-import type { StudentUnderCare } from "@/app/[tenant]/features/pessoas/types";
+import type { StudentUnderCare } from "@/app/[tenant]/(dashboard)/usuario/types";
 import type { UpcomingAppointment } from "@/app/[tenant]/(dashboard)/agendamentos/types/types";
 
 export class ProfessorAnalyticsService {

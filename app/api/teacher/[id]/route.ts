@@ -4,7 +4,7 @@ import {
   TeacherConflictError,
   TeacherNotFoundError,
   TeacherValidationError,
-} from "@/app/[tenant]/features/pessoas/services";
+} from "@/app/[tenant]/(dashboard)/usuario/services";
 import {
   requireAuth,
   AuthenticatedRequest,

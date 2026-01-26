@@ -4,7 +4,7 @@
  * Usado quando o usuário tem papel administrativo (admin, professor_admin) ou é superadmin
  */
 
-import type { HeatmapDay } from "@/app/[tenant]/(dashboard)/aluno/dashboard/types";
+import type { HeatmapDay } from "@/app/[tenant]/(dashboard)/dashboard/types/student";
 
 export interface InstitutionSummary {
   totalAlunos: number;

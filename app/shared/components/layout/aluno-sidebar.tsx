@@ -35,17 +35,17 @@ type NavItem = {
 const alunoNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/aluno/dashboard",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     title: "Calendário",
-    url: "/aluno/cronograma/calendario",
+    url: "/cronograma/calendario",
     icon: Calendar,
   },
   {
     title: "Sala de Estudos",
-    url: "/aluno/sala-de-estudos",
+    url: "/sala-de-estudos",
     icon: School,
   },
   {
@@ -55,12 +55,12 @@ const alunoNavItems: NavItem[] = [
   },
   {
     title: "Meu Cronograma",
-    url: "/aluno/cronograma",
+    url: "/cronograma",
     icon: CalendarCheck,
   },
   {
     title: "Flashcards",
-    url: "/aluno/flashcards",
+    url: "/flashcards",
     icon: BrainCircuit,
   },
   {

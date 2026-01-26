@@ -21,7 +21,7 @@ export interface ProfessorDisciplinaPerformance {
 export interface ProfessorDashboardData {
   professorNome: string;
   summary: ProfessorSummary;
-  alunos: import("@/app/[tenant]/features/pessoas/types").StudentUnderCare[];
+  alunos: import("@/app/[tenant]/(dashboard)/usuario/types").StudentUnderCare[];
   agendamentos: import("@/app/[tenant]/(dashboard)/agendamentos/types/types").UpcomingAppointment[];
   performanceAlunos: ProfessorDisciplinaPerformance[];
 }

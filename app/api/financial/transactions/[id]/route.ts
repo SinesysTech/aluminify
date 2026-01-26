@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { createFinancialService } from "@/app/[tenant]/(dashboard)/admin/services/financial";
+import { createFinancialService } from "@/app/[tenant]/(dashboard)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import type { UpdateTransactionInput } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";
+import type { UpdateTransactionInput } from "@/app/[tenant]/(dashboard)/financeiro/services/financial.types";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 interface RouteContext {
@@ -158,7 +158,7 @@ async function patchHandler(request: AuthenticatedRequest, context?: Record<stri
     }
 
     // Use repository directly for update
-    const { createTransactionRepository } = await import("@/app/[tenant]/(dashboard)/admin/services/financial");
+    const { createTransactionRepository } = await import("@/app/[tenant]/(dashboard)/financeiro/services");
     const repository = createTransactionRepository(client);
     const transaction = await repository.update(id, updatePayload);
 

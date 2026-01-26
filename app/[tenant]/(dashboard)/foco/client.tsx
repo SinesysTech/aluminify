@@ -330,7 +330,7 @@ export default function FocoClient() {
                 atividadeId
             )
 
-            router.push('/aluno/sala-de-estudos')
+            router.push('/sala-de-estudos')
         } catch (err) {
             console.error(err)
             setErro(err instanceof Error ? err.message : 'Erro ao finalizar')

@@ -1,10 +1,10 @@
-﻿'use client'
+'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import type { StudentUnderCare } from '@/app/[tenant]/features/pessoas/types'
+import type { StudentUnderCare } from '@/app/[tenant]/(dashboard)/usuario/types'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/app/shared/library/utils'
@@ -109,10 +109,10 @@ export function StudentsUnderCareList({ students }: StudentsUnderCareListProps) 
                       </div>
                     </div>
 
-                    {/* Ãšltima atividade */}
+                    {/* Última atividade */}
                     {student.ultimaAtividade && (
                       <p className="text-[10px] text-muted-foreground">
-                        Ãšltima atividade:{' '}
+                        Última atividade:{' '}
                         {formatDistanceToNow(new Date(student.ultimaAtividade), {
                           addSuffix: true,
                           locale: ptBR,

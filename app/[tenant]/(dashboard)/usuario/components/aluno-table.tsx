@@ -600,7 +600,7 @@ export function AlunoTable() {
         setSuccessMessage(`Visualizando como ${aluno.fullName || aluno.email}`)
         // Redirecionar para dashboard do aluno
         // Forçamos um refresh completo para garantir que o contexto seja atualizado
-        window.location.href = '/aluno/dashboard'
+        window.location.href = '/dashboard'
       }
     } catch (err) {
       let errorMessage = 'Erro ao iniciar visualização como aluno'

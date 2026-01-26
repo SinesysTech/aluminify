@@ -49,12 +49,12 @@ export async function identifyUserRoleAction(
         redirectUrl = "/admin"; // Or superadmin specific dashboard
         break;
       case "usuario":
-        redirectUrl = "/professor/dashboard";
+        redirectUrl = "/dashboard";
         break;
       case "aluno":
         // Tenta obter o slug da empresa do metadata ou params
         // O ideal é redirecionar para uma rota que sabe resolver o tenant,
-        // mas como a rota é /[tenant]/aluno/dashboard, precisamos do slug.
+        // mas como a rota é /[tenant]/dashboard, precisamos do slug.
 
         // TODO: Buscar slug da empresa se não estiver no metadata
         // Por hora, vamos redirecionar para /aluno que faz o redirect correto

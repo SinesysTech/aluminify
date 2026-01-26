@@ -74,7 +74,7 @@ export async function createAgendamento(
     throw new Error("Failed to create appointment");
   }
 
-  revalidatePath("/professor/agendamentos");
+  revalidatePath("/agendamentos");
   revalidatePath("/meus-agendamentos");
   revalidatePath("/agendamentos");
   return result;
@@ -382,7 +382,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
     throw new Error("Failed to confirm appointment");
   }
 
-  revalidatePath("/professor/agendamentos");
+  revalidatePath("/agendamentos");
   revalidatePath("/meus-agendamentos");
   return data;
 }
@@ -428,7 +428,7 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
     throw new Error("Falha ao rejeitar agendamento");
   }
 
-  revalidatePath("/professor/agendamentos");
+  revalidatePath("/agendamentos");
   revalidatePath("/meus-agendamentos");
   return data;
 }
@@ -484,7 +484,7 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
     throw new Error("Falha ao cancelar agendamento");
   }
 
-  revalidatePath("/professor/agendamentos");
+  revalidatePath("/agendamentos");
   revalidatePath("/meus-agendamentos");
   revalidatePath("/agendamentos");
   return { success: true };
@@ -530,7 +530,7 @@ export async function updateAgendamento(
     throw new Error("Failed to update appointment");
   }
 
-  revalidatePath("/professor/agendamentos");
+  revalidatePath("/agendamentos");
   revalidatePath("/meus-agendamentos");
   return result;
 }

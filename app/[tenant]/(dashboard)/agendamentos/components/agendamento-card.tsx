@@ -46,7 +46,7 @@ export function AgendamentoCard({ agendamento, showActions = true }: Agendamento
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Aluno Info */}
           <Link
-            href={`/professor/agendamentos/${agendamento.id}`}
+            href={`/agendamentos/detalhes/${agendamento.id}`}
             className="flex items-center gap-3 flex-1 min-w-0"
           >
             <Avatar className="h-10 w-10">

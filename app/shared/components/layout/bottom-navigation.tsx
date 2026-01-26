@@ -26,15 +26,15 @@ interface NavItem {
 
 // Itens de navegação por role - máximo 5 itens
 const alunoNavItems: NavItem[] = [
-  { name: 'Início', href: '/aluno/dashboard', icon: LayoutDashboard },
-  { name: 'Estudos', href: '/aluno/sala-de-estudos', icon: School },
+  { name: 'Início', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Estudos', href: '/sala-de-estudos', icon: School },
   { name: 'TobIAs', href: '/tobias', icon: MessageSquare },
-  { name: 'Flashcards', href: '/aluno/flashcards', icon: BrainCircuit },
+  { name: 'Flashcards', href: '/flashcards', icon: BrainCircuit },
   { name: 'Perfil', href: '/perfil', icon: User },
 ]
 
 const professorNavItems: NavItem[] = [
-  { name: 'Início', href: '/professor/dashboard', icon: LayoutDashboard },
+  { name: 'Início', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Alunos', href: '/aluno', icon: Users },
   { name: 'Agenda', href: '/agendamentos/disponibilidade', icon: Calendar },
   { name: 'Materiais', href: '/professor/materiais', icon: School },

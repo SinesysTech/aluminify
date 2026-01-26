@@ -5,7 +5,7 @@ import {
   StudentConflictError,
   StudentNotFoundError,
   StudentValidationError,
-} from "@/app/[tenant]/features/pessoas/services";
+} from "@/app/[tenant]/(dashboard)/usuario/services";
 import {
   requireAuth,
   AuthenticatedRequest,

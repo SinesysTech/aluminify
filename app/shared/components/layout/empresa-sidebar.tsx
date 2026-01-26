@@ -48,34 +48,34 @@ const empresaNavItems: NavItem[] = [
   },
   {
     title: "Alunos",
-    url: "/admin/empresa/alunos",
+    url: "/usuario/alunos",
     icon: Users,
   },
   {
     title: "Equipe",
-    url: "/admin/empresa/usuarios",
+    url: "/usuario/equipe",
     icon: Users,
   },
   {
     title: "Papéis",
-    url: "/admin/empresa/papeis",
+    url: "/empresa/detalhes/papeis",
     icon: Shield,
   },
   {
     title: "Financeiro",
-    url: "/admin/financeiro",
+    url: "/financeiro",
     icon: DollarSign,
     items: [
-      { title: "Dashboard", url: "/admin/financeiro" },
-      { title: "Transações", url: "/admin/financeiro/transacoes" },
-      { title: "Produtos", url: "/admin/financeiro/produtos" },
-      { title: "Cupons", url: "/admin/financeiro/cupons" },
+      { title: "Dashboard", url: "/financeiro" },
+      { title: "Transações", url: "/financeiro/transacoes" },
+      { title: "Produtos", url: "/financeiro/produtos" },
+      { title: "Cupons", url: "/financeiro/cupons" },
     ],
   },
   // Funcionalidades do Professor (Superset)
   {
     title: "Cursos",
-    url: "/admin/cursos",
+    url: "/curso/admin",
     icon: BookOpen,
   },
   {
@@ -100,7 +100,7 @@ const empresaNavItems: NavItem[] = [
   },
   {
     title: "Flashcards",
-    url: "/professor/flashcards",
+    url: "/flashcards",
     icon: FolderOpen,
   },
   {

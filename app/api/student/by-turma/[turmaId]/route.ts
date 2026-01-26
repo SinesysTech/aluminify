@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
-import { createStudentTransferService } from "@/app/[tenant]/features/pessoas/services";
+import { createStudentTransferService } from "@/app/[tenant]/(dashboard)/usuario/services";
 
 interface RouteContext {
   params: Promise<{ turmaId: string }>;

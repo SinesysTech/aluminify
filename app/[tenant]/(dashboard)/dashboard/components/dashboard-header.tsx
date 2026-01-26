@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Flame, Timer } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import type { UserInfo } from '@/app/[tenant]/(dashboard)/aluno/dashboard/types'
+import type { UserInfo } from '@/app/[tenant]/(dashboard)/dashboard/types/student'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { OrganizationSwitcher } from '@/app/[tenant]/(dashboard)/dashboard/components/organization-switcher'
@@ -63,7 +63,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
 
     const query = qs.toString()
-    return query ? `/aluno/foco?${query}` : '/aluno/foco'
+    return query ? `/foco?${query}` : '/foco'
   }, [searchParams, storedContext])
 
   // Determinar saudação baseada no horário

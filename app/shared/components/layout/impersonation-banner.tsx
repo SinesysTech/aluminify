@@ -44,7 +44,7 @@ export function ImpersonationBanner() {
       const data = await response.json().catch(() => ({ error: 'Erro desconhecido' }))
 
       if (response.ok) {
-        router.push(data.redirectTo || '/professor/dashboard')
+        router.push(data.redirectTo || '/dashboard')
         router.refresh()
       } else {
         console.error('Erro ao parar impersonação:', {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
-import { createStudentTransferService } from "@/app/[tenant]/features/pessoas/services";
-import type { BulkTransferCourseRequest } from "@/app/[tenant]/features/pessoas/services/student-transfer.types";
+import { createStudentTransferService } from "@/app/[tenant]/(dashboard)/usuario/services";
+import type { BulkTransferCourseRequest } from "@/app/[tenant]/(dashboard)/usuario/services/student-transfer.types";
 
 export async function POST(request: NextRequest) {
   try {

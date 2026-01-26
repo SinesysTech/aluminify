@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
-import { StudentRepositoryImpl } from "@/app/[tenant]/features/pessoas/services";
-import { studentService } from "@/app/[tenant]/features/pessoas/services";
+import { StudentRepositoryImpl } from "@/app/[tenant]/(dashboard)/usuario/services";
+import { studentService } from "@/app/[tenant]/(dashboard)/usuario/services";
 import { randomBytes } from "crypto";
 
 /**
- * POST /api/admin/alunos
+ * POST /api/usuario/alunos
  * Criar aluno (apenas superadmin)
  * Permite criar aluno com ou sem courseIds
  */

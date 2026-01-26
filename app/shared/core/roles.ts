@@ -7,10 +7,10 @@ import {
 
 // Default routes by main role
 const DEFAULT_ROUTE_BY_ROLE: Record<AppUserRole, string> = {
-  aluno: "/aluno/dashboard",
-  usuario: "/professor/dashboard",
+  aluno: "/dashboard",
+  usuario: "/dashboard",
   superadmin: "/superadmin/dashboard",
-  professor: "/professor/dashboard",
+  professor: "/dashboard",
   empresa: "/empresa/dashboard",
 };
 
@@ -92,7 +92,7 @@ export function canDelete(
  * Get the default route for a role
  */
 export function getDefaultRouteForRole(role: AppUserRole): string {
-  return DEFAULT_ROUTE_BY_ROLE[role] ?? "/aluno/dashboard";
+  return DEFAULT_ROUTE_BY_ROLE[role] ?? "/dashboard";
 }
 
 /**

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
-import { TeacherRepositoryImpl } from "@/app/[tenant]/features/pessoas/services";
+import { TeacherRepositoryImpl } from "@/app/[tenant]/(dashboard)/usuario/services";
 import { EmpresaRepositoryImpl } from "@/app/[tenant]/(dashboard)/empresa/services";
 import { createClient } from "@/app/shared/core/server";
 
 /**
- * POST /api/admin/professores
+ * POST /api/usuario/professores
  * Criar professor (apenas superadmin)
  * Permite criar professor com ou sem empresaId
  */

@@ -129,7 +129,7 @@ export default async function StatsPage() {
     <div className="flex flex-col gap-6 p-2 md:p-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/professor/agendamentos">
+          <Link href="/agendamentos">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

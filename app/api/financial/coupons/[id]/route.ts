@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { createCouponRepository } from "@/app/[tenant]/(dashboard)/admin/services/financial";
+import { createCouponRepository } from "@/app/[tenant]/(dashboard)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import type { UpdateCouponInput } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";
+import type { UpdateCouponInput } from "@/app/[tenant]/(dashboard)/financeiro/services/financial.types";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 interface RouteContext {

@@ -3,7 +3,7 @@ import {
   teacherService,
   TeacherConflictError,
   TeacherValidationError,
-} from "@/app/[tenant]/features/pessoas/services";
+} from "@/app/[tenant]/(dashboard)/usuario/services";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 
 const serializeTeacher = (

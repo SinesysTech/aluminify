@@ -37,13 +37,13 @@ type NavItem = {
 const professorNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/professor/dashboard",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
 
   {
     title: "Alunos",
-    url: "/aluno",
+    url: "/usuario/alunos",
     icon: Users,
   },
   {
@@ -63,12 +63,12 @@ const professorNavItems: NavItem[] = [
   },
   {
     title: "Materiais",
-    url: "/professor/materiais",
+    url: "/materiais",
     icon: FolderOpen,
   },
   {
     title: "Flashcards",
-    url: "/professor/flashcards",
+    url: "/flashcards",
     icon: FolderOpen,
   },
   {

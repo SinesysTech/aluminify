@@ -494,7 +494,7 @@ export function CursoTable() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
-                  onClick={() => router.push(`/admin/cursos/${curso.id}`)}
+                  onClick={() => router.push(`/curso/admin/${curso.id}`)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -966,7 +966,7 @@ export function CursoTable() {
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => router.push(`/admin/cursos/${curso.id}`)}
+                              onClick={() => router.push(`/curso/admin/${curso.id}`)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>

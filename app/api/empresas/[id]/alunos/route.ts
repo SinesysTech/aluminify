@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
-import { StudentRepositoryImpl } from "@/app/[tenant]/features/pessoas/services";
+import { StudentRepositoryImpl } from "@/app/[tenant]/(dashboard)/usuario/services";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,

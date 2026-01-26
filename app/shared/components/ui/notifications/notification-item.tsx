@@ -56,7 +56,7 @@ export function NotificationItem({ notificacao, userId }: NotificationItemProps)
 
   const isProfessor = notificacao.agendamento?.professor_id === userId
   const link = isProfessor
-    ? `/professor/agendamentos/${notificacao.agendamento_id}`
+    ? `/agendamentos/detalhes/${notificacao.agendamento_id}`
     : `/meus-agendamentos`
 
   return (

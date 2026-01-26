@@ -1,10 +1,10 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/shared/core/auth'
 import { createClient } from '@/app/shared/core/server'
-import { InstitutionDashboardClient } from '@/app/[tenant]/(dashboard)/dashboard/components/institution'
-import ProfessorDashboardClient from './components/professor-dashboard-client'
-import StudentDashboardClientPage from './client'
+import { InstitutionDashboardClient } from './components/institution'
+import ProfessorDashboardClient from './components/dashboard-client'
+import StudentDashboardClientPage from './components/aluno/student-dashboard'
 import { isAdminRoleTipo } from '@/app/shared/core/roles'
 
 export const metadata: Metadata = {
@@ -16,6 +16,7 @@ export default async function DashboardPage(props: {
 }) {
   const user = await requireUser()
 
+  // Se for aluno, carrega o Dashboard de Aluno
   if (user.role === 'aluno') {
     return <StudentDashboardClientPage />
   }
@@ -23,7 +24,7 @@ export default async function DashboardPage(props: {
   const params = await props.params
   const { tenant } = params
 
-  // Verificar se precisa completar cadastro da empresa
+  // Verificar se precisa completar cadastro da empresa (Lógica existente mantida)
   let shouldRedirectToComplete = false
 
   if (user.empresaId && user.role !== 'superadmin') {
@@ -36,23 +37,18 @@ export default async function DashboardPage(props: {
         .maybeSingle()
 
       if (!error && empresa) {
-        // Verificar se empresa está incompleta (sem CNPJ, email ou telefone)
-        // Campos podem ser null ou string vazia
         const cnpjVazio = !empresa.cnpj || empresa.cnpj.trim() === ''
-        const emailVazio =
-          !empresa.email_contato || empresa.email_contato.trim() === ''
+        const emailVazio = !empresa.email_contato || empresa.email_contato.trim() === ''
         const telefoneVazio = !empresa.telefone || empresa.telefone.trim() === ''
         shouldRedirectToComplete = cnpjVazio && emailVazio && telefoneVazio
       }
     } catch (error) {
       console.error('Erro ao verificar empresa:', error)
-      // Continuar normalmente se houver erro
     }
   }
 
   if (shouldRedirectToComplete) {
-    // Assuming 'empresa' module will be moved to root 'empresa' directory
-    redirect(`/${tenant}/empresa/completar`)
+    redirect(`/${tenant}/professor/empresa/completar`)
   }
 
   // Se é admin da empresa (ou superadmin), mostrar dashboard da instituição

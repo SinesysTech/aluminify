@@ -9,7 +9,7 @@ import { isAdminRoleTipo } from '@/app/shared/core/roles';
  * GET /api/user/profile
  * Retorna dados básicos do usuário logado (role, empresaId, etc).
  *
- * Usado pelas telas em `app/(dashboard)/admin/empresa/*`.
+ * Usado pelas telas em `app/(dashboard)/empresa/detalhes/*`.
  */
 export async function GET() {
   try {

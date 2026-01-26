@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createFinancialService } from "@/app/[tenant]/(dashboard)/admin/services/financial";
-import type { HotmartWebhookPayload } from "@/app/[tenant]/(dashboard)/admin/services/financial/financial.types";
+import { createFinancialService } from "@/app/[tenant]/(dashboard)/financeiro/services";
+import type { HotmartWebhookPayload } from "@/app/[tenant]/(dashboard)/financeiro/services/financial.types";
 
 /**
  * Hotmart Webhook Handler

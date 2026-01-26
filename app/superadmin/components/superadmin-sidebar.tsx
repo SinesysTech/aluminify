@@ -67,13 +67,13 @@ export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Side
   const navMainWithActive = superAdminNavItems.map((item) => {
     let isActive = false;
 
-    if (item.url === '/admin/empresas') {
-      // Empresas é ativo quando estamos em /admin ou /admin/empresas
-      isActive = pathname === '/admin' || pathname === '/admin/empresas' || pathname?.startsWith('/admin/empresas/');
-    } else if (item.url === '/admin/professores') {
-      isActive = pathname === '/admin/professores' || pathname?.startsWith('/admin/professores/');
-    } else if (item.url === '/admin/alunos') {
-      isActive = pathname === '/admin/alunos' || pathname?.startsWith('/admin/alunos/');
+    if (item.url === '/empresa/detalhess') {
+      // Empresas é ativo quando estamos em /admin ou /empresa/detalhess
+      isActive = pathname === '/admin' || pathname === '/empresa/detalhess' || pathname?.startsWith('/empresa/detalhess/');
+    } else if (item.url === '/usuario/professores') {
+      isActive = pathname === '/usuario/professores' || pathname?.startsWith('/usuario/professores/');
+    } else if (item.url === '/usuario/alunos') {
+      isActive = pathname === '/usuario/alunos' || pathname?.startsWith('/usuario/alunos/');
     } else {
       isActive = pathname === item.url || pathname?.startsWith(item.url + "/");
     }
