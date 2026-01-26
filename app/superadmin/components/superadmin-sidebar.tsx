@@ -10,6 +10,7 @@ import {
   CreditCard,
   Link2,
   ScrollText,
+  Settings,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -81,6 +82,11 @@ const superAdminNavItems: NavItem[] = [
     url: "/superadmin/logs",
     icon: ScrollText,
   },
+  {
+    title: "Configurações",
+    url: "/superadmin/configuracoes",
+    icon: Settings,
+  },
 ]
 
 export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -88,23 +94,12 @@ export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Side
   const user = useCurrentUser()
 
   const navMainWithActive = superAdminNavItems.map((item) => {
-    let isActive = false;
-
-    if (item.url === '/empresa/detalhess') {
-      // Empresas é ativo quando estamos em /admin ou /empresa/detalhess
-      isActive = pathname === '/admin' || pathname === '/empresa/detalhess' || pathname?.startsWith('/empresa/detalhess/');
-    } else if (item.url === '/usuario/professores') {
-      isActive = pathname === '/usuario/professores' || pathname?.startsWith('/usuario/professores/');
-    } else if (item.url === '/usuario/alunos') {
-      isActive = pathname === '/usuario/alunos' || pathname?.startsWith('/usuario/alunos/');
-    } else {
-      isActive = pathname === item.url || pathname?.startsWith(item.url + "/");
-    }
+    const isActive = pathname === item.url || pathname?.startsWith(item.url + "/")
 
     return {
       ...item,
       isActive,
-    };
+    }
   })
 
   return (
@@ -135,4 +130,3 @@ export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Side
     </Sidebar>
   )
 }
-
