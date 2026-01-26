@@ -5,14 +5,14 @@ import { Nav } from "../../components/nav";
 
 export function ChangelogPage() {
     return (
-        <div className="bg-zinc-50 dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased min-h-screen">
+        <div className="bg-background text-foreground font-sans antialiased min-h-screen">
             <Nav />
 
             <main className="max-w-3xl mx-auto px-4 py-16">
                 <h1 className="text-4xl font-display font-bold mb-4">
                     Novidades & Atualizações
                 </h1>
-                <p className="text-text-muted-light dark:text-text-muted-dark mb-12">
+                <p className="text-muted-foreground mb-12">
                     Acompanhe a evolução da infraestrutura semana a semana.
                 </p>
 
@@ -25,7 +25,7 @@ export function ChangelogPage() {
                             <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-mono font-bold">LATEST</span>
                         </div>
                         <time className="block text-sm text-zinc-400 mb-4">12 Jan 2026</time>
-                        <div className="prose prose-sm text-zinc-600 dark:text-zinc-300 bg-white dark:bg-surface-dark p-6 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                        <div className="prose prose-sm text-zinc-600 dark:text-zinc-300 bg-card p-6 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
                             <p>
                                 Focamos totalmente na experiência do aluno nesta versão. O novo
                                 &quot;Focus Mode&quot; remove todas as distrações da interface durante a reprodução de vídeo.

@@ -6,7 +6,7 @@ import { Footer } from "./footer";
 
 export function LandingPage() {
     return (
-        <div className="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
+        <div className="bg-background text-foreground font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
             <div className="fixed inset-0 pointer-events-none z-0">
                 <div className="absolute inset-0 bg-grid-pattern dark:bg-grid-pattern-dark opacity-[0.4] grid-bg"></div>
             </div>
@@ -28,7 +28,7 @@ export function LandingPage() {
                             A infraestrutura invisível <br className="hidden md:block" /> da educação.
                         </h1>
 
-                        <p className="text-lg md:text-xl text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto mb-10 leading-relaxed text-balance">
+                        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed text-balance">
                             A primeira área do aluno <strong>Open Source</strong> e White Label. Crie experiências de aprendizado de alta performance com a robustez técnica de uma fintech.
                         </p>
 
@@ -41,7 +41,7 @@ export function LandingPage() {
                                 <span className="material-icons-outlined text-sm">arrow_forward</span>
                             </Link>
                             <a
-                                className="w-full sm:w-auto px-8 py-3.5 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark font-medium rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-card border border-border text-foreground font-medium rounded-lg hover:bg-accent transition-all flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                 href="https://github.com/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -66,8 +66,8 @@ export function LandingPage() {
                         <div className="relative max-w-5xl mx-auto">
                             <div className="absolute -inset-1 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800 rounded-xl blur opacity-40"></div>
 
-                            <div className="relative bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl shadow-2xl overflow-hidden aspect-[16/10] md:aspect-video flex flex-col">
-                                <div className="border-b border-border-light dark:border-border-dark bg-zinc-50 dark:bg-zinc-900/50 p-3 flex items-center gap-4">
+                            <div className="relative bg-card border border-border rounded-xl shadow-2xl overflow-hidden aspect-[16/10] md:aspect-video flex flex-col">
+                                <div className="border-b border-border bg-zinc-50 dark:bg-zinc-900/50 p-3 flex items-center gap-4">
                                     <div className="flex gap-2">
                                         <div className="w-3 h-3 rounded-full bg-red-400"></div>
                                         <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
@@ -80,7 +80,7 @@ export function LandingPage() {
                                 </div>
 
                                 <div className="flex-1 flex overflow-hidden bg-zinc-50 dark:bg-[#09090b]">
-                                    <div className="w-14 md:w-56 border-r border-border-light dark:border-border-dark bg-white dark:bg-surface-dark hidden sm:flex flex-col p-4 justify-between">
+                                    <div className="w-14 md:w-56 border-r border-border bg-card hidden sm:flex flex-col p-4 justify-between">
                                         <div>
                                             <div className="flex items-center gap-3 mb-8">
                                                 <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white text-sm font-bold font-display">A</div>
@@ -101,7 +101,7 @@ export function LandingPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 pt-4 border-t border-border-light dark:border-border-dark">
+                                        <div className="flex items-center gap-3 pt-4 border-t border-border">
                                             <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
                                             <div className="hidden md:block space-y-1">
                                                 <div className="h-2 w-20 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
@@ -119,7 +119,7 @@ export function LandingPage() {
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-                                            <div className="col-span-2 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark p-0 overflow-hidden flex flex-col">
+                                            <div className="col-span-2 bg-card rounded-xl shadow-sm border border-border p-0 overflow-hidden flex flex-col">
                                                 <div className="h-32 bg-zinc-100 dark:bg-zinc-800 relative flex items-center justify-center">
                                                     <span className="material-icons-outlined text-4xl text-zinc-300 dark:text-zinc-600">play_circle</span>
                                                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-1 rounded font-mono">12:40</div>
@@ -136,7 +136,7 @@ export function LandingPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                            <div className="bg-card rounded-xl shadow-sm border border-border p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-bl-full -mr-8 -mt-8"></div>
                                                 <span className="material-icons-outlined text-3xl text-red-500 mb-2">style</span>
                                                 <div className="h-3 w-16 bg-zinc-800 dark:bg-white rounded mb-1"></div>
@@ -151,7 +151,7 @@ export function LandingPage() {
                 </section>
 
                 {/* Features Section */}
-                <section className="py-20 lg:py-24 border-t border-border-light dark:border-border-dark bg-white dark:bg-background-dark" id="recursos">
+                <section className="py-20 lg:py-24 border-t border-border bg-card" id="recursos">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid md:grid-cols-3 gap-12">
                             <div className="group">
@@ -163,7 +163,7 @@ export function LandingPage() {
                                 <h3 className="text-xl font-display font-semibold mb-3">
                                     Soberania de Dados
                                 </h3>
-                                <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                                <p className="text-muted-foreground leading-relaxed">
                                     Seus dados, suas regras. Hospede onde quiser e mantenha controle total sobre as informações dos seus alunos, sem lock-in.
                                 </p>
                             </div>
@@ -176,7 +176,7 @@ export function LandingPage() {
                                 <h3 className="text-xl font-display font-semibold mb-3">
                                     White Label Nativo
                                 </h3>
-                                <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                                <p className="text-muted-foreground leading-relaxed">
                                     Personalização profunda via CSS variables e React Components. Sua marca brilha, nós ficamos invisíveis no backend.
                                 </p>
                             </div>
@@ -189,7 +189,7 @@ export function LandingPage() {
                                 <h3 className="text-xl font-display font-semibold mb-3">
                                     Inteligência Contextual (RAG)
                                 </h3>
-                                <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                                <p className="text-muted-foreground leading-relaxed">
                                     Infraestrutura pronta para IA. Vetorização automática de conteúdo para tutores inteligentes que conhecem o seu material.
                                 </p>
                             </div>
@@ -198,7 +198,7 @@ export function LandingPage() {
                 </section>
 
                 {/* Manifesto Section */}
-                <section className="py-20 lg:py-24 bg-zinc-50 dark:bg-zinc-900 border-y border-border-light dark:border-border-dark" id="manifesto">
+                <section className="py-20 lg:py-24 bg-muted border-y border-border" id="manifesto">
                     <div className="max-w-4xl mx-auto px-6 text-center">
                         <span className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase mb-6 block">Nossa Filosofia</span>
 
@@ -206,7 +206,7 @@ export function LandingPage() {
                             Ensinar é, antes de tudo, <br className="hidden md:block" /> um ato de autonomia.
                         </h2>
 
-                        <div className="prose prose-zinc dark:prose-invert mx-auto text-text-muted-light dark:text-text-muted-dark leading-relaxed text-lg max-w-2xl">
+                        <div className="prose prose-zinc dark:prose-invert mx-auto text-muted-foreground leading-relaxed text-lg max-w-2xl">
                             <p>
                                 Quando você fecha a porta da sala de aula, aquele espaço é seu. A didática é sua. A conexão é sua. Mas, no digital, tentaram convencer você a abrir mão disso.
                             </p>
@@ -225,19 +225,19 @@ export function LandingPage() {
                 </section>
 
                 {/* Pricing Cards Section */}
-                <section className="py-20 lg:py-24 border-t border-border-light dark:border-border-dark bg-white dark:bg-background-dark">
+                <section className="py-20 lg:py-24 border-t border-border bg-card">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl font-display font-bold mb-4">Dois modelos, a mesma potência</h2>
                         </div>
                         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                            <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl p-8 border border-border-light dark:border-border-dark flex flex-col h-full">
+                            <div className="bg-muted rounded-2xl p-8 border border-border flex flex-col h-full">
                                 <div className="mb-6">
                                     <h3 className="text-2xl font-bold mb-2">Community</h3>
-                                    <div className="text-sm text-text-muted-light dark:text-text-muted-dark font-mono">SELF-HOSTED</div>
+                                    <div className="text-sm text-muted-foreground font-mono">SELF-HOSTED</div>
                                 </div>
-                                <div className="text-4xl font-bold mb-6">R$ 0<span className="text-lg font-normal text-text-muted-light dark:text-text-muted-dark">/mês</span></div>
-                                <p className="text-text-muted-light dark:text-text-muted-dark mb-8 grow">
+                                <div className="text-4xl font-bold mb-6">R$ 0<span className="text-lg font-normal text-muted-foreground">/mês</span></div>
+                                <p className="text-muted-foreground mb-8 grow">
                                     Perfeito para desenvolvedores e edtechs em estágio inicial com capacidade técnica. Código aberto, licença permissiva.
                                 </p>
                                 <ul className="space-y-3 mb-8 text-sm">
@@ -275,51 +275,51 @@ export function LandingPage() {
                 </section>
 
                 {/* Pricing Table Section */}
-                <section className="py-20 lg:py-24 bg-background-light dark:bg-background-dark">
+                <section className="py-20 lg:py-24 bg-background">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-12">
                             <h3 className="text-2xl font-bold text-primary dark:text-white mb-4">Investimento Cloud</h3>
-                            <p className="text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
+                            <p className="text-muted-foreground max-w-2xl mx-auto">
                                 Modelo justo e cumulativo. Você paga um valor base pela faixa e um adicional pequeno apenas por aluno excedente.
                             </p>
                         </div>
-                        <div className="overflow-x-auto border border-border-light dark:border-border-dark rounded-xl shadow-sm">
-                            <table className="w-full text-left border-collapse bg-white dark:bg-surface-dark">
+                        <div className="overflow-x-auto border border-border rounded-xl shadow-sm">
+                            <table className="w-full text-left border-collapse bg-card">
                                 <thead>
-                                    <tr className="border-b border-border-light dark:border-border-dark bg-zinc-50 dark:bg-zinc-900/50">
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Plano</th>
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Capacidade</th>
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Investimento Mensal</th>
-                                        <th className="py-4 px-6 text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">Modelo</th>
+                                    <tr className="border-b border-border bg-muted">
+                                        <th className="py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">Plano</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">Capacidade</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">Investimento Mensal</th>
+                                        <th className="py-4 px-6 text-sm font-bold text-muted-foreground uppercase tracking-wider">Modelo</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border-light dark:divide-border-dark">
+                                <tbody className="divide-y divide-border">
                                     <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                         <td className="py-6 px-6 font-bold text-lg">Start</td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">Até 300 alunos</td>
+                                        <td className="py-6 px-6 text-muted-foreground">Até 300 alunos</td>
                                         <td className="py-6 px-6 font-mono font-medium">R$ 500,00<span className="text-xs text-zinc-500 font-sans">/fixo</span></td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Valor único para validação inicial.</td>
+                                        <td className="py-6 px-6 text-sm text-muted-foreground">Valor único para validação inicial.</td>
                                     </tr>
                                     <tr className="bg-blue-50/30 dark:bg-blue-900/10 relative z-10">
                                         <td className="py-6 px-6 font-bold text-lg text-primary dark:text-white flex items-center gap-2">
                                             Growth
                                             <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded font-bold uppercase border border-blue-200">Recomendado</span>
                                         </td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark font-medium">301 a 500 alunos</td>
+                                        <td className="py-6 px-6 text-muted-foreground font-medium">301 a 500 alunos</td>
                                         <td className="py-6 px-6 font-mono text-blue-700 dark:text-blue-300 font-bold">R$ 500,00<span className="text-xs text-zinc-500 font-normal dark:text-zinc-400"> + R$ 1,50/extra</span></td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Base + valor por aluno excedente.</td>
+                                        <td className="py-6 px-6 text-sm text-muted-foreground">Base + valor por aluno excedente.</td>
                                     </tr>
                                     <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                         <td className="py-6 px-6 font-bold text-lg">Scale</td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">501 a 1.000 alunos</td>
+                                        <td className="py-6 px-6 text-muted-foreground">501 a 1.000 alunos</td>
                                         <td className="py-6 px-6 font-mono font-medium">R$ 800,00<span className="text-xs text-zinc-500 font-sans"> + R$ 1,00/extra</span></td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Custo marginal reduzido para escala.</td>
+                                        <td className="py-6 px-6 text-sm text-muted-foreground">Custo marginal reduzido para escala.</td>
                                     </tr>
                                     <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                                         <td className="py-6 px-6 font-bold text-lg">Enterprise</td>
-                                        <td className="py-6 px-6 text-text-muted-light dark:text-text-muted-dark">1.001+ alunos</td>
+                                        <td className="py-6 px-6 text-muted-foreground">1.001+ alunos</td>
                                         <td className="py-6 px-6 font-mono font-medium">Sob Consulta</td>
-                                        <td className="py-6 px-6 text-sm text-text-muted-light dark:text-text-muted-dark">Condições especiais e infra dedicada.</td>
+                                        <td className="py-6 px-6 text-sm text-muted-foreground">Condições especiais e infra dedicada.</td>
                                     </tr>
                                 </tbody>
                             </table>

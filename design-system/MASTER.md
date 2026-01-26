@@ -105,17 +105,30 @@
 | Error | `#F87171` | `red-400` | Errors, destructive |
 | Accent | `#A855F7` | `purple-500` | Special highlights |
 
-### Tailwind Custom Classes
+### Tailwind Custom Classes (Unified Semantic Tokens)
 
 ```tsx
-// Light mode
-className="bg-background-light text-text-main-light"
-className="bg-surface-light border-border-light"
-className="text-text-muted-light"
+// Semantic tokens work automatically for light/dark mode
+className="bg-background text-foreground"
+className="bg-card border-border"
+className="text-muted-foreground"
 
-// Dark mode (automatic with dark: prefix)
-className="dark:bg-background-dark dark:text-text-main-dark"
-className="dark:bg-surface-dark dark:border-border-dark"
+// Dark mode is handled automatically via CSS custom properties
+// No need for dark: prefixes on semantic tokens!
+```
+
+### CSS Custom Properties (HSL Format)
+
+All color tokens are defined as HSL values without the `hsl()` wrapper for shadcn/ui compatibility:
+
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --muted-foreground: 240 3.8% 46.1%;
+  /* etc */
+}
 ```
 
 ---
@@ -231,12 +244,12 @@ className="sticky top-0 z-50 h-16 bg-white/80 dark:bg-surface-dark/80 backdrop-b
 
 #### Primary Button
 ```tsx
-className="bg-primary text-white hover:bg-primary-hover px-8 py-3.5 rounded-lg font-medium shadow-lg shadow-zinc-200 dark:shadow-none transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3.5 rounded-lg font-medium shadow-lg shadow-zinc-200 dark:shadow-none transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
 ```
 
 #### Secondary Button
 ```tsx
-className="bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark px-8 py-3.5 rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+className="bg-card border border-border text-foreground px-8 py-3.5 rounded-lg font-medium hover:bg-accent transition-all"
 ```
 
 #### Small Button (Nav CTA)
@@ -247,7 +260,7 @@ className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:
 ### Cards
 
 ```tsx
-className="bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl p-6 shadow-sm hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors"
+className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:border-muted-foreground/20 transition-colors"
 ```
 
 ### Badges/Pills
@@ -434,6 +447,105 @@ design-system/
     ├── buttons.md
     ├── cards.md
     └── ...
+```
+
+---
+
+## 15. Brand Customization (Multi-tenant)
+
+The Aluminify design system supports multi-tenant white-labeling through a three-level token hierarchy:
+
+### Token Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    HIERARQUIA DE TOKENS                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Nível 1: DEFAULTS GLOBAIS (Aluminify Brand)                  │
+│     └── design-system/tokens/*.ts → globals.css :root          │
+│                                                                 │
+│  Nível 2: PRESETS DE TEMA (built-in themes)                    │
+│     └── themes.css → data-theme-preset attribute               │
+│                                                                 │
+│  Nível 3: OVERRIDES DO TENANT (Brand Customization)            │
+│     └── Database → TenantBrandingProvider → CSS vars           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Customizable CSS Variables
+
+Tenants can override any of these CSS custom properties:
+
+```typescript
+// From design-system/tokens/brand-mapping.ts
+const customizableCSSVariables = [
+  // Colors
+  '--primary', '--primary-foreground',
+  '--secondary', '--secondary-foreground',
+  '--accent', '--accent-foreground',
+  '--muted', '--muted-foreground',
+  '--background', '--foreground',
+  '--card', '--card-foreground',
+  '--destructive', '--destructive-foreground',
+  '--sidebar', '--sidebar-foreground',
+  '--sidebar-primary', '--sidebar-primary-foreground',
+  // Typography
+  '--font-sans', '--font-mono',
+  // Theme customizer
+  '--radius',
+];
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `design-system/tokens/colors.ts` | Default color values |
+| `design-system/tokens/brand-mapping.ts` | DB field → CSS var mapping |
+| `css-properties-manager.ts` | Runtime CSS injection |
+| `TenantBrandingProvider` | React context provider |
+
+### How It Works
+
+1. **Default values** load from `globals.css` (defined by `design-system/tokens/`)
+2. **TenantBrandingProvider** fetches tenant branding from database
+3. **CSSPropertiesManager** applies overrides as inline CSS custom properties
+4. All components using semantic tokens (e.g., `bg-primary`) automatically update
+
+### Database Tables
+
+- `tenant_branding` - Main branding settings
+- `tenant_logos` - Logo variants (light, dark, icon, etc.)
+- `color_palettes` - Custom color schemes
+- `font_schemes` - Typography customization
+- `custom_theme_presets` - Saved theme configurations
+
+---
+
+## 16. Token Source Files
+
+All design tokens are defined in TypeScript for type safety:
+
+```
+design-system/tokens/
+├── index.ts              # Central exports
+├── colors.ts             # Color palette (HSL format)
+├── typography.ts         # Font stacks, sizes, weights
+├── spacing.ts            # Spacing scale, container widths
+├── effects.ts            # Shadows, radius, z-index, animations
+└── brand-mapping.ts      # ColorPalette → CSS variable mapping
+```
+
+### Using Tokens in Code
+
+```typescript
+import { colors, spacing, fontFamily } from '@/design-system/tokens';
+
+// Access token values programmatically
+const primaryColor = colors.light.primary; // "240 5.9% 10%"
+const cardPadding = spacing.card; // "2rem"
 ```
 
 ---

@@ -6,12 +6,12 @@ import { Footer } from "../../components/footer";
 
 export function FeaturesPage() {
     return (
-        <div className="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
+        <div className="bg-background text-foreground font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
             <Nav activeLink="produto" />
 
             <main className="relative z-10">
                 {/* Hero Section */}
-                <section className="pt-24 pb-20 lg:pt-32 lg:pb-24 border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark relative overflow-hidden">
+                <section className="pt-24 pb-20 lg:pt-32 lg:pb-24 border-b border-border bg-card relative overflow-hidden">
                     <div className="absolute inset-0 bg-grid-pattern dark:bg-grid-pattern-dark opacity-[0.4] grid-bg"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 mb-6">
@@ -28,7 +28,7 @@ export function FeaturesPage() {
                             </span>
                         </h1>
 
-                        <p className="text-lg md:text-xl text-text-muted-light dark:text-text-muted-dark max-w-3xl mx-auto mb-10 leading-relaxed">
+                        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed">
                             Esqueça as plataformas lentas e travadas. Projetamos cada interação
                             para eliminar distrações. Do carregamento instantâneo ao modo foco,
                             tudo aqui existe para que seu aluno aprenda mais, em menos tempo.
@@ -52,35 +52,35 @@ export function FeaturesPage() {
                 </section>
 
                 {/* Features Grid Section */}
-                <section className="py-20 lg:py-24 bg-background-light dark:bg-background-dark">
+                <section className="py-20 lg:py-24 bg-background">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-                            <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+                            <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                                 <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center mb-4">
                                     <span className="material-icons-outlined text-zinc-700 dark:text-zinc-300">speed</span>
                                 </div>
                                 <h3 className="text-lg font-bold font-display mb-2">Instant Load</h3>
-                                <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                                <p className="text-sm text-muted-foreground">
                                     Pré-carregamento inteligente de rotas. Quando o aluno move o
                                     mouse para &quot;Próxima Aula&quot;, o conteúdo já está baixado.
                                 </p>
                             </div>
-                            <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+                            <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                                 <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center mb-4">
                                     <span className="material-icons-outlined text-zinc-700 dark:text-zinc-300">wifi_off</span>
                                 </div>
                                 <h3 className="text-lg font-bold font-display mb-2">Offline-First Logic</h3>
-                                <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                                <p className="text-sm text-muted-foreground">
                                     Arquitetura preparada para PWA. Sincronização de progresso e
                                     flashcards mesmo com conexão instável.
                                 </p>
                             </div>
-                            <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+                            <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
                                 <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center mb-4">
                                     <span className="material-icons-outlined text-zinc-700 dark:text-zinc-300">security</span>
                                 </div>
                                 <h3 className="text-lg font-bold font-display mb-2">Enterprise Grade</h3>
-                                <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                                <p className="text-sm text-muted-foreground">
                                     Autenticação via Supabase/NextAuth. Proteção contra
                                     compartilhamento de conta e download ilegal de vídeos (DRM ready).
                                 </p>
@@ -96,8 +96,8 @@ export function FeaturesPage() {
                         {/* Bento Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 h-auto md:h-[500px]">
                             {/* Main Video Player */}
-                            <div className="md:col-span-3 md:row-span-2 bg-white dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden relative group">
-                                <div className="absolute top-0 left-0 w-full h-12 border-b border-border-light dark:border-border-dark bg-zinc-50/50 dark:bg-zinc-800/50 flex items-center px-4 gap-2 z-20 backdrop-blur">
+                            <div className="md:col-span-3 md:row-span-2 bg-card rounded-2xl border border-border shadow-sm overflow-hidden relative group">
+                                <div className="absolute top-0 left-0 w-full h-12 border-b border-border bg-zinc-50/50 dark:bg-zinc-800/50 flex items-center px-4 gap-2 z-20 backdrop-blur">
                                     <div className="w-3 h-3 rounded-full bg-red-400"></div>
                                     <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                                     <div className="w-3 h-3 rounded-full bg-green-400"></div>
@@ -133,19 +133,19 @@ export function FeaturesPage() {
                                         </div>
                                         <span className="material-icons-outlined text-white/90 text-7xl opacity-80 group-hover:scale-110 transition-transform duration-300">play_circle_filled</span>
                                     </div>
-                                    <div className="h-64 border-t border-border-light dark:border-border-dark bg-white dark:bg-surface-dark p-8 flex gap-8">
+                                    <div className="h-64 border-t border-border bg-card p-8 flex gap-8">
                                         <div className="w-2/3 space-y-4">
                                             <h3 className="text-2xl font-bold">04. Leis de Newton Aplicadas</h3>
-                                            <p className="text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                                            <p className="text-muted-foreground leading-relaxed">
                                                 Nesta aula vamos dissecar os principais problemas de
                                                 blocos e tração. Importante revisar vetores antes de prosseguir.
                                             </p>
                                             <div className="flex gap-2 pt-2">
-                                                <span className="px-2 py-1 rounded border border-border-light dark:border-border-dark text-xs font-medium text-zinc-500">Física</span>
-                                                <span className="px-2 py-1 rounded border border-border-light dark:border-border-dark text-xs font-medium text-zinc-500">Mecânica</span>
+                                                <span className="px-2 py-1 rounded border border-border text-xs font-medium text-zinc-500">Física</span>
+                                                <span className="px-2 py-1 rounded border border-border text-xs font-medium text-zinc-500">Mecânica</span>
                                             </div>
                                         </div>
-                                        <div className="w-1/3 border-l border-border-light dark:border-border-dark pl-8">
+                                        <div className="w-1/3 border-l border-border pl-8">
                                             <h4 className="text-sm font-bold uppercase text-zinc-400 mb-4 tracking-wider">Material de Apoio</h4>
                                             <ul className="space-y-3">
                                                 <li className="flex items-center gap-2 text-sm hover:text-blue-600 cursor-pointer transition-colors">
@@ -163,13 +163,13 @@ export function FeaturesPage() {
                             </div>
 
                             {/* Flashcards */}
-                            <div className="md:col-span-1 bg-white dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm p-6 flex flex-col justify-between group hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
+                            <div className="md:col-span-1 bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col justify-between group hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="font-bold font-display text-lg">Flashcards</h3>
                                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                                     </div>
-                                    <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 border border-border-light dark:border-border-dark min-h-[140px] flex items-center justify-center text-center relative overflow-hidden">
+                                    <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 border border-border min-h-[140px] flex items-center justify-center text-center relative overflow-hidden">
                                         <div className="absolute top-2 right-2 text-[10px] text-zinc-400 font-mono">SRS: ACTIVE</div>
                                         <p className="font-medium text-sm text-zinc-700 dark:text-zinc-300">
                                             Qual a fórmula da 2ª Lei de Newton?
@@ -187,7 +187,7 @@ export function FeaturesPage() {
                             </div>
 
                             {/* AI Tutor */}
-                            <div className="md:col-span-1 bg-white dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm p-6 flex flex-col overflow-hidden group hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
+                            <div className="md:col-span-1 bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col overflow-hidden group hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className="material-icons-outlined text-purple-500">auto_awesome</span>
                                     <h3 className="font-bold font-display text-lg">Tutor AI</h3>
@@ -214,7 +214,7 @@ export function FeaturesPage() {
                 </section>
 
                 {/* Theming Section */}
-                <section className="py-20 lg:py-24 border-t border-border-light dark:border-border-dark bg-white dark:bg-background-dark">
+                <section className="py-20 lg:py-24 border-t border-border bg-card">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid md:grid-cols-2 gap-16 items-center">
                             <div>
@@ -225,7 +225,7 @@ export function FeaturesPage() {
                                 <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">
                                     Sua marca, não a nossa.
                                 </h2>
-                                <p className="text-lg text-text-muted-light dark:text-text-muted-dark mb-8">
+                                <p className="text-lg text-muted-foreground mb-8">
                                     Controle cada pixel via código. Do logo no header aos e-mails
                                     transacionais. O Aluminify foi construído para ser invisível.
                                 </p>
@@ -236,7 +236,7 @@ export function FeaturesPage() {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-sm">Design Tokens</h4>
-                                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                                            <p className="text-sm text-muted-foreground">
                                                 Defina tipografia, radius e espaçamentos globais.
                                             </p>
                                         </div>
@@ -247,7 +247,7 @@ export function FeaturesPage() {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-sm">CSS Variables</h4>
-                                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                                            <p className="text-sm text-muted-foreground">
                                                 Suporte nativo a Tailwind Config para temas claros e escuros.
                                             </p>
                                         </div>
@@ -258,7 +258,7 @@ export function FeaturesPage() {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-sm">Domínio Próprio</h4>
-                                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark">
+                                            <p className="text-sm text-muted-foreground">
                                                 CNAME setup automático para aluno.suaescola.com.br
                                             </p>
                                         </div>
@@ -305,17 +305,17 @@ export function FeaturesPage() {
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-20 lg:py-24 bg-surface-light dark:bg-surface-dark border-t border-border-light dark:border-border-dark">
+                <section className="py-20 lg:py-24 bg-card border-t border-border">
                     <div className="max-w-4xl mx-auto px-4 text-center">
                         <h2 className="text-3xl font-display font-bold mb-6">
                             Pronto para rodar sua infraestrutura?
                         </h2>
-                        <p className="text-text-muted-light dark:text-text-muted-dark mb-10">
+                        <p className="text-muted-foreground mb-10">
                             Comece com o plano Community gratuitamente ou escale com nossa nuvem gerenciada.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                className="w-full sm:w-auto px-8 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-all shadow-lg shadow-zinc-200 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                className="w-full sm:w-auto px-8 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-zinc-200 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                 href="/pricing"
                             >
                                 Ver Planos

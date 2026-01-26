@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export function DocsPage() {
     return (
-        <div className="bg-surface-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased transition-colors duration-200">
-            <nav className="sticky top-0 z-50 w-full border-b border-border-light/80 dark:border-border-dark/80 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+        <div className="bg-background text-foreground font-sans antialiased transition-colors duration-200">
+            <nav className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/80 backdrop-blur-md">
                 <div className="w-full px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-14 items-center">
                         <div className="flex items-center gap-8">
@@ -35,11 +35,11 @@ export function DocsPage() {
 
             <div className="flex max-w-[90rem] mx-auto">
                 {/* Sidebar */}
-                <aside className="hidden lg:block w-64 border-r border-border-light dark:border-border-dark h-[calc(100vh-3.5rem)] sticky top-14 overflow-y-auto sidebar-scroll pt-8 pb-10 pl-8 pr-4 bg-background-light dark:bg-background-dark/50">
+                <aside className="hidden lg:block w-64 border-r border-border h-[calc(100vh-3.5rem)] sticky top-14 overflow-y-auto sidebar-scroll pt-8 pb-10 pl-8 pr-4 bg-background">
                     <div className="space-y-8">
                         <div>
                             <h5 className="font-bold text-xs uppercase tracking-wider text-primary dark:text-white mb-3">Getting Started</h5>
-                            <ul className="space-y-2 text-sm text-text-muted-light dark:text-text-muted-dark">
+                            <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li>
                                     <a href="#" className="block text-primary dark:text-blue-400 font-medium border-l-2 border-blue-500 pl-3 -ml-3">Introduction</a>
                                 </li>
@@ -50,7 +50,7 @@ export function DocsPage() {
 
                         <div>
                             <h5 className="font-bold text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-200 mb-3">Deployment</h5>
-                            <ul className="space-y-2 text-sm text-text-muted-light dark:text-text-muted-dark">
+                            <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Docker Compose</a></li>
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Vercel & Supabase</a></li>
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Environment Variables</a></li>
@@ -59,7 +59,7 @@ export function DocsPage() {
 
                         <div>
                             <h5 className="font-bold text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-200 mb-3">White Label</h5>
-                            <ul className="space-y-2 text-sm text-text-muted-light dark:text-text-muted-dark">
+                            <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Theming Guide</a></li>
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Custom Components</a></li>
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Email Templates</a></li>
@@ -68,7 +68,7 @@ export function DocsPage() {
 
                         <div>
                             <h5 className="font-bold text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-200 mb-3">API Reference</h5>
-                            <ul className="space-y-2 text-sm text-text-muted-light dark:text-text-muted-dark">
+                            <ul className="space-y-2 text-sm text-muted-foreground">
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Authentication</a></li>
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Students</a></li>
                                 <li><a href="#" className="block hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">Progress Tracking</a></li>
@@ -79,7 +79,7 @@ export function DocsPage() {
 
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 py-10 px-4 sm:px-6 lg:px-8 lg:pr-72">
-                    <div className="flex items-center gap-2 text-sm text-text-muted-light dark:text-text-muted-dark mb-6">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
                         <span>Docs</span>
                         <span className="material-icons-outlined text-xs">chevron_right</span>
                         <span>Getting Started</span>
@@ -88,30 +88,30 @@ export function DocsPage() {
                     </div>
 
                     <h1 className="text-4xl font-display font-bold mb-6 text-primary dark:text-white">Aluminify Documentation</h1>
-                    <p className="text-lg text-text-muted-light dark:text-text-muted-dark mb-10 leading-relaxed max-w-3xl">
+                    <p className="text-lg text-muted-foreground mb-10 leading-relaxed max-w-3xl">
                         Bem-vindo ao Developer Hub. Aqui você aprende como fazer o deploy, customizar e escalar sua própria instância do Aluminify.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                        <a href="#" className="p-4 rounded-xl border border-border-light dark:border-border-dark hover:border-blue-400 dark:hover:border-blue-500 transition-all group">
+                        <a href="#" className="p-4 rounded-xl border border-border hover:border-blue-400 dark:hover:border-blue-500 transition-all group">
                             <span className="material-icons-outlined text-blue-500 mb-2">rocket_launch</span>
                             <h3 className="font-bold text-primary dark:text-white group-hover:text-blue-500 transition-colors">Quickstart Guide</h3>
-                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark mt-1">Coloque sua escola no ar em menos de 10 minutos.</p>
+                            <p className="text-sm text-muted-foreground mt-1">Coloque sua escola no ar em menos de 10 minutos.</p>
                         </a>
-                        <a href="#" className="p-4 rounded-xl border border-border-light dark:border-border-dark hover:border-purple-400 dark:hover:border-purple-500 transition-all group">
+                        <a href="#" className="p-4 rounded-xl border border-border hover:border-purple-400 dark:hover:border-purple-500 transition-all group">
                             <span className="material-icons-outlined text-purple-500 mb-2">palette</span>
                             <h3 className="font-bold text-primary dark:text-white group-hover:text-purple-500 transition-colors">Customização Visual</h3>
-                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark mt-1">Aprenda a configurar cores, fontes e logo.</p>
+                            <p className="text-sm text-muted-foreground mt-1">Aprenda a configurar cores, fontes e logo.</p>
                         </a>
-                        <a href="#" className="p-4 rounded-xl border border-border-light dark:border-border-dark hover:border-green-400 dark:hover:border-green-500 transition-all group">
+                        <a href="#" className="p-4 rounded-xl border border-border hover:border-green-400 dark:hover:border-green-500 transition-all group">
                             <span className="material-icons-outlined text-green-500 mb-2">api</span>
                             <h3 className="font-bold text-primary dark:text-white group-hover:text-green-500 transition-colors">API Reference</h3>
-                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark mt-1">Endpoints REST para integrações externas.</p>
+                            <p className="text-sm text-muted-foreground mt-1">Endpoints REST para integrações externas.</p>
                         </a>
-                        <a href="#" className="p-4 rounded-xl border border-border-light dark:border-border-dark hover:border-orange-400 dark:hover:border-orange-500 transition-all group">
+                        <a href="#" className="p-4 rounded-xl border border-border hover:border-orange-400 dark:hover:border-orange-500 transition-all group">
                             <span className="material-icons-outlined text-orange-500 mb-2">school</span>
                             <h3 className="font-bold text-primary dark:text-white group-hover:text-orange-500 transition-colors">Modelagem Pedagógica</h3>
-                            <p className="text-sm text-text-muted-light dark:text-text-muted-dark mt-1">Como estruturar trilhas, módulos e aulas.</p>
+                            <p className="text-sm text-muted-foreground mt-1">Como estruturar trilhas, módulos e aulas.</p>
                         </a>
                     </div>
 
@@ -153,11 +153,11 @@ export function DocsPage() {
                         <p>Agora que você tem o sistema rodando, recomendamos configurar o provedor de autenticação.</p>
                     </div>
 
-                    <div className="mt-16 pt-8 border-t border-border-light dark:border-border-dark flex justify-between">
+                    <div className="mt-16 pt-8 border-t border-border flex justify-between">
                         <div></div>
                         <a href="#" className="flex items-center gap-2 text-right group">
                             <div>
-                                <div className="text-xs text-text-muted-light dark:text-text-muted-dark mb-1">Próximo</div>
+                                <div className="text-xs text-muted-foreground mb-1">Próximo</div>
                                 <div className="text-primary dark:text-white font-bold group-hover:text-blue-500 transition-colors">Configuração de Variáveis</div>
                             </div>
                             <span className="material-icons-outlined text-zinc-400 group-hover:text-blue-500">arrow_forward</span>
@@ -167,12 +167,12 @@ export function DocsPage() {
 
                 {/* Table of Contents */}
                 <aside className="hidden xl:block w-64 h-[calc(100vh-3.5rem)] sticky top-14 pt-8 pr-8">
-                    <h5 className="font-bold text-xs uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark mb-4">On this page</h5>
-                    <ul className="space-y-3 text-sm border-l border-border-light dark:border-border-dark">
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-4">On this page</h5>
+                    <ul className="space-y-3 text-sm border-l border-border">
                         <li><a href="#" className="block pl-4 text-blue-500 border-l-2 border-blue-500 -ml-px">Introduction</a></li>
-                        <li><a href="#" className="block pl-4 text-text-muted-light dark:text-text-muted-dark hover:text-zinc-900 dark:hover:text-zinc-200">Installation</a></li>
-                        <li><a href="#" className="block pl-4 text-text-muted-light dark:text-text-muted-dark hover:text-zinc-900 dark:hover:text-zinc-200">Requirements</a></li>
-                        <li><a href="#" className="block pl-4 text-text-muted-light dark:text-text-muted-dark hover:text-zinc-900 dark:hover:text-zinc-200">Next Steps</a></li>
+                        <li><a href="#" className="block pl-4 text-muted-foreground hover:text-zinc-900 dark:hover:text-zinc-200">Installation</a></li>
+                        <li><a href="#" className="block pl-4 text-muted-foreground hover:text-zinc-900 dark:hover:text-zinc-200">Requirements</a></li>
+                        <li><a href="#" className="block pl-4 text-muted-foreground hover:text-zinc-900 dark:hover:text-zinc-200">Next Steps</a></li>
                     </ul>
                 </aside>
             </div>

@@ -6,13 +6,13 @@ import { Footer } from "../../components/footer";
 
 export function RoadmapPage() {
     return (
-        <div className="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased">
+        <div className="bg-background text-foreground font-sans antialiased">
             <Nav />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-display font-bold mb-4">Roadmap Público</h1>
-                    <p className="text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
+                    <p className="text-muted-foreground max-w-2xl mx-auto">
                         Nossa visão para o futuro da infraestrutura educacional. Vote nas features que você mais precisa no nosso{" "}
                         <a href="https://github.com/aluminify/core/discussions" className="text-blue-600 underline decoration-1 underline-offset-2" target="_blank" rel="noopener noreferrer">
                             GitHub Discussions
@@ -28,7 +28,7 @@ export function RoadmapPage() {
                             <h3 className="font-bold text-sm uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Em Desenvolvimento</h3>
                         </div>
                         <div className="space-y-4">
-                            <div className="bg-white dark:bg-surface-dark p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-blue-300 dark:hover:border-blue-600 transition-colors group">
+                            <div className="bg-card p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-blue-300 dark:hover:border-blue-600 transition-colors group">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-mono text-zinc-400">CORE-241</span>
                                     <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase">Beta</span>
@@ -43,7 +43,7 @@ export function RoadmapPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-surface-dark p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-blue-300 dark:hover:border-blue-600 transition-colors group">
+                            <div className="bg-card p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-blue-300 dark:hover:border-blue-600 transition-colors group">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-mono text-zinc-400">AI-102</span>
                                 </div>
@@ -62,7 +62,7 @@ export function RoadmapPage() {
                             <h3 className="font-bold text-sm uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Próximo (Q2 2026)</h3>
                         </div>
                         <div className="space-y-4">
-                            <div className="bg-white dark:bg-surface-dark p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-orange-300 dark:hover:border-orange-600 transition-colors">
+                            <div className="bg-card p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-orange-300 dark:hover:border-orange-600 transition-colors">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-mono text-zinc-400">MOB-001</span>
                                 </div>
@@ -72,7 +72,7 @@ export function RoadmapPage() {
                                 </p>
                             </div>
 
-                            <div className="bg-white dark:bg-surface-dark p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-orange-300 dark:hover:border-orange-600 transition-colors">
+                            <div className="bg-card p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-orange-300 dark:hover:border-orange-600 transition-colors">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-mono text-zinc-400">ANA-300</span>
                                 </div>
@@ -82,7 +82,7 @@ export function RoadmapPage() {
                                 </p>
                             </div>
 
-                            <div className="bg-white dark:bg-surface-dark p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-orange-300 dark:hover:border-orange-600 transition-colors">
+                            <div className="bg-card p-5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm hover:border-orange-300 dark:hover:border-orange-600 transition-colors">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-mono text-zinc-400">INT-050</span>
                                 </div>

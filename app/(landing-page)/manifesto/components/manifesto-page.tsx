@@ -16,10 +16,10 @@ export function ManifestoPage() {
     }, []);
 
     return (
-        <div className="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
+        <div className="bg-background text-foreground font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
             <nav
                 className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
-                    ? "bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-border-light dark:border-border-dark"
+                    ? "bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-border"
                     : "bg-transparent border-b border-transparent"
                     }`}
             >
@@ -35,7 +35,7 @@ export function ManifestoPage() {
                         </Link>
                         <Link
                             href="/signup"
-                            className="text-xs font-mono text-text-muted-light dark:text-text-muted-dark hover:text-primary dark:hover:text-white transition-colors"
+                            className="text-xs font-mono text-muted-foreground hover:text-primary dark:hover:text-white transition-colors"
                         >
                             Criar Instância -&gt;
                         </Link>
@@ -45,9 +45,9 @@ export function ManifestoPage() {
 
             <main className="pt-32 pb-32 px-6">
                 <header className="max-w-3xl mx-auto mb-24 text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full mb-8 shadow-sm">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-card border border-border rounded-full mb-8 shadow-sm">
                         <span className="w-1.5 h-1.5 bg-primary dark:bg-white rounded-full animate-pulse"></span>
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-text-muted-light dark:text-text-muted-dark">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
                             Carta Aberta aos Educadores
                         </span>
                     </div>
@@ -55,7 +55,7 @@ export function ManifestoPage() {
                         A Soberania de <br />
                         Nutrir Mentes.
                     </h1>
-                    <p className="text-lg text-text-muted-light dark:text-text-muted-dark max-w-xl mx-auto leading-relaxed">
+                    <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
                         Por que decidimos construir a infraestrutura invisível que a sua
                         escola merece.
                     </p>
@@ -70,7 +70,7 @@ export function ManifestoPage() {
                         <h2 className="text-2xl font-bold mb-6 text-primary dark:text-white">
                             Ensinar é um ato de autonomia.
                         </h2>
-                        <div className="prose prose-zinc dark:prose-invert prose-lg text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                        <div className="prose prose-zinc dark:prose-invert prose-lg text-muted-foreground leading-relaxed">
                             <p>
                                 Quando você fecha a porta da sala de aula, aquele espaço é seu.
                                 A didática é sua. A conexão no olhar de cada estudante é sua. É
@@ -98,24 +98,24 @@ export function ManifestoPage() {
 
                         <h2 className="text-2xl font-bold mb-8 text-primary dark:text-white">O mito do &quot;ser sem luz&quot;.</h2>
 
-                        <div className="bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-8 md:p-10 shadow-sm mb-10 relative overflow-hidden group hover:shadow-md transition-all">
+                        <div className="bg-card border border-border rounded-xl p-8 md:p-10 shadow-sm mb-10 relative overflow-hidden group hover:shadow-md transition-all">
                             <div className="absolute top-0 right-0 p-4 opacity-10 font-serif text-9xl text-primary dark:text-white leading-none select-none group-hover:scale-110 transition-transform duration-700">
                                 Aa
                             </div>
 
                             <div className="relative z-10">
-                                <div className="flex items-baseline gap-4 mb-4 border-b border-border-light dark:border-border-dark pb-4">
+                                <div className="flex items-baseline gap-4 mb-4 border-b border-border pb-4">
                                     <h3 className="text-3xl font-bold text-primary dark:text-white font-serif">
                                         Alumnus
                                     </h3>
-                                    <span className="font-mono text-xs text-text-muted-light dark:text-text-muted-dark">
+                                    <span className="font-mono text-xs text-muted-foreground">
                                         latim • /a-lum-nus/
                                     </span>
                                 </div>
 
                                 <ol className="space-y-4 font-serif text-lg text-primary/80 dark:text-white/80">
                                     <li className="flex gap-4">
-                                        <span className="font-mono text-xs text-text-muted-light dark:text-text-muted-dark mt-1.5">
+                                        <span className="font-mono text-xs text-muted-foreground mt-1.5">
                                             1.
                                         </span>
                                         <span>
@@ -124,7 +124,7 @@ export function ManifestoPage() {
                                         </span>
                                     </li>
                                     <li className="flex gap-4">
-                                        <span className="font-mono text-xs text-text-muted-light dark:text-text-muted-dark mt-1.5">
+                                        <span className="font-mono text-xs text-muted-foreground mt-1.5">
                                             2.
                                         </span>
                                         <span>
@@ -133,7 +133,7 @@ export function ManifestoPage() {
                                         </span>
                                     </li>
                                     <li className="flex gap-4 opacity-50">
-                                        <span className="font-mono text-xs text-text-muted-light dark:text-text-muted-dark mt-1.5">
+                                        <span className="font-mono text-xs text-muted-foreground mt-1.5">
                                             x.
                                         </span>
                                         <span className="line-through decoration-zinc-400">
@@ -144,7 +144,7 @@ export function ManifestoPage() {
                             </div>
                         </div>
 
-                        <div className="prose prose-zinc dark:prose-invert prose-lg text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                        <div className="prose prose-zinc dark:prose-invert prose-lg text-muted-foreground leading-relaxed">
                             <p>
                                 Há uma lenda urbana pedagógica que insiste em dizer que &quot;aluno&quot;
                                 vem de <em>A-lumen</em> (sem luz). Rejeitamos essa ideia de que
@@ -162,9 +162,9 @@ export function ManifestoPage() {
                     </section>
 
                     <section className="mb-20 relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background-dark border-2 border-border-light dark:border-border-dark rounded-full z-10"></span>
+                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background-dark border-2 border-border rounded-full z-10"></span>
                         <h2 className="text-2xl font-bold mb-6 text-primary dark:text-white">Nós somos o solo fértil.</h2>
-                        <div className="prose prose-zinc dark:prose-invert prose-lg text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                        <div className="prose prose-zinc dark:prose-invert prose-lg text-muted-foreground leading-relaxed">
                             <p>
                                 Se o aluno precisa ser nutrido, a escola precisa de solo fértil.
                                 É aqui que entra o <strong>Aluminify</strong>.
@@ -193,11 +193,11 @@ export function ManifestoPage() {
                     <section className="relative">
                         <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background-dark border-2 border-primary dark:border-white rounded-full z-10"></span>
 
-                        <div className="bg-zinc-50 dark:bg-zinc-900 border border-border-light dark:border-border-dark rounded-2xl p-8 md:p-12 text-center mt-8">
+                        <div className="bg-zinc-50 dark:bg-zinc-900 border border-border rounded-2xl p-8 md:p-12 text-center mt-8">
                             <h3 className="text-xl font-bold text-primary dark:text-white mb-4">
                                 Retome a sua soberania.
                             </h3>
-                            <p className="text-text-muted-light dark:text-text-muted-dark mb-8 max-w-md mx-auto">
+                            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                                 Seus alunos são seus. Sua marca é sua. Sua tecnologia deve ser
                                 sua também.
                             </p>
@@ -205,13 +205,13 @@ export function ManifestoPage() {
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <Link
                                     href="/signup"
-                                    className="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-hover transition-colors shadow-lg shadow-zinc-200 dark:shadow-none"
+                                    className="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-zinc-200 dark:shadow-none"
                                 >
                                     Começar Agora
                                 </Link>
                                 <Link
                                     href="/"
-                                    className="px-8 py-3 bg-white dark:bg-zinc-800 border border-border-light dark:border-border-dark text-primary dark:text-white rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                                    className="px-8 py-3 bg-white dark:bg-zinc-800 border border-border text-primary dark:text-white rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                                 >
                                     Voltar para Home
                                 </Link>
@@ -230,8 +230,8 @@ export function ManifestoPage() {
                 </article>
             </main>
 
-            <footer className="border-t border-border-light dark:border-border-dark bg-white dark:bg-surface-dark py-12 text-center">
-                <p className="text-xs text-text-muted-light dark:text-text-muted-dark font-mono">
+            <footer className="border-t border-border bg-card py-12 text-center">
+                <p className="text-xs text-muted-foreground font-mono">
                     © 2026 Aluminify Inc. A infraestrutura invisível da educação.
                 </p>
             </footer>

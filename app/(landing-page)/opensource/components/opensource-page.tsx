@@ -6,7 +6,7 @@ import { Footer } from "../../components/footer";
 
 export function OpenSourcePage() {
     return (
-        <div className="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased transition-colors duration-200">
+        <div className="bg-background text-foreground font-sans antialiased transition-colors duration-200">
             <Nav activeLink="opensource" />
 
             <main>
@@ -21,7 +21,7 @@ export function OpenSourcePage() {
                             Auditável. Customizável. <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-600 to-black dark:from-zinc-300 dark:to-white">Seu.</span>
                         </h1>
-                        <p className="text-lg md:text-xl text-text-muted-light dark:text-text-muted-dark max-w-3xl mx-auto mb-12 leading-relaxed">
+                        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
                             Acreditamos que a infraestrutura educacional não deve ser uma caixa preta.
                             O Aluminify é construído em público, para que você tenha controle total sobre seus dados e destino.
                         </p>
@@ -62,53 +62,53 @@ export function OpenSourcePage() {
                 </section>
 
                 {/* Stack Section */}
-                <section className="py-20 lg:py-24 bg-surface-light dark:bg-surface-dark border-y border-border-light dark:border-border-dark">
+                <section className="py-20 lg:py-24 bg-card border-y border-border">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl font-display font-bold mb-4">Stack Moderna</h2>
-                            <p className="text-text-muted-light dark:text-text-muted-dark">
+                            <p className="text-muted-foreground">
                                 Escolhemos as tecnologias que definem a web moderna.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <div className="p-6 rounded-xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-4 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors cursor-default group">
+                            <div className="p-6 rounded-xl bg-background border border-border flex flex-col items-center justify-center gap-4 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors cursor-default group">
                                 <div className="w-12 h-12 bg-white dark:bg-white rounded-full flex items-center justify-center shadow-sm">
                                     <span className="font-bold text-black text-xs">N</span>
                                 </div>
                                 <div className="text-center">
                                     <h3 className="font-bold">Next.js 15</h3>
-                                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">App Router & Server Actions</p>
+                                    <p className="text-xs text-muted-foreground mt-1">App Router & Server Actions</p>
                                 </div>
                             </div>
 
-                            <div className="p-6 rounded-xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors cursor-default group">
+                            <div className="p-6 rounded-xl bg-background border border-border flex flex-col items-center justify-center gap-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors cursor-default group">
                                 <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
                                     <span className="material-icons-outlined text-blue-500">palette</span>
                                 </div>
                                 <div className="text-center">
                                     <h3 className="font-bold">Tailwind CSS</h3>
-                                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">Utility-First Styling</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Utility-First Styling</p>
                                 </div>
                             </div>
 
-                            <div className="p-6 rounded-xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-4 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors cursor-default group">
+                            <div className="p-6 rounded-xl bg-background border border-border flex flex-col items-center justify-center gap-4 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors cursor-default group">
                                 <div className="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center">
                                     <span className="material-icons-outlined text-indigo-500">storage</span>
                                 </div>
                                 <div className="text-center">
                                     <h3 className="font-bold">PostgreSQL</h3>
-                                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">Supabase Ready</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Supabase Ready</p>
                                 </div>
                             </div>
 
-                            <div className="p-6 rounded-xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-4 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-default group">
+                            <div className="p-6 rounded-xl bg-background border border-border flex flex-col items-center justify-center gap-4 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-default group">
                                 <div className="w-12 h-12 bg-blue-600/10 rounded-full flex items-center justify-center">
                                     <span className="material-icons-outlined text-blue-600">layers</span>
                                 </div>
                                 <div className="text-center">
                                     <h3 className="font-bold">Docker</h3>
-                                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">Containerized Deploy</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Containerized Deploy</p>
                                 </div>
                             </div>
                         </div>
@@ -116,11 +116,11 @@ export function OpenSourcePage() {
                 </section>
 
                 {/* Architecture Section */}
-                <section className="py-20 lg:py-24 bg-background-light dark:bg-background-dark">
+                <section className="py-20 lg:py-24 bg-background">
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <h2 className="text-2xl font-display font-bold mb-12">Arquitetura do Sistema</h2>
 
-                        <div className="relative p-8 border border-border-light dark:border-border-dark rounded-2xl bg-white dark:bg-surface-dark overflow-hidden">
+                        <div className="relative p-8 border border-border rounded-2xl bg-white dark:bg-surface-dark overflow-hidden">
                             <div className="absolute inset-0 bg-[radial-gradient(circle,#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(circle,#334155_1px,transparent_1px)] bg-[size:40px_40px] opacity-30"></div>
 
                             <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4">
@@ -180,10 +180,10 @@ export function OpenSourcePage() {
                 </section>
 
                 {/* Community Section */}
-                <section className="py-20 lg:py-24 border-t border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
+                <section className="py-20 lg:py-24 border-t border-border bg-card">
                     <div className="max-w-4xl mx-auto px-4 text-center">
                         <h2 className="text-3xl font-display font-bold mb-6">Construa com a comunidade</h2>
-                        <p className="text-text-muted-light dark:text-text-muted-dark mb-10">
+                        <p className="text-muted-foreground mb-10">
                             Junte-se a outros desenvolvedores e escolas que estão moldando o futuro do LMS open source.
                         </p>
                         <div className="grid md:grid-cols-2 gap-6">
@@ -191,28 +191,28 @@ export function OpenSourcePage() {
                                 href="https://github.com/aluminify/core/discussions"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-4 p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all text-left group"
+                                className="flex items-center gap-4 p-6 rounded-xl border border-border hover:border-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all text-left group"
                             >
                                 <div className="w-12 h-12 bg-zinc-900 rounded-lg flex items-center justify-center text-white">
                                     <span className="material-icons-outlined">code</span>
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-lg group-hover:text-primary dark:group-hover:text-white transition-colors">GitHub Discussions</h4>
-                                    <p className="text-sm text-text-muted-light dark:text-text-muted-dark">Reporte bugs e sugira features.</p>
+                                    <p className="text-sm text-muted-foreground">Reporte bugs e sugira features.</p>
                                 </div>
                             </a>
                             <a
                                 href="https://discord.gg/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-4 p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-all text-left group"
+                                className="flex items-center gap-4 p-6 rounded-xl border border-border hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-all text-left group"
                             >
                                 <div className="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center text-white">
                                     <span className="material-icons-outlined">chat_bubble_outline</span>
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-lg group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Discord Community</h4>
-                                    <p className="text-sm text-text-muted-light dark:text-text-muted-dark">Converse em tempo real com o time.</p>
+                                    <p className="text-sm text-muted-foreground">Converse em tempo real com o time.</p>
                                 </div>
                             </a>
                         </div>

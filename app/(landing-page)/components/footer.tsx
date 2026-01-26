@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
     return (
-        <footer className="bg-surface-light dark:bg-surface-dark border-t border-border-light dark:border-border-dark py-12">
+        <footer className="bg-card border-t border-border py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                     <div className="col-span-1 md:col-span-2">
@@ -14,7 +14,7 @@ export function Footer() {
                                 Aluminify
                             </span>
                         </div>
-                        <p className="text-text-muted-light dark:text-text-muted-dark text-sm max-w-xs mb-6">
+                        <p className="text-muted-foreground text-sm max-w-xs mb-6">
                             Construindo a camada de infraestrutura para a próxima geração de educação online. Open Source e transparente.
                         </p>
                         <div className="flex gap-4">
@@ -66,7 +66,7 @@ export function Footer() {
                         <h4 className="font-bold mb-4 text-sm uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             Produto
                         </h4>
-                        <ul className="space-y-2 text-sm text-text-muted-light dark:text-text-muted-dark">
+                        <ul className="space-y-2 text-sm text-muted-foreground">
                             <li>
                                 <Link
                                     className="hover:text-primary dark:hover:text-white transition-colors"
@@ -105,7 +105,7 @@ export function Footer() {
                         <h4 className="font-bold mb-4 text-sm uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             Recursos
                         </h4>
-                        <ul className="space-y-2 text-sm text-text-muted-light dark:text-text-muted-dark">
+                        <ul className="space-y-2 text-sm text-muted-foreground">
                             <li>
                                 <Link
                                     className="hover:text-primary dark:hover:text-white transition-colors"
@@ -135,8 +135,8 @@ export function Footer() {
                         </ul>
                     </div>
                 </div>
-                <div className="border-t border-border-light dark:border-border-dark pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-xs text-text-muted-light dark:text-text-muted-dark">
+                <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p className="text-xs text-muted-foreground">
                         © 2026 Aluminify Inc. Apache 2.0 License.
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full">
