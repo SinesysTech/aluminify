@@ -61,7 +61,7 @@ export async function upsertDisponibilidade(data: Disponibilidade) {
   const { error } = await supabase
     .from("agendamento_disponibilidade")
     .upsert(
-      payload as Database["public"]["Tables"]["agendamento_disponibilidade"]["Update"],
+      payload as Database["public"]["Tables"]["agendamento_disponibilidade"]["Insert"],
     )
     .select();
 

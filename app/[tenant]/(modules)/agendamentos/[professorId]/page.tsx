@@ -40,7 +40,7 @@ async function getProfessorById(supabase: Awaited<ReturnType<typeof createClient
     .limit(1)
 
   return {
-    ...professor,
+    ...professor!,
     tem_disponibilidade: (disponibilidade?.length ?? 0) > 0
   }
 }

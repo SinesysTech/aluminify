@@ -42,7 +42,7 @@ export default async function RelatoriosPage() {
         </p>
       </div>
 
-      <RelatoriosDashboard professorId={user.id} empresaId={professor.empresa_id} />
+      <RelatoriosDashboard empresaId={professor.empresa_id} />
     </div>
   )
 }

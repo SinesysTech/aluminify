@@ -7,7 +7,6 @@ export default async function EmpresaConfiguracoesPage() {
     const supabase = await createClient()
     const {
       data: { user },
-      // @ts-expect-error - auth property check
     } = await supabase.auth.getUser()
 
     if (!user) {
