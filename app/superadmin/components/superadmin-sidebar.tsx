@@ -6,6 +6,8 @@ import {
   Users,
   LayoutDashboard,
   FileText,
+  DollarSign,
+  CreditCard,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -53,11 +55,20 @@ const superAdminNavItems: NavItem[] = [
     icon: Users,
   },
   {
+    title: "Financeiro",
+    url: "/superadmin/financeiro",
+    icon: DollarSign,
+  },
+  {
+    title: "Planos",
+    url: "/superadmin/planos",
+    icon: CreditCard,
+  },
+  {
     title: "Relatórios Globais",
     url: "/superadmin/relatorios",
     icon: FileText,
   },
-
 ]
 
 export function SuperAdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

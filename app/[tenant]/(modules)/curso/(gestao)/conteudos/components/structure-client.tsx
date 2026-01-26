@@ -1033,6 +1033,11 @@ export default function StructureManagerClient() {
   // - "00:09:06" (hh:mm:ss)
   // - "09:06" (mm:ss)
   // - fração do dia do Excel (ex: 0.00625 ~= 9 min) quando vem como número/string decimal <= 1
+  //
+  // CORREÇÃO: Quando o Excel interpreta números como "Hora" (ex: 16 → 16:00:00),
+  // ele armazena como fração de dia (16/24 = 0.6666), resultando em ~960 minutos.
+  // Detectamos esse cenário e corrigimos: se o resultado > 60 min, assumimos que
+  // o usuário digitou minutos, não horas.
   const parseTempoParaMinutos = (raw?: string | null): number | null => {
     if (!raw) return null
     const s = String(raw).trim()
@@ -1069,8 +1074,19 @@ export default function StructureManagerClient() {
 
       // Heurística: se <= 1 e tem decimal, pode ser fração do dia do Excel
       if (val <= 1 && numeric.includes('.')) {
-        const mins = Math.ceil(val * 24 * 60)
-        return mins > 0 ? mins : 1
+        const minsFromFraction = Math.ceil(val * 24 * 60)
+
+        // CORREÇÃO: Se o resultado > 60 minutos, provavelmente o Excel interpretou
+        // o valor como "horas" quando o usuário queria "minutos".
+        // Ex: usuário digitou "16" (minutos), Excel interpretou como 16:00 (16h),
+        // armazenou como 0.6666 (fração de dia), que daria 960 minutos.
+        // Nesse caso, extraímos as "horas" da fração e usamos como minutos.
+        if (minsFromFraction > 60) {
+          const hoursAsMinutes = Math.ceil(val * 24)
+          return hoursAsMinutes > 0 ? hoursAsMinutes : 1
+        }
+
+        return minsFromFraction > 0 ? minsFromFraction : 1
       }
 
       return Math.ceil(val)

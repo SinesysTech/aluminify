@@ -67,7 +67,10 @@
       "Bash(npm help:*)",
       "Bash(/c/Program Files/nodejs/npm.cmd install --prefix \"E:/Development/aluminify\")",
       "Bash(python -c:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(xargs -I {} bash -c \"echo ''=== {} ===''; head -50 {}\")",
+      "Bash(xargs -I {} bash -c \"echo ''=== {} ==='' && head -80 {}\")",
+      "Bash(npx next --version)"
     ],
     "deny": [],
     "ask": []
