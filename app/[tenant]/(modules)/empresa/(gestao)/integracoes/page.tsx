@@ -1,26 +1,11 @@
-﻿
+
 import { IntegracaoManager } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/integracao-manager"
-import { createClient } from "@/app/shared/core/server"
-import { redirect } from "next/navigation"
+import { requireUser } from "@/app/shared/core/auth"
 
 export default async function IntegracoesPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await requireUser({ allowedRoles: ["usuario"] })
 
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  // Get professor's empresa_id
-  const { data: professor } = await supabase
-    .from("professores")
-    .select("empresa_id")
-    .eq("id", user.id)
-    .single()
-
-  if (!professor?.empresa_id) {
+  if (!user.empresaId) {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
