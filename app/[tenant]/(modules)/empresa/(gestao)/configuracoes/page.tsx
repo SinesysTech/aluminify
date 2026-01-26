@@ -31,7 +31,7 @@ export default async function EmpresaConfiguracoesPage() {
                 </p>
             </div>
 
-            <SettingsTabs user={user as typeof user & { user_metadata: Record<string, unknown> }} />
+            <SettingsTabs user={user as any} />
         </div>
     )
 }

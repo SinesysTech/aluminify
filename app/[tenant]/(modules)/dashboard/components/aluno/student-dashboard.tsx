@@ -52,7 +52,7 @@ export default function StudentDashboardClientPage() {
 
                 // Pass empresaId to filter data by organization (for multi-org students)
                 const dashboardData = await fetchDashboardData({
-                    period: periodToUse,
+                    period: periodToUse as any,
                     empresaId: activeOrgId,
                 })
                 setData(dashboardData)

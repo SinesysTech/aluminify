@@ -4,7 +4,8 @@ import type { Papel, RoleTipo, RolePermissions } from '@/app/shared/types/entiti
 
 interface PapelFormProps {
   papel?: Papel
-  onSubmit?: (data: { nome: string; tipo: RoleTipo; permissions: RolePermissions }) => void | Promise<void>
+  onSubmit?: (data: { nome: string; tipo: RoleTipo; permissoes: RolePermissions }) => void | Promise<void>
+  onCancel?: () => void
   isLoading?: boolean
 }
 

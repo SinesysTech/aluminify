@@ -29,7 +29,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { toast } from "sonner"
-import { getRelatorios } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
+import { getRelatorios, gerarRelatorio, getRelatorioById } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 import type { Relatorio, RelatorioTipo } from "@/app/[tenant]/(modules)/agendamentos/types"
 import { cn } from "@/app/shared/core/utils"
 

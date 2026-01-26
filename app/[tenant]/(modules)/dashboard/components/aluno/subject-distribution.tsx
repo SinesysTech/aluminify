@@ -86,7 +86,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
                 <PieChart>
                   {/* eslint-disable @typescript-eslint/no-explicit-any */}
                   <Pie
-                    data={sortedData as unknown[]}
+                    data={sortedData as any}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -102,7 +102,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={CustomTooltip as React.ComponentType} />
+                  <Tooltip content={CustomTooltip as any} />
                   {/* eslint-enable @typescript-eslint/no-explicit-any */}
                 </PieChart>
               </ResponsiveContainer>

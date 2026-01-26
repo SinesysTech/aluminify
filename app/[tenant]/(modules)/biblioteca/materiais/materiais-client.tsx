@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { MaterialsFilters } from '../../curso/conteudos/components/shared/materials-filters'
-import { ModuleAccordion } from '../../curso/conteudos/components/shared/module-accordion'
+import { MaterialsFilters } from '../../curso/(gestao)/conteudos/components/shared/materials-filters'
+import { ModuleAccordion } from '../../curso/(gestao)/conteudos/components/shared/module-accordion'
 import RulesPanel from '@/components/shared/rules-panel'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { ModuloComAtividades, Atividade } from './types'

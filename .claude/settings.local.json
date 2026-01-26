@@ -45,7 +45,9 @@
       "Bash(dir:*)",
       "Bash(npm ls:*)",
       "Bash(npm --version)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(timeout 30 npm run dev:*)",
+      "Bash(claude mcp add:*)"
     ],
     "deny": [],
     "ask": []
