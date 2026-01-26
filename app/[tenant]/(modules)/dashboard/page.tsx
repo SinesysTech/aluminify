@@ -48,7 +48,7 @@ export default async function DashboardPage(props: {
   }
 
   if (shouldRedirectToComplete) {
-    redirect(`/${tenant}/professor/empresa/completar`)
+    redirect(`/${tenant}/empresa/completar`)
   }
 
   // Se é admin da empresa (ou superadmin), mostrar dashboard da instituição

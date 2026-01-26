@@ -52,7 +52,7 @@ export class SalaEstudosService {
 
       // Se não houver atividades, buscar cursos para filtro
       if (atividadesComProgresso.length === 0) {
-        const cursosResp = await fetch(`/api/aluno/cursos/${alunoId}`, {
+        const cursosResp = await fetch(`/api/usuario/alunos/cursos/${alunoId}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
         if (cursosResp.ok) {

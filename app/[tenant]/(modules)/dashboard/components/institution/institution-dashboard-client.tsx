@@ -11,7 +11,7 @@ import { InstitutionHeader } from './institution-header'
 import { InstitutionMetrics } from './institution-metrics'
 import { StudentRankingList } from './student-ranking-list'
 import { ProfessorRankingList } from './professor-ranking-list'
-import { DisciplinaPerformanceList } from './curso/disciplinas-performance'
+import { DisciplinaPerformanceList } from './disciplina-performance'
 import { ConsistencyHeatmap, type HeatmapPeriod } from '@/app/[tenant]/(modules)/dashboard/components/consistency-heatmap'
 import { DashboardSkeleton } from '@/app/[tenant]/(modules)/dashboard/components/dashboard-skeleton'
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/app/shared/components/forms/select'
 
-// Intervalo de refresh automático (5 minutos)
+// Intervalo de refresh automÃ¡tico (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
 
 type DashboardPeriod = 'semanal' | 'mensal' | 'anual'
@@ -58,12 +58,12 @@ export default function InstitutionDashboardClient() {
           errorMessage = err.message
 
           if ((err as InstitutionDashboardServiceError).isAuthError) {
-            errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.'
+            errorMessage = 'Sua sessÃ£o expirou. Por favor, faÃ§a login novamente.'
           } else if ((err as InstitutionDashboardServiceError).isForbidden) {
-            errorMessage = 'Você não tem permissão de administrador da instituição para acessar este dashboard.'
+            errorMessage = 'VocÃª nÃ£o tem permissÃ£o de administrador da instituiÃ§Ã£o para acessar este dashboard.'
           } else if ((err as InstitutionDashboardServiceError).isNetworkError) {
             errorMessage =
-              'Erro de conexão. Verifique sua internet e tente novamente.'
+              'Erro de conexÃ£o. Verifique sua internet e tente novamente.'
           }
         }
 
@@ -85,7 +85,7 @@ export default function InstitutionDashboardClient() {
     loadDashboardData()
   }, [loadDashboardData])
 
-  // Handler para mudança de período
+  // Handler para mudanÃ§a de perÃ­odo
   const handlePeriodChange = useCallback(
     (newPeriod: DashboardPeriod) => {
       setPeriod(newPeriod)
@@ -94,7 +94,7 @@ export default function InstitutionDashboardClient() {
     [loadDashboardData]
   )
 
-  // Refresh automático
+  // Refresh automÃ¡tico
   useEffect(() => {
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current)
@@ -111,7 +111,7 @@ export default function InstitutionDashboardClient() {
     }
   }, [loadDashboardData])
 
-  // Função para refresh manual
+  // FunÃ§Ã£o para refresh manual
   const handleManualRefresh = () => {
     loadDashboardData(true)
   }
@@ -146,14 +146,14 @@ export default function InstitutionDashboardClient() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Nenhum dado disponível</p>
+        <p className="text-muted-foreground">Nenhum dado disponÃ­vel</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-5">
-      {/* Header com filtro de período */}
+      {/* Header com filtro de perÃ­odo */}
       <div className="flex items-center justify-between gap-4">
         <InstitutionHeader
           userName={data.userName}
@@ -165,7 +165,7 @@ export default function InstitutionDashboardClient() {
         <div className="flex items-center gap-2">
           <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
             <SelectTrigger className="w-[110px] h-8 text-sm">
-              <SelectValue placeholder="Período" />
+              <SelectValue placeholder="PerÃ­odo" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="semanal">Semanal</SelectItem>

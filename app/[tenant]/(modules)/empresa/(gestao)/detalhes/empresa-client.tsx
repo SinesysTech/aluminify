@@ -194,7 +194,7 @@ export default function EmpresaClientPage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/professor/empresa/nova">Criar Empresa</Link>
+              <Link href="/empresa/nova">Criar Empresa</Link>
             </Button>
           </CardContent>
         </Card>

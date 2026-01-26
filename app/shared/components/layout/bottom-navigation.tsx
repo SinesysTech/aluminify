@@ -37,7 +37,7 @@ const professorNavItems: NavItem[] = [
   { name: 'Início', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Alunos', href: '/aluno', icon: Users },
   { name: 'Agenda', href: '/agendamentos/disponibilidade', icon: Calendar },
-  { name: 'Materiais', href: '/professor/biblioteca/materiais', icon: School },
+  { name: 'Materiais', href: '/biblioteca/materiais', icon: School },
   { name: 'Perfil', href: '/perfil', icon: User },
 ]
 

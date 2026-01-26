@@ -88,7 +88,7 @@ export async function updateConfiguracoesProfessor(
     throw new Error("Failed to update configuration");
   }
 
-  revalidatePath("/professor/agendamentos/configuracoes");
+  revalidatePath("/agendamentos/configuracoes");
   return data;
 }
 
@@ -177,6 +177,6 @@ export async function updateIntegracaoProfessor(
     throw new Error("Failed to update integration");
   }
 
-  revalidatePath("/professor/agendamentos/configuracoes");
+  revalidatePath("/agendamentos/configuracoes");
   return data;
 }

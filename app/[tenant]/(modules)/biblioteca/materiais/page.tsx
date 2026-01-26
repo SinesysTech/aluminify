@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 }
 
 export default function MateriaisRedirectPage() {
-  redirect('/professor/biblioteca/materiais')
+  redirect('/biblioteca/materiais')
 }

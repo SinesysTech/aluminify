@@ -281,15 +281,15 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Rotas públicas que não precisam de autenticação
-  // Nota: as rotas /auth/aluno/login, /auth/professor/login e /auth/professor/cadastro
+  // Nota: as rotas /auth/login, /auth/login e /auth/sign-up
   // existem para compatibilidade futura com o sistema de multi-tenant baseado em domínio.
   // Atualmente, elas redirecionam para /auth/login.
   const publicPaths = [
     "/login",
     "/auth",
-    "/auth/aluno/login",
-    "/auth/professor/login",
-    "/auth/professor/cadastro",
+    "/auth/login",
+    "/auth/login",
+    "/auth/sign-up",
     "/api/auth/signup-with-empresa", // Endpoint de cadastro público
     "/api/admin/fix-permissions", // Endpoint temporário para correção
     "/api/tobias/chat/attachments", // Anexos usam token na URL, não precisam de autenticação de sessão

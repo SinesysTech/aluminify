@@ -95,7 +95,7 @@ const empresaNavItems: NavItem[] = [
   },
   {
     title: "Materiais",
-    url: "/professor/biblioteca/materiais",
+    url: "/biblioteca/materiais",
     icon: FolderOpen,
   },
   {

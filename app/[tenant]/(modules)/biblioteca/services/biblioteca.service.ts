@@ -104,7 +104,7 @@ export async function fetchBibliotecaData(
       const atividadesComProgresso = (payload.data || []).slice();
 
       if (atividadesComProgresso.length === 0) {
-        const cursosResp = await fetch(`/api/aluno/cursos/${alunoId}`, {
+        const cursosResp = await fetch(`/api/usuario/alunos/cursos/${alunoId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

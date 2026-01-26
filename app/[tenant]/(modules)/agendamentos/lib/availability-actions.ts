@@ -312,7 +312,7 @@ export async function deleteDisponibilidade(id: string) {
     throw new Error("Failed to delete availability");
   }
 
-  revalidatePath("/professor/disponibilidade");
+  revalidatePath("/agendamentos/disponibilidade");
   revalidatePath("/agendamentos");
   return { success: true };
 }
@@ -343,7 +343,7 @@ export async function bulkUpsertDisponibilidade(items: Disponibilidade[]) {
     throw new Error("Failed to update availability");
   }
 
-  revalidatePath("/professor/disponibilidade");
+  revalidatePath("/agendamentos/disponibilidade");
   revalidatePath("/agendamentos");
   return { success: true };
 }
