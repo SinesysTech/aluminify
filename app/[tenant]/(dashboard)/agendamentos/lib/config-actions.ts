@@ -112,11 +112,14 @@ export async function getIntegracaoProfessor(
   // Return defaults if no integration exists
   if (!data) {
     return {
+      id: "",
       professor_id: professorId,
       provider: "default",
       access_token: null,
       refresh_token: null,
       token_expiry: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
   }
 
@@ -158,13 +161,14 @@ export async function updateIntegracaoProfessor(
   void _updated_at;
 
   const { data, error } = await supabase
-    // @ts-expect-error - Table not in types - Table not in types
+    // @ts-expect-error - Table not in types
     .from("professor_integracoes")
+    // @ts-expect-error - Table not in types
     .upsert({
       ...integrationData,
       professor_id: professorId,
       provider: integrationData.provider || "default",
-    })
+    } as Record<string, unknown>)
     .select()
     .single();
 

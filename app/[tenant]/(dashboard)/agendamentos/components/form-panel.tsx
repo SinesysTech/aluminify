@@ -46,7 +46,8 @@ export function FormPanel({ professorId, timeZone, durationMinutes }: FormPanelP
         data_inicio: startDate.toISOString(),
         data_fim: endDate.toISOString(),
         observacoes: formData.observacoes || null,
-        link_reuniao: null // Generated on confirmation
+        link_reuniao: null, // Generated on confirmation
+        status: "pendente" // Initial status, may be auto-confirmed by server
       })
       toast.success("Agendamento solicitado com sucesso!")
       router.push("/meus-agendamentos")

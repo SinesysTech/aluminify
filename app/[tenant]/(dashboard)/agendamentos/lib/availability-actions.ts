@@ -172,7 +172,7 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
   );
 
   return {
-    slots: slots.map((slot) => slot.toISOString()),
+    slots: slots.map((slot: Date) => slot.toISOString()),
     slotDurationMinutes: slotDuration,
   };
 }
@@ -446,7 +446,7 @@ export async function getProfessoresDisponibilidade(
       professor_id: professor.id,
       nome: professor.nome_completo,
       foto: professor.foto_url,
-      slots_disponiveis: slots.map((s) => s.toISOString()),
+      slots_disponiveis: slots.map((s: Date) => s.toISOString()),
     };
   });
 
