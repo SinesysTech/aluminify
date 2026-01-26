@@ -34,7 +34,7 @@ export default function NotFound() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <Button size="lg" className="w-full sm:w-auto font-medium" asChild>
-            <Link href="/dashboard">
+            <Link href="/">
               Voltar ao Início
             </Link>
           </Button>
