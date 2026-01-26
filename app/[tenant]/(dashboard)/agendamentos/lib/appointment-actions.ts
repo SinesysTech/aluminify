@@ -3,6 +3,7 @@
 import { createClient } from "@/app/shared/core/server";
 import { revalidatePath } from "next/cache";
 import { validateCancellation } from "./agendamento-validations";
+import type { Database } from "@/app/shared/core/database.types";
 
 // Simple meeting link generator
 function generateMeetingLink(appointmentId: string): string {

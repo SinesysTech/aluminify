@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/app/shared/core/server";
-import { generateAvailableSlots } from "@/app/shared/core/agendamento-validations";
+import { generateAvailableSlots } from "./agendamento-validations";
 import {
   ProfessorDisponivel,
   DbAgendamentoRecorrencia,

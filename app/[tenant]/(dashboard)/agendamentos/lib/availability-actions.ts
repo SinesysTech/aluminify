@@ -2,7 +2,8 @@
 
 import { createClient } from "@/app/shared/core/server";
 import { revalidatePath } from "next/cache";
-import { generateAvailableSlots } from "@/app/shared/core/agendamento-validations";
+import { generateAvailableSlots } from "./agendamento-validations";
+import type { Database } from "@/app/shared/core/database.types";
 import {
   Disponibilidade,
   DbAgendamentoRecorrencia,

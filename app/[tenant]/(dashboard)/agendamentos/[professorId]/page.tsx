@@ -18,6 +18,39 @@ interface AgendamentoProfessorPageProps {
   params: Promise<{ professorId: string }>
 }
 
+interface Professor {
+  id: string
+  nome: string
+  foto_url: string | null
+  especialidade: string | null
+  tem_disponibilidade: boolean
+}
+
+async function getProfessorById(supabase: Awaited<ReturnType<typeof createClient>>, professorId: string): Promise<Professor | null> {
+  const { data: professor, error } = await supabase
+    .from("professores")
+    .select("id, nome, foto_url, especialidade")
+    .eq("id", professorId)
+    .single()
+
+  if (error || !professor) {
+    return null
+  }
+
+  // Check if professor has availability configured
+  const { data: disponibilidade } = await supabase
+    .from("agendamento_disponibilidade")
+    .select("id")
+    .eq("professor_id", professorId)
+    .eq("ativo", true)
+    .limit(1)
+
+  return {
+    ...professor,
+    tem_disponibilidade: (disponibilidade?.length ?? 0) > 0
+  }
+}
+
 export default async function AgendamentoProfessorPage({ params }: AgendamentoProfessorPageProps) {
   const resolvedParams = await params
   const { professorId } = resolvedParams
@@ -30,7 +63,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
   }
 
   // Fetch professor data
-  const professor = await getProfessorById(professorId)
+  const professor = await getProfessorById(supabase, professorId)
 
   if (!professor) {
     notFound()
@@ -38,7 +71,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
 
   const initials = professor.nome
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .slice(0, 2)
     .join("")
     .toUpperCase()
