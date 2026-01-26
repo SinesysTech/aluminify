@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   cronogramaService,
   CronogramaValidationError,
-} from "@/app/[tenant]/(dashboard)/cronograma/services";
+} from "@/app/[tenant]/(modules)/cronograma/services";
 import {
   requireUserAuth,
   AuthenticatedRequest,

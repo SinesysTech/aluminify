@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabaseClient } from '@/app/shared/core/database/database';
-import { EmpresaService, EmpresaRepositoryImpl } from '@/app/[tenant]/(dashboard)/empresa/services';
+import { EmpresaService, EmpresaRepositoryImpl } from '@/app/[tenant]/(modules)/empresa/services';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 
 // GET /api/empresas - Listar empresas (apenas superadmin)

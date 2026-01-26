@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { createProductRepository } from "@/app/[tenant]/(dashboard)/financeiro/services";
+import { createProductRepository } from "@/app/[tenant]/(modules)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import type { UpdateProductInput } from "@/app/[tenant]/(dashboard)/financeiro/services/financial.types";
+import type { UpdateProductInput } from "@/app/[tenant]/(modules)/financeiro/services/financial.types";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 interface RouteContext {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { CouponRepositoryImpl } from "@/app/[tenant]/(dashboard)/financeiro/services";
+import { CouponRepositoryImpl } from "@/app/[tenant]/(modules)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {

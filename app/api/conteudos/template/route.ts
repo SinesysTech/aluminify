@@ -3,7 +3,7 @@ import {
   requireUserAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { ConteudosTemplateService } from "@/app/[tenant]/(dashboard)/curso/curso/conteudos/services/curso/conteudos-template.service";
+import { ConteudosTemplateService } from "@/app/[tenant]/(modules)/curso/curso/conteudos/services/curso/conteudos-template.service";
 
 export const runtime = "nodejs";
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { createFlashcardsService } from '@/app/[tenant]/(dashboard)/flashcards/services/flashcards.service';
+import { createFlashcardsService } from '@/app/[tenant]/(modules)/flashcards/services/flashcards.service';
 
 interface FlashcardUpdateFields {
   moduloId?: string;

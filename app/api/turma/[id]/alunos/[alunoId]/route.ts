@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
-import { createTurmaService, type AlunoTurmaStatus } from "@/app/[tenant]/(dashboard)/curso/services/turma";
+import { createTurmaService, type AlunoTurmaStatus } from "@/app/[tenant]/(modules)/curso/services/turma";
 
 interface RouteParams {
   params: Promise<{ id: string; alunoId: string }>;

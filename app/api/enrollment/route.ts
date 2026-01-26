@@ -3,7 +3,7 @@ import {
   enrollmentService,
   EnrollmentConflictError,
   EnrollmentValidationError,
-} from "@/app/[tenant]/(dashboard)/usuario/services/enrollment";
+} from "@/app/[tenant]/(modules)/usuario/services/enrollment";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 const serializeEnrollment = (

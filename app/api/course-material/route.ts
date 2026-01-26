@@ -3,7 +3,7 @@ import {
   materialCursoService,
   MaterialCursoValidationError,
   createMaterialCursoService,
-} from "@/app/[tenant]/(dashboard)/curso/services/material.service";
+} from "@/app/[tenant]/(modules)/curso/services/material.service";
 import {
   requireAuth,
   requireUserAuth,

@@ -3,7 +3,7 @@ import {
   createStudentImportService,
   StudentValidationError,
   StudentImportInputRow,
-} from "@/app/[tenant]/(dashboard)/usuario/services";
+} from "@/app/[tenant]/(modules)/usuario/services";
 import { createClient } from "@/app/shared/core/server";
 import {
   requireAuth,

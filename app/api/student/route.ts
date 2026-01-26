@@ -4,7 +4,7 @@ import {
   StudentConflictError,
   StudentValidationError,
   Student,
-} from "@/app/[tenant]/(dashboard)/usuario/services";
+} from "@/app/[tenant]/(modules)/usuario/services";
 import { createClient } from "@/app/shared/core/server";
 import {
   requireAuth,
@@ -124,9 +124,9 @@ async function getHandler(request: AuthenticatedRequest) {
       const { getDatabaseClientAsUser } =
         await import("@/app/shared/core/database/database");
       const { StudentRepositoryImpl } =
-        await import("@/app/[tenant]/(dashboard)/usuario/services/student.repository");
+        await import("@/app/[tenant]/(modules)/usuario/services/student.repository");
       const { StudentService } =
-        await import("@/app/[tenant]/(dashboard)/usuario/services/student.service");
+        await import("@/app/[tenant]/(modules)/usuario/services/student.service");
 
       const client = getDatabaseClientAsUser(token);
       const repository = new StudentRepositoryImpl(client);
@@ -190,9 +190,9 @@ async function postHandler(request: AuthenticatedRequest) {
       const { getDatabaseClientAsUser } =
         await import("@/app/shared/core/database/database");
       const { StudentRepositoryImpl } =
-        await import("@/app/[tenant]/(dashboard)/usuario/services/student.repository");
+        await import("@/app/[tenant]/(modules)/usuario/services/student.repository");
       const { StudentService } =
-        await import("@/app/[tenant]/(dashboard)/usuario/services/student.service");
+        await import("@/app/[tenant]/(modules)/usuario/services/student.service");
 
       const client = getDatabaseClientAsUser(token);
       const repository = new StudentRepositoryImpl(client);

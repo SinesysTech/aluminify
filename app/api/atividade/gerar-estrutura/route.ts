@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   atividadeService,
   AtividadeValidationError,
-} from "@/app/[tenant]/(dashboard)/sala-de-estudos/services/atividades";
+} from "@/app/[tenant]/(modules)/sala-de-estudos/services/atividades";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {

@@ -4,7 +4,7 @@ import {
   sessaoEstudoService,
   SessaoEstudoNotFoundError,
   SessaoEstudoValidationError,
-} from '@/app/[tenant]/(dashboard)/sala-de-estudos/services';
+} from '@/app/[tenant]/(modules)/sala-de-estudos/services';
 
 async function handler(request: AuthenticatedRequest) {
   try {

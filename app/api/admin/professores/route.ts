@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
-import { TeacherRepositoryImpl } from "@/app/[tenant]/(dashboard)/usuario/services";
-import { EmpresaRepositoryImpl } from "@/app/[tenant]/(dashboard)/empresa/services";
+import { TeacherRepositoryImpl } from "@/app/[tenant]/(modules)/usuario/services";
+import { EmpresaRepositoryImpl } from "@/app/[tenant]/(modules)/empresa/services";
 import { createClient } from "@/app/shared/core/server";
 
 /**

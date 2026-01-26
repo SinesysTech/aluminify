@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware'
-import { professorAnalyticsService } from '@/app/[tenant]/(dashboard)/dashboard/services'
+import { professorAnalyticsService } from '@/app/[tenant]/(modules)/dashboard/services'
 
 /**
  * GET /api/dashboard/professor

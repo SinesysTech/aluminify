@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 import { useThemeConfig } from '@/components/active-theme';
-import { getBrandingSyncManager } from '@/app/[tenant]/(dashboard)/empresa/(gestao)/personalizacao/services/branding-sync-manager';
+import { getBrandingSyncManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/branding-sync-manager';
 import type { CompleteBrandingConfig, LogoType } from '@/empresa/personalizacao/services/empresa/personalizacao.types';
 import { createClient } from '@/app/shared/core/client';
 

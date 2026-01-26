@@ -4,7 +4,7 @@ import {
   requireUserAuth,
   AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { CronogramaValidationError } from "@/app/[tenant]/(dashboard)/cronograma/services";
+import { CronogramaValidationError } from "@/app/[tenant]/(modules)/cronograma/services";
 import type { Database } from "@/app/shared/core/database.types";
 
 interface RouteContext {

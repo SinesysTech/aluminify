@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
-import { StudentRepositoryImpl } from "@/app/[tenant]/(dashboard)/usuario/services";
-import { studentService } from "@/app/[tenant]/(dashboard)/usuario/services";
+import { StudentRepositoryImpl } from "@/app/[tenant]/(modules)/usuario/services";
+import { studentService } from "@/app/[tenant]/(modules)/usuario/services";
 import { randomBytes } from "crypto";
 
 /**

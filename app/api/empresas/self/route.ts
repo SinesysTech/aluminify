@@ -4,7 +4,7 @@ import { getDatabaseClient } from "@/app/shared/core/database/database";
 import {
   EmpresaRepositoryImpl,
   EmpresaService,
-} from "@/app/[tenant]/(dashboard)/empresa/services";
+} from "@/app/[tenant]/(modules)/empresa/services";
 import type { Database } from "@/app/shared/core/database.types";
 
 /**

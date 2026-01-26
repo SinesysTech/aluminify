@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { NotificationItem } from "./notification-item"
-import { getNotificacoesUsuario, NotificacaoAgendamento } from "@/app/[tenant]/(dashboard)/agendamentos/lib/notificacoes-actions"
+import { getNotificacoesUsuario, NotificacaoAgendamento } from "@/app/[tenant]/(modules)/agendamentos/lib/notificacoes-actions"
 
 interface NotificationBellProps {
   userId: string

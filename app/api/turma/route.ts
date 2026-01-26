@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
-import { createTurmaService } from "@/app/[tenant]/(dashboard)/curso/services/turma";
+import { createTurmaService } from "@/app/[tenant]/(modules)/curso/services/turma";
 
 export async function GET(request: NextRequest) {
   try {

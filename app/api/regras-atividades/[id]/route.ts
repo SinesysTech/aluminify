@@ -3,7 +3,7 @@ import {
   regraAtividadeService,
   RegraAtividadeNotFoundError,
   RegraAtividadeValidationError,
-} from "@/app/[tenant]/(dashboard)/sala-de-estudos/services/atividades";
+} from "@/app/[tenant]/(modules)/sala-de-estudos/services/atividades";
 import {
   requireAuth,
   AuthenticatedRequest,

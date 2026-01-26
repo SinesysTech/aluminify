@@ -2,7 +2,7 @@
 
 import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { createUserRoleIdentifier } from "@/app/[tenant]/(dashboard)/usuario/services/user-role-identifier.service";
+import { createUserRoleIdentifier } from "@/app/[tenant]/(modules)/usuario/services/user-role-identifier.service";
 
 export type IdentifyRoleResult = {
   success: boolean;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import { institutionAnalyticsService } from "@/app/[tenant]/(dashboard)/dashboard/services";
+import { institutionAnalyticsService } from "@/app/[tenant]/(modules)/dashboard/services";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 /**

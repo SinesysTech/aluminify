@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireUserAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { createFlashcardsService, type FlashcardsReviewScope } from '@/app/[tenant]/(dashboard)/flashcards/services/flashcards.service';
+import { createFlashcardsService, type FlashcardsReviewScope } from '@/app/[tenant]/(modules)/flashcards/services/flashcards.service';
 
 async function handler(request: AuthenticatedRequest) {
   try {

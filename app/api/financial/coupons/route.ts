@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { createCouponRepository, type CouponListParams } from "@/app/[tenant]/(dashboard)/financeiro/services";
+import { createCouponRepository, type CouponListParams } from "@/app/[tenant]/(modules)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 

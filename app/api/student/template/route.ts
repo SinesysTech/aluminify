@@ -3,7 +3,7 @@ import {
   requireAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import { StudentTemplateService } from "@/app/[tenant]/(dashboard)/usuario/services/student-template.service";
+import { StudentTemplateService } from "@/app/[tenant]/(modules)/usuario/services/student-template.service";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 async function getHandler(request: AuthenticatedRequest) {

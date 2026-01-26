@@ -3,16 +3,16 @@ import {
   progressoAtividadeService,
   ProgressoNotFoundError,
   ProgressoValidationError,
-} from "@/app/[tenant]/(dashboard)/sala-de-estudos/services/atividades";
+} from "@/app/[tenant]/(modules)/sala-de-estudos/services/atividades";
 import {
   atividadeService,
   atividadeRequerDesempenho,
-} from "@/app/[tenant]/(dashboard)/sala-de-estudos/services/atividades";
+} from "@/app/[tenant]/(modules)/sala-de-estudos/services/atividades";
 import {
   requireAuth,
   AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
-import type { StatusAtividade } from "@/app/[tenant]/(dashboard)/sala-de-estudos/services/atividades";
+import type { StatusAtividade } from "@/app/[tenant]/(modules)/sala-de-estudos/services/atividades";
 
 const serializeProgresso = (
   progresso: Awaited<

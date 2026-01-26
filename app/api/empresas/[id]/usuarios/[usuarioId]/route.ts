@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/app/shared/core/database.types";
 import { createClient } from "@/app/shared/core/server";
-import { UsuarioRepositoryImpl } from "@/app/[tenant]/(dashboard)/usuario/services";
-import { PapelRepositoryImpl } from "@/app/[tenant]/(dashboard)/admin/services";
+import { UsuarioRepositoryImpl } from "@/app/[tenant]/(modules)/usuario/services";
+import { PapelRepositoryImpl } from "@/app/[tenant]/(modules)/admin/services";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import {
   getEmpresaContext,

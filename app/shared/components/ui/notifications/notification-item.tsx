@@ -1,6 +1,6 @@
 "use client"
 
-import { NotificacaoAgendamento, getNotificacaoMessage } from "@/app/[tenant]/(dashboard)/agendamentos/lib/notificacoes-actions"
+import { NotificacaoAgendamento, getNotificacaoMessage } from "@/app/[tenant]/(modules)/agendamentos/lib/notificacoes-actions"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {

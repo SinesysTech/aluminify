@@ -3,7 +3,7 @@ import {
   cronogramaService,
   CronogramaValidationError,
   CronogramaTempoInsuficienteError,
-} from "@/app/[tenant]/(dashboard)/cronograma/services";
+} from "@/app/[tenant]/(modules)/cronograma/services";
 import {
   requireUserAuth,
   AuthenticatedRequest,

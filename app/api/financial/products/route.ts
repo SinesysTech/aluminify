@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { createProductRepository, type ProductListParams } from "@/app/[tenant]/(dashboard)/financeiro/services";
+import { createProductRepository, type ProductListParams } from "@/app/[tenant]/(modules)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
-import type { Provider } from "@/app/[tenant]/(dashboard)/financeiro/services/financial.types";
+import type { Provider } from "@/app/[tenant]/(modules)/financeiro/services/financial.types";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 const serializeProduct = (
