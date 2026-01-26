@@ -1,5 +1,5 @@
 body {
-    @apply overscroll-none bg-transparent antialiased;
+    @apply overscroll-none antialiased;
     --text-family: var(--font-outfit), sans-serif;
 }
 
