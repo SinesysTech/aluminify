@@ -98,6 +98,7 @@ export async function getIntegracaoProfessor(
   const supabase = await createClient();
 
   const { data, error } = await supabase
+    // @ts-expect-error - Table not in types
     .from("professor_integracoes")
     .select("*")
     .eq("professor_id", professorId)
@@ -162,7 +163,6 @@ export async function updateIntegracaoProfessor(
   const { data, error } = await supabase
     // @ts-expect-error - Table not in types
     .from("professor_integracoes")
-    // @ts-expect-error - Table not in types
     .upsert({
       ...integrationData,
       professor_id: professorId,

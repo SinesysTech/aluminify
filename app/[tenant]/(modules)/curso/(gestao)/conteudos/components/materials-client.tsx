@@ -6,7 +6,7 @@ import { createClient } from '@/app/shared/core/client'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { MaterialsFilters } from './shared/materials-filters'
 import { ModuleAccordion } from './shared/module-accordion'
-import RulesPanel from '@/components/shared/rules-panel'
+import RulesPanel from '@/app/[tenant]/(modules)/sala-de-estudos/components/rules-panel'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { ModuloComAtividades, Atividade, TipoAtividade, RegraAtividade } from '../types'
 

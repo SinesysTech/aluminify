@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card'
 import { MaterialsFilters } from '../../curso/(gestao)/conteudos/components/shared/materials-filters'
 import { ModuleAccordion } from '../../curso/(gestao)/conteudos/components/shared/module-accordion'
-import RulesPanel from '@/components/shared/rules-panel'
+import RulesPanel from '@/app/[tenant]/(modules)/sala-de-estudos/components/rules-panel'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { ModuloComAtividades, Atividade } from './types'
 

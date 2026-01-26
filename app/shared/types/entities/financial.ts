@@ -262,67 +262,305 @@ export interface UpdatePaymentProviderInput {
 }
 
 // ============================================================================
-// Hotmart Webhook Types
+// Hotmart Webhook Types (v2.0.0)
 // ============================================================================
 
-export type HotmartEventType =
+/**
+ * Purchase Events - Eventos de Compra
+ */
+export type HotmartPurchaseEventType =
   | 'PURCHASE_APPROVED'
   | 'PURCHASE_COMPLETE'
   | 'PURCHASE_CANCELED'
   | 'PURCHASE_REFUNDED'
   | 'PURCHASE_CHARGEBACK'
   | 'PURCHASE_PROTEST'
-  | 'PURCHASE_DELAYED';
+  | 'PURCHASE_DELAYED'
+  | 'PURCHASE_BILLET_PRINTED'
+  | 'PURCHASE_OUT_OF_SHOPPING_CART';
 
-export interface HotmartWebhookPayload {
-  hottok: string;
+/**
+ * Subscription Events - Eventos de Assinatura
+ */
+export type HotmartSubscriptionEventType =
+  | 'SUBSCRIPTION_CANCELLATION'
+  | 'SWITCH_PLAN'
+  | 'UPDATE_SUBSCRIPTION_CHARGE_DATE';
+
+/**
+ * Club Events - Eventos de Área de Membros
+ */
+export type HotmartClubEventType = 'CLUB_FIRST_ACCESS';
+
+/**
+ * All Hotmart Events
+ */
+export type HotmartEventType =
+  | HotmartPurchaseEventType
+  | HotmartSubscriptionEventType
+  | HotmartClubEventType;
+
+/**
+ * Common address structure
+ */
+export interface HotmartAddress {
+  city?: string;
+  state?: string;
+  country?: string;
+  neighborhood?: string;
+  number?: string;
+  complement?: string;
+  zipcode?: string;
+}
+
+/**
+ * Common phone structure
+ */
+export interface HotmartPhone {
+  dddPhone?: string;
+  phone?: string;
+  dddCell?: string;
+  cell?: string;
+}
+
+/**
+ * Buyer data for purchase events
+ */
+export interface HotmartBuyer {
+  email: string;
+  name: string;
+  document?: string;
+  phone?: string | HotmartPhone;
+  address?: HotmartAddress;
+}
+
+/**
+ * Subscriber data for subscription events
+ */
+export interface HotmartSubscriber {
+  code: string;
+  name: string;
+  email: string;
+  phone?: HotmartPhone;
+}
+
+/**
+ * Product data
+ */
+export interface HotmartProduct {
+  id: number;
+  name: string;
+  ucode?: string;
+}
+
+/**
+ * Plan data for subscriptions
+ */
+export interface HotmartPlan {
+  id: number;
+  name: string;
+  offer?: {
+    code: string;
+    key?: string;
+  };
+  current?: boolean;
+}
+
+/**
+ * Purchase data
+ */
+export interface HotmartPurchase {
+  transaction: string;
+  status: string;
+  approved_date?: number;
+  order_date?: number;
+  payment: {
+    type: string;
+    installments_number?: number;
+    method?: string;
+  };
+  price: {
+    value: number;
+    currency_code: string;
+  };
+  full_price?: {
+    value: number;
+    currency_code: string;
+  };
+  buyer_ip?: string;
+  order_bump?: {
+    is_order_bump?: boolean;
+    parent_purchase_transaction?: string;
+  };
+}
+
+/**
+ * Subscription data
+ */
+export interface HotmartSubscription {
+  id?: number;
+  subscriber_code?: string;
+  status: string;
+  date_next_charge?: number;
+  product?: HotmartProduct;
+  plan?: HotmartPlan;
+  user?: {
+    email: string;
+  };
+}
+
+/**
+ * Base webhook payload structure (v2.0.0)
+ * Note: hottok is sent in header X-HOTMART-HOTTOK, not in body
+ */
+export interface HotmartWebhookPayloadBase {
+  id: string; // Unique event identifier (UUID)
+  creation_date: number; // Unix timestamp in milliseconds
+  event: HotmartEventType;
+  version: string; // "2.0.0"
+}
+
+/**
+ * Purchase Event Payload (PURCHASE_*)
+ */
+export interface HotmartPurchasePayload extends HotmartWebhookPayloadBase {
+  event: HotmartPurchaseEventType;
   data: {
-    product: {
-      id: number;
-      name: string;
-      ucode: string;
-    };
+    product: HotmartProduct;
     offer?: {
       code: string;
     };
-    buyer: {
-      email: string;
-      name: string;
-      document?: string;
+    buyer: HotmartBuyer;
+    purchase: HotmartPurchase;
+    subscription?: HotmartSubscription;
+    origin?: {
+      sck?: string;
+      src?: string;
+      xcode?: string;
+    };
+  };
+}
+
+/**
+ * Cart Abandonment Event Payload (PURCHASE_OUT_OF_SHOPPING_CART)
+ */
+export interface HotmartCartAbandonmentPayload extends HotmartWebhookPayloadBase {
+  event: 'PURCHASE_OUT_OF_SHOPPING_CART';
+  data: {
+    affiliate: boolean;
+    product: HotmartProduct;
+    buyer?: {
+      name?: string;
+      email?: string;
       phone?: string;
-      address?: {
-        city?: string;
-        state?: string;
-        country?: string;
-        neighborhood?: string;
-        number?: string;
-        complement?: string;
-        zipcode?: string;
-      };
     };
-    purchase: {
-      transaction: string;
+    offer: {
+      code: string;
+    };
+    checkout_country: {
+      name: string;
+      iso: string;
+    };
+  };
+}
+
+/**
+ * Subscription Cancellation Event Payload
+ */
+export interface HotmartSubscriptionCancellationPayload extends HotmartWebhookPayloadBase {
+  event: 'SUBSCRIPTION_CANCELLATION';
+  data: {
+    date_next_charge: number;
+    product: HotmartProduct;
+    actual_recurrence_value: number;
+    subscriber: HotmartSubscriber;
+    subscription: {
+      id: number;
+      plan: HotmartPlan;
+    };
+    cancellation_date: number;
+  };
+}
+
+/**
+ * Switch Plan Event Payload
+ */
+export interface HotmartSwitchPlanPayload extends HotmartWebhookPayloadBase {
+  event: 'SWITCH_PLAN';
+  data: {
+    switch_plan_date: number;
+    subscription: {
+      subscriber_code: string;
       status: string;
-      approved_date?: number;
-      payment: {
-        type: string;
-        installments_number?: number;
-      };
-      price: {
-        value: number;
-        currency_code: string;
-      };
-      full_price?: {
-        value: number;
-        currency_code: string;
+      date_next_charge: number;
+      product: HotmartProduct;
+      user: {
+        email: string;
       };
     };
-    subscription?: {
-      subscriber: {
-        code: string;
-      };
+    plans: HotmartPlan[];
+  };
+}
+
+/**
+ * Update Subscription Charge Date Event Payload
+ */
+export interface HotmartUpdateChargeDatePayload extends HotmartWebhookPayloadBase {
+  event: 'UPDATE_SUBSCRIPTION_CHARGE_DATE';
+  data: {
+    subscriber: {
+      name: string;
+      email: string;
+      code: string;
+    };
+    subscription: {
+      product: HotmartProduct;
+      old_charge_day: number;
+      new_charge_day: number;
+      date_next_charge: number;
       status: string;
     };
+    plan: HotmartPlan;
+  };
+}
+
+/**
+ * Club First Access Event Payload
+ */
+export interface HotmartClubFirstAccessPayload extends HotmartWebhookPayloadBase {
+  event: 'CLUB_FIRST_ACCESS';
+  data: {
+    product: HotmartProduct;
+    user: {
+      name: string;
+      email: string;
+    };
+  };
+}
+
+/**
+ * Union type for all Hotmart webhook payloads
+ */
+export type HotmartWebhookPayload =
+  | HotmartPurchasePayload
+  | HotmartCartAbandonmentPayload
+  | HotmartSubscriptionCancellationPayload
+  | HotmartSwitchPlanPayload
+  | HotmartUpdateChargeDatePayload
+  | HotmartClubFirstAccessPayload;
+
+/**
+ * @deprecated Use HotmartPurchasePayload instead
+ * Legacy type for backwards compatibility
+ */
+export interface HotmartWebhookPayloadLegacy {
+  hottok: string;
+  data: {
+    product: HotmartProduct;
+    offer?: { code: string };
+    buyer: HotmartBuyer;
+    purchase: HotmartPurchase;
+    subscription?: HotmartSubscription;
   };
   event: HotmartEventType;
   creation_date: number;

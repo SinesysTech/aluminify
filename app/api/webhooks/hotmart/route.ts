@@ -4,15 +4,26 @@ import { createFinancialService } from "@/app/[tenant]/(modules)/financeiro/serv
 import type { HotmartWebhookPayload } from "@/app/[tenant]/(modules)/financeiro/services/financial.types";
 
 /**
- * Hotmart Webhook Handler
+ * Hotmart Webhook Handler (v2.0.0)
  *
  * This endpoint receives webhook notifications from Hotmart.
- * It processes purchase events and creates/updates transactions.
+ * It processes purchase, subscription, and club events.
+ *
+ * Security:
+ * - The hottok is validated from the X-HOTMART-HOTTOK header
+ * - Each empresa has its own webhook secret configured in payment_providers
  *
  * The endpoint uses a service role client to bypass RLS since
  * webhooks are not authenticated with user tokens.
  *
  * Webhook URL format: /api/webhooks/hotmart?empresaId=<empresa_id>
+ *
+ * Supported events:
+ * - Purchase: PURCHASE_APPROVED, PURCHASE_COMPLETE, PURCHASE_CANCELED,
+ *             PURCHASE_REFUNDED, PURCHASE_CHARGEBACK, PURCHASE_PROTEST,
+ *             PURCHASE_DELAYED, PURCHASE_BILLET_PRINTED, PURCHASE_OUT_OF_SHOPPING_CART
+ * - Subscription: SUBSCRIPTION_CANCELLATION, SWITCH_PLAN, UPDATE_SUBSCRIPTION_CHARGE_DATE
+ * - Club: CLUB_FIRST_ACCESS
  */
 
 // Create a service role client for webhook processing
@@ -67,6 +78,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get hottok from header (v2.0.0 spec)
+    const hottok = request.headers.get("X-HOTMART-HOTTOK");
+
+    if (!hottok) {
+      console.error("[Hotmart Webhook] Missing X-HOTMART-HOTTOK header");
+      return NextResponse.json(
+        { error: "Missing authentication header" },
+        { status: 401 }
+      );
+    }
+
     // Parse webhook payload
     let payload: HotmartWebhookPayload;
     try {
@@ -79,11 +101,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract transaction ID based on event type
+    const transactionId = getTransactionIdFromPayload(payload);
+
     // Log webhook receipt (without sensitive data)
     console.log("[Hotmart Webhook] Received:", {
       empresaId,
       event: payload.event,
-      transaction: payload.data?.purchase?.transaction,
+      eventId: payload.id,
+      version: payload.version,
+      transaction: transactionId,
       timestamp: new Date().toISOString(),
     });
 
