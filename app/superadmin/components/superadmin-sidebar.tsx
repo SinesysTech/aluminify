@@ -8,6 +8,8 @@ import {
   FileText,
   DollarSign,
   CreditCard,
+  Link2,
+  ScrollText,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -68,6 +70,16 @@ const superAdminNavItems: NavItem[] = [
     title: "Relatórios Globais",
     url: "/superadmin/relatorios",
     icon: FileText,
+  },
+  {
+    title: "Integrações",
+    url: "/superadmin/integracoes",
+    icon: Link2,
+  },
+  {
+    title: "Logs",
+    url: "/superadmin/logs",
+    icon: ScrollText,
   },
 ]
 

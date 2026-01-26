@@ -70,7 +70,9 @@
       "Bash(done)",
       "Bash(xargs -I {} bash -c \"echo ''=== {} ===''; head -50 {}\")",
       "Bash(xargs -I {} bash -c \"echo ''=== {} ==='' && head -80 {}\")",
-      "Bash(npx next --version)"
+      "Bash(npx next --version)",
+      "Bash(git branch:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
