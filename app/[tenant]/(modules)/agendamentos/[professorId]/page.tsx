@@ -103,7 +103,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
           )}
           {!professor.tem_disponibilidade && (
             <p className="text-sm text-amber-600 mt-2">
-              Este professor ainda nao configurou horarios de disponibilidade.
+              Este professor ainda não configurou horários de disponibilidade.
             </p>
           )}
         </div>
@@ -119,10 +119,10 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
           <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/50">
             <User className="h-12 w-12 text-muted-foreground mb-4" />
             <h2 className="text-lg font-semibold mb-2">
-              Horarios nao disponiveis
+              Horários não disponíveis
             </h2>
             <p className="text-muted-foreground max-w-md">
-              Este professor ainda nao configurou seus horarios de atendimento.
+              Este professor ainda não configurou seus horários de atendimento.
               Por favor, escolha outro professor ou tente novamente mais tarde.
             </p>
             <Button asChild className="mt-6">

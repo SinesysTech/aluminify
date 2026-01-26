@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatBRPhone, formatCNPJ } from '@/shared/library/br';
 import { createClient } from '@/app/shared/core/client';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { CardSkeleton } from '@/components/ui/card-skeleton';
 
 interface Empresa {
@@ -25,6 +26,8 @@ interface Empresa {
 
 export default function EmpresaClientPage() {
   const { toast } = useToast();
+  const params = useParams();
+  const tenant = params?.tenant as string;
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -194,7 +197,7 @@ export default function EmpresaClientPage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/empresa/nova">Criar Empresa</Link>
+              <Link href={tenant ? `/${tenant}/empresa/nova` : "/empresa/nova"}>Criar Empresa</Link>
             </Button>
           </CardContent>
         </Card>

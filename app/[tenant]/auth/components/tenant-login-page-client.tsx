@@ -392,7 +392,7 @@ export function TenantLoginPageClient({
               </Label>
             </div>
 
-            <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+            <Link href={`/${tenantSlug}/auth/forgot-password`} className="text-sm text-primary hover:underline">
               Esqueceu a senha?
             </Link>
           </div>

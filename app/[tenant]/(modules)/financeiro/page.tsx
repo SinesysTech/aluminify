@@ -23,8 +23,13 @@ interface TransactionStats {
   byPaymentMethod: Record<string, number>;
 }
 
-export default async function FinanceiroPage() {
+export default async function FinanceiroPage({
+  params,
+}: {
+  params: Promise<{ tenant: string }>;
+}) {
   const user = await requireUser({ allowedRoles: ["superadmin", "usuario"] });
+  const { tenant } = await params;
 
   const supabase = await createClient();
   const financialService = createFinancialService(supabase);
@@ -93,7 +98,7 @@ export default async function FinanceiroPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link href="/financeiro/transacoes">Ver Transações</Link>
+            <Link href={`/${tenant}/financeiro/transacoes`}>Ver Transações</Link>
           </Button>
         </div>
       </div>
@@ -167,7 +172,7 @@ export default async function FinanceiroPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/financeiro/transacoes">
+                <Link href={`/${tenant}/financeiro/transacoes`}>
                   Ver Todas as Transações
                 </Link>
               </Button>

@@ -159,8 +159,8 @@ export function UserEditForm({ user, empresaId, papeis, onCancel, onSuccess }: U
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Editar Usuário</h1>
-            <p className="text-muted-foreground">{user.nomeCompleto}</p>
+            <h1 className="page-title">Editar Usuário</h1>
+            <p className="page-subtitle">{user.nomeCompleto}</p>
           </div>
         </div>
       </header>

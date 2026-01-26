@@ -544,8 +544,8 @@ export default function TobIAsPage() {
           <span className="sr-only">Toggle conversas</span>
         </Button>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold">TobIAs</h1>
-          <p className="text-muted-foreground text-xs md:text-sm">
+          <h1 className="page-title">TobIAs</h1>
+          <p className="page-subtitle">
             Tire suas dúvidas e receba ajuda personalizada
           </p>
         </div>

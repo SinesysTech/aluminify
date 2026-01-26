@@ -135,8 +135,8 @@ export function StudentEditForm({ student, onCancel, onSuccess }: StudentEditFor
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Editar Aluno</h1>
-            <p className="text-muted-foreground">{student.fullName || student.email}</p>
+            <h1 className="page-title">Editar Aluno</h1>
+            <p className="page-subtitle">{student.fullName || student.email}</p>
           </div>
         </div>
       </header>

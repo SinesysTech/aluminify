@@ -93,12 +93,15 @@ const paymentMethodLabels: Record<string, string> = {
 
 export default async function TransacoesPage({
   searchParams,
+  params,
 }: {
   searchParams: Promise<SearchParams>;
+  params: Promise<{ tenant: string }>;
 }) {
   const user = await requireUser({ allowedRoles: ["superadmin", "usuario"] });
+  const { tenant } = await params;
 
-  const params = await searchParams;
+  const searchParamsData = await searchParams;
   const supabase = await createClient();
   const financialService = createFinancialService(supabase);
 
@@ -109,13 +112,13 @@ export default async function TransacoesPage({
     if (user.empresaId) {
       const result = await financialService.listTransactions({
         empresaId: user.empresaId,
-        page: params.page ? parseInt(params.page, 10) : 1,
+        page: searchParamsData.page ? parseInt(searchParamsData.page, 10) : 1,
         pageSize: 20,
         sortBy: "sale_date",
         sortOrder: "desc",
-        status: params.status,
-        provider: params.provider,
-        buyerEmail: params.buyerEmail,
+        status: searchParamsData.status,
+        provider: searchParamsData.provider,
+        buyerEmail: searchParamsData.buyerEmail,
       });
 
       transactions = result.data.map((t) => ({
@@ -149,13 +152,13 @@ export default async function TransacoesPage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/financeiro">
+            <Link href={`/${tenant}/financeiro`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Transações</h1>
-            <p className="text-muted-foreground">
+            <h1 className="page-title">Transações</h1>
+            <p className="page-subtitle">
               {meta.total} transações encontradas
             </p>
           </div>
@@ -170,9 +173,9 @@ export default async function TransacoesPage({
         <CardContent>
           <Suspense fallback={<div className="flex gap-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-10 w-[180px]" /><Skeleton className="h-10 w-[180px]" /></div>}>
             <TransactionFilters
-              currentStatus={params.status}
-              currentProvider={params.provider}
-              currentSearch={params.buyerEmail}
+              currentStatus={searchParamsData.status}
+              currentProvider={searchParamsData.provider}
+              currentSearch={searchParamsData.buyerEmail}
             />
           </Suspense>
         </CardContent>
@@ -206,7 +209,7 @@ export default async function TransacoesPage({
                   >
                     <TableCell>
                       <Link
-                        href={`/financeiro/transacoes/${transaction.id}`}
+                        href={`/${tenant}/financeiro/transacoes/${transaction.id}`}
                         className="flex flex-col"
                       >
                         <span className="font-medium">
@@ -250,7 +253,7 @@ export default async function TransacoesPage({
               <PaginationItem>
                 <PaginationPrevious
                   href={`?${new URLSearchParams({
-                    ...params,
+                    ...searchParamsData,
                     page: String(currentPage - 1),
                   }).toString()}`}
                 />
@@ -273,7 +276,7 @@ export default async function TransacoesPage({
                 <PaginationItem key={pageNum}>
                   <PaginationLink
                     href={`?${new URLSearchParams({
-                      ...params,
+                      ...searchParamsData,
                       page: String(pageNum),
                     }).toString()}`}
                     isActive={pageNum === currentPage}
@@ -288,7 +291,7 @@ export default async function TransacoesPage({
               <PaginationItem>
                 <PaginationNext
                   href={`?${new URLSearchParams({
-                    ...params,
+                    ...searchParamsData,
                     page: String(currentPage + 1),
                   }).toString()}`}
                 />

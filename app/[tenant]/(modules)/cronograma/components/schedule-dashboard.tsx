@@ -486,7 +486,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
         setCronograma(data)
 
-        // Buscar informa��es do curso e disciplinas
+        // Buscar informações do curso e disciplinas
         if (data.curso_alvo_id) {
           const { data: cursoData } = await supabase
             .from('cursos')
@@ -695,7 +695,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         return
       }
 
-      // Redirecionar para a p�gina de cria��o de novo cronograma
+      // Redirecionar para a página de criação de novo cronograma
       router.push('/cronograma/novo')
     } catch (err) {
       console.error('Erro inesperado ao deletar cronograma:', err)
@@ -735,7 +735,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const itensConcluidos = cronograma.cronograma_itens.filter((item) => item.concluido).length
   const progressoPercentual = totalItens > 0 ? (itensConcluidos / totalItens) * 100 : 0
 
-  // Fun��o para calcular semanas disponibilizadas (per�odo entre data in�cio e fim, descontando f�rias)
+  // Função para calcular semanas disponibilizadas (período entre data início e fim, descontando férias)
   const calcularSemanasDisponibilizadas = (
     dataInicio: string,
     dataFim: string,

@@ -112,7 +112,6 @@ const empresaNavItems: NavItem[] = [
       { title: "Personalização", url: "/empresa/personalizacao" },
       { title: "Integrações", url: "/empresa/integracoes" },
       { title: "Configurações", url: "/empresa/configuracoes" },
-      { title: "Avançadas", url: "/empresa/avancadas" },
     ],
   },
 ]

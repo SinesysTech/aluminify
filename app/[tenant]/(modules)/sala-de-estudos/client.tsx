@@ -238,8 +238,8 @@ export default function SalaEstudosClientPage({
         <div className="space-y-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-                    <p className="text-muted-foreground">{description}</p>
+                    <h1 className="page-title">{title}</h1>
+                    <p className="page-subtitle">{description}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <OrganizationSwitcher />

@@ -113,11 +113,11 @@ export function AgendamentoScheduler({ professorId }: AgendamentoSchedulerProps)
               <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300" />
-                  <span>Disponivel</span>
+                  <span>Disponível</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm bg-muted border" />
-                  <span>Sem horarios</span>
+                  <span>Sem horários</span>
                 </div>
               </div>
             </div>

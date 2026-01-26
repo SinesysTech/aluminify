@@ -84,11 +84,11 @@ const paymentMethodLabels: Record<string, string> = {
 export default async function TransacaoDetalhePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; tenant: string }>;
 }) {
   await requireUser({ allowedRoles: ["superadmin", "usuario"] });
 
-  const { id } = await params;
+  const { id, tenant } = await params;
   const supabase = await createClient();
   const financialService = createFinancialService(supabase);
 
@@ -137,15 +137,15 @@ export default async function TransacaoDetalhePage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/financeiro/transacoes">
+            <Link href={`/${tenant}/financeiro/transacoes`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="page-title">
               Detalhes da Transação
             </h1>
-            <p className="text-muted-foreground font-mono text-sm">
+            <p className="page-subtitle font-mono">
               {transaction.id}
             </p>
           </div>

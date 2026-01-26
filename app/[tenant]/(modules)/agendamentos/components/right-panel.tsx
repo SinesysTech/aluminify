@@ -88,7 +88,7 @@ export function RightPanel({
         {!loading && slots.length > 0 && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>Duracao: {slotDuration} minutos</span>
+            <span>Duração: {slotDuration} minutos</span>
           </div>
         )}
       </div>
@@ -101,7 +101,7 @@ export function RightPanel({
           {loading ? (
             <p className="text-sm text-muted-foreground text-center">Carregando...</p>
           ) : slots.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center">Sem horarios disponiveis</p>
+            <p className="text-sm text-muted-foreground text-center">Sem horários disponíveis</p>
           ) : (
             slots.map((slotIso) => (
               <Button

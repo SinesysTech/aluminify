@@ -43,9 +43,9 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
         link_reuniao_padrao: linkPadrao || null,
         mensagem_confirmacao: mensagemConfirmacao || null
       })
-      toast.success("Configuracoes salvas com sucesso!")
+      toast.success("Configurações salvas com sucesso!")
     } catch (error) {
-      toast.error("Erro ao salvar configuracoes")
+      toast.error("Erro ao salvar configurações")
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -54,12 +54,12 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Auto-confirmacao */}
+      {/* Auto-confirmação */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Auto-confirmacao
+            Auto-confirmação
           </CardTitle>
           <CardDescription>
             Configure se os agendamentos devem ser confirmados automaticamente
@@ -70,7 +70,7 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
             <div className="space-y-0.5">
               <Label>Confirmar automaticamente</Label>
               <p className="text-sm text-muted-foreground">
-                Os agendamentos serao confirmados assim que criados
+                Os agendamentos serão confirmados assim que criados
               </p>
             </div>
             <Switch
@@ -86,16 +86,16 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Configuracoes de Tempo
+            Configurações de Tempo
           </CardTitle>
           <CardDescription>
-            Defina os prazos minimos e lembretes
+            Defina os prazos mínimos e lembretes
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="antecedencia">Antecedencia minima (minutos)</Label>
+              <Label htmlFor="antecedencia">Antecedência mínima (minutos)</Label>
               <Input
                 id="antecedencia"
                 type="number"
@@ -105,7 +105,7 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
                 placeholder="60"
               />
               <p className="text-xs text-muted-foreground">
-                Tempo minimo de antecedencia para agendar
+                Tempo mínimo de antecedência para agendar
               </p>
             </div>
 
@@ -132,15 +132,15 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5" />
-            Link de Reuniao Padrao
+            Link de Reunião Padrão
           </CardTitle>
           <CardDescription>
-            Configure um link padrao para suas reunioes
+            Configure um link padrão para suas reuniões
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="link">Link da sala de reuniao</Label>
+            <Label htmlFor="link">Link da sala de reunião</Label>
             <Input
               id="link"
               type="url"
@@ -149,18 +149,18 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
               placeholder="https://meet.google.com/sua-sala"
             />
             <p className="text-xs text-muted-foreground">
-              Este link sera usado automaticamente ao confirmar agendamentos
+              Este link será usado automaticamente ao confirmar agendamentos
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Mensagem de Confirmacao */}
+      {/* Mensagem de Confirmação */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Mensagem de Confirmacao
+            Mensagem de Confirmação
           </CardTitle>
           <CardDescription>
             Personalize a mensagem enviada aos alunos ao confirmar
@@ -177,7 +177,7 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
               rows={4}
             />
             <p className="text-xs text-muted-foreground">
-              Esta mensagem sera incluida no email de confirmacao
+              Esta mensagem será incluída no email de confirmação
             </p>
           </div>
         </CardContent>
@@ -191,7 +191,7 @@ export function ConfiguracoesForm({ professorId, initialData }: ConfiguracoesFor
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
-          Salvar Configuracoes
+          Salvar Configurações
         </Button>
       </div>
     </form>
