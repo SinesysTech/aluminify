@@ -148,7 +148,7 @@ export class CursoService {
   async update(id: string, payload: UpdateCursoInput): Promise<Curso> {
     await this.ensureExists(id);
 
-    const updateData: UpdateCourseInput = {};
+    const updateData: UpdateCursoInput = {};
 
     if (payload.name !== undefined) {
       updateData.name = this.validateName(payload.name);

@@ -19,3 +19,16 @@ export class CourseNotFoundError extends Error {
   }
 }
 
+export class CourseMaterialNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CourseMaterialNotFoundError';
+  }
+}
+
+export class CourseMaterialValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CourseMaterialValidationError';
+  }
+}

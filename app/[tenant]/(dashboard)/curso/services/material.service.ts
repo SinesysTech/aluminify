@@ -76,7 +76,7 @@ export class MaterialCursoService {
   ): Promise<MaterialCurso> {
     await this.ensureExists(id);
 
-    const updateData: UpdateCourseMaterialInput = {};
+    const updateData: UpdateMaterialCursoInput = {};
 
     if (payload.title !== undefined) {
       updateData.title = this.validateTitle(payload.title);
