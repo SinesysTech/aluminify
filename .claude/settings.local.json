@@ -65,7 +65,9 @@
       "Bash(test:*)",
       "Bash(cmd.exe /c \"cd E:\\\\Development\\\\aluminify && npm install\")",
       "Bash(npm help:*)",
-      "Bash(/c/Program Files/nodejs/npm.cmd install --prefix \"E:/Development/aluminify\")"
+      "Bash(/c/Program Files/nodejs/npm.cmd install --prefix \"E:/Development/aluminify\")",
+      "Bash(python -c:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

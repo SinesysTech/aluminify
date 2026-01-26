@@ -1,9 +1,18 @@
 import { Agent } from "@mastra/core/agent";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+/**
+ * Provedores de modelo disponíveis
+ * - google: Gemini 2.0 Flash (padrão) - GOOGLE_GENERATIVE_AI_API_KEY
+ * - openai: GPT-4o - OPENAI_API_KEY
+ */
+const MODEL_PROVIDER = process.env.AI_MODEL_PROVIDER || "google";
+
+const models = {
+  google: google("gemini-2.0-flash"),
+  openai: openai("gpt-4o"),
+};
 
 /**
  * Agente AI para área logada da Instituição/Empresa
@@ -13,13 +22,10 @@ const openrouter = createOpenRouter({
  * - Fornecer insights sobre métricas e relatórios
  * - Ajudar com configurações administrativas
  * - Orientar sobre funcionalidades de gestão
- *
- * Modelo: Google Gemini 2.0 Flash via OpenRouter
- * Requer: OPENROUTER_API_KEY no .env
  */
 export const institutionAgent = new Agent({
   name: "institutionAgent",
-  model: openrouter("google/gemini-2.0-flash-001"),
+  model: models[MODEL_PROVIDER as keyof typeof models] || models.google,
   instructions: `Você é o Assistente Administrativo da plataforma Aluminify, especializado em ajudar gestores e administradores de instituições educacionais.
 
 ## Sua Personalidade
