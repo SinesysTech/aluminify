@@ -38,9 +38,9 @@ export function ConversationListItem({
     const diffDays = Math.floor(diffMs / 86400000)
 
     if (diffMins < 1) return 'Agora'
-    if (diffMins < 60) return `${diffMins}m atrás`
-    if (diffHours < 24) return `${diffHours}h atrás`
-    if (diffDays < 7) return `${diffDays}d atrás`
+    if (diffMins < 60) return `${diffMins}m atrÃ¡s`
+    if (diffHours < 24) return `${diffHours}h atrÃ¡s`
+    if (diffDays < 7) return `${diffDays}d atrÃ¡s`
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
   }
 
@@ -73,7 +73,7 @@ export function ConversationListItem({
             onClick={(e) => e.stopPropagation()}
           >
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Mais opções</span>
+            <span className="sr-only">Mais opÃ§Ãµes</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
@@ -100,4 +100,3 @@ export function ConversationListItem({
     </div>
   )
 }
-
