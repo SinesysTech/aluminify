@@ -326,21 +326,21 @@ export default function SalaEstudosClientPage({
                                     <h2 className="text-xl font-semibold border-b pb-2">{curso.nome}</h2>
                                 )}
 
-                                {curso.disciplinas.map((disciplina) => (
+                                {curso.disciplinas.map((disciplina: DisciplinaComFrentes) => (
                                     <div key={disciplina.id} className="ml-0 md:ml-4 space-y-4">
                                         <div className="flex items-center gap-2">
                                             <h3 className="text-lg font-medium text-primary">{disciplina.nome}</h3>
                                             <div className="h-px flex-1 bg-border/50" />
                                         </div>
 
-                                        {disciplina.frentes.map((frente) => (
+                                        {disciplina.frentes.map((frente: FrenteComModulos) => (
                                             <div key={frente.id} className="ml-0 md:ml-4 mb-6">
                                                 <h4 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
                                                     {frente.nome}
                                                 </h4>
 
                                                 <div className="space-y-2">
-                                                    {frente.modulos.map((modulo) => (
+                                                    {frente.modulos.map((modulo: ModuloComAtividades) => (
                                                         <ModuloActivitiesAccordion
                                                             key={modulo.id}
                                                             modulo={modulo}

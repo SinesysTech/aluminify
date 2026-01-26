@@ -20,7 +20,7 @@ import {
   normalizeBRPhone,
   normalizeCpf,
 } from "@/app/shared/library/br";
-import { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const FULL_NAME_MIN_LENGTH = 3;
 const FULL_NAME_MAX_LENGTH = 200;

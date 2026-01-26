@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PapelForm } from '../../../components'
+import { PapelForm } from '@/app/[tenant]/(modules)/empresa/(gestao)/components'
 import type { RoleTipo, RolePermissions } from '@/app/shared/types/entities/papel'
 import { toast } from 'sonner'
 

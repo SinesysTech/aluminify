@@ -90,7 +90,7 @@ export * from "./user-role-identifier.types";
 // Repositories
 export * from "./usuario.repository";
 export * from "./student.repository";
-export * from "./teacher.repository";
+// export * from "./teacher.repository";
 export * from "./student-transfer.repository";
 export * from "./papel.repository";
 

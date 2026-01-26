@@ -8,6 +8,7 @@ import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/pape
 import { createClient } from "@/app/shared/core/server";
 import { User } from "@supabase/supabase-js";
 
+export type { AuthUser };
 export interface AuthenticatedRequest extends NextRequest {
   user?: AuthUser;
   apiKey?: ApiKeyAuth;

@@ -9,8 +9,8 @@ import {
 } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {
-  if (error instanceof CronogramaService) {
-    // Assuming CronogramaService is the new validation error class or similar
+  if (error instanceof Error) {
+    // Assuming Error
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 

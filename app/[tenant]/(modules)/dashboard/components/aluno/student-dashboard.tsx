@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle } from 'lucide-react'
+import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle, Target } from 'lucide-react'
 import type { DashboardData } from '../../types'
 import {
     fetchDashboardData,
@@ -277,6 +277,7 @@ export default function StudentDashboardClientPage() {
                 <MetricCard
                     label="Aproveitamento"
                     value={`${data.metrics.accuracy}%`}
+                    icon={Target}
                     showProgressCircle={true}
                     progressValue={data.metrics.accuracy}
                     tooltip={[
@@ -307,10 +308,10 @@ export default function StudentDashboardClientPage() {
             {/* Linha 3: 2 Colunas - Subject Performance List e Subject Distribution */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
                 <div className="lg:col-span-3 lg:h-[446px]">
-                    <SubjectPerformanceList subjects={data.subjects} period={heatmapPeriod} />
+                    <SubjectPerformanceList subjects={data.subjects} period={heatmapPeriod as any} />
                 </div>
                 <div className="lg:col-span-2 lg:h-[446px]">
-                    <SubjectDistribution data={data.subjectDistribution} period={heatmapPeriod} />
+                    <SubjectDistribution data={data.subjectDistribution} period={heatmapPeriod as any} />
                 </div>
             </div>
 

@@ -8,7 +8,7 @@ interface PermissionsMatrixProps {
   readonly?: boolean
 }
 
-export function PermissionsMatrix({ permissions, onChange, readonly }: PermissionsMatrixProps) {
+export function PermissionsMatrix({ permissions: _permissions, onChange: _onChange, readonly }: PermissionsMatrixProps) {
   // TODO: Implement permissions matrix
   return (
     <div className="p-4 border rounded-lg">

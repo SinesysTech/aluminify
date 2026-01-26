@@ -97,8 +97,9 @@ async function getHandler(
   try {
     const supabase = await createClient();
     const service = createStudentService(supabase);
-    const student = await service.getById(params.id);
-    return NextResponse.json({ data: serializeStudent(student) });
+    const student = await service.findById(params.id);
+    if (!student) throw new StudentNotFoundError(params.id);
+    return NextResponse.json({ data: serializeStudent({ ...student, empresaId: student.empresaId || "" }) });
   } catch (error) {
     return handleError(error);
   }
@@ -128,7 +129,7 @@ async function putHandler(
       temporaryPassword: body?.temporaryPassword,
       mustChangePassword: body?.mustChangePassword,
     });
-    return NextResponse.json({ data: serializeStudent(student) });
+    return NextResponse.json({ data: serializeStudent({ ...student, empresaId: student.empresaId || "" }) });
   } catch (error) {
     return handleError(error);
   }

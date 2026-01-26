@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next'
-import { CursoTable } from '../../curso/components/curso-table'
+import { CursoTable } from '../../components/curso-table'
 import { requireUser } from '@/app/shared/core/auth'
 
 export const metadata: Metadata = {

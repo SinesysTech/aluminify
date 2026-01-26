@@ -85,7 +85,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={sortedData}
+                    data={sortedData as any[]}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -101,7 +101,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={CustomTooltip} />
+                  <Tooltip content={CustomTooltip as any} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

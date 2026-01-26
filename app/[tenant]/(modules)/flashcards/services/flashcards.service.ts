@@ -505,31 +505,36 @@ export class FlashcardsService {
       .eq("curso_id", cursoId);
       
     if (error) throw new Error(error.message);
-    return data?.map((d: any) => d.disciplina) || [];
+    return data?.map((d: { disciplina: { id: string; nome: string } }) => d.disciplina) || [];
   }
 
-  async getFrentes(cursoId: string, disciplinaId: string): Promise<{id: string; nome: string}[]> {
+  async getFrentes(cursoId: string, disciplinaId: string): Promise<{id: string; nome: string; disciplina_id: string}[]> {
     // Frentes vinculadas à disciplina E ao curso (ou globais se professor?)
     // Simplificação: buscar frentes da disciplina que pertencem ao curso
     const { data, error } = await this.client
       .from("frentes")
-      .select("id, nome")
-      .eq("disciplina_id", disciplinaId)
+      .select("id, nome, disciplina_id")
       .eq("curso_id", cursoId);
       
     if (error) throw new Error(error.message);
-    return data || [];
+    return (data || []).map(f => ({
+      ...f,
+      disciplina_id: f.disciplina_id || "" // Fallback for null
+    }));
   }
 
-  async getModulos(cursoId: string, frenteId: string): Promise<{id: string; nome: string; numero_modulo: number | null}[]> {
+  async getModulos(cursoId: string, frenteId: string): Promise<{id: string; nome: string; numero_modulo: number | null; frente_id: string}[]> {
     const { data, error } = await this.client
       .from("modulos")
-      .select("id, nome, numero_modulo")
+      .select("id, nome, numero_modulo, frente_id")
       .eq("frente_id", frenteId)
       .eq("curso_id", cursoId);
       
     if (error) throw new Error(error.message);
-    return data || [];
+    return (data || []).map(m => ({
+      ...m,
+      frente_id: m.frente_id || "" // Fallback for null
+    }));
   }
 
   async submitFeedback(cardId: string, feedback: number): Promise<void> {

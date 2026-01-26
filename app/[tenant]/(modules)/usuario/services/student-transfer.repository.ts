@@ -58,7 +58,7 @@ export class StudentTransferRepositoryImpl implements StudentTransferRepository 
       .eq("curso_id", courseId);
 
     if (error) throw error;
-    return data?.map((m) => m.aluno) || [];
+    return (data?.map((m) => m.aluno) || []) as unknown as Usuario[];
   }
 
   async getStudentsByTurma(turmaId: string): Promise<Usuario[]> {
@@ -68,7 +68,7 @@ export class StudentTransferRepositoryImpl implements StudentTransferRepository 
       .eq("turma_id", turmaId);
 
     if (error) throw error;
-    return data?.map((m) => m.aluno) || [];
+    return (data?.map((m) => m.aluno) || []) as unknown as Usuario[];
   }
 
   async transferBetweenCourses(params: {

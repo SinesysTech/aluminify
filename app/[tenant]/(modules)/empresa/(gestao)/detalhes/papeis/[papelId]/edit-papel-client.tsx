@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PapelForm, PermissionsMatrix } from '../../../components'
+import { PapelForm, PermissionsMatrix } from '@/app/[tenant]/(modules)/empresa/(gestao)/components'
 import type { Papel, RoleTipo, RolePermissions } from '@/app/shared/types/entities/papel'
 import { toast } from 'sonner'
 
@@ -88,7 +88,7 @@ export function EditPapelClient({ papel, empresaId }: EditPapelClientProps) {
         {/* Read-only permissions */}
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Permissões</h2>
-          <PermissionsMatrix permissions={papel.permissoes} readOnly />
+          <PermissionsMatrix permissions={papel.permissoes} readonly />
         </div>
 
         {/* Back button */}

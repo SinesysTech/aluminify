@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/app/shared/core/server'
-import { ScheduleDashboard } from '../../components/schedule-dashboard'
+import { ScheduleDashboard } from '../components/schedule-dashboard'
 
 export default async function CronogramaPage() {
   const supabase = await createClient()

@@ -4,11 +4,11 @@ import type { Papel, RoleTipo, RolePermissions } from '@/app/shared/types/entiti
 
 interface PapelFormProps {
   papel?: Papel
-  onSubmit?: (data: { name: string; tipo: RoleTipo; permissions: RolePermissions }) => void
+  onSubmit?: (data: { nome: string; tipo: RoleTipo; permissions: RolePermissions }) => void | Promise<void>
   isLoading?: boolean
 }
 
-export function PapelForm({ papel, onSubmit, isLoading }: PapelFormProps) {
+export function PapelForm({ papel, onSubmit: _onSubmit, isLoading: _isLoading }: PapelFormProps) {
   // TODO: Implement papel form
   return (
     <div className="p-4 border rounded-lg">

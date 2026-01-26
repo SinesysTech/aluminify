@@ -42,7 +42,7 @@ export default async function IntegracoesPage() {
         </p>
       </div>
 
-      <IntegracaoManager professorId={user.id} empresaId={professor.empresa_id} />
+      <IntegracaoManager professorId={user.id} />
     </div>
   )
 }

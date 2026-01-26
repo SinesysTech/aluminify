@@ -1,5 +1,5 @@
 
-import { SegmentoTable } from './components/curso/segmentos-table'
+import { SegmentoTable } from './components/segmento-table'
 import { requireUser } from '@/app/shared/core/auth'
 
 export default async function SegmentoPage() {
