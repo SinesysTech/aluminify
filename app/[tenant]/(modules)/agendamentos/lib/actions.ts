@@ -1,5 +1,3 @@
-"use server";
-
 /**
  * Agendamentos Actions Index
  *
@@ -8,12 +6,10 @@
  *
  * NOTE: Types should be imported directly from "@/app/[tenant]/(modules)/agendamentos/types"
  * because "use server" files can only export async server action functions.
- *
- * IMPORTANT: Server Actions require explicit re-exports, not barrel exports (export * from).
  */
 
 // Availability actions
-export {
+import {
   getDisponibilidade,
   upsertDisponibilidade,
   getAvailableSlots,
@@ -24,8 +20,19 @@ export {
   getProfessoresDisponibilidade,
 } from "./availability-actions";
 
-// Appointment actions
 export {
+  getDisponibilidade,
+  upsertDisponibilidade,
+  getAvailableSlots,
+  getAvailableSlotsLegacy,
+  getAvailabilityForMonth,
+  deleteDisponibilidade,
+  bulkUpsertDisponibilidade,
+  getProfessoresDisponibilidade,
+};
+
+// Appointment actions
+import {
   createAgendamento,
   getAgendamentosProfessor,
   getAgendamentosAluno,
@@ -38,16 +45,36 @@ export {
   getAgendamentoStats,
 } from "./appointment-actions";
 
-// Config actions
 export {
+  createAgendamento,
+  getAgendamentosProfessor,
+  getAgendamentosAluno,
+  getAgendamentoById,
+  confirmarAgendamento,
+  rejeitarAgendamento,
+  cancelAgendamentoWithReason,
+  updateAgendamento,
+  getAgendamentosEmpresa,
+  getAgendamentoStats,
+};
+
+// Config actions
+import {
   getConfiguracoesProfessor,
   updateConfiguracoesProfessor,
   getIntegracaoProfessor,
   updateIntegracaoProfessor,
 } from "./config-actions";
 
-// Recurrence actions
 export {
+  getConfiguracoesProfessor,
+  updateConfiguracoesProfessor,
+  getIntegracaoProfessor,
+  updateIntegracaoProfessor,
+};
+
+// Recurrence actions
+import {
   getRecorrencias,
   createRecorrencia,
   updateRecorrencia,
@@ -58,14 +85,34 @@ export {
   deleteBloqueio,
 } from "./recurrence-actions";
 
+export {
+  getRecorrencias,
+  createRecorrencia,
+  updateRecorrencia,
+  deleteRecorrencia,
+  getBloqueios,
+  createBloqueio,
+  updateBloqueio,
+  deleteBloqueio,
+};
+
 // Validation actions
-export { validateAgendamento, checkConflitos } from "./validation-actions";
+import { validateAgendamento, checkConflitos } from "./validation-actions";
+
+export { validateAgendamento, checkConflitos };
 
 // Report actions
-export { gerarRelatorio, getRelatorios, getRelatorioById } from "./report-actions";
+import { gerarRelatorio, getRelatorios, getRelatorioById } from "./report-actions";
+
+export { gerarRelatorio, getRelatorios, getRelatorioById };
 
 // Professor selection actions
-export {
+import {
   getProfessoresDisponiveis,
   getProfessorById,
 } from "./professor-selection-actions";
+
+export {
+  getProfessoresDisponiveis,
+  getProfessorById,
+};

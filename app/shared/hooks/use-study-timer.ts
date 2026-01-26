@@ -79,7 +79,7 @@ export function useStudyTimer() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const worker = new Worker(new URL('../workers/study-timer.worker.ts', import.meta.url), {
+    const worker = new Worker(new URL('../../../workers/study-timer.worker.ts', import.meta.url), {
       type: 'module',
     });
 
