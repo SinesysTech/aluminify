@@ -67,7 +67,7 @@ export default function SalaEstudosClientPage({
         }
 
         // Extract unique disciplines
-        const disciplinasUnicas = curso.disciplinas.map((disc) => ({
+        const disciplinasUnicas = curso.disciplinas.map((disc: DisciplinaComFrentes) => ({
             id: disc.id,
             nome: disc.nome,
         }))
@@ -75,8 +75,8 @@ export default function SalaEstudosClientPage({
 
         // Extract unique frentes
         const frentesUnicas: Array<{ id: string; nome: string; disciplina_id: string }> = []
-        curso.disciplinas.forEach((disc) => {
-            disc.frentes.forEach((frente) => {
+        curso.disciplinas.forEach((disc: DisciplinaComFrentes) => {
+            disc.frentes.forEach((frente: FrenteComModulos) => {
                 if (!frentesUnicas.find((f) => f.id === frente.id)) {
                     frentesUnicas.push({
                         id: frente.id,

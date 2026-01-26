@@ -5,7 +5,6 @@ import {
 } from "./teacher.types";
 import {
   TeacherRepository,
-  TeacherRepositoryImpl,
   PaginatedResult,
 } from "./teacher.repository";
 import {
@@ -22,7 +21,6 @@ import {
   normalizeCpf,
 } from "@/app/shared/library/br";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 const FULL_NAME_MIN_LENGTH = 3;
 const FULL_NAME_MAX_LENGTH = 200;
@@ -99,9 +97,10 @@ export class TeacherService extends UserBaseService {
             isAdmin: payload.isAdmin,
           });
         }
-      } catch (error: any) {
-        if (error.message?.includes("Conflict")) {
-          throw new Error(error.message);
+      } catch (error: unknown) {
+        const err = error as Error;
+        if (err.message?.includes("Conflict")) {
+          throw new Error(err.message);
         }
         throw error;
       }

@@ -5,10 +5,7 @@ import { revalidatePath } from "next/cache";
 import { validateCancellation } from "./agendamento-validations";
 import type { Database } from "@/app/shared/core/database.types";
 
-// Simple meeting link generator
-function generateMeetingLink(appointmentId: string): string {
-  return `https://meet.aluminify.com/${appointmentId}`;
-}
+import { generateMeetingLink } from "./meeting-providers";
 import {
   Agendamento,
   AgendamentoComDetalhes,

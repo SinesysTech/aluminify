@@ -12,3 +12,14 @@ export type {
   FinalizarSessaoInput,
   CalculoTempoResultado,
 } from "@/app/shared/types/entities/activity";
+
+// Re-export sala de estudos specific types
+export type {
+  AtividadeComProgresso,
+  CursoComDisciplinas,
+  DisciplinaComFrentes,
+  FrenteComModulos,
+  ModuloComAtividades,
+  DesempenhoData,
+  Frente,
+} from "./types";

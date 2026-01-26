@@ -28,7 +28,7 @@ export function StatusPage() {
             } else {
                 setApiStatus("error");
             }
-        } catch (error) {
+        } catch (_error) {
             setApiStatus("error");
         } finally {
             setLastChecked(new Date());

@@ -3,7 +3,7 @@
 import React from 'react'
 import { createClient } from '@/app/shared/core/client'
 import { Flashcard, Curso, Disciplina, Frente, Modulo } from './types'
-import { flashcardsService } from './services/flashcards.service'
+import * as flashcardsService from './actions'
 import { ModeSelector } from './components/mode-selector'
 import { Filters } from './components/filters'
 import { StudySession } from './components/study-session'

@@ -1,12 +1,6 @@
 import { AgendamentoScheduler } from "../components/scheduler"
 import { createClient } from "@/app/shared/core/server"
 import { redirect, notFound } from "next/navigation"
-import {
-  getAvailableSlots,
-  getDisponibilidade,
-  upsertDisponibilidade,
-  createAgendamento,
-} from "@/app/[tenant]/(modules)/agendamentos/lib/actions";
 import { Suspense } from "react"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"
 import { Button } from "@/components/ui/button"

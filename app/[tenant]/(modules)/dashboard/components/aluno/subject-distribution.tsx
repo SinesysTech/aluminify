@@ -9,7 +9,6 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import { cn } from '@/app/shared/library/utils'
 import { Info } from 'lucide-react'
 import {
   Tooltip as UiTooltip,
@@ -22,6 +21,26 @@ import type { SubjectDistributionItem, DashboardPeriod } from '../../types'
 interface SubjectDistributionProps {
   data: SubjectDistributionItem[]
   period: DashboardPeriod
+}
+
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: SubjectDistributionItem }>
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload
+    return (
+      <div className="bg-popover border border-border px-3 py-2 rounded-lg shadow-lg">
+        <p className="font-medium text-popover-foreground">{item.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {item.percentage}% do tempo
+        </p>
+      </div>
+    )
+  }
+  return null
 }
 
 export function SubjectDistribution({ data, period }: SubjectDistributionProps) {
@@ -37,22 +56,6 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
       case 'anual': return 'neste ano'
     }
   }, [period])
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload
-      return (
-        <div className="bg-popover border border-border px-3 py-2 rounded-lg shadow-lg">
-          <p className="font-medium text-popover-foreground">{item.name}</p>
-          <p className="text-sm text-muted-foreground">
-            {item.percentage}% do tempo
-          </p>
-        </div>
-      )
-    }
-    return null
-  }
 
   return (
     <Card className="h-full flex flex-col">
@@ -98,7 +101,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={CustomTooltip} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

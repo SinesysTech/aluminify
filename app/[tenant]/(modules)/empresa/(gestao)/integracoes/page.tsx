@@ -1,5 +1,5 @@
 ﻿
-import { IntegracaoManager } from "../components/integracao-manager"
+import { IntegracaoManager } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/integracao-manager"
 import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
 

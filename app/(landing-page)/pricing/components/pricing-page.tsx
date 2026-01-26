@@ -140,7 +140,7 @@ export function PricingPage() {
                         <div className="space-y-4">
                             <details className="group border border-border rounded-lg p-4 cursor-pointer bg-background">
                                 <summary className="flex justify-between items-center font-medium list-none text-foreground">
-                                    <span>O que conta como "aluno ativo"?</span>
+                                    <span>O que conta como &quot;aluno ativo&quot;?</span>
                                     <HelpCircle className="w-4 h-4 text-muted-foreground" />
                                 </summary>
                                 <div className="text-muted-foreground text-sm mt-3 pt-3 border-t border-border leading-relaxed">

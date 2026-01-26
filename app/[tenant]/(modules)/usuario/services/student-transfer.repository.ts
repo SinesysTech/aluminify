@@ -1,14 +1,34 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+interface Turma {
+  id: string;
+  curso_id: string;
+  nome: string;
+  [key: string]: unknown;
+}
+
+interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  [key: string]: unknown;
+}
+
+interface TransferOptions {
+  keepEnrollment?: boolean;
+  copyProgress?: boolean;
+  [key: string]: unknown;
+}
+
 export interface StudentTransferRepository {
-  getTurmasByCourse(courseId: string): Promise<any[]>;
-  getStudentsByCourse(courseId: string): Promise<any[]>;
-  getStudentsByTurma(turmaId: string): Promise<any[]>;
+  getTurmasByCourse(courseId: string): Promise<Turma[]>;
+  getStudentsByCourse(courseId: string): Promise<Usuario[]>;
+  getStudentsByTurma(turmaId: string): Promise<Usuario[]>;
   transferBetweenCourses(params: {
     studentIds: string[];
     sourceCourseId: string;
     targetCourseId: string;
-    options?: any;
+    options?: TransferOptions;
   }): Promise<void>;
   transferBetweenTurmas(params: {
     studentIds: string[];
@@ -21,7 +41,7 @@ export interface StudentTransferRepository {
 export class StudentTransferRepositoryImpl implements StudentTransferRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async getTurmasByCourse(courseId: string): Promise<any[]> {
+  async getTurmasByCourse(courseId: string): Promise<Turma[]> {
     const { data, error } = await this.client
       .from("turmas")
       .select("*")
@@ -31,7 +51,7 @@ export class StudentTransferRepositoryImpl implements StudentTransferRepository 
     return data || [];
   }
 
-  async getStudentsByCourse(courseId: string): Promise<any[]> {
+  async getStudentsByCourse(courseId: string): Promise<Usuario[]> {
     const { data, error } = await this.client
       .from("matriculas")
       .select("aluno:usuarios(*)")
@@ -41,7 +61,7 @@ export class StudentTransferRepositoryImpl implements StudentTransferRepository 
     return data?.map((m) => m.aluno) || [];
   }
 
-  async getStudentsByTurma(turmaId: string): Promise<any[]> {
+  async getStudentsByTurma(turmaId: string): Promise<Usuario[]> {
     const { data, error } = await this.client
       .from("matriculas_turmas")
       .select("aluno:usuarios(*)")
@@ -55,7 +75,7 @@ export class StudentTransferRepositoryImpl implements StudentTransferRepository 
     studentIds: string[];
     sourceCourseId: string;
     targetCourseId: string;
-    options?: any;
+    options?: TransferOptions;
   }): Promise<void> {
     // Implementação simplificada de transferência
     const { error } = await this.client.rpc("transfer_students_course", {

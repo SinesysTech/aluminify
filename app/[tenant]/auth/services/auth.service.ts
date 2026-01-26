@@ -1,5 +1,5 @@
 import { getDatabaseClient } from '@/app/shared/core/database/database';
-import { AuthUser, SignUpInput, SignInInput, AuthResponse, UserRole } from './types';
+import { AuthUser, SignUpInput, SignInInput, AuthResponse, UserRole } from '../types';
 
 export class AuthService {
   async signUp(input: SignUpInput): Promise<AuthResponse> {

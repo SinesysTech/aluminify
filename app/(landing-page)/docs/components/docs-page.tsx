@@ -3,18 +3,15 @@
 import Link from "next/link";
 import {
     BookOpen,
-    Code,
     Layers,
     Terminal,
     Cpu,
     Database,
-    Globe,
     Layout,
     Shield,
     Users,
     Search,
     Github,
-    Menu,
     ChevronRight,
     Copy,
     Check,

@@ -1,12 +1,13 @@
 
 import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
-import { SettingsTabs } from "../components/settings-tabs"
+import { SettingsTabs } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/settings-tabs"
 
 export default async function EmpresaConfiguracoesPage() {
-    const supabase = createClient()
+    const supabase = await createClient()
     const {
-        data: { user },
+      data: { user },
+      // @ts-expect-error - auth property check
     } = await supabase.auth.getUser()
 
     if (!user) {
@@ -30,7 +31,7 @@ export default async function EmpresaConfiguracoesPage() {
                 </p>
             </div>
 
-            <SettingsTabs user={user as any} />
+            <SettingsTabs user={user as typeof user & { user_metadata: Record<string, unknown> }} />
         </div>
     )
 }

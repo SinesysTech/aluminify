@@ -1,7 +1,7 @@
 
 import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
-import { ConfiguracoesForm } from "../components/agendamentos/configuracoes-form"
+import { ConfiguracoesForm } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/configuracoes-form"
 import { getConfiguracoesProfessor } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 
 export default async function ConfiguracoesAvancadasPage() {
@@ -28,9 +28,9 @@ export default async function ConfiguracoesAvancadasPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="page-title">Configurações Avançadas</h1>
+        <h1 className="page-title">Configuraï¿½ï¿½es Avanï¿½adas</h1>
         <p className="page-subtitle">
-          Configure intervalos personalizados, lembretes e preferências de notificações
+          Configure intervalos personalizados, lembretes e preferï¿½ncias de notificaï¿½ï¿½es
         </p>
       </div>
 

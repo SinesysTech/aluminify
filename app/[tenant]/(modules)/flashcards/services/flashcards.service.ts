@@ -489,6 +489,55 @@ export class FlashcardsService {
     return moduloIds;
   }
 
+  async getCursos(): Promise<CursoRow[]> {
+    const { data, error } = await this.client
+      .from("cursos")
+      .select("id, nome, empresa_id");
+    
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
+  async getDisciplinas(cursoId: string): Promise<{id: string; nome: string}[]> {
+    const { data, error } = await this.client
+      .from("cursos_disciplinas")
+      .select("disciplina:disciplinas(id, nome)")
+      .eq("curso_id", cursoId);
+      
+    if (error) throw new Error(error.message);
+    return data?.map((d: any) => d.disciplina) || [];
+  }
+
+  async getFrentes(cursoId: string, disciplinaId: string): Promise<{id: string; nome: string}[]> {
+    // Frentes vinculadas à disciplina E ao curso (ou globais se professor?)
+    // Simplificação: buscar frentes da disciplina que pertencem ao curso
+    const { data, error } = await this.client
+      .from("frentes")
+      .select("id, nome")
+      .eq("disciplina_id", disciplinaId)
+      .eq("curso_id", cursoId);
+      
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
+  async getModulos(cursoId: string, frenteId: string): Promise<{id: string; nome: string; numero_modulo: number | null}[]> {
+    const { data, error } = await this.client
+      .from("modulos")
+      .select("id, nome, numero_modulo")
+      .eq("frente_id", frenteId)
+      .eq("curso_id", cursoId);
+      
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
+  async submitFeedback(cardId: string, feedback: number): Promise<void> {
+    const { data: { user } } = await this.client.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+    await this.sendFeedback(user.id, cardId, feedback);
+  }
+
   async listForReview(
     alunoId: string,
     modo: string,

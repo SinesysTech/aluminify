@@ -80,7 +80,7 @@ export function ThemeConfigProvider({ children }: { children: React.ReactNode })
   // Apply initial theme on mount
   useEffect(() => {
     applyThemeToDOM(theme);
-  }, []);
+  }, [applyThemeToDOM, theme]);
 
   const setTheme = useCallback((updates: Partial<ExtendedThemeConfig>) => {
     setThemeState(prev => {

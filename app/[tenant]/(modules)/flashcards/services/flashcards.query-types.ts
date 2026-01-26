@@ -19,11 +19,15 @@ export interface AlunoCursoRow {
 
 export interface CursoRow {
   id: string;
+  nome: string;
+  empresa_id?: string;
   created_by?: string | null;
 }
 
 export interface ModuloRow {
   id: string;
+  nome: string;
+  numero_modulo: number | null;
   frente_id: string;
   curso_id?: string | null;
   importancia?: number | null;

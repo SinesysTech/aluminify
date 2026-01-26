@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Nav } from "../../components/nav";
 import { Footer } from "../../components/footer";
-import { CheckCircle2, Clock, MapPin } from "lucide-react";
+import { CheckCircle2, MapPin } from "lucide-react";
 
 export function RoadmapPage() {
     return (

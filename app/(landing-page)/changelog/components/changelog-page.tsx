@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { Nav } from "../../components/nav";
-import { CheckCircle2, GitCommit, Package } from "lucide-react";
 
 export function ChangelogPage() {
     return (

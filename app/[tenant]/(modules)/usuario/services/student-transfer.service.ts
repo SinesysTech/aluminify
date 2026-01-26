@@ -24,7 +24,7 @@ export class StudentTransferService {
     studentIds: string[];
     sourceCourseId: string;
     targetCourseId: string;
-    options?: any;
+    options?: Record<string, unknown>;
   }): Promise<BulkTransferResult> {
     try {
       await this.repository.transferBetweenCourses(params);

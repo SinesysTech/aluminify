@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { StudentService, createStudentService } from "./student.service";
 import { StudentConflictError, StudentValidationError } from "./errors";

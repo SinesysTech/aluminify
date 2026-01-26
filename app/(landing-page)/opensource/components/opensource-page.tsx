@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { Nav } from "../../components/nav";
 import { Footer } from "../../components/footer";
-import { 
-    Github, 
-    GitFork, 
-    Terminal, 
-    Server, 
-    Cloud, 
-    Code2, 
-    Book, 
-    MessageSquare 
+import {
+    Github,
+    GitFork,
+    Server,
+    Cloud,
+    Code2,
+    Book,
+    MessageSquare
 } from "lucide-react";
 
 export function OpenSourcePage() {
@@ -137,10 +136,10 @@ export function OpenSourcePage() {
                                         <Code2 className="w-5 h-5 text-purple-500" />
                                         <div className="text-sm font-bold">Resolver Issues</div>
                                     </a>
-                                    <a href="/docs" className="flex items-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition-colors">
+                                    <Link href="/docs" className="flex items-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition-colors">
                                         <Book className="w-5 h-5 text-blue-500" />
                                         <div className="text-sm font-bold">Melhorar Docs</div>
-                                    </a>
+                                    </Link>
                                     <a href="https://discord.gg/aluminify" className="flex items-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition-colors">
                                         <MessageSquare className="w-5 h-5 text-indigo-500" />
                                         <div className="text-sm font-bold">Discutir no Discord</div>
@@ -157,7 +156,7 @@ export function OpenSourcePage() {
                                     <div className="pl-4 text-green-400">&quot;pedro-nexus&quot;<span className="text-zinc-500">,</span></div>
                                     <div className="pl-4 text-green-400">&quot;sarah-dev&quot;<span className="text-zinc-500">,</span></div>
                                     <div className="pl-4 text-green-400">&quot;alex-edu&quot;<span className="text-zinc-500">,</span></div>
-                                    <div className="pl-4 text-zinc-500">// ...join us!</div>
+                                    <div className="pl-4 text-zinc-500">{`// ...join us!`}</div>
                                     <div className="text-purple-400">];</div>
                                 </div>
                             </div>

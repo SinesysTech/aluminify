@@ -152,9 +152,10 @@ export class StudentService extends UserBaseService {
         });
 
         studentId = authResult.userId;
-      } catch (error: any) {
-        if (error.message?.includes("Conflict")) {
-          throw new StudentConflictError(error.message);
+      } catch (error: unknown) {
+        const err = error as Error;
+        if (err.message?.includes("Conflict")) {
+          throw new StudentConflictError(err.message);
         }
         throw error;
       }

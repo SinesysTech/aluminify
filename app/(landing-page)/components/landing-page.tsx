@@ -3,17 +3,15 @@
 import Link from "next/link";
 import { Nav } from "./nav";
 import { Footer } from "./footer";
-import { 
-    ArrowRight, 
-    Github, 
-    Check, 
-    Layout, 
-    Zap, 
-    Shield, 
+import {
+    ArrowRight,
+    Github,
+    Layout,
+    Zap,
+    Shield,
     Play,
     BookOpen,
-    Users,
-    BarChart3
+    Users
 } from "lucide-react";
 
 export function LandingPage() {

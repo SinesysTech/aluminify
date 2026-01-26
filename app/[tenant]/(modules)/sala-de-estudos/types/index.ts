@@ -1,4 +1,15 @@
 import { TipoAtividade, StatusAtividade, DificuldadePercebida } from "@/app/shared/types/enums";
+// Re-export types from shared (formerly in types.ts)
+export type {
+  MetodoEstudo,
+  LogPausaTipo,
+  LogPausa,
+  SessaoStatus,
+  SessaoEstudo,
+  IniciarSessaoInput,
+  FinalizarSessaoInput,
+  CalculoTempoResultado,
+} from "@/app/shared/types/entities/activity";
 
 export interface AtividadeComProgresso {
   id: string;

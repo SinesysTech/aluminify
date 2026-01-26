@@ -101,10 +101,10 @@ export class UserBaseService {
   ) {
     const adminClient = this.getAdminClient();
 
-    const updatePayload: any = {};
+    const updatePayload: { password?: string; user_metadata?: Record<string, unknown> } = {};
     if (updates.password) updatePayload.password = updates.password;
 
-    const metadataUpdates: Record<string, any> = {};
+    const metadataUpdates: Record<string, unknown> = {};
     if (updates.fullName !== undefined)
       metadataUpdates.full_name = updates.fullName;
     if (updates.role !== undefined) metadataUpdates.role = updates.role;
