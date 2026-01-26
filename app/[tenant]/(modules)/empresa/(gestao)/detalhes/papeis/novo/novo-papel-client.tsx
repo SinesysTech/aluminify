@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PapelForm } from '@/app/[tenant]/(modules)/empresa/(gestao)/components'
@@ -14,6 +14,8 @@ interface NovoPapelClientProps {
 
 export function NovoPapelClient({ empresaId }: NovoPapelClientProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (data: {
@@ -38,7 +40,7 @@ export function NovoPapelClient({ empresaId }: NovoPapelClientProps) {
       }
 
       toast.success('Papel criado com sucesso')
-      router.push('/empresa/detalhes/papeis')
+      router.push(tenant ? `/${tenant}/empresa/detalhes/papeis` : '/empresa/detalhes/papeis')
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao criar papel')

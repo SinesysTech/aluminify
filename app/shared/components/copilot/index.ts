@@ -5,3 +5,4 @@
  */
 
 export { CopilotSidebarWrapper } from "./copilot-sidebar-wrapper";
+export { CopilotChatButton } from "./copilot-chat-button";

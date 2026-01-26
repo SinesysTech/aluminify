@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -248,6 +248,8 @@ const calcularSemanasCronograma = (
 
 export function ScheduleWizard() {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -299,7 +301,7 @@ export function ScheduleWizard() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        router.push('/auth/login')
+        router.push(tenant ? `/${tenant}/auth/login` : '/auth/login')
         return
       }
       setUserId(user.id)
@@ -1130,7 +1132,7 @@ export function ScheduleWizard() {
       }
 
       if (result?.success) {
-        router.push('/cronograma')
+        router.push(tenant ? `/${tenant}/cronograma` : '/cronograma')
       } else {
         setError('Erro desconhecido ao gerar cronograma')
         setLoading(false)

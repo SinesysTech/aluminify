@@ -56,7 +56,8 @@
       "Bash(/c/Program Files/nodejs/npm.cmd install)",
       "Bash(npm.cmd install:*)",
       "Bash(npm.cmd view:*)",
-      "Bash(npm.cmd list:*)"
+      "Bash(npm.cmd list:*)",
+      "Bash(git status:*)"
     ],
     "deny": [],
     "ask": []

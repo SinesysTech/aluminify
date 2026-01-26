@@ -275,8 +275,8 @@ export function SubjectDistribution({
                 <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
-                {/* op��es de disciplina s�o obtidas via fetch quando necess�rio */}
-                {/** Reaproveitamos a chamada em ensureDiscipline; se ainda n�o h�, a UI fica carregando */}
+                {/* opções de disciplina são obtidas via fetch quando necessário */}
+                {/** Reaproveitamos a chamada em ensureDiscipline; se ainda não há, a UI fica carregando */}
                 {disciplineOptions.map((i) => (
                   <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                 ))}
