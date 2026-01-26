@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/app/shared/components/overlay/tooltip'
-import type { SubjectDistributionItem, DashboardPeriod } from '../types'
+import type { SubjectDistributionItem, DashboardPeriod } from '../../types'
 
 interface SubjectDistributionProps {
   data: SubjectDistributionItem[]

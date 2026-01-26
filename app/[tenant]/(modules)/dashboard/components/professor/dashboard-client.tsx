@@ -7,16 +7,16 @@ import {
   fetchProfessorDashboardData,
   type ProfessorDashboardServiceError,
 } from '@/app/shared/core/services/professorDashboardService'
-import { ProfessorHeader } from './professor-header'
-import { ProfessorMetrics } from './professor-metrics'
+import { ProfessorHeader } from '../professor-header'
+import { ProfessorMetrics } from '../professor-metrics'
 import { StudentsUnderCareList } from '@/app/[tenant]/(modules)/usuario/components/students-under-care-list'
 import { UpcomingAppointments } from '@/app/[tenant]/(modules)/agendamentos/components/upcoming-appointments'
-import { ProfessorDisciplinaPerformanceList } from './professor-disciplina-performance'
-import { DashboardSkeleton } from './dashboard-skeleton'
+import { ProfessorDisciplinaPerformanceList } from '../professor-disciplina-performance'
+import { DashboardSkeleton } from '../dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/feedback/alert'
 
-// Intervalo de refresh autom·tico (5 minutos)
+// Intervalo de refresh autom√°tico (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
 
 export default function ProfessorDashboardClient() {
@@ -45,10 +45,10 @@ export default function ProfessorDashboardClient() {
         errorMessage = err.message
 
         if ((err as ProfessorDashboardServiceError).isAuthError) {
-          errorMessage = 'Sua sess„o expirou. Por favor, faÁa login novamente.'
+          errorMessage = 'Sua sess√£o expirou. Por favor, fa√ßa login novamente.'
         } else if ((err as ProfessorDashboardServiceError).isNetworkError) {
           errorMessage =
-            'Erro de conex„o. Verifique sua internet e tente novamente.'
+            'Erro de conex√£o. Verifique sua internet e tente novamente.'
         }
       }
 
@@ -68,7 +68,7 @@ export default function ProfessorDashboardClient() {
     loadDashboardData()
   }, [loadDashboardData])
 
-  // Refresh autom·tico
+  // Refresh autom√°tico
   useEffect(() => {
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current)
@@ -85,7 +85,7 @@ export default function ProfessorDashboardClient() {
     }
   }, [loadDashboardData])
 
-  // FunÁ„o para refresh manual
+  // Fun√ß√£o para refresh manual
   const handleManualRefresh = () => {
     loadDashboardData(true)
   }
@@ -120,14 +120,14 @@ export default function ProfessorDashboardClient() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Nenhum dado disponÌvel</p>
+        <p className="text-muted-foreground">Nenhum dado dispon√≠vel</p>
       </div>
     )
   }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      {/* Header com bot„o de refresh */}
+      {/* Header com bot√£o de refresh */}
       <div className="flex items-start justify-between gap-4">
         <ProfessorHeader professorNome={data.professorNome} />
         <Button
@@ -140,7 +140,7 @@ export default function ProfessorDashboardClient() {
         </Button>
       </div>
 
-      {/* Mensagem de erro (se houver dados mas tambÈm erro) */}
+      {/* Mensagem de erro (se houver dados mas tamb√©m erro) */}
       {error && data && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -151,10 +151,10 @@ export default function ProfessorDashboardClient() {
         </Alert>
       )}
 
-      {/* MÈtricas principais */}
+      {/* M√©tricas principais */}
       <ProfessorMetrics summary={data.summary} />
 
-      {/* PrÛximos agendamentos (largura total) */}
+      {/* Pr√≥ximos agendamentos (largura total) */}
       <UpcomingAppointments appointments={data.agendamentos} />
 
       {/* Alunos e Performance lado a lado */}

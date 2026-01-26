@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle } from 'lucide-react'
-import type { DashboardData } from '../types'
+import type { DashboardData } from '../../types'
 import {
     fetchDashboardData,
     type DashboardServiceError,
-} from '../services/dashboard.service'
+} from '../../services/aluno/dashboard.service'
 import { DashboardHeader } from './dashboard-header'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 import { ScheduleProgress } from './schedule-progress'

@@ -16,7 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/app/shared/components/overlay/tooltip'
-import type { FocusEfficiencyDay } from '../types'
+import type { FocusEfficiencyDay } from '../../types'
 
 interface FocusEfficiencyChartProps {
   data: FocusEfficiencyDay[]

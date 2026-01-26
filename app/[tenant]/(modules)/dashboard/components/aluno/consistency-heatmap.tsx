@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from '@/app/shared/components/overlay/tooltip'
 import { cn } from '@/app/shared/library/utils'
-import type { HeatmapDay } from '../types'
+import type { HeatmapDay } from '../../types'
 import { format, subDays, startOfWeek, addDays, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
