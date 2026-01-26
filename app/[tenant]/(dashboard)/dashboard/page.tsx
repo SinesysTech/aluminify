@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/shared/core/auth'
 import { createClient } from '@/app/shared/core/server'
 import { InstitutionDashboardClient } from '@/app/[tenant]/(dashboard)/dashboard/components/institution'
-import { ProfessorDashboardClient } from '@/app/[tenant]/features/professor/components'
+import ProfessorDashboardClient from './components/professor-dashboard-client'
 import StudentDashboardClientPage from './client'
 import { isAdminRoleTipo } from '@/app/shared/core/roles'
 

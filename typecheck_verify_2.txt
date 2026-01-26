@@ -1,5 +1,0 @@
-
-> aluminify@0.1.1 typecheck
-> tsc -p tsconfig.json --noEmit
-
-app/[tenant]/features/pessoas/services/student-import.service.ts(273,1): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.

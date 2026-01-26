@@ -6,7 +6,7 @@ import type { ProfessorDashboardData } from '@/app/[tenant]/(dashboard)/dashboar
 import {
   fetchProfessorDashboardData,
   type ProfessorDashboardServiceError,
-} from '@/app/[tenant]/(dashboard)/dashboard/services/professorDashboardService'
+} from '@/app/shared/core/services/professorDashboardService'
 import { ProfessorHeader } from './professor-header'
 import { ProfessorMetrics } from './professor-metrics'
 import { StudentsUnderCareList } from '@/app/[tenant]/features/pessoas/components/students-under-care-list'

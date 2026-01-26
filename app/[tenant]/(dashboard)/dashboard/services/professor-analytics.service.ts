@@ -2,10 +2,10 @@ import { getDatabaseClient } from "@/app/shared/core/database/database";
 import type {
   ProfessorDashboardData,
   ProfessorSummary,
-  StudentUnderCare,
-  UpcomingAppointment,
   ProfessorDisciplinaPerformance,
-} from "@/app/[tenant]/features/professor/types";
+} from "@/app/[tenant]/(dashboard)/dashboard/types";
+import type { StudentUnderCare } from "@/app/[tenant]/features/pessoas/types";
+import type { UpcomingAppointment } from "@/app/[tenant]/(dashboard)/agendamentos/types/types";
 
 export class ProfessorAnalyticsService {
   /**
