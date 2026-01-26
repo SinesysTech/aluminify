@@ -61,9 +61,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-3 border-b">
-          <h4 className="font-semibold">Notificacoes</h4>
+          <h4 className="font-semibold">Notificações</h4>
           <p className="text-xs text-muted-foreground">
-            {notificacoes.length === 0 ? "Nenhuma notificacao" : `${notificacoes.length} notificacoes`}
+            {notificacoes.length === 0 ? "Nenhuma notificação" : `${notificacoes.length} notificações`}
           </p>
         </div>
         <ScrollArea className="h-80">
@@ -73,7 +73,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             </div>
           ) : notificacoes.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground text-sm">
-              Voce nao tem notificacoes
+              Você não tem notificações
             </div>
           ) : (
             <div className="divide-y">

@@ -12,23 +12,23 @@ export default async function FinanceiroIntegracoesPage() {
     redirect("/auth/login");
   }
 
-  // Get user's empresa_id from profiles or empresas
-  const { data: profile } = await supabase
-    .from("profiles")
+  // Get user's empresa_id from usuarios
+  const { data: usuario } = await supabase
+    .from("usuarios")
     .select("empresa_id")
     .eq("id", user.id)
     .single();
 
-  const empresaId = profile?.empresa_id;
+  const empresaId = usuario?.empresa_id;
 
   if (!empresaId) {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="page-title">Integracoes de Pagamento</h1>
+          <h1 className="page-title">Integrações de Pagamento</h1>
           <p className="page-subtitle">
-            Voce precisa estar vinculado a uma empresa para gerenciar
-            integracoes.
+            Você precisa estar vinculado a uma empresa para gerenciar
+            integrações.
           </p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export default async function FinanceiroIntegracoesPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="page-title">Integracoes de Pagamento</h1>
+        <h1 className="page-title">Integrações de Pagamento</h1>
         <p className="page-subtitle">
           Configure webhooks para receber dados automaticamente de plataformas
           de pagamento.

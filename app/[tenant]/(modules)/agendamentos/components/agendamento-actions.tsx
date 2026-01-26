@@ -83,12 +83,12 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
           <DialogHeader>
             <DialogTitle>Confirmar Agendamento</DialogTitle>
             <DialogDescription>
-              Confirme o agendamento e opcionalmente adicione um link de reuniao.
+              Confirme o agendamento e opcionalmente adicione um link de reunião.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="link">Link da Reuniao (opcional)</Label>
+              <Label htmlFor="link">Link da Reunião (opcional)</Label>
               <Input
                 id="link"
                 placeholder="https://meet.google.com/..."
@@ -128,15 +128,15 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
           <DialogHeader>
             <DialogTitle>Rejeitar Agendamento</DialogTitle>
             <DialogDescription>
-              Informe o motivo da rejeicao. O aluno sera notificado.
+              Informe o motivo da rejeição. O aluno será notificado.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="motivo">Motivo da Rejeicao</Label>
+              <Label htmlFor="motivo">Motivo da Rejeição</Label>
               <Textarea
                 id="motivo"
-                placeholder="Ex: Horario indisponivel, preciso reagendar..."
+                placeholder="Ex: Horário indisponível, preciso reagendar..."
                 value={motivoRejeicao}
                 onChange={(e) => setMotivoRejeicao(e.target.value)}
                 rows={3}

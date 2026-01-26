@@ -353,6 +353,21 @@
 
 /* === Typography Utilities === */
 @layer utilities {
+  /* Grid Pattern Background Utilities */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(to right, hsl(240 5.9% 90% / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(240 5.9% 90% / 0.5) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .bg-grid-pattern-dark {
+    background-image:
+      linear-gradient(to right, hsl(240 3.7% 25% / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(240 3.7% 25% / 0.5) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
   /* Títulos principais de páginas (H1) */
   .page-title {
     @apply text-2xl font-bold tracking-tight text-foreground;

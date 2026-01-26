@@ -3,14 +3,11 @@
 import {
   Users,
   LayoutDashboard,
-  FileText,
   BookOpen,
   Calendar,
-  CalendarCheck,
-  Layers,
   FolderOpen,
   DollarSign,
-  Shield,
+  Building2,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -43,23 +40,42 @@ type NavItem = {
 const empresaNavItems: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/empresa/dashboard",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: "Alunos",
+    title: "Usuários",
     url: "/usuario/alunos",
     icon: Users,
+    items: [
+      { title: "Alunos", url: "/usuario/alunos" },
+      { title: "Professores", url: "/usuario/professores" },
+      { title: "Equipe", url: "/empresa/detalhes/usuarios" },
+      { title: "Administradores", url: "/empresa/detalhes/admins" },
+    ],
   },
   {
-    title: "Equipe",
-    url: "/usuario/equipe",
-    icon: Users,
+    title: "Cursos",
+    url: "/curso/admin",
+    icon: BookOpen,
+    items: [
+      { title: "Todos os Cursos", url: "/curso/admin" },
+      { title: "Disciplinas", url: "/curso/disciplinas" },
+      { title: "Segmentos", url: "/curso/segmentos" },
+      { title: "Conteúdo Programático", url: "/curso/conteudos" },
+      { title: "Materiais", url: "/curso/conteudos/materiais" },
+      { title: "Relatórios", url: "/curso/relatorios" },
+    ],
   },
   {
-    title: "Papéis",
-    url: "/empresa/detalhes/papeis",
-    icon: Shield,
+    title: "Biblioteca",
+    url: "/biblioteca",
+    icon: FolderOpen,
+    items: [
+      { title: "Visão Geral", url: "/biblioteca" },
+      { title: "Materiais", url: "/biblioteca/materiais" },
+      { title: "Flashcards", url: "/flashcards" },
+    ],
   },
   {
     title: "Financeiro",
@@ -73,46 +89,31 @@ const empresaNavItems: NavItem[] = [
       { title: "Integrações", url: "/financeiro/integracoes" },
     ],
   },
-  // Funcionalidades do Professor (Superset)
-  {
-    title: "Cursos",
-    url: "/curso/admin",
-    icon: BookOpen,
-  },
-  {
-    title: "Disciplinas",
-    url: "/curso/disciplinas",
-    icon: FileText,
-  },
-  {
-    title: "Segmentos",
-    url: "/curso/segmentos",
-    icon: Layers,
-  },
-  {
-    title: "Conteúdo Programático",
-    url: "/curso/conteudos",
-    icon: Calendar,
-  },
-  {
-    title: "Materiais",
-    url: "/biblioteca/materiais",
-    icon: FolderOpen,
-  },
-  {
-    title: "Flashcards",
-    url: "/flashcards",
-    icon: FolderOpen,
-  },
-  {
-    title: "Disponibilidade",
-    url: "/agendamentos/disponibilidade",
-    icon: CalendarCheck,
-  },
   {
     title: "Agendamentos",
     url: "/agendamentos",
     icon: Calendar,
+    items: [
+      { title: "Visão Geral", url: "/agendamentos" },
+      { title: "Meus Agendamentos", url: "/agendamentos/meus" },
+      { title: "Disponibilidade", url: "/agendamentos/disponibilidade" },
+      { title: "Bloqueios", url: "/agendamentos/bloqueios" },
+      { title: "Estatísticas", url: "/agendamentos/stats" },
+      { title: "Configurações", url: "/agendamentos/configuracoes" },
+    ],
+  },
+  {
+    title: "Empresa",
+    url: "/empresa/detalhes",
+    icon: Building2,
+    items: [
+      { title: "Detalhes", url: "/empresa/detalhes" },
+      { title: "Papéis e Permissões", url: "/empresa/detalhes/papeis" },
+      { title: "Personalização", url: "/empresa/personalizacao" },
+      { title: "Integrações", url: "/empresa/integracoes" },
+      { title: "Configurações", url: "/empresa/configuracoes" },
+      { title: "Avançadas", url: "/empresa/avancadas" },
+    ],
   },
 ]
 

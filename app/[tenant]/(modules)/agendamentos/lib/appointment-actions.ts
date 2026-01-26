@@ -83,18 +83,10 @@ export async function getAgendamentosProfessor(
 ): Promise<AgendamentoComDetalhes[]> {
   const supabase = await createClient();
 
+  // First, fetch agendamentos without join to avoid RLS issues on alunos table
   let query = supabase
     .from("agendamentos")
-    .select(
-      `
-      *,
-      aluno:alunos!agendamentos_aluno_id_fkey(
-        id, 
-        nome_completo,
-        email
-      )
-    `,
-    )
+    .select("*")
     .eq("professor_id", professorId);
 
   if (filters?.status) {
@@ -113,21 +105,47 @@ export async function getAgendamentosProfessor(
     query = query.lte("data_inicio", filters.dateEnd.toISOString());
   }
 
-  const { data, error } = await query.order("data_inicio", { ascending: true });
+  const { data: agendamentos, error } = await query.order("data_inicio", {
+    ascending: true,
+  });
 
   if (error) {
-    console.error("Error fetching professor appointments:", error);
+    console.error("Error fetching professor appointments:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return [];
   }
 
-  if (!data) return [];
+  if (!agendamentos || agendamentos.length === 0) {
+    return [];
+  }
 
-  return data.map((item) => {
-    const aluno = item.aluno as unknown as {
-      id: string;
-      nome_completo: string;
-      email: string;
-    };
+  // Fetch aluno data separately to handle RLS gracefully
+  const alunoIds = [...new Set(agendamentos.map((a) => a.aluno_id))];
+  const { data: alunos, error: alunosError } = await supabase
+    .from("alunos")
+    .select("id, nome_completo, email")
+    .in("id", alunoIds);
+
+  if (alunosError) {
+    console.error("Error fetching alunos data:", {
+      message: alunosError.message,
+      code: alunosError.code,
+      details: alunosError.details,
+      hint: alunosError.hint,
+    });
+    // Continue without aluno data rather than failing entirely
+  }
+
+  const alunosMap = new Map(
+    (alunos || []).map((aluno) => [aluno.id, aluno]),
+  );
+
+  return agendamentos.map((item) => {
+    const aluno = alunosMap.get(item.aluno_id);
     const alunoData = aluno
       ? {
           id: aluno.id,
@@ -290,7 +308,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
 
   if (fetchError || !agendamento) {
     console.error("Error fetching appointment for confirmation:", fetchError);
-    throw new Error(`Agendamento nao encontrado: ${id}`);
+    throw new Error(`Agendamento não encontrado: ${id}`);
   }
 
   if (agendamento.professor_id !== user.id) {
@@ -402,7 +420,7 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
 
   if (fetchError || !agendamento) {
     console.error("Error fetching appointment for rejection:", fetchError);
-    throw new Error("Agendamento nao encontrado");
+    throw new Error("Agendamento não encontrado");
   }
 
   if (agendamento.professor_id !== user.id) {
@@ -448,13 +466,13 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
 
   if (fetchError || !agendamento) {
     console.error("Error fetching appointment for cancellation:", fetchError);
-    throw new Error("Agendamento nao encontrado");
+    throw new Error("Agendamento não encontrado");
   }
 
   const isOwner =
     agendamento.aluno_id === user.id || agendamento.professor_id === user.id;
   if (!isOwner) {
-    throw new Error("Voce nao tem permissao para cancelar este agendamento");
+    throw new Error("Você não tem permissão para cancelar este agendamento");
   }
 
   const validationResult = validateCancellation(
@@ -463,7 +481,7 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
   );
   if (!validationResult.valid) {
     throw new Error(
-      validationResult.error || "Nao e possivel cancelar este agendamento",
+      validationResult.error || "Não é possível cancelar este agendamento",
     );
   }
 

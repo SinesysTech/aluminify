@@ -102,8 +102,8 @@ export function DeleteStudentDialog({
             <strong>{student?.fullName || student?.email}</strong>?
             <br />
             <br />
-            Esta acao ira desativar o acesso do aluno a plataforma. Os dados
-            serao mantidos para historico e podem ser recuperados se necessario.
+            Esta ação irá desativar o acesso do aluno à plataforma. Os dados
+            serão mantidos para histórico e podem ser recuperados se necessário.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

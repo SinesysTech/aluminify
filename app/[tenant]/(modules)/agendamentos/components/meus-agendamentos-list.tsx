@@ -55,16 +55,16 @@ export function MeusAgendamentosList({ agendamentos }: MeusAgendamentosListProps
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
         <TabsTrigger value="proximos">
-          Proximos ({proximos.length})
+          Próximos ({proximos.length})
         </TabsTrigger>
         <TabsTrigger value="historico">
-          Historico ({passados.length})
+          Histórico ({passados.length})
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value="proximos" className="mt-4">
         {proximos.length === 0 ? (
-          <EmptyState message="Voce nao tem agendamentos proximos" />
+          <EmptyState message="Você não tem agendamentos próximos" />
         ) : (
           <div className="space-y-3">
             {proximos.map((agendamento) => (
@@ -80,7 +80,7 @@ export function MeusAgendamentosList({ agendamentos }: MeusAgendamentosListProps
 
       <TabsContent value="historico" className="mt-4">
         {passados.length === 0 ? (
-          <EmptyState message="Nenhum agendamento no historico" />
+          <EmptyState message="Nenhum agendamento no histórico" />
         ) : (
           <div className="space-y-3">
             {passados.map((agendamento) => (
@@ -128,10 +128,10 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
   const professor = agendamento.professor
 
   const statusConfig = {
-    pendente: { label: "Aguardando confirmacao", variant: "outline" as const, className: "border-amber-500 text-amber-600" },
+    pendente: { label: "Aguardando confirmação", variant: "outline" as const, className: "border-amber-500 text-amber-600" },
     confirmado: { label: "Confirmado", variant: "default" as const, className: "bg-emerald-500" },
     cancelado: { label: "Cancelado", variant: "destructive" as const, className: "" },
-    concluido: { label: "Concluido", variant: "secondary" as const, className: "" }
+    concluido: { label: "Concluído", variant: "secondary" as const, className: "" }
   }
 
   const status = statusConfig[agendamento.status]
@@ -256,7 +256,7 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Horario</span>
+              <span className="text-muted-foreground">Horário</span>
               <span className="font-medium">
                 {format(dataInicio, "HH:mm")} - {format(dataFim, "HH:mm")}
               </span>
@@ -264,11 +264,11 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
 
             {agendamento.link_reuniao && agendamento.status === "confirmado" && (
               <div className="space-y-2">
-                <span className="text-muted-foreground text-sm">Link da reuniao</span>
+                <span className="text-muted-foreground text-sm">Link da reunião</span>
                 <Button className="w-full" asChild>
                   <a href={agendamento.link_reuniao} target="_blank" rel="noopener noreferrer">
                     <Video className="mr-2 h-4 w-4" />
-                    Entrar na Reuniao
+                    Entrar na Reunião
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </a>
                 </Button>
@@ -279,7 +279,7 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
               <div className="space-y-2">
                 <span className="text-muted-foreground text-sm flex items-center gap-1">
                   <MessageSquare className="h-4 w-4" />
-                  Suas observacoes
+                  Suas observações
                 </span>
                 <p className="text-sm p-3 rounded-lg bg-muted">{agendamento.observacoes}</p>
               </div>
@@ -288,7 +288,7 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
             {agendamento.status === "confirmado" && (
               <Button variant="outline" className="w-full" onClick={downloadIcal}>
                 <Download className="mr-2 h-4 w-4" />
-                Adicionar ao Calendario
+                Adicionar ao Calendário
               </Button>
             )}
           </div>

@@ -103,7 +103,12 @@ async function getDetailedStats(professorId: string) {
   }
 }
 
-export default async function StatsPage() {
+interface StatsPageProps {
+  params: Promise<{ tenant: string }>
+}
+
+export default async function StatsPage({ params }: StatsPageProps) {
+  const { tenant } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -129,7 +134,7 @@ export default async function StatsPage() {
     <div className="flex flex-col gap-6 p-2 md:p-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/agendamentos">
+          <Link href={`/${tenant}/agendamentos`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -145,20 +150,20 @@ export default async function StatsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Este Mes</h3>
+            <h3 className="tracking-tight text-sm font-medium">Este Mês</h3>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="p-6 pt-0">
             <div className="text-2xl font-bold">{stats.currentMonth.total}</div>
             <p className="text-xs text-muted-foreground">
-              {growth >= 0 ? '+' : ''}{growth}% em relacao ao mes anterior
+              {growth >= 0 ? '+' : ''}{growth}% em relação ao mês anterior
             </p>
           </div>
         </div>
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Taxa de Confirmacao</h3>
+            <h3 className="tracking-tight text-sm font-medium">Taxa de Confirmação</h3>
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           </div>
           <div className="p-6 pt-0">
@@ -184,7 +189,7 @@ export default async function StatsPage() {
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Horario Popular</h3>
+            <h3 className="tracking-tight text-sm font-medium">Horário Popular</h3>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="p-6 pt-0">
@@ -192,7 +197,7 @@ export default async function StatsPage() {
               {stats.popularHour.toString().padStart(2, '0')}:00
             </div>
             <p className="text-xs text-muted-foreground">
-              Horario mais procurado
+              Horário mais procurado
             </p>
           </div>
         </div>
@@ -202,8 +207,8 @@ export default async function StatsPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
-            <h3 className="font-semibold leading-none tracking-tight">Este Mes vs Mes Anterior</h3>
-            <p className="text-sm text-muted-foreground">Comparacao de agendamentos</p>
+            <h3 className="font-semibold leading-none tracking-tight">Este Mês vs Mês Anterior</h3>
+            <p className="text-sm text-muted-foreground">Comparação de agendamentos</p>
           </div>
           <div className="p-6 pt-0">
             <div className="space-y-4">
@@ -241,12 +246,12 @@ export default async function StatsPage() {
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
-            <h3 className="font-semibold leading-none tracking-tight">Ultimos 6 Meses</h3>
-            <p className="text-sm text-muted-foreground">Evolucao mensal dos agendamentos</p>
+            <h3 className="font-semibold leading-none tracking-tight">Últimos 6 Meses</h3>
+            <p className="text-sm text-muted-foreground">Evolução mensal dos agendamentos</p>
           </div>
           <div className="p-6 pt-0">
             {stats.monthlyData.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum dado disponivel</p>
+              <p className="text-sm text-muted-foreground">Nenhum dado disponível</p>
             ) : (
               <div className="space-y-2">
                 {stats.monthlyData.map((item, index) => (
@@ -276,7 +281,7 @@ export default async function StatsPage() {
             <TrendingUp className="h-5 w-5" />
             Resumo Geral
           </h3>
-          <p className="text-sm text-muted-foreground">Estatisticas desde o inicio</p>
+          <p className="text-sm text-muted-foreground">Estatísticas desde o início</p>
         </div>
         <div className="p-6 pt-0">
           <div className="grid gap-4 md:grid-cols-5">
@@ -294,7 +299,7 @@ export default async function StatsPage() {
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
               <div className="text-2xl font-bold text-blue-600">{stats.allTime.concluidos}</div>
-              <p className="text-xs text-muted-foreground">Concluidos</p>
+              <p className="text-xs text-muted-foreground">Concluídos</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
               <div className="text-2xl font-bold text-red-600">{stats.allTime.cancelados}</div>

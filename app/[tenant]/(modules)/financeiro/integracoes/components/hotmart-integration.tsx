@@ -96,7 +96,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
       }
     } catch (error) {
       console.error("Error loading payment provider:", error);
-      toast.error("Erro ao carregar configuracao de integracao");
+      toast.error("Erro ao carregar configuração de integração");
     } finally {
       setLoading(false);
     }
@@ -137,11 +137,11 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
         if (error) throw error;
       }
 
-      toast.success("Integracao Hotmart configurada!");
+      toast.success("Integração Hotmart configurada!");
       loadProvider();
     } catch (error) {
       console.error("Error saving payment provider:", error);
-      toast.error("Erro ao salvar configuracao");
+      toast.error("Erro ao salvar configuração");
     } finally {
       setSaving(false);
     }
@@ -165,7 +165,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
       if (error) throw error;
 
       toast.success(
-        provider.active ? "Integracao desativada" : "Integracao ativada"
+        provider.active ? "Integração desativada" : "Integração ativada"
       );
       loadProvider();
     } catch (error) {
@@ -198,7 +198,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Webhook className="h-5 w-5" />
-            Integracao Hotmart
+            Integração Hotmart
           </CardTitle>
           <CardDescription>
             Receba automaticamente dados de vendas e alunos da Hotmart
@@ -210,7 +210,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
               variant={provider?.active ? "default" : "secondary"}
               className="text-sm"
             >
-              {provider?.active ? "Ativo" : provider ? "Inativo" : "Nao configurado"}
+              {provider?.active ? "Ativo" : provider ? "Inativo" : "Não configurado"}
             </Badge>
             {provider?.active && (
               <span className="flex items-center gap-1 text-sm text-green-600">
@@ -278,7 +278,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
                 <li>Cole a URL acima no campo {"URL de destino"}</li>
                 <li>Selecione os eventos desejados (recomendamos todos)</li>
                 <li>Copie o {"Hottok"} exibido e cole abaixo</li>
-                <li>Salve a configuracao em ambos os lados</li>
+                <li>Salve a configuração em ambos os lados</li>
               </ol>
             </AlertDescription>
           </Alert>
@@ -290,10 +290,10 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />
-            Autenticacao (Hottok)
+            Autenticação (Hottok)
           </CardTitle>
           <CardDescription>
-            O Hottok e o token de seguranca que valida as requisicoes da Hotmart
+            O Hottok é o token de segurança que valida as requisições da Hotmart
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -304,7 +304,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
                 <Input
                   id="hottok"
                   type={showHottok ? "text" : "password"}
-                  placeholder="Cole aqui o Hottok da aba Autenticacao"
+                  placeholder="Cole aqui o Hottok da aba Autenticação"
                   value={hottok}
                   onChange={(e) => setHottok(e.target.value)}
                   className="pr-10 font-mono"
@@ -325,7 +325,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Encontre o Hottok na aba {"Autenticacao"} das configuracoes de
+              Encontre o Hottok na aba {"Autenticação"} das configurações de
               Webhook da Hotmart
             </p>
           </div>
@@ -333,7 +333,7 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={saving || !hottok.trim()}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {provider ? "Atualizar Configuracao" : "Ativar Integracao"}
+              {provider ? "Atualizar Configuração" : "Ativar Integração"}
             </Button>
 
             {provider && (

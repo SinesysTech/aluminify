@@ -13,7 +13,12 @@ export const metadata: Metadata = {
   title: 'Meus Agendamentos'
 }
 
-export default async function MeusAgendamentosPage() {
+interface MeusAgendamentosPageProps {
+  params: Promise<{ tenant: string }>
+}
+
+export default async function MeusAgendamentosPage({ params }: MeusAgendamentosPageProps) {
+  const { tenant } = await params
   const supabase = await createClient()
   const {
     data: { user },
@@ -35,7 +40,7 @@ export default async function MeusAgendamentosPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/agendamentos">
+          <Link href={`/${tenant}/agendamentos`}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Agendamento
           </Link>

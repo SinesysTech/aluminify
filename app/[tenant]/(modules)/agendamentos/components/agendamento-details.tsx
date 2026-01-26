@@ -57,7 +57,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
     pendente: { label: "Pendente", variant: "outline" as const, className: "border-amber-500 text-amber-600" },
     confirmado: { label: "Confirmado", variant: "default" as const, className: "bg-emerald-500" },
     cancelado: { label: "Cancelado", variant: "destructive" as const, className: "" },
-    concluido: { label: "Concluido", variant: "secondary" as const, className: "" }
+    concluido: { label: "Concluído", variant: "secondary" as const, className: "" }
   }
 
   const status = statusConfig[agendamento.status]
@@ -130,7 +130,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Informacoes do Aluno
+            Informações do Aluno
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -176,7 +176,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Horario</span>
+            <span className="text-muted-foreground">Horário</span>
             <span className="font-medium flex items-center gap-1">
               <Clock className="h-4 w-4" />
               {format(dataInicio, "HH:mm")} - {format(dataFim, "HH:mm")}
@@ -206,7 +206,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5" />
-            Link da Reuniao
+            Link da Reunião
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -232,7 +232,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
           ) : (
             <div className="text-center py-4">
               <p className="text-muted-foreground text-sm mb-3">
-                Nenhum link de reuniao configurado
+                Nenhum link de reunião configurado
               </p>
               {agendamento.status === "confirmado" && (
                 <Button variant="outline" onClick={() => setLinkDialogOpen(true)}>
@@ -244,19 +244,19 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
         </CardContent>
       </Card>
 
-      {/* Observacoes Card */}
+      {/* Observações Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Observacoes
+            Observações
           </CardTitle>
         </CardHeader>
         <CardContent>
           {agendamento.observacoes ? (
             <p className="text-sm">{agendamento.observacoes}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Nenhuma observacao do aluno</p>
+            <p className="text-sm text-muted-foreground">Nenhuma observação do aluno</p>
           )}
 
           {agendamento.motivo_cancelamento && (
@@ -292,12 +292,12 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
           <DialogHeader>
             <DialogTitle>Confirmar Agendamento</DialogTitle>
             <DialogDescription>
-              Confirme o agendamento e opcionalmente adicione um link de reuniao.
+              Confirme o agendamento e opcionalmente adicione um link de reunião.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="confirm-link">Link da Reuniao (opcional)</Label>
+              <Label htmlFor="confirm-link">Link da Reunião (opcional)</Label>
               <Input
                 id="confirm-link"
                 placeholder="https://meet.google.com/..."
@@ -324,15 +324,15 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
           <DialogHeader>
             <DialogTitle>Rejeitar Agendamento</DialogTitle>
             <DialogDescription>
-              Informe o motivo da rejeicao. O aluno sera notificado.
+              Informe o motivo da rejeição. O aluno será notificado.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="reject-motivo">Motivo da Rejeicao</Label>
+              <Label htmlFor="reject-motivo">Motivo da Rejeição</Label>
               <Textarea
                 id="reject-motivo"
-                placeholder="Ex: Horario indisponivel..."
+                placeholder="Ex: Horário indisponível..."
                 value={motivoRejeicao}
                 onChange={(e) => setMotivoRejeicao(e.target.value)}
                 rows={3}
@@ -355,11 +355,11 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Alterar Link da Reuniao</DialogTitle>
+            <DialogTitle>Alterar Link da Reunião</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="update-link">Link da Reuniao</Label>
+              <Label htmlFor="update-link">Link da Reunião</Label>
               <Input
                 id="update-link"
                 placeholder="https://meet.google.com/..."

@@ -56,9 +56,9 @@ export function ProfessorSelector({ professores }: ProfessorSelectorProps) {
           <EmptyMedia variant="icon">
             <Users className="h-6 w-6" />
           </EmptyMedia>
-          <EmptyTitle>Nenhum professor disponivel</EmptyTitle>
+          <EmptyTitle>Nenhum professor disponível</EmptyTitle>
           <EmptyDescription>
-            Nao ha professores com horarios disponiveis no momento.
+            Não há professores com horários disponíveis no momento.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -158,7 +158,7 @@ export function ProfessorSelector({ professores }: ProfessorSelectorProps) {
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
-                Proximo
+                Próximo
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -190,11 +190,11 @@ function ProfessorCard({ professor, onSelect }: ProfessorCardProps) {
     const isTomorrow = tomorrow.toDateString() === date.toDateString()
 
     if (isToday) {
-      return `Hoje as ${format(date, "HH:mm")}`
+      return `Hoje às ${format(date, "HH:mm")}`
     } else if (isTomorrow) {
-      return `Amanha as ${format(date, "HH:mm")}`
+      return `Amanhã às ${format(date, "HH:mm")}`
     } else {
-      return format(date, "EEE, dd/MM 'as' HH:mm", { locale: ptBR })
+      return format(date, "EEE, dd/MM 'às' HH:mm", { locale: ptBR })
     }
   }
 
@@ -228,7 +228,7 @@ function ProfessorCard({ professor, onSelect }: ProfessorCardProps) {
             <div className="mt-2">
               {!professor.tem_disponibilidade ? (
                 <Badge variant="secondary" className="text-xs">
-                  Sem horarios configurados
+                  Sem horários configurados
                 </Badge>
               ) : professor.proximos_slots.length === 0 ? (
                 <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
@@ -237,7 +237,7 @@ function ProfessorCard({ professor, onSelect }: ProfessorCardProps) {
               ) : (
                 <div className="flex items-center gap-1.5 text-xs text-emerald-600">
                   <Clock className="h-3 w-3" />
-                  <span>Proximo: {formatNextSlot(professor.proximos_slots[0])}</span>
+                  <span>Próximo: {formatNextSlot(professor.proximos_slots[0])}</span>
                 </div>
               )}
             </div>
@@ -259,7 +259,7 @@ function ProfessorCard({ professor, onSelect }: ProfessorCardProps) {
             size="sm"
           >
             <Calendar className="mr-2 h-4 w-4" />
-            Ver horarios disponiveis
+            Ver horários disponíveis
           </Button>
         )}
       </CardContent>

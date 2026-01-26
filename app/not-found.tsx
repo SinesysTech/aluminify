@@ -4,10 +4,10 @@ import { AluminifyLogo } from "@/components/ui/aluminify-logo";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased flex flex-col items-center justify-center relative overflow-hidden">
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-(image:--color-grid-pattern) dark:bg-(image:--color-grid-pattern-dark) opacity-[0.3] grid-bg"></div>
+        <div className="absolute inset-0 bg-grid-pattern dark:bg-grid-pattern-dark opacity-30 grid-bg"></div>
         {/* Ambient Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
       </div>
@@ -28,7 +28,7 @@ export default function NotFound() {
           Página não encontrada
         </h1>
 
-        <p className="text-lg text-text-muted-light dark:text-text-muted-dark leading-relaxed mb-10">
+        <p className="text-lg text-muted-foreground leading-relaxed mb-10">
           Parece que você se aventurou além da fronteira do conhecimento mapeado. Essa página não existe na nossa infraestrutura.
         </p>
 
@@ -47,7 +47,7 @@ export default function NotFound() {
       </div>
 
       <div className="absolute bottom-8 text-center">
-        <p className="text-xs text-text-muted-light dark:text-text-muted-dark opacity-60">
+        <p className="text-xs text-muted-foreground opacity-60">
           © 2026 Aluminify Inc. Infraestrutura Invisível.
         </p>
       </div>

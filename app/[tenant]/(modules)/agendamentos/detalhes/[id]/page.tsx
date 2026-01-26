@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; tenant: string }>
 }
 
 export default async function AgendamentoDetailPage({ params }: PageProps) {
-  const { id } = await params
+  const { id, tenant } = await params
   const supabase = await createClient()
   const {
     data: { user },
@@ -31,7 +31,7 @@ export default async function AgendamentoDetailPage({ params }: PageProps) {
     <div className="flex flex-col gap-6 p-2 md:p-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/agendamentos">
+          <Link href={`/${tenant}/agendamentos`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

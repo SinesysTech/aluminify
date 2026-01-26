@@ -19,7 +19,7 @@ export function ManifestoPage() {
         <div className="bg-background text-foreground font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
             <nav
                 className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
-                    ? "bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-border"
+                    ? "bg-white/80 dark:bg-background/80 backdrop-blur-md border-b border-border"
                     : "bg-transparent border-b border-transparent"
                     }`}
             >
@@ -66,7 +66,7 @@ export function ManifestoPage() {
                     <div className="absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-zinc-200 dark:via-zinc-700 to-transparent"></div>
 
                     <section className="mb-20 relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background-dark border-2 border-zinc-200 dark:border-zinc-700 rounded-full z-10"></span>
+                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background border-2 border-zinc-200 dark:border-zinc-700 rounded-full z-10"></span>
                         <h2 className="text-2xl font-bold mb-6 text-primary dark:text-white">
                             Ensinar é um ato de autonomia.
                         </h2>
@@ -162,7 +162,7 @@ export function ManifestoPage() {
                     </section>
 
                     <section className="mb-20 relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background-dark border-2 border-border rounded-full z-10"></span>
+                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background border-2 border-border rounded-full z-10"></span>
                         <h2 className="text-2xl font-bold mb-6 text-primary dark:text-white">Nós somos o solo fértil.</h2>
                         <div className="prose prose-zinc dark:prose-invert prose-lg text-muted-foreground leading-relaxed">
                             <p>
@@ -191,7 +191,7 @@ export function ManifestoPage() {
                     </section>
 
                     <section className="relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background-dark border-2 border-primary dark:border-white rounded-full z-10"></span>
+                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background border-2 border-primary dark:border-white rounded-full z-10"></span>
 
                         <div className="bg-zinc-50 dark:bg-zinc-900 border border-border rounded-2xl p-8 md:p-12 text-center mt-8">
                             <h3 className="text-xl font-bold text-primary dark:text-white mb-4">

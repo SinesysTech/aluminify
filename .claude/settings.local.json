@@ -51,7 +51,10 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
       "mcp__copilotkit-mcp__search-docs",
-      "mcp__copilotkit-mcp__search-code"
+      "mcp__copilotkit-mcp__search-code",
+      "Bash(npm init -y)",
+      "Bash(/c/Program Files/nodejs/npm.cmd install)",
+      "Bash(npm.cmd install:*)"
     ],
     "deny": [],
     "ask": []

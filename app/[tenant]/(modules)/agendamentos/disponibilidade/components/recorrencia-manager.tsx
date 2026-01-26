@@ -68,7 +68,7 @@ const SLOT_DURATIONS = [
 ]
 
 const TIPO_SERVICO_OPTIONS = [
-  { value: "plantao", label: "Plantao de Duvidas" },
+  { value: "plantao", label: "Plantão de Dúvidas" },
   { value: "mentoria", label: "Mentoria" },
 ]
 
@@ -154,7 +154,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
     if (!formData.data_inicio || !formData.hora_inicio || !formData.hora_fim) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatorios",
+        description: "Preencha todos os campos obrigatórios",
         variant: "destructive",
       })
       return
@@ -163,7 +163,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
     if (formData.hora_fim <= formData.hora_inicio) {
       toast({
         title: "Erro",
-        description: "O horario de fim deve ser maior que o de inicio",
+        description: "O horário de fim deve ser maior que o de início",
         variant: "destructive",
       })
       return
@@ -311,7 +311,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               {editingId ? "Editar Disponibilidade" : "Nova Disponibilidade"}
             </DialogTitle>
             <DialogDescription>
-              Configure o horario de atendimento para um dia da semana
+              Configure o horário de atendimento para um dia da semana
             </DialogDescription>
           </DialogHeader>
 
@@ -479,7 +479,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               Nenhuma disponibilidade configurada
             </h3>
             <p className="text-muted-foreground max-w-md mb-4">
-              Configure seus horarios de atendimento para que alunos possam agendar mentorias.
+              Configure seus horários de atendimento para que alunos possam agendar mentorias.
             </p>
             <Button onClick={() => handleOpenDialog()}>
               <Plus className="mr-2 h-4 w-4" />
@@ -527,7 +527,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-muted/30" />
-                    <span>Indisponivel</span>
+                    <span>Indisponível</span>
                   </div>
                 </div>
 
@@ -585,7 +585,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
 
                 {/* Summary */}
                 <div className="text-sm text-muted-foreground">
-                  {recorrencias.filter(r => r.ativo).length} horario(s) ativo(s) configurado(s)
+                  {recorrencias.filter(r => r.ativo).length} horário(s) ativo(s) configurado(s)
                 </div>
               </div>
             ) : (
@@ -655,10 +655,10 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>Confirmar exclusao</DialogTitle>
+                                <DialogTitle>Confirmar exclusão</DialogTitle>
                                 <DialogDescription>
                                   Tem certeza que deseja excluir esta disponibilidade?
-                                  Esta acao nao pode ser desfeita.
+                                  Esta ação não pode ser desfeita.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>

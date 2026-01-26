@@ -41,29 +41,29 @@ export type AgendamentoErrorCode = typeof AGENDAMENTO_ERROR_CODES[keyof typeof A
  */
 export const AGENDAMENTO_ERROR_MESSAGES: Record<AgendamentoErrorCode, string> = {
   // Authentication errors
-  [AGENDAMENTO_ERROR_CODES.UNAUTHORIZED]: 'Voce precisa estar logado para realizar esta acao.',
-  [AGENDAMENTO_ERROR_CODES.FORBIDDEN]: 'Voce nao tem permissao para realizar esta acao.',
+  [AGENDAMENTO_ERROR_CODES.UNAUTHORIZED]: 'Você precisa estar logado para realizar esta ação.',
+  [AGENDAMENTO_ERROR_CODES.FORBIDDEN]: 'Você não tem permissão para realizar esta ação.',
 
   // Validation errors
-  [AGENDAMENTO_ERROR_CODES.SLOT_NOT_AVAILABLE]: 'Este horario nao esta mais disponivel. Por favor, escolha outro horario.',
-  [AGENDAMENTO_ERROR_CODES.SLOT_ALREADY_BOOKED]: 'Este horario ja foi agendado por outro aluno. Por favor, escolha outro horario.',
-  [AGENDAMENTO_ERROR_CODES.OUTSIDE_AVAILABILITY]: 'O professor nao tem disponibilidade neste horario.',
-  [AGENDAMENTO_ERROR_CODES.MINIMUM_ADVANCE_TIME]: 'Agendamentos devem ser feitos com pelo menos {hours} horas de antecedencia.',
-  [AGENDAMENTO_ERROR_CODES.PAST_DATE]: 'Nao e possivel agendar para uma data no passado.',
-  [AGENDAMENTO_ERROR_CODES.INVALID_DATE_RANGE]: 'O periodo selecionado e invalido. A data de fim deve ser posterior a data de inicio.',
-  [AGENDAMENTO_ERROR_CODES.BLOQUEIO_CONFLICT]: 'Este horario esta bloqueado. O professor nao esta disponivel neste periodo.',
+  [AGENDAMENTO_ERROR_CODES.SLOT_NOT_AVAILABLE]: 'Este horário não está mais disponível. Por favor, escolha outro horário.',
+  [AGENDAMENTO_ERROR_CODES.SLOT_ALREADY_BOOKED]: 'Este horário já foi agendado por outro aluno. Por favor, escolha outro horário.',
+  [AGENDAMENTO_ERROR_CODES.OUTSIDE_AVAILABILITY]: 'O professor não tem disponibilidade neste horário.',
+  [AGENDAMENTO_ERROR_CODES.MINIMUM_ADVANCE_TIME]: 'Agendamentos devem ser feitos com pelo menos {hours} horas de antecedência.',
+  [AGENDAMENTO_ERROR_CODES.PAST_DATE]: 'Não é possível agendar para uma data no passado.',
+  [AGENDAMENTO_ERROR_CODES.INVALID_DATE_RANGE]: 'O período selecionado é inválido. A data de fim deve ser posterior à data de início.',
+  [AGENDAMENTO_ERROR_CODES.BLOQUEIO_CONFLICT]: 'Este horário está bloqueado. O professor não está disponível neste período.',
 
   // Resource errors
-  [AGENDAMENTO_ERROR_CODES.NOT_FOUND]: 'Recurso nao encontrado.',
-  [AGENDAMENTO_ERROR_CODES.PROFESSOR_NOT_FOUND]: 'Professor nao encontrado.',
-  [AGENDAMENTO_ERROR_CODES.AGENDAMENTO_NOT_FOUND]: 'Agendamento nao encontrado.',
-  [AGENDAMENTO_ERROR_CODES.NO_AVAILABILITY]: 'Este professor ainda nao configurou horarios de disponibilidade.',
+  [AGENDAMENTO_ERROR_CODES.NOT_FOUND]: 'Recurso não encontrado.',
+  [AGENDAMENTO_ERROR_CODES.PROFESSOR_NOT_FOUND]: 'Professor não encontrado.',
+  [AGENDAMENTO_ERROR_CODES.AGENDAMENTO_NOT_FOUND]: 'Agendamento não encontrado.',
+  [AGENDAMENTO_ERROR_CODES.NO_AVAILABILITY]: 'Este professor ainda não configurou horários de disponibilidade.',
 
   // Status errors
-  [AGENDAMENTO_ERROR_CODES.INVALID_STATUS]: 'Status invalido para esta operacao.',
-  [AGENDAMENTO_ERROR_CODES.CANNOT_CANCEL]: 'Nao e possivel cancelar este agendamento. Cancelamentos devem ser feitos com pelo menos {hours} horas de antecedencia.',
-  [AGENDAMENTO_ERROR_CODES.ALREADY_CONFIRMED]: 'Este agendamento ja foi confirmado.',
-  [AGENDAMENTO_ERROR_CODES.ALREADY_CANCELLED]: 'Este agendamento ja foi cancelado.',
+  [AGENDAMENTO_ERROR_CODES.INVALID_STATUS]: 'Status inválido para esta operação.',
+  [AGENDAMENTO_ERROR_CODES.CANNOT_CANCEL]: 'Não é possível cancelar este agendamento. Cancelamentos devem ser feitos com pelo menos {hours} horas de antecedência.',
+  [AGENDAMENTO_ERROR_CODES.ALREADY_CONFIRMED]: 'Este agendamento já foi confirmado.',
+  [AGENDAMENTO_ERROR_CODES.ALREADY_CANCELLED]: 'Este agendamento já foi cancelado.',
 
   // Server errors
   [AGENDAMENTO_ERROR_CODES.DATABASE_ERROR]: 'Ocorreu um erro ao salvar os dados. Por favor, tente novamente.',
@@ -127,7 +127,7 @@ export function toUserFriendlyMessage(error: unknown): string {
       return AGENDAMENTO_ERROR_MESSAGES.FORBIDDEN
     }
 
-    if (message.includes('not found') || message.includes('nao encontrado')) {
+    if (message.includes('not found') || message.includes('não encontrado')) {
       return AGENDAMENTO_ERROR_MESSAGES.NOT_FOUND
     }
 

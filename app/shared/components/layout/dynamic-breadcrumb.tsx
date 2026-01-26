@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,6 +22,8 @@ const routeLabels: Record<string, string> = {
 
 export function DynamicBreadcrumb() {
   const pathname = usePathname()
+  const params = useParams()
+  const tenantSlug = params?.tenant as string | undefined
   
   // Remove leading slash and split path
   const segments = pathname.split("/").filter(Boolean)
@@ -60,7 +62,7 @@ export function DynamicBreadcrumb() {
         {filteredItems.length > 0 ? (
           <>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              <BreadcrumbLink href={tenantSlug ? `/${tenantSlug}/dashboard` : "/dashboard"}>Dashboard</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>

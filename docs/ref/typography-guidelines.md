@@ -1,21 +1,107 @@
 # Typography Guidelines
 
-Guia de padronizacao tipografica para manter consistencia visual em toda a aplicacao.
+Guia de padronização tipográfica para manter consistência visual em toda a aplicação.
 
-## Classes Utilitarias
+---
 
-As classes utilitarias de tipografia estao definidas em `app/globals.css` dentro de `@layer utilities`.
+## Contextos Tipográficos
 
-### Hierarquia de Titulos
+O Design System define **duas escalas tipográficas** diferentes:
 
-| Classe | Uso | Especificacoes |
-|--------|-----|----------------|
-| `.page-title` | Titulos principais de paginas (H1) | `text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50` |
-| `.page-subtitle` | Subtitulos/descricoes de paginas | `text-sm text-zinc-500 dark:text-zinc-400` |
-| `.section-title` | Titulos de secoes (H2) | `text-lg font-semibold text-zinc-900 dark:text-zinc-50` |
-| `.section-subtitle` | Subtitulos de secoes | `text-sm text-zinc-500 dark:text-zinc-400` |
-| `.card-title` | Titulos de cards (H3) | `text-base font-semibold text-zinc-900 dark:text-zinc-50` |
-| `.empty-state-title` | Titulos de estados vazios | `text-lg font-semibold text-zinc-900 dark:text-zinc-50` |
+| Contexto | Escala | Uso |
+|----------|--------|-----|
+| **Landing Pages** | Grande (text-4xl+) | Hero, marketing, páginas públicas |
+| **Área Logada (App)** | Compacta (text-2xl max) | Dashboard, gestão, formulários |
+
+Este documento foca na **Área Logada**.
+
+---
+
+## Hierarquia Tipográfica - Área Logada
+
+### Escala Visual
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  [Sidebar Trigger] │ Breadcrumb              │ [Actions]   │ ← Header (h=56px)
+├────────────────────┼────────────────────────────────────────┤
+│                    │                                        │
+│  Sidebar           │  PAGE TITLE (H1)                       │ ← .page-title
+│  - Menu Item       │  Descrição da página                   │ ← .page-subtitle
+│  - Menu Item       │                                        │
+│                    │  ┌─ SECTION TITLE (H2) ───────────────┐│ ← .section-title
+│                    │  │                                    ││
+│                    │  │  ┌─ Card ─────────────────────────┐││
+│                    │  │  │ CARD TITLE (H3)                │││ ← .card-title
+│                    │  │  │ Conteúdo do card               │││
+│                    │  │  └────────────────────────────────┘││
+│                    │  │                                    ││
+│                    │  └────────────────────────────────────┘│
+│                    │                                        │
+└────────────────────┴────────────────────────────────────────┘
+```
+
+### Classes Utilitárias (globals.css)
+
+| Nível | Classe | Especificações | Tamanho |
+|-------|--------|----------------|---------|
+| H1 | `.page-title` | `text-2xl font-bold tracking-tight text-foreground` | 24px |
+| H1 (desc) | `.page-subtitle` | `text-sm text-muted-foreground` | 14px |
+| H2 | `.section-title` | `text-lg font-semibold text-foreground` | 18px |
+| H2 (desc) | `.section-subtitle` | `text-sm text-muted-foreground` | 14px |
+| H3 | `.card-title` | `text-base font-semibold text-foreground` | 16px |
+| Empty | `.empty-state-title` | `text-lg font-semibold text-foreground` | 18px |
+
+### Hierarquia Interna de Cards (Dashboard)
+
+Para títulos dentro de cards de métricas/gráficos no dashboard:
+
+| Elemento | Classes | Exemplo |
+|----------|---------|---------|
+| Título do card | `text-sm font-medium text-muted-foreground` | "Tempo de Estudo" |
+| Valor principal | `text-2xl font-bold tracking-tight` | "4h 32min" |
+| Subtexto | `text-xs text-muted-foreground` | "vs. semana anterior" |
+
+### Hierarquia de Gráficos/Seções Internas
+
+| Elemento | Classes | Uso |
+|----------|---------|-----|
+| Título de seção interna | `text-base md:text-lg font-semibold text-foreground` | Títulos de gráficos |
+| Legenda/Label | `text-sm text-muted-foreground` | Rótulos de eixos |
+| Valores destacados | `text-xl font-bold` | Números em destaque |
+
+---
+
+## Sidebar - Hierarquia
+
+| Elemento | Classes | Tamanho |
+|----------|---------|---------|
+| Logo/Nome da org | `text-sm font-semibold` | 14px |
+| Group Label | `text-xs font-medium text-sidebar-foreground/70` | 12px |
+| Menu Item | `text-sm` | 14px |
+| Menu Item (ativo) | `text-sm font-medium` | 14px |
+| Submenu Item | `text-sm` | 14px |
+
+---
+
+## Espaçamento Padrão
+
+### Container Principal (dashboard-layout.tsx)
+
+```tsx
+// Padding do conteúdo principal
+className="p-4 md:px-8 md:py-6 pb-20 md:pb-8"
+```
+
+### Espaçamento entre Elementos
+
+| Contexto | Classes | Valor |
+|----------|---------|-------|
+| Page title → content | `mb-6` ou `mb-8` | 24-32px |
+| Section title → content | `mb-4` | 16px |
+| Card padding | `p-4` ou `p-6` | 16-24px |
+| Grid gap (cards) | `gap-4` ou `gap-6` | 16-24px |
+| Entre seções | `mb-8` | 32px |
 
 ## Quando Usar Cada Classe
 

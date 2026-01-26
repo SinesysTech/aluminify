@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useParams } from 'next/navigation'
 import {
   MessageSquare,
   Calendar,
@@ -51,6 +51,8 @@ const adminNavItems: NavItem[] = [
 
 export function BottomNavigation() {
   const pathname = usePathname()
+  const params = useParams()
+  const tenantSlug = params?.tenant as string | undefined
   const user = useCurrentUser()
 
   // Seleciona itens de navegação baseado no role
@@ -82,13 +84,13 @@ export function BottomNavigation() {
     >
       <div className="flex h-16 items-stretch justify-around">
         {navigationItems.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+          const fullHref = tenantSlug ? `/${tenantSlug}${item.href}` : item.href
+          const isActive = pathname === fullHref || pathname?.startsWith(fullHref + '/')
           const Icon = item.icon
-
           return (
             <Link
               key={item.name}
-              href={item.href}
+              href={fullHref}
               className={cn(
                 // Base styles - garantir touch target mínimo de 44px
                 'flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[64px] min-h-[44px]',

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import { Search, Settings, GraduationCap, Users, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -43,6 +44,8 @@ interface CombinedUser {
 
 export default function EmpresaUsuariosPage() {
   const { toast } = useToast()
+  const params = useParams()
+  const tenantSlug = params?.tenant as string | undefined
   const [professores, setProfessores] = useState<Professor[]>([])
   const [alunos, setAlunos] = useState<Aluno[]>([])
   const [loading, setLoading] = useState(true)
@@ -157,7 +160,7 @@ export default function EmpresaUsuariosPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/empresa/agendamentos/configuracoes?tab=usuarios">
+          <Link href={tenantSlug ? `/${tenantSlug}/empresa/agendamentos/configuracoes?tab=usuarios` : "/empresa/agendamentos/configuracoes?tab=usuarios"}>
             <Settings className="h-4 w-4 mr-2" />
             Gerenciar Usuários
           </Link>

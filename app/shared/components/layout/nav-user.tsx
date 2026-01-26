@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import {
   BadgeCheck,
   Bell,
@@ -36,6 +36,8 @@ import { createClient } from "@/app/shared/core/client"
 export function NavUser() {
   const { isMobile } = useSidebar()
   const router = useRouter()
+  const params = useParams()
+  const tenantSlug = params?.tenant as string | undefined
   const [mounted, setMounted] = useState(false)
   const [user, setUser] = useState<{
     name: string
@@ -236,13 +238,13 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/perfil">
+                <Link href={tenantSlug ? `/${tenantSlug}/perfil` : "/perfil"}>
                   <BadgeCheck />
                   Meu Perfil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/empresa/agendamentos/configuracoes">
+                <Link href={tenantSlug ? `/${tenantSlug}/empresa/agendamentos/configuracoes` : "/empresa/agendamentos/configuracoes"}>
                   <Settings />
                   Configurações
                 </Link>

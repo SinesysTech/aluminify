@@ -51,7 +51,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
       setSelectedProvider(integracaoData?.provider || "default")
     } catch (error) {
       console.error("Error loading integration data:", error)
-      toast.error("Erro ao carregar dados de integracao")
+      toast.error("Erro ao carregar dados de integração")
     } finally {
       setLoading(false)
     }
@@ -67,11 +67,11 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
         provider: "default",
       })
       setSelectedProvider("default")
-      toast.success("Link padrao salvo!")
+      toast.success("Link padrão salvo!")
       loadData()
     } catch (error) {
       console.error("Error saving default link:", error)
-      toast.error("Erro ao salvar link padrao")
+      toast.error("Erro ao salvar link padrão")
     } finally {
       setSaving(false)
     }
@@ -81,7 +81,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
     // Redirect to Google OAuth
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     if (!clientId) {
-      toast.error("Google OAuth nao configurado. Configure NEXT_PUBLIC_GOOGLE_CLIENT_ID.")
+      toast.error("Google OAuth não configurado. Configure NEXT_PUBLIC_GOOGLE_CLIENT_ID.")
       return
     }
 
@@ -105,7 +105,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
     // Redirect to Zoom OAuth
     const clientId = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID
     if (!clientId) {
-      toast.error("Zoom OAuth nao configurado. Configure NEXT_PUBLIC_ZOOM_CLIENT_ID.")
+      toast.error("Zoom OAuth não configurado. Configure NEXT_PUBLIC_ZOOM_CLIENT_ID.")
       return
     }
 
@@ -130,11 +130,11 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
         refresh_token: null,
         token_expiry: null,
       })
-      toast.success("Integracao desconectada")
+      toast.success("Integração desconectada")
       loadData()
     } catch (error) {
       console.error("Error disconnecting:", error)
-      toast.error("Erro ao desconectar integracao")
+      toast.error("Erro ao desconectar integração")
     } finally {
       setSaving(false)
     }
@@ -232,7 +232,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Configuracao necessaria</AlertTitle>
               <AlertDescription>
-                Para habilitar a integracao com Google, configure as variaveis de ambiente:
+                Para habilitar a integração com Google, configure as variáveis de ambiente:
                 <ul className="mt-2 list-disc list-inside text-sm">
                   <li>NEXT_PUBLIC_GOOGLE_CLIENT_ID</li>
                   <li>GOOGLE_CLIENT_SECRET</li>

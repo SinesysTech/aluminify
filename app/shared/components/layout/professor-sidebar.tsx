@@ -3,9 +3,6 @@
 import {
   BookOpen,
   Calendar,
-  CalendarCheck,
-  FileText,
-  Layers,
   FolderOpen,
   Users,
   LayoutDashboard,
@@ -32,6 +29,10 @@ type NavItem = {
   title: string
   url: string
   icon: LucideIcon
+  items?: {
+    title: string
+    url: string
+  }[]
 }
 
 const professorNavItems: NavItem[] = [
@@ -40,7 +41,6 @@ const professorNavItems: NavItem[] = [
     url: "/dashboard",
     icon: LayoutDashboard,
   },
-
   {
     title: "Alunos",
     url: "/usuario/alunos",
@@ -50,43 +50,36 @@ const professorNavItems: NavItem[] = [
     title: "Cursos",
     url: "/curso",
     icon: BookOpen,
+    items: [
+      { title: "Meus Cursos", url: "/curso" },
+      { title: "Disciplinas", url: "/curso/disciplinas" },
+      { title: "Segmentos", url: "/curso/segmentos" },
+      { title: "Conteúdo Programático", url: "/curso/conteudos" },
+      { title: "Materiais", url: "/curso/conteudos/materiais" },
+    ],
   },
   {
-    title: "Disciplinas",
-    url: "/curso/disciplinas",
-    icon: FileText,
-  },
-  {
-    title: "Segmentos",
-    url: "/curso/segmentos",
-    icon: Layers,
-  },
-  {
-    title: "Materiais",
-    url: "/biblioteca/materiais",
+    title: "Biblioteca",
+    url: "/biblioteca",
     icon: FolderOpen,
-  },
-  {
-    title: "Flashcards",
-    url: "/flashcards",
-    icon: FolderOpen,
-  },
-  {
-    title: "Conteúdo Programático",
-    url: "/curso/conteudos",
-    icon: Calendar,
-  },
-  {
-    title: "Disponibilidade",
-    url: "/agendamentos/disponibilidade",
-    icon: CalendarCheck,
+    items: [
+      { title: "Visão Geral", url: "/biblioteca" },
+      { title: "Materiais", url: "/biblioteca/materiais" },
+      { title: "Flashcards", url: "/flashcards" },
+    ],
   },
   {
     title: "Agendamentos",
     url: "/agendamentos",
     icon: Calendar,
+    items: [
+      { title: "Visão Geral", url: "/agendamentos" },
+      { title: "Meus Agendamentos", url: "/agendamentos/meus" },
+      { title: "Disponibilidade", url: "/agendamentos/disponibilidade" },
+      { title: "Bloqueios", url: "/agendamentos/bloqueios" },
+      { title: "Estatísticas", url: "/agendamentos/stats" },
+    ],
   },
-
 ]
 
 export function ProfessorSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -99,6 +92,10 @@ export function ProfessorSidebar({ ...props }: React.ComponentProps<typeof Sideb
   const navItems = professorNavItems.map(item => ({
     ...item,
     url: tenantSlug ? `/${tenantSlug}${item.url}` : item.url,
+    items: item.items?.map(subItem => ({
+      ...subItem,
+      url: tenantSlug ? `/${tenantSlug}${subItem.url}` : subItem.url,
+    })),
   }))
 
   const navMainWithActive = navItems.map((item) => ({

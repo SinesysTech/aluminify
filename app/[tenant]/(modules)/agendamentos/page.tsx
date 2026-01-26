@@ -27,7 +27,7 @@ export default async function AgendamentosPage() {
       <div className="flex flex-col gap-2 items-center lg:px-10">
         <h1 className="font-bold text-3xl md:text-4xl">Agendar Mentoria</h1>
         <p className="font-medium text-lg text-muted-foreground text-center px-4 md:px-10">
-          Escolha um professor para agendar sua sessao de mentoria ou duvidas.
+          Escolha um professor para agendar sua sessão de mentoria ou dúvidas.
         </p>
       </div>
 

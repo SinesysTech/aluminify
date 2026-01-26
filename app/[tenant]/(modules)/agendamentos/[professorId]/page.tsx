@@ -9,7 +9,7 @@ import { ArrowLeft, User } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface AgendamentoProfessorPageProps {
-  params: Promise<{ professorId: string }>
+  params: Promise<{ professorId: string; tenant: string }>
 }
 
 interface Professor {
@@ -23,7 +23,7 @@ interface Professor {
 async function getProfessorById(supabase: Awaited<ReturnType<typeof createClient>>, professorId: string): Promise<Professor | null> {
   const { data: professor, error } = await supabase
     .from("professores")
-    .select("id, nome, foto_url, especialidade")
+    .select("id, nome_completo, foto_url, especialidade")
     .eq("id", professorId)
     .single()
 
@@ -41,7 +41,7 @@ async function getProfessorById(supabase: Awaited<ReturnType<typeof createClient
 
   return {
     id: professor.id,
-    nome: professor.nome,
+    nome: professor.nome_completo,
     foto_url: professor.foto_url,
     especialidade: professor.especialidade,
     tem_disponibilidade: (disponibilidade?.length ?? 0) > 0
@@ -50,7 +50,7 @@ async function getProfessorById(supabase: Awaited<ReturnType<typeof createClient
 
 export default async function AgendamentoProfessorPage({ params }: AgendamentoProfessorPageProps) {
   const resolvedParams = await params
-  const { professorId } = resolvedParams
+  const { professorId, tenant } = resolvedParams
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -78,7 +78,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
       {/* Back button */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/agendamentos">
+          <Link href={`/${tenant}/agendamentos`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Link>
@@ -126,7 +126,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
               Por favor, escolha outro professor ou tente novamente mais tarde.
             </p>
             <Button asChild className="mt-6">
-              <Link href="/agendamentos">
+              <Link href={`/${tenant}/agendamentos`}>
                 Ver outros professores
               </Link>
             </Button>

@@ -4,9 +4,8 @@ import {
   Calendar,
   CalendarCheck,
   MessageSquare,
-  School,
-  BrainCircuit,
   LayoutDashboard,
+  BookOpen,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -30,6 +29,10 @@ type NavItem = {
   title: string
   url: string
   icon: LucideIcon
+  items?: {
+    title: string
+    url: string
+  }[]
 }
 
 const alunoNavItems: NavItem[] = [
@@ -39,36 +42,40 @@ const alunoNavItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Calendário",
-    url: "/cronograma/calendario",
-    icon: Calendar,
+    title: "Estudos",
+    url: "/sala-de-estudos",
+    icon: BookOpen,
+    items: [
+      { title: "Sala de Estudos", url: "/sala-de-estudos" },
+      { title: "Modo Foco", url: "/foco" },
+      { title: "Biblioteca", url: "/biblioteca" },
+      { title: "Flashcards", url: "/flashcards" },
+    ],
   },
   {
-    title: "Sala de Estudos",
-    url: "/sala-de-estudos",
-    icon: School,
+    title: "Cronograma",
+    url: "/cronograma",
+    icon: CalendarCheck,
+    items: [
+      { title: "Meu Cronograma", url: "/cronograma" },
+      { title: "Calendário", url: "/cronograma/calendario" },
+      { title: "Novo Cronograma", url: "/cronograma/novo" },
+    ],
+  },
+  {
+    title: "Agendamentos",
+    url: "/agendamentos",
+    icon: Calendar,
+    items: [
+      { title: "Meus Agendamentos", url: "/agendamentos/meus" },
+      { title: "Agendar", url: "/agendamentos" },
+    ],
   },
   {
     title: "TobIAs",
     url: "/tobias",
     icon: MessageSquare,
   },
-  {
-    title: "Meu Cronograma",
-    url: "/cronograma",
-    icon: CalendarCheck,
-  },
-  {
-    title: "Flashcards",
-    url: "/flashcards",
-    icon: BrainCircuit,
-  },
-  {
-    title: "Agendamentos",
-    url: "/agendamentos",
-    icon: Calendar,
-  },
-
 ]
 
 export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -81,6 +88,10 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const navItems = alunoNavItems.map(item => ({
     ...item,
     url: tenantSlug ? `/${tenantSlug}${item.url}` : item.url,
+    items: item.items?.map(subItem => ({
+      ...subItem,
+      url: tenantSlug ? `/${tenantSlug}${subItem.url}` : subItem.url,
+    })),
   }))
 
   const navMainWithActive = navItems.map((item) => ({
