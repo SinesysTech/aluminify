@@ -43,7 +43,8 @@
       "Bash(echo:*)",
       "Bash(git pull:*)",
       "Bash(dir:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(npm --version)"
     ],
     "deny": [],
     "ask": []

@@ -2,8 +2,12 @@
 
 import { createClient } from "@/app/shared/core/server";
 import { revalidatePath } from "next/cache";
-import { generateMeetingLink } from "@/app/shared/core/agendamento-utils";
-import { validateCancellation } from "@/app/shared/core/agendamento-validations";
+import { validateCancellation } from "./agendamento-validations";
+
+// Simple meeting link generator
+function generateMeetingLink(appointmentId: string): string {
+  return `https://meet.aluminify.com/${appointmentId}`;
+}
 import {
   Agendamento,
   AgendamentoComDetalhes,

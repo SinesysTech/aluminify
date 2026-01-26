@@ -5,8 +5,8 @@ import { requireUser } from "@/app/shared/core/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { TransactionFilters } from "@/components/financial/transaction-filters";
-import { TransactionStatusBadge } from "@/components/financial/transaction-status-badge";
+import { TransactionFilters } from "@/app/[tenant]/(dashboard)/admin/financeiro/components/transaction-filters";
+import { TransactionStatusBadge } from "@/app/[tenant]/(dashboard)/admin/financeiro/components/transaction-status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,

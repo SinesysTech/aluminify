@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { TransactionStatusBadge } from "@/components/financial/transaction-status-badge";
+import { TransactionStatusBadge } from "@/app/[tenant]/(dashboard)/admin/financeiro/components/transaction-status-badge";
 import { createFinancialService } from "@/app/[tenant]/(dashboard)/admin/services/financial";
 import type { TransactionStatus, Provider, PaymentMethod } from "@/app/shared/types/entities/financial";
 import { ArrowLeft, User, CreditCard, Calendar, Package, Hash } from "lucide-react";
