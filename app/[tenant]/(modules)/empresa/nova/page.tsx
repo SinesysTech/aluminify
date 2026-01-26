@@ -23,14 +23,14 @@ export default function ProfessorNovaEmpresaPage() {
     telefone: '',
   });
 
-  // Verificar se o professor j· tem empresa ao carregar a p·gina
+  // Verificar se o professor j√° tem empresa ao carregar a p√°gina
   useEffect(() => {
     async function checkEmpresa() {
       if (user?.empresaId) {
-        // J· tem empresa, redirecionar
+        // J√° tem empresa, redirecionar
         toast({
-          title: 'VocÍ j· tem uma empresa',
-          description: 'Redirecionando para a p·gina da sua empresa...',
+          title: 'Voc√™ j√° tem uma empresa',
+          description: 'Redirecionando para a p√°gina da sua empresa...',
         });
         setTimeout(() => {
           router.push('/empresa/detalhes');
@@ -52,8 +52,8 @@ export default function ProfessorNovaEmpresaPage() {
 
           if (professor?.empresa_id) {
             toast({
-              title: 'VocÍ j· tem uma empresa',
-              description: 'Redirecionando para a p·gina da sua empresa...',
+              title: 'Voc√™ j√° tem uma empresa',
+              description: 'Redirecionando para a p√°gina da sua empresa...',
             });
             setTimeout(() => {
               router.push('/empresa/detalhes');
@@ -72,13 +72,13 @@ export default function ProfessorNovaEmpresaPage() {
   }, [user, router, toast]);
 
   async function handleCreateEmpresa() {
-    console.log('[Criar Empresa] Iniciando criaÁ„o...', { formData });
+    console.log('[Criar Empresa] Iniciando cria√ß√£o...', { formData });
 
-    // ValidaÁ„o b·sica
+    // Valida√ß√£o b√°sica
     if (!formData.nome.trim()) {
       toast({
         title: 'Erro',
-        description: 'Nome da empresa È obrigatÛrio',
+        description: 'Nome da empresa √© obrigat√≥rio',
         variant: 'destructive',
       });
       return;
@@ -90,25 +90,25 @@ export default function ProfessorNovaEmpresaPage() {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
-        console.error('[Criar Empresa] Erro ao obter sess„o:', sessionError);
-        throw new Error('Erro ao verificar sess„o. FaÁa login novamente.');
+        console.error('[Criar Empresa] Erro ao obter sess√£o:', sessionError);
+        throw new Error('Erro ao verificar sess√£o. Fa√ßa login novamente.');
       }
 
       if (!session) {
-        console.error('[Criar Empresa] Sess„o n„o encontrada');
-        throw new Error('Sess„o expirada. FaÁa login novamente.');
+        console.error('[Criar Empresa] Sess√£o n√£o encontrada');
+        throw new Error('Sess√£o expirada. Fa√ßa login novamente.');
       }
 
-      console.log('[Criar Empresa] Sess„o v·lida, processando dados...');
+      console.log('[Criar Empresa] Sess√£o v√°lida, processando dados...');
 
       const cnpjDigits = formData.cnpj.replace(/\D/g, '');
       const cnpjToSend = cnpjDigits.length === 0 ? undefined : cnpjDigits;
 
       if (cnpjToSend && cnpjToSend.length !== 14) {
-        throw new Error('CNPJ deve ter 14 dÌgitos (ou deixe em branco)');
+        throw new Error('CNPJ deve ter 14 d√≠gitos (ou deixe em branco)');
       }
       if (cnpjToSend && /^(\d)\1+$/.test(cnpjToSend)) {
-        throw new Error('CNPJ inv·lido');
+        throw new Error('CNPJ inv√°lido');
       }
 
       const payload = {
@@ -118,7 +118,7 @@ export default function ProfessorNovaEmpresaPage() {
         telefone: formData.telefone?.trim() || undefined,
       };
 
-      console.log('[Criar Empresa] Enviando requisiÁ„o...', payload);
+      console.log('[Criar Empresa] Enviando requisi√ß√£o...', payload);
 
       const response = await fetch('/api/empresa/self', {
         method: 'POST',
@@ -135,11 +135,11 @@ export default function ProfessorNovaEmpresaPage() {
         const err = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
         console.error('[Criar Empresa] Erro na API:', err);
 
-        // Se o erro for 409 (j· tem empresa), redirecionar
+        // Se o erro for 409 (j√° tem empresa), redirecionar
         if (response.status === 409) {
           toast({
-            title: 'VocÍ j· tem uma empresa',
-            description: 'Redirecionando para a p·gina da sua empresa...',
+            title: 'Voc√™ j√° tem uma empresa',
+            description: 'Redirecionando para a p√°gina da sua empresa...',
           });
           setTimeout(() => {
             router.push('/empresa/detalhes');
@@ -156,7 +156,7 @@ export default function ProfessorNovaEmpresaPage() {
 
       toast({
         title: 'Sucesso',
-        description: 'Empresa criada e vinculada ao seu usu·rio.',
+        description: 'Empresa criada e vinculada ao seu usu√°rio.',
       });
 
       // Aguardar um pouco para o toast aparecer antes de redirecionar
@@ -197,7 +197,7 @@ export default function ProfessorNovaEmpresaPage() {
         <div>
           <h1 className="page-title">Cadastrar sua Empresa</h1>
           <p className="page-subtitle">
-            Para continuar, crie sua empresa e vocÍ ser· definido como administrador.
+            Para continuar, crie sua empresa e voc√™ ser√° definido como administrador.
           </p>
         </div>
 
@@ -223,7 +223,7 @@ export default function ProfessorNovaEmpresaPage() {
               disabled={loading}
             />
             <div className="text-xs text-muted-foreground">
-              Opcional. Se informar, deve ter 14 dÌgitos.
+              Opcional. Se informar, deve ter 14 d√≠gitos.
             </div>
           </div>
 
@@ -253,7 +253,7 @@ export default function ProfessorNovaEmpresaPage() {
           <Button
             onClick={(e) => {
               e.preventDefault();
-              console.log('[Criar Empresa] Bot„o clicado');
+              console.log('[Criar Empresa] Bot√£o clicado');
               handleCreateEmpresa();
             }}
             className="w-full"
@@ -267,4 +267,3 @@ export default function ProfessorNovaEmpresaPage() {
     </div>
   );
 }
-

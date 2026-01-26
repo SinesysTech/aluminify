@@ -140,7 +140,7 @@ function AulaItem({
             <div className="flex flex-col gap-1 mb-1 min-w-0">
               {item.aulas.modulos?.numero_modulo && (
                 <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0 w-fit">
-                  MÛdulo {item.aulas.modulos.numero_modulo}
+                  M√≥dulo {item.aulas.modulos.numero_modulo}
                 </Badge>
               )}
               <Badge variant="outline" className="text-xs whitespace-nowrap shrink-0 w-fit">
@@ -153,12 +153,12 @@ function AulaItem({
             <div className="text-xs text-muted-foreground">
               {item.aulas.tempo_estimado_minutos && item.aulas.tempo_estimado_minutos > 0
                 ? formatTempo(item.aulas.tempo_estimado_minutos)
-                : 'DuraÁ„o n„o informada'}
+                : 'Dura√ß√£o n√£o informada'}
             </div>
           </>
         ) : (
           <div className="text-sm text-muted-foreground">
-            Aula n„o disponÌvel (ID: {item.aula_id})
+            Aula n√£o dispon√≠vel (ID: {item.aula_id})
           </div>
         )}
       </div>
@@ -186,7 +186,7 @@ export function ScheduleList({
     })
   )
 
-  // Calcular todas as semanas do perÌodo (data_inicio atÈ data_fim)
+  // Calcular todas as semanas do per√≠odo (data_inicio at√© data_fim)
   const dataInicioDate = new Date(dataInicio)
   const dataFimDate = new Date(dataFim)
   const todasSemanas: number[] = []
@@ -199,7 +199,7 @@ export function ScheduleList({
     semanaNumero++
   }
 
-  // Usar todas as semanas, n„o apenas as que tÍm itens
+  // Usar todas as semanas, n√£o apenas as que t√™m itens
   const semanas = todasSemanas
 
   const getSemanaDates = (semanaNumero: number) => {
@@ -209,7 +209,7 @@ export function ScheduleList({
     return { inicioSemana, fimSemana }
   }
 
-  // Verificar se uma semana È perÌodo de fÈrias
+  // Verificar se uma semana √© per√≠odo de f√©rias
   const isSemanaFerias = (semanaNumero: number): boolean => {
     const { inicioSemana, fimSemana } = getSemanaDates(semanaNumero)
     
@@ -217,7 +217,7 @@ export function ScheduleList({
       const inicioFerias = new Date(periodo.inicio)
       const fimFerias = new Date(periodo.fim)
       
-      // Verificar se a semana se sobrepıe ao perÌodo de fÈrias
+      // Verificar se a semana se sobrep√µe ao per√≠odo de f√©rias
       if (
         (inicioSemana >= inicioFerias && inicioSemana <= fimFerias) ||
         (fimSemana >= inicioFerias && fimSemana <= fimFerias) ||
@@ -229,7 +229,7 @@ export function ScheduleList({
     return false
   }
 
-  // Encontrar a ˙ltima semana com aulas
+  // Encontrar a √∫ltima semana com aulas
   const semanasComAulas = Object.keys(itensPorSemana)
     .map(Number)
     .filter(semana => (itensPorSemana[semana] || []).length > 0)
@@ -238,7 +238,7 @@ export function ScheduleList({
     ? Math.max(...semanasComAulas) 
     : 0
 
-  // Verificar se o cronograma terminou antes do tempo disponÌvel
+  // Verificar se o cronograma terminou antes do tempo dispon√≠vel
   const cronogramaTerminouAntes = ultimaSemanaComAulas > 0 && ultimaSemanaComAulas < semanas.length
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -269,13 +269,13 @@ export function ScheduleList({
 
     if (!itemAtual) return
 
-    // Verificar se est· sendo arrastado para outro item (reordenaÁ„o)
+    // Verificar se est√° sendo arrastado para outro item (reordena√ß√£o)
     const itemSobre = Object.values(itensPorSemana)
       .flat()
       .find((i) => i.id === overId)
 
     if (itemSobre && itemSobre.semana_numero === semanaAtual) {
-      // ReordenaÁ„o dentro da mesma semana
+      // Reordena√ß√£o dentro da mesma semana
       const itens = [...itensPorSemana[semanaAtual]]
       const oldIndex = itens.findIndex((i) => i.id === itemId)
       const newIndex = itens.findIndex((i) => i.id === overId)
@@ -336,7 +336,7 @@ export function ScheduleList({
           const isFerias = isSemanaFerias(semana)
           const isAposTermino = cronogramaTerminouAntes && semana > ultimaSemanaComAulas
 
-          // Para modo sequencial, n„o agrupar por frente
+          // Para modo sequencial, n√£o agrupar por frente
           const itensOrdenados = [...itens].sort((a, b) => a.ordem_na_semana - b.ordem_na_semana)
 
           return (
@@ -349,12 +349,12 @@ export function ScheduleList({
                     </span>
                     {!temAulas && isFerias && (
                       <Badge variant="secondary" className="text-xs">
-                        PerÌodo de Descanso
+                        Per√≠odo de Descanso
                       </Badge>
                     )}
                     {!temAulas && isAposTermino && (
                       <Badge variant="outline" className="text-xs bg-green-50 text-black dark:text-black border-green-200">
-                        J· acabou? Ent„o bora pra revis„o!
+                        J√° acabou? Ent√£o bora pra revis√£o!
                       </Badge>
                     )}
                   </div>
@@ -389,7 +389,7 @@ export function ScheduleList({
                 <div className="pt-2 space-y-4">
                   {temAulas && (
                     <div className="bg-muted/50 p-3 rounded-lg border">
-                      <h4 className="font-semibold text-sm mb-2">Previs„o de Tempo - Semana {semana}</h4>
+                      <h4 className="font-semibold text-sm mb-2">Previs√£o de Tempo - Semana {semana}</h4>
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground">Aulas:</span>
@@ -403,7 +403,7 @@ export function ScheduleList({
                           </p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">AnotaÁıes/ExercÌcios:</span>
+                          <span className="text-muted-foreground">Anota√ß√µes/Exerc√≠cios:</span>
                           <p className="font-medium">
                             {formatTempo(
                               itens.reduce(
@@ -430,18 +430,18 @@ export function ScheduleList({
                   {!temAulas ? (
                     <div className="text-center py-8 text-muted-foreground">
                       {isFerias ? (
-                        <p>PerÌodo de descanso - Nenhuma aula agendada</p>
+                        <p>Per√≠odo de descanso - Nenhuma aula agendada</p>
                       ) : isAposTermino ? (
                         <div className="space-y-2">
-                          <p className="font-semibold text-green-700">J· acabou? Ent„o bora pra revis„o!</p>
-                          <p className="text-sm">VocÍ concluiu todas as aulas do cronograma antes do previsto. Use este tempo para revisar o conte˙do estudado!</p>
+                          <p className="font-semibold text-green-700">J√° acabou? Ent√£o bora pra revis√£o!</p>
+                          <p className="text-sm">Voc√™ concluiu todas as aulas do cronograma antes do previsto. Use este tempo para revisar o conte√∫do estudado!</p>
                         </div>
                       ) : (
                         <p>Nenhuma aula agendada para esta semana</p>
                       )}
                     </div>
                   ) : modalidade === 'sequencial' ? (
-                    // Modo sequencial: lista simples sem divisıes de frentes
+                    // Modo sequencial: lista simples sem divis√µes de frentes
                     <SortableContext
                       items={itensOrdenados.map((item) => item.id)}
                       strategy={verticalListSortingStrategy}

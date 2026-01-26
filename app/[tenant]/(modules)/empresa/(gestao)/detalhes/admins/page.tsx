@@ -46,7 +46,7 @@ export default function EmpresaAdminsPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Buscar empresa do usu·rio
+      // Buscar empresa do usu√°rio
       const userResponse = await fetch('/api/usuario/perfil');
       const userData = await userResponse.json();
 
@@ -226,4 +226,3 @@ export default function EmpresaAdminsPage() {
     </div>
   );
 }
-

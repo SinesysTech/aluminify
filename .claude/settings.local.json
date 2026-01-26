@@ -49,7 +49,9 @@
       "Bash(timeout 30 npm run dev:*)",
       "Bash(claude mcp add:*)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__query-docs"
+      "mcp__context7__query-docs",
+      "mcp__copilotkit-mcp__search-docs",
+      "mcp__copilotkit-mcp__search-code"
     ],
     "deny": [],
     "ask": []

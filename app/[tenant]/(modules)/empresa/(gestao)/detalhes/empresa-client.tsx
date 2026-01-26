@@ -41,10 +41,10 @@ export default function EmpresaClientPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sess„o expirada. FaÁa login novamente.');
+        throw new Error('Sess√£o expirada. Fa√ßa login novamente.');
       }
 
-      // Buscar empresa do usu·rio logado
+      // Buscar empresa do usu√°rio logado
       const profileResponse = await fetch('/api/usuario/perfil', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -52,7 +52,7 @@ export default function EmpresaClientPage() {
       });
 
       if (!profileResponse.ok) {
-        throw new Error('Erro ao buscar dados do usu·rio');
+        throw new Error('Erro ao buscar dados do usu√°rio');
       }
       const userData = await profileResponse.json();
 
@@ -105,7 +105,7 @@ export default function EmpresaClientPage() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error('Sess„o expirada. FaÁa login novamente.');
+        throw new Error('Sess√£o expirada. Fa√ßa login novamente.');
       }
 
       // Preparar payload - normalizar CNPJ antes de enviar
@@ -119,13 +119,13 @@ export default function EmpresaClientPage() {
       if (formData.cnpj && formData.cnpj.trim()) {
         const cnpjClean = formData.cnpj.replace(/\D/g, '');
         if (cnpjClean.length === 14) {
-          // Verificar se todos os dÌgitos s„o iguais
+          // Verificar se todos os d√≠gitos s√£o iguais
           if (!/^(\d)\1+$/.test(cnpjClean)) {
             payload.cnpj = cnpjClean;
           } else {
             toast({
               title: 'Erro',
-              description: 'CNPJ inv·lido: todos os dÌgitos s„o iguais',
+              description: 'CNPJ inv√°lido: todos os d√≠gitos s√£o iguais',
               variant: 'destructive',
             });
             setSaving(false);
@@ -134,7 +134,7 @@ export default function EmpresaClientPage() {
         } else if (cnpjClean.length > 0) {
           toast({
             title: 'Erro',
-            description: 'CNPJ deve ter 14 dÌgitos',
+            description: 'CNPJ deve ter 14 d√≠gitos',
             variant: 'destructive',
           });
           setSaving(false);
@@ -187,9 +187,9 @@ export default function EmpresaClientPage() {
       <div className="container mx-auto py-8 max-w-xl">
         <Card>
           <CardHeader>
-            <CardTitle>Empresa n„o encontrada</CardTitle>
+            <CardTitle>Empresa n√£o encontrada</CardTitle>
             <CardDescription>
-              Seu usu·rio ainda n„o est· vinculado a uma empresa. Para continuar, crie sua empresa.
+              Seu usu√°rio ainda n√£o est√° vinculado a uma empresa. Para continuar, crie sua empresa.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -206,9 +206,9 @@ export default function EmpresaClientPage() {
     <div className="flex flex-col gap-8 h-full pb-10">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
         <div>
-          <h1 className="page-title">Configuracoes da Empresa</h1>
+          <h1 className="page-title">Configura√ß√µes da Empresa</h1>
           <p className="page-subtitle">
-            Gerencie as informacoes basicas da sua empresa
+            Gerencie as informa√ß√µes b√°sicas da sua empresa
           </p>
         </div>
       </header>
@@ -229,7 +229,7 @@ export default function EmpresaClientPage() {
             id="cnpj"
             value={formData.cnpj}
             onChange={(e) => {
-              // Normalizar para apenas dÌgitos e formatar
+              // Normalizar para apenas d√≠gitos e formatar
               const digits = e.target.value.replace(/\D/g, '');
               const formatted = formatCNPJ(digits);
               setFormData({ ...formData, cnpj: formatted });
@@ -273,11 +273,10 @@ export default function EmpresaClientPage() {
 
         <div className="flex justify-end gap-2">
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar AlteraÁıes'}
+            {saving ? 'Salvando...' : 'Salvar Altera√ß√µes'}
           </Button>
         </div>
       </div>
     </div>
   );
 }
-

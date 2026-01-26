@@ -140,7 +140,7 @@ export default function EmpresaProfessoresPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Senha Tempor·ria</Label>
+                    <Label htmlFor="password">Senha Tempor√°ria</Label>
                     <Input
                       id="password"
                       type="password"
@@ -186,4 +186,3 @@ export default function EmpresaProfessoresPage() {
     </div>
   );
 }
-

@@ -37,7 +37,7 @@ export function ConversationsPanel({
 
   const handleSelectConversation = (conversation: Conversation | null) => {
     onSelectConversation(conversation)
-    // Fechar painel em mobile após selecionar
+    // Fechar painel em mobile apÃ³s selecionar
     if (isMobile && onOpenChange) {
       onOpenChange(false)
     }
@@ -117,7 +117,7 @@ export function ConversationsPanel({
 
       if (response.ok) {
         await loadConversations()
-        // Se a conversa deletada estava selecionada, limpar seleção
+        // Se a conversa deletada estava selecionada, limpar seleÃ§Ã£o
         if (selectedConversationId === conversationId) {
           onSelectConversation(null)
         }
@@ -194,7 +194,7 @@ export function ConversationsPanel({
             <div className="flex flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground">
               <MessageSquare className="h-8 w-8 mb-2 opacity-50" />
               <p>Nenhuma conversa ainda</p>
-              <p className="text-xs mt-1">Crie uma nova conversa para começar</p>
+              <p className="text-xs mt-1">Crie uma nova conversa para comeÃ§ar</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -266,4 +266,3 @@ export function ConversationsPanel({
     </>
   )
 }
-
