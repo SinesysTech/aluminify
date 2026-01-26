@@ -47,17 +47,8 @@
       "@/shared/*": [
         "app/shared/*"
       ],
-      "@/app/shared/*": [
-        "app/shared/*"
-      ],
-      "@/app/shared/core/utils": [
-        "app/shared/library/utils"
-      ],
       "@/lib/database.types": [
         "app/shared/core/database.types"
-      ],
-      "@/brand-customization/*": [
-        "./app/[tenant]/(dashboard)/brand-customization/*"
       ]
     }
   },

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import "./app/shared/core/env";
 
 const nextConfig: NextConfig = {
   // Otimizações para produção

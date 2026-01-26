@@ -37,7 +37,7 @@ import {
 import { Loader2, X, AlertCircle, Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
-import { cn } from '@/app/shared/core/utils'
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
@@ -400,7 +400,7 @@ export function ScheduleWizard() {
     }
 
     loadData()
-  }, [router])
+  }, [router, tenant])
 
   // Carregar disciplinas do curso selecionado
   React.useEffect(() => {
@@ -700,12 +700,12 @@ export function ScheduleWizard() {
             )
             const concluidas = aulas.filter((aula: AulaData) => concluidasSet.has(aula.id)).length
 
-            const importanciaValida: ModuloResumo['importancia'] = 
-              modulo.importancia === 'Alta' || modulo.importancia === 'Media' || 
-              modulo.importancia === 'Baixa' || modulo.importancia === 'Base'
+            const importanciaValida: ModuloResumo['importancia'] =
+              modulo.importancia === 'Alta' || modulo.importancia === 'Media' ||
+                modulo.importancia === 'Baixa' || modulo.importancia === 'Base'
                 ? modulo.importancia
                 : null;
-            
+
             return {
               id: modulo.id,
               nome: modulo.nome,
@@ -856,14 +856,14 @@ export function ScheduleWizard() {
               )
             )
           `)
-          .in('modulos.frentes.disciplina_id', disciplinasSelecionadas)) as { 
-            data: Array<{ 
-              id: string; 
-              tempo_estimado_minutos: number | null; 
+          .in('modulos.frentes.disciplina_id', disciplinasSelecionadas)) as {
+            data: Array<{
+              id: string;
+              tempo_estimado_minutos: number | null;
               prioridade: number | null;
               modulos: { id: string; frentes: { disciplina_id: string } }
-            }> | null; 
-            error: unknown 
+            }> | null;
+            error: unknown
           }
 
         if (error) {

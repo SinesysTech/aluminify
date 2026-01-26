@@ -31,7 +31,7 @@ import {
 import { toast } from "sonner"
 import { getRelatorios, gerarRelatorio, getRelatorioById } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 import type { Relatorio, RelatorioTipo } from "@/app/[tenant]/(modules)/agendamentos/types"
-import { cn } from "@/app/shared/core/utils"
+import { cn } from "@/lib/utils"
 
 interface RelatoriosDashboardProps {
   empresaId: string
@@ -444,7 +444,7 @@ interface StatusBarProps {
   color?: string
 }
 
- 
+
 function StatusBar({ label, value, total, color: _color }: StatusBarProps) {
   const percentage = total > 0 ? (value / total) * 100 : 0
   return (

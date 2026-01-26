@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/app/shared/components/overlay/tooltip'
 import { Info } from 'lucide-react'
-import { cn } from '@/app/shared/core/utils'
+import { cn } from '@/lib/utils'
 
 interface MetricCardProps {
   label: string

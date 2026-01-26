@@ -1,0 +1,62 @@
+'use client';
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { AluminifyLogo } from "@/components/ui/aluminify-logo";
+
+export default function TenantNotFound() {
+    const params = useParams();
+    const tenant = params?.tenant as string;
+
+    return (
+        <div className="min-h-screen bg-background text-foreground font-sans antialiased flex flex-col items-center justify-center relative overflow-hidden">
+            {/* Background Grid Pattern */}
+            <div className="absolute inset-0 pointer-events-none z-0">
+                <div className="absolute inset-0 bg-grid-pattern dark:bg-grid-pattern-dark opacity-30 grid-bg"></div>
+                {/* Ambient Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center text-center max-w-lg px-4">
+                <div className="mb-8">
+                    <AluminifyLogo className="scale-150" />
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
+                    <span className="flex h-2 w-2 rounded-full bg-red-500"></span>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                        Error 404
+                    </span>
+                </div>
+
+                <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-linear-to-b from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+                    Recurso não encontrado
+                </h1>
+
+                <p className="text-lg text-muted-foreground leading-relaxed mb-10">
+                    Não conseguimos encontrar o que você está procurando dentro de <strong>{tenant}</strong>. Verifique o link ou volte para o início.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto font-medium" asChild>
+                        <Link href={`/${tenant}/dashboard`}>
+                            Voltar ao Dashboard
+                        </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto font-medium bg-white dark:bg-transparent" asChild>
+                        <Link href="mailto:support@aluminify.com">
+                            Contatar Suporte
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+
+            <div className="absolute bottom-8 text-center">
+                <p className="text-xs text-muted-foreground opacity-60">
+                    © 2026 Aluminify Inc. Infraestrutura Invisível.
+                </p>
+            </div>
+        </div>
+    );
+}
