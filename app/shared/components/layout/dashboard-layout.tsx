@@ -38,15 +38,11 @@ export async function DashboardLayout({
 }>) {
     const user = await requireUser()
 
-    // Determina o contexto do copilot baseado no role do usuário
-    // aluno -> student, usuario/superadmin -> institution
-    const copilotContext = user.role === 'aluno' ? 'student' : 'institution'
-
     return (
         <UserProvider user={user}>
             <TenantBrandingProvider user={user}>
                 <StudentOrganizationsProvider user={user}>
-                    <CopilotProvider context={copilotContext}>
+                    <CopilotProvider>
                     <StudentBrandingCoordinator />
                     <SidebarProvider
                         // 3. Aplicação das variáveis de fonte e classes base no Provider

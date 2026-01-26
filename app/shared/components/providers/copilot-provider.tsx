@@ -7,24 +7,27 @@ interface CopilotProviderProps {
   children: ReactNode;
   /**
    * Contexto do usuário para selecionar o agente correto
-   * - "student": Para área do aluno
-   * - "institution": Para área da instituição
+   * - "student": Para área do aluno (studentAgent)
+   * - "institution": Para área da instituição (institutionAgent)
    */
   context?: "student" | "institution";
 }
 
-const COPILOTKIT_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_COPILOTKIT_PUBLIC_KEY || "ck_pub_b5b202514d1736f9e6f6675a87238818";
-
+/**
+ * Mapeamento de contexto para ID do agente
+ * Os IDs devem corresponder aos nomes dos agentes no Mastra
+ */
 const AGENT_IDS = {
   student: "studentAgent",
   institution: "institutionAgent",
-};
+} as const;
 
 /**
  * Provider do CopilotKit para integração com Mastra AI
  *
- * Usa CopilotKit Cloud + rota API local que conecta ao Mastra
+ * Conecta ao endpoint local /api/copilotkit que usa
+ * MastraAgent.getLocalAgents() para funcionamento completo
+ * de features como shared state e generative UI.
  */
 export function CopilotProvider({
   children,
@@ -32,7 +35,6 @@ export function CopilotProvider({
 }: CopilotProviderProps) {
   return (
     <CopilotKit
-      publicApiKey={COPILOTKIT_PUBLIC_KEY}
       runtimeUrl="/api/copilotkit"
       agent={AGENT_IDS[context]}
       showDevConsole={process.env.NODE_ENV === "development"}
