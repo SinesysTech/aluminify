@@ -86,7 +86,8 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm lint:*)",
-      "Bash(pnpm install)"
+      "Bash(pnpm install)",
+      "Bash(npm ping:*)"
     ],
     "deny": [],
     "ask": []
