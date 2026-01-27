@@ -83,7 +83,9 @@
       "Bash(npx supabase:*)",
       "mcp__mastra__mastraDocs",
       "mcp__mastra__mastraExamples",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:*)"
     ],
     "deny": [],
     "ask": []
