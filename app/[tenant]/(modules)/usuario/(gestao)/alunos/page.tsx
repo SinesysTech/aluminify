@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 }
 
 export default async function AlunosPage({ searchParams }: { searchParams: { page?: string, query?: string, courseId?: string, turmaId?: string } }) {
-  // Apenas superadmins podem ver todos os alunos
-  await requireUser({ allowedRoles: ['superadmin'] })
+  // Superadmins e admins de empresa podem ver alunos (RLS filtra por empresa)
+  await requireUser({ allowedRoles: ['superadmin', 'usuario'] })
 
   const page = Number(searchParams.page) || 1
   const query = searchParams.query || ''
