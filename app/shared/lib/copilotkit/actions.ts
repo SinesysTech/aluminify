@@ -69,6 +69,7 @@ export function createCopilotKitActions(
           required: false,
         },
       ],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: async ({ searchTerm, limit = 10 }: any) => {
         const client = getDatabaseClient();
 
@@ -125,6 +126,7 @@ export function createCopilotKitActions(
           required: false,
         },
       ],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: async ({ studentId }: any) => {
         // Determine which student to query
         let targetStudentId = studentId;
@@ -235,6 +237,7 @@ export function createCopilotKitActions(
           required: false,
         },
       ],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handler: async ({ searchTerm, limit = 10 }: any) => {
         // Permission check: only usuarios and superadmin can search students
         if (userRole === "aluno") {
