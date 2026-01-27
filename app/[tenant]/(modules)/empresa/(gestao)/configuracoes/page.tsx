@@ -1,5 +1,9 @@
-import { SettingsTabs } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/settings-tabs"
+import dynamic from 'next/dynamic'
 import { requireUser } from "@/app/shared/core/auth"
+
+const SettingsTabs = dynamic(() => import("@/app/[tenant]/(modules)/agendamentos/configuracoes/components/settings-tabs").then(mod => mod.SettingsTabs), {
+    ssr: false,
+})
 
 export default async function EmpresaConfiguracoesPage() {
     const user = await requireUser({ allowedRoles: ["usuario"] })
