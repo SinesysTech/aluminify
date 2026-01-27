@@ -14,8 +14,7 @@ interface CopilotProviderProps {
 }
 
 /**
- * Mapeamento de contexto para ID do agente
- * Os IDs devem corresponder aos nomes dos agentes no Mastra
+ * Mapeamento de contexto para ID do agente Mastra
  */
 const AGENT_IDS = {
   student: "studentAgent",
@@ -25,18 +24,19 @@ const AGENT_IDS = {
 /**
  * Provider do CopilotKit para integração com Mastra AI
  *
- * Conecta ao endpoint local /api/copilotkit que usa
- * MastraAgent.getLocalAgents() para funcionamento completo
- * de features como shared state e generative UI.
+ * Conecta ao endpoint /api/copilotkit que usa as instruções
+ * do agente Mastra correspondente ao contexto.
  */
 export function CopilotProvider({
   children,
   context = "student",
 }: CopilotProviderProps) {
+  // Passa o agente como query param para o backend selecionar as instruções corretas
+  const runtimeUrl = `/api/copilotkit?agent=${AGENT_IDS[context]}`;
+
   return (
     <CopilotKit
-      runtimeUrl="/api/copilotkit"
-      agent={AGENT_IDS[context]}
+      runtimeUrl={runtimeUrl}
       showDevConsole={process.env.NODE_ENV === "development"}
     >
       {children}

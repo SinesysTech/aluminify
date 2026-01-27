@@ -1,15 +1,16 @@
 import {
   CopilotRuntime,
   copilotRuntimeNextJSAppRouterEndpoint,
+  GoogleGenerativeAIAdapter,
+  OpenAIAdapter,
 } from "@copilotkit/runtime";
-import { getLocalAgents } from "@ag-ui/mastra";
 import { NextRequest } from "next/server";
 import { mastra } from "@/mastra";
 
 /**
  * CopilotKit Runtime API Route - Integrado com Mastra
  *
- * Este endpoint conecta CopilotKit aos agentes Mastra diretamente no Next.js.
+ * Este endpoint conecta CopilotKit aos agentes Mastra.
  *
  * Uso no frontend:
  * <CopilotKit runtimeUrl="/api/copilotkit" agent="studentAgent">
@@ -21,16 +22,40 @@ import { mastra } from "@/mastra";
  * - institutionAgent: Assistente para área administrativa
  */
 
+// Seleciona o adapter baseado no provedor configurado
+const MODEL_PROVIDER = process.env.AI_MODEL_PROVIDER || "google";
+
+function getServiceAdapter() {
+  if (MODEL_PROVIDER === "openai") {
+    return new OpenAIAdapter({
+      model: "gpt-4o",
+    });
+  }
+  return new GoogleGenerativeAIAdapter({
+    model: "gemini-2.0-flash",
+  });
+}
+
 export const POST = async (req: NextRequest) => {
-  // Get all Mastra agents as AG-UI compatible agents
-  const agents = getLocalAgents({ mastra });
+  const serviceAdapter = getServiceAdapter();
+
+  // Get the agent name from query params or default to studentAgent
+  const url = new URL(req.url);
+  const agentName = url.searchParams.get("agent") || "studentAgent";
+
+  // Get the Mastra agent to use its instructions
+  const agent = mastra.getAgent(agentName);
+  const instructions = agent
+    ? await agent.getInstructions()
+    : "Você é um assistente útil.";
 
   const runtime = new CopilotRuntime({
-    agents,
+    instructions: typeof instructions === "string" ? instructions : undefined,
   });
 
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
     runtime,
+    serviceAdapter,
     endpoint: "/api/copilotkit",
   });
 
