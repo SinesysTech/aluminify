@@ -46,7 +46,6 @@ const alunoNavItems: NavItem[] = [
     url: "/sala-de-estudos",
     icon: BookOpen,
     items: [
-      { title: "Sala de Estudos", url: "/sala-de-estudos" },
       { title: "Modo Foco", url: "/foco" },
       { title: "Biblioteca", url: "/biblioteca" },
       { title: "Flashcards", url: "/flashcards" },
@@ -56,11 +55,6 @@ const alunoNavItems: NavItem[] = [
     title: "Cronograma",
     url: "/cronograma",
     icon: CalendarCheck,
-    items: [
-      { title: "Meu Cronograma", url: "/cronograma" },
-      { title: "Calendário", url: "/cronograma/calendario" },
-      { title: "Novo Cronograma", url: "/cronograma/novo" },
-    ],
   },
   {
     title: "Agendamentos",
