@@ -66,6 +66,7 @@ function mapModuleDefinitionRow(row: ModuleDefinitionRow): ModuleDefinition {
     defaultUrl: row.default_url,
     displayOrder: row.display_order,
     isCore: row.is_core,
+    defaultVisible: row.default_visible,
     createdAt: new Date(row.created_at),
   };
 }
@@ -229,8 +230,8 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
     for (const moduleDef of moduleDefinitions) {
       const visibility = moduleVisibilityMap.get(moduleDef.id);
 
-      // Check if module is visible (default: true if no config)
-      const isVisible = visibility?.isVisible ?? true;
+      // Check if module is visible (default: use module's defaultVisible setting)
+      const isVisible = visibility?.isVisible ?? moduleDef.defaultVisible;
       if (!isVisible) continue;
 
       // Get submodules for this module

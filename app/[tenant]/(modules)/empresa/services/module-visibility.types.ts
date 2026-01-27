@@ -10,6 +10,7 @@ export interface ModuleDefinition {
   defaultUrl: string;
   displayOrder: number;
   isCore: boolean;
+  defaultVisible: boolean;
   createdAt: Date;
 }
 
@@ -133,6 +134,7 @@ export interface ModuleDefinitionRow {
   default_url: string;
   display_order: number;
   is_core: boolean;
+  default_visible: boolean;
   created_at: string;
 }
 
