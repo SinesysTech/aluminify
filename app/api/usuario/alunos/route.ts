@@ -6,6 +6,7 @@ import {
   Student,
 } from "@/app/[tenant]/(modules)/usuario/services";
 import { createClient } from "@/app/shared/core/server";
+import { getServiceRoleClient } from "@/app/shared/core/database/database-auth";
 import {
   requireAuth,
   AuthenticatedRequest,
@@ -155,6 +156,15 @@ async function postHandler(request: AuthenticatedRequest) {
   });
 
   try {
+    // Somente staff (usuario) / superadmin / api key podem criar/vincular alunos
+    if (
+      request.user &&
+      request.user.role !== "usuario" &&
+      request.user.role !== "superadmin"
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
     console.log("[Student POST] Request body:", body);
 
@@ -179,31 +189,151 @@ async function postHandler(request: AuthenticatedRequest) {
       );
     }
 
-    // Usar cliente com contexto do usuário
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    // Para criação/vínculo, usamos service role (bypass RLS) e aplicamos autorização aqui.
+    // Motivo: quando o e-mail já existe, o `.upsert()` em `alunos` pode cair no caminho de UPDATE
+    // e ser bloqueado por RLS (erro "violates row-level security policy (USING expression)").
+    const db = getServiceRoleClient();
 
-    const supabaseAdmin = await createClient();
-    let service = createStudentService(supabaseAdmin);
+    const email = String(body.email).trim().toLowerCase();
+    const cpfRaw = body?.cpf != null ? String(body.cpf).trim() : "";
+    const cpfNormalized = cpfRaw ? cpfRaw.replace(/\D/g, "") : "";
+    const courseIds: string[] = Array.isArray(body?.courseIds)
+      ? body.courseIds.filter(Boolean)
+      : [];
 
-    if (token && request.user) {
-      const { getDatabaseClientAsUser } =
-        await import("@/app/shared/core/database/database");
-      const { StudentRepositoryImpl } =
-        await import("@/app/[tenant]/(modules)/usuario/services/student.repository");
-      const { StudentService } =
-        await import("@/app/[tenant]/(modules)/usuario/services/student.service");
+    // Se o aluno já existe, não tentamos recriar em `alunos`.
+    // Apenas vinculamos aos cursos solicitados (alunos_cursos) se permitido.
+    const { data: existingAluno, error: existingAlunoError } = await db
+      .from("alunos")
+      .select("id, empresa_id, email")
+      .eq("email", email)
+      .is("deleted_at", null)
+      .maybeSingle();
 
-      const client = getDatabaseClientAsUser(token);
-      const repository = new StudentRepositoryImpl(client);
-      service = new StudentService(repository);
+    if (existingAlunoError) {
+      console.error("[Student POST] Error checking existing aluno:", existingAlunoError);
     }
+
+    // Se não encontrou por e-mail, mas o CPF foi informado, tente resolver por CPF.
+    // Isso evita tentar criar um "novo aluno" com CPF já cadastrado (violaria alunos_cpf_key).
+    let resolvedExistingAluno = existingAluno as
+      | { id: string; empresa_id: string | null; email?: string | null }
+      | null;
+
+    if (!resolvedExistingAluno?.id && cpfNormalized && cpfNormalized.length === 11) {
+      const { data: byCpf, error: byCpfError } = await db
+        .from("alunos")
+        .select("id, empresa_id, email")
+        .eq("cpf", cpfNormalized)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (byCpfError) {
+        console.error("[Student POST] Error checking existing aluno by CPF:", byCpfError);
+      }
+
+      if (byCpf?.id) {
+        // Se o CPF pertence a outro e-mail, não criamos um novo aluno.
+        // (Evita duplicidade e confusão de identidade)
+        const existingEmail = (byCpf as { email?: string | null }).email ?? null;
+        const isSuperAdmin = !!request.user?.isSuperAdmin;
+        if (existingEmail && existingEmail !== email && !isSuperAdmin) {
+          return NextResponse.json(
+            {
+              error:
+                "Este CPF já está cadastrado para outro aluno. Use o cadastro existente e apenas vincule ao curso.",
+            },
+            { status: 409 },
+          );
+        }
+
+        resolvedExistingAluno = byCpf as { id: string; empresa_id: string | null; email?: string | null };
+      }
+    }
+
+    if (resolvedExistingAluno?.id) {
+      const existingEmpresaId =
+        (resolvedExistingAluno as { empresa_id?: string | null }).empresa_id ?? null;
+      const isSuperAdmin = !!request.user?.isSuperAdmin;
+
+      // Bloqueia tentativa de reutilizar aluno de outra empresa (a não ser superadmin).
+      if (existingEmpresaId && existingEmpresaId !== empresaId && !isSuperAdmin) {
+        return NextResponse.json(
+          {
+            error:
+              "Este e-mail já pertence a um aluno de outra empresa. Não é possível cadastrar/vincular automaticamente.",
+          },
+          { status: 409 },
+        );
+      }
+
+      // Validar que os cursos informados pertencem à empresa (evita vínculo cross-tenant).
+      if (courseIds.length > 0 && !isSuperAdmin) {
+        const { data: cursos, error: cursosError } = await db
+          .from("cursos")
+          .select("id")
+          .eq("empresa_id", empresaId)
+          .in("id", courseIds);
+
+        if (cursosError) {
+          console.error("[Student POST] Error validating cursos:", cursosError);
+          return NextResponse.json({ error: "Erro ao validar cursos" }, { status: 500 });
+        }
+
+        const validIds = new Set((cursos ?? []).map((c) => c.id));
+        const invalidIds = courseIds.filter((id) => !validIds.has(id));
+        if (invalidIds.length > 0) {
+          return NextResponse.json(
+            { error: "Um ou mais cursos selecionados são inválidos para esta empresa." },
+            { status: 400 },
+          );
+        }
+      }
+
+      if (courseIds.length > 0) {
+        const rows = courseIds.map((cursoId) => ({
+          aluno_id: resolvedExistingAluno.id,
+          curso_id: cursoId,
+        }));
+
+        const { error: linkError } = await db
+          .from("alunos_cursos")
+          .upsert(rows, { onConflict: "aluno_id,curso_id", ignoreDuplicates: true });
+
+        if (linkError) {
+          console.error("[Student POST] Error linking existing aluno to courses:", linkError);
+          return NextResponse.json(
+            { error: `Erro ao vincular aluno ao(s) curso(s): ${linkError.message}` },
+            { status: 500 },
+          );
+        }
+      }
+
+      // Retornar o aluno já existente com cursos atualizados
+      const { StudentRepositoryImpl } = await import(
+        "@/app/[tenant]/(modules)/usuario/services/student.repository"
+      );
+      const repository = new StudentRepositoryImpl(db);
+      const updated = await repository.findById(resolvedExistingAluno.id);
+      if (!updated) {
+        return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 });
+      }
+
+      return NextResponse.json(
+        { data: serializeStudent(updated) },
+        { status: 200 },
+      );
+    }
+
+    // Se não existe, segue criação padrão via service role
+    // (mantém validações e criação do auth.users dentro do serviço).
+    let service = createStudentService(db);
 
     const student = await service.create({
       id: body?.id,
       empresaId, // Passando empresaId para isolamento multi-tenant
       fullName: body?.fullName,
-      email: body?.email,
+      email,
       cpf: body?.cpf,
       phone: body?.phone,
       birthDate: body?.birthDate,
@@ -212,7 +342,7 @@ async function postHandler(request: AuthenticatedRequest) {
       enrollmentNumber: body?.enrollmentNumber,
       instagram: body?.instagram,
       twitter: body?.twitter,
-      courseIds: body?.courseIds ?? [],
+      courseIds,
       temporaryPassword: body?.temporaryPassword,
     });
     console.log("[Student POST] Student created:", student.id);

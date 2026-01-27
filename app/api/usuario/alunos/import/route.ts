@@ -23,6 +23,13 @@ function handleError(error: unknown) {
   return NextResponse.json({ error: message }, { status: 500 });
 }
 
+function normalizeCpf(rawCpf: string): string {
+  const digits = (rawCpf ?? "").replace(/\D/g, "");
+  // Regra: se vier com 8, 9 ou 10 dígitos, completa com 0 à esquerda até 11.
+  if (digits.length >= 8 && digits.length <= 10) return digits.padStart(11, "0");
+  return digits;
+}
+
 function normalizeRowPayload(rows: unknown[]): StudentImportInputRow[] {
   return rows.map((rawRow, index) => {
     const row = rawRow as Record<string, unknown>;
@@ -31,6 +38,9 @@ function normalizeRowPayload(rows: unknown[]): StudentImportInputRow[] {
           .map((value) => (typeof value === "string" ? value : ""))
           .filter(Boolean)
       : [];
+
+    const cpf = normalizeCpf(String(row?.cpf ?? "").trim());
+    const temporaryPasswordRaw = String(row?.temporaryPassword ?? "").trim();
 
     return {
       rowNumber:
@@ -41,10 +51,12 @@ function normalizeRowPayload(rows: unknown[]): StudentImportInputRow[] {
       email: String(row?.email ?? "")
         .trim()
         .toLowerCase(),
-      cpf: String(row?.cpf ?? "").trim(),
+      cpf,
       phone: String(row?.phone ?? "").trim(),
       enrollmentNumber: String(row?.enrollmentNumber ?? "").trim(),
-      temporaryPassword: String(row?.temporaryPassword ?? "").trim(),
+      // Regra: se não vier senha, usar CPF (11 dígitos).
+      temporaryPassword:
+        temporaryPasswordRaw || (cpf.length === 11 ? cpf : ""),
       courses,
     };
   });

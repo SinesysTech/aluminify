@@ -1857,7 +1857,7 @@ export function ScheduleWizard() {
                         </Label>
                       </div>
                       <p className="text-sm text-muted-foreground pl-6">
-                        Toda semana você estuda um pouquinho de cada uma das frentes do curso, para distribuir melhor os conteúdos.
+                        Toda semana você estuda todas as disciplinas e todas as frentes, com uma distribuição equilibrada para concluir tudo próximo do fim do período.
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -1868,7 +1868,7 @@ export function ScheduleWizard() {
                         </Label>
                       </div>
                       <p className="text-sm text-muted-foreground pl-6">
-                        Você estudará uma frente completa e, ao finalizar, passará para a próxima até finalizar o curso.
+                        Toda semana você estuda 1 frente de cada disciplina. Quando a frente de uma disciplina terminar, na semana seguinte você passa para a próxima frente daquela disciplina.
                       </p>
                     </div>
                   </RadioGroup>

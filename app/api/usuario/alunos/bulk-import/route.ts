@@ -138,8 +138,14 @@ const normalizeCourseName = (name: string) =>
     .slice(0, 32)
     .toUpperCase();
 
-const generateDefaultPassword = (cpf: string, courseName: string) =>
-  `${cpf}@${normalizeCourseName(courseName)}`;
+const normalizeCpfDigits = (cpfRaw: string) => {
+  const digits = (cpfRaw ?? "").replace(/\D/g, "");
+  // Regra: se vier com 8, 9 ou 10 dígitos, completa com 0 à esquerda até 11.
+  if (digits.length >= 8 && digits.length <= 10) return digits.padStart(11, "0");
+  return digits;
+};
+
+const generateDefaultPassword = (cpfDigits: string) => cpfDigits;
 
 function handleError(error: unknown) {
   if (error instanceof StudentValidationError) {
@@ -259,10 +265,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
       const fullName = getValue(STUDENT_IMPORT_COLUMN_ALIASES.fullName);
       const email = getValue(STUDENT_IMPORT_COLUMN_ALIASES.email).toLowerCase();
-      const cpfDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.cpf).replace(
-        /\D/g,
-        "",
-      );
+      const cpfDigits = normalizeCpfDigits(getValue(STUDENT_IMPORT_COLUMN_ALIASES.cpf));
       const phoneDigits = getValue(STUDENT_IMPORT_COLUMN_ALIASES.phone).replace(
         /\D/g,
         "",
@@ -280,28 +283,25 @@ async function postHandler(request: AuthenticatedRequest) {
 
       // Gerar senha se não fornecida
       let temporaryPassword = temporaryPasswordRaw;
-      if (!temporaryPassword && cpfDigits && courses.length > 0) {
-        // Usar o primeiro curso para gerar senha padrão
-        const primaryCourseName = courses[0];
-        temporaryPassword = generateDefaultPassword(
-          cpfDigits,
-          primaryCourseName,
-        );
+      if (!temporaryPassword && cpfDigits && cpfDigits.length === 11) {
+        // Regra: se não vier senha, usar o CPF (11 dígitos)
+        temporaryPassword = generateDefaultPassword(cpfDigits);
       }
 
       const errors: string[] = [];
 
       if (!fullName) errors.push("Nome completo é obrigatório.");
       if (!email) errors.push("Email é obrigatório.");
-      if (!cpfDigits || cpfDigits.length !== 11)
+      // CPF: aceitar vazio quando houver senha temporária. Se vier preenchido, deve ter 11 dígitos.
+      if (cpfDigits && cpfDigits.length !== 11) {
         errors.push("CPF deve ter 11 dígitos.");
-      if (!phoneDigits || phoneDigits.length < 10)
-        errors.push("Telefone deve ter ao menos 10 dígitos.");
+      }
       if (!enrollmentNumber) errors.push("Número de matrícula é obrigatório.");
-      if (!temporaryPassword) {
-        errors.push("Senha temporária é obrigatória.");
-      } else if (temporaryPassword.length < 8) {
+      if (temporaryPassword && temporaryPassword.length < 8) {
         errors.push("Senha temporária deve ter pelo menos 8 caracteres.");
+      }
+      if (!cpfDigits && !temporaryPassword) {
+        errors.push("Informe o CPF ou a senha temporária.");
       }
       if (!coursesRaw) {
         errors.push("Informe pelo menos um curso.");

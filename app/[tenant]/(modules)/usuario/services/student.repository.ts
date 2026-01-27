@@ -27,6 +27,7 @@ export interface StudentRepository {
   update(id: string, payload: UpdateStudentInput): Promise<Student>;
   delete(id: string): Promise<void>;
   findByEmpresa(empresaId: string): Promise<Student[]>;
+  addCourses(studentId: string, courseIds: string[]): Promise<void>;
 }
 
 const TABLE = "alunos";
@@ -649,6 +650,26 @@ export class StudentRepositoryImpl implements StudentRepository {
       throw new Error(
         `Failed to link student to courses: ${insertError.message}`,
       );
+    }
+  }
+
+  async addCourses(studentId: string, courseIds: string[]): Promise<void> {
+    const uniqueCourseIds = Array.from(new Set(courseIds ?? [])).filter(Boolean);
+    if (!uniqueCourseIds.length) {
+      return;
+    }
+
+    const rows = uniqueCourseIds.map((courseId) => ({
+      aluno_id: studentId,
+      curso_id: courseId,
+    }));
+
+    const { error } = await this.client
+      .from(COURSE_LINK_TABLE)
+      .upsert(rows, { onConflict: "aluno_id,curso_id", ignoreDuplicates: true });
+
+    if (error) {
+      throw new Error(`Failed to link student to courses: ${error.message}`);
     }
   }
 }

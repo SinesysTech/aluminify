@@ -1,9 +1,11 @@
-import { getDatabaseClient } from "@/app/shared/core/database/database";
+import { getServiceRoleClient } from "@/app/shared/core/database/database-auth";
 import { randomBytes } from "crypto";
 
 export class UserBaseService {
   protected getAdminClient() {
-    return getDatabaseClient();
+    // Garante uso de service role (sem fallback para anon/publishable),
+    // evitando falhas por RLS em operações admin (auth.admin + inserts em tabelas protegidas).
+    return getServiceRoleClient();
   }
 
   /**

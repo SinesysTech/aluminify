@@ -9,7 +9,6 @@
  */
 
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import type { Action } from "@copilotkit/runtime";
 
 export interface ActionContext {
   userId: string;
@@ -20,7 +19,7 @@ export interface ActionContext {
 /**
  * Creates the CopilotKit actions array with the given user context
  */
-export function createCopilotKitActions(context: ActionContext): Action[] {
+export function createCopilotKitActions(context: ActionContext) {
   const { userId, empresaId, userRole } = context;
 
   return [

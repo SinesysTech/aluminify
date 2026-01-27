@@ -39,11 +39,15 @@ export interface StudentImportSummary {
 const REQUIRED_FIELDS: Array<keyof StudentImportInputRow> = [
   "fullName",
   "email",
-  "cpf",
-  "phone",
   "enrollmentNumber",
-  "temporaryPassword",
 ];
+
+function normalizeCpf(rawCpf: string): string {
+  const digits = (rawCpf ?? "").replace(/\D/g, "");
+  // Regra: se vier com 8, 9 ou 10 dígitos, completa com 0 à esquerda até 11.
+  if (digits.length >= 8 && digits.length <= 10) return digits.padStart(11, "0");
+  return digits;
+}
 
 export class StudentImportService {
   constructor(
@@ -83,16 +87,26 @@ export class StudentImportService {
     }> = [];
 
     for (const row of rows) {
-      const errors = this.validateRow(row);
-      const courseIds = this.resolveCourses(row, courseLookup, errors);
+      const normalizedCpf = normalizeCpf(row.cpf);
+      const normalizedRow: StudentImportInputRow = {
+        ...row,
+        cpf: normalizedCpf,
+        // Regra: se não vier senha, usar o CPF (11 dígitos).
+        temporaryPassword:
+          row.temporaryPassword?.trim() ||
+          (normalizedCpf.length === 11 ? normalizedCpf : ""),
+      };
 
-      validatedRows.push({ row, courseIds, errors });
+      const errors = this.validateRow(normalizedRow);
+      const courseIds = this.resolveCourses(normalizedRow, courseLookup, errors);
+
+      validatedRows.push({ row: normalizedRow, courseIds, errors });
 
       if (errors.length > 0) {
         summary.failed += 1;
         summary.rows.push({
-          rowNumber: row.rowNumber,
-          email: row.email,
+          rowNumber: normalizedRow.rowNumber,
+          email: normalizedRow.email,
           status: "failed",
           message: errors.join(" | "),
         });
@@ -101,80 +115,75 @@ export class StudentImportService {
 
     // Fase 2: Processar registros válidos em lotes
     const validRows = validatedRows.filter((v) => v.errors.length === 0);
-    const BATCH_SIZE = 10; // Processar 10 alunos por vez para evitar sobrecarga
+    const CONCURRENCY = 20; // concorrência controlada para evitar timeout/limites do provedor
 
-    for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
-      const batch = validRows.slice(i, i + BATCH_SIZE);
+    const processRow = async ({
+      row,
+      courseIds,
+    }: (typeof validatedRows)[number]): Promise<StudentImportRowResult> => {
+      try {
+        await this.studentService.create({
+          empresaId: empresaId || undefined,
+          fullName: row.fullName,
+          email: row.email,
+          cpf: row.cpf,
+          phone: row.phone,
+          enrollmentNumber: row.enrollmentNumber,
+          courseIds,
+          temporaryPassword: row.temporaryPassword,
+          mustChangePassword: true,
+        });
 
-      // Processar lote em paralelo
-      const batchResults = await Promise.allSettled(
-        batch.map(async ({ row, courseIds }) => {
-          try {
-            await this.studentService.create({
-              empresaId: empresaId || undefined,
-              fullName: row.fullName,
-              email: row.email,
-              cpf: row.cpf,
-              phone: row.phone,
-              enrollmentNumber: row.enrollmentNumber,
-              courseIds,
-              temporaryPassword: row.temporaryPassword,
-              mustChangePassword: true,
-            });
-
-            return {
-              rowNumber: row.rowNumber,
-              email: row.email,
-              status: "created" as const,
-            };
-          } catch (error) {
-            if (error instanceof StudentConflictError) {
-              return {
-                rowNumber: row.rowNumber,
-                email: row.email,
-                status: "skipped" as const,
-                message: error.message,
-              };
-            }
-
-            const message =
-              error instanceof Error
-                ? error.message
-                : "Erro inesperado ao importar aluno.";
-            return {
-              rowNumber: row.rowNumber,
-              email: row.email,
-              status: "failed" as const,
-              message,
-            };
-          }
-        }),
-      );
-
-      // Processar resultados do lote
-      batchResults.forEach((result) => {
-        if (result.status === "fulfilled") {
-          const rowResult = result.value;
-          if (rowResult.status === "created") {
-            summary.created += 1;
-          } else if (rowResult.status === "skipped") {
-            summary.skipped += 1;
-          } else {
-            summary.failed += 1;
-          }
-          summary.rows.push(rowResult);
-        } else {
-          summary.failed += 1;
-          summary.rows.push({
-            rowNumber: 0,
-            email: "",
-            status: "failed",
-            message:
-              result.reason?.message || "Erro inesperado ao processar lote",
-          });
+        return {
+          rowNumber: row.rowNumber,
+          email: row.email,
+          status: "created",
+        };
+      } catch (error) {
+        if (error instanceof StudentConflictError) {
+          return {
+            rowNumber: row.rowNumber,
+            email: row.email,
+            status: "skipped",
+            message: error.message,
+          };
         }
-      });
-    }
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Erro inesperado ao importar aluno.";
+        return {
+          rowNumber: row.rowNumber,
+          email: row.email,
+          status: "failed",
+          message,
+        };
+      }
+    };
+
+    let cursor = 0;
+    const processedResults: StudentImportRowResult[] = [];
+
+    const workers = Array.from({ length: CONCURRENCY }, async () => {
+      while (cursor < validRows.length) {
+        const currentIndex = cursor;
+        cursor += 1;
+        const item = validRows[currentIndex];
+        if (!item) return;
+        const result = await processRow(item);
+        processedResults.push(result);
+      }
+    });
+
+    await Promise.allSettled(workers);
+
+    processedResults.forEach((rowResult) => {
+      if (rowResult.status === "created") summary.created += 1;
+      else if (rowResult.status === "skipped") summary.skipped += 1;
+      else summary.failed += 1;
+      summary.rows.push(rowResult);
+    });
 
     return summary;
   }
@@ -223,6 +232,22 @@ export class StudentImportService {
         errors.push(`Campo obrigatório "${field}" ausente.`);
       }
     });
+
+    // CPF passa a ser opcional quando houver senha temporária (importação em massa).
+    // Regras:
+    // - se CPF vier com 8-10 dígitos, já foi normalizado para 11 no início do fluxo.
+    // - se CPF vier preenchido, deve ficar com 11 dígitos após normalização.
+    // - se CPF estiver vazio, exige senha temporária preenchida (para permitir login).
+    const cpfTrimmed = (row.cpf ?? "").trim();
+    const tempPasswordTrimmed = (row.temporaryPassword ?? "").trim();
+
+    if (!cpfTrimmed && !tempPasswordTrimmed) {
+      errors.push("Informe o CPF ou a senha temporária do aluno.");
+    }
+
+    if (cpfTrimmed && normalizeCpf(cpfTrimmed).length !== 11) {
+      errors.push("CPF deve ter 11 dígitos.");
+    }
 
     if (!row.courses || row.courses.length === 0) {
       errors.push("Informe pelo menos um curso para cada aluno.");

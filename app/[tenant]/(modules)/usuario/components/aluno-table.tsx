@@ -118,22 +118,36 @@ type StudentImportApiSummary = {
 }
 
 const STUDENT_IMPORT_TEMPLATE = [
-  ['Nome Completo', 'Email', 'CPF', 'Telefone', 'Número de Matrícula', 'Cursos', 'Senha Temporária'],
-  ['Maria Souza', 'maria@example.com', '12345678901', '11999990000', 'MAT-0001', 'Curso A; Curso B', 'Senha@123'],
+  [
+    'Nome Completo',
+    'Email',
+    'CPF',
+    'Telefone',
+    'Número de Matrícula',
+    'Cursos',
+    'Senha Temporária (opcional)',
+  ],
+  [
+    'Maria Souza',
+    'maria@example.com',
+    '01234567890',
+    '11999990000',
+    'MAT-0001',
+    'Curso A; Curso B',
+    '',
+  ],
 ] as const
 
 const STUDENT_IMPORT_FILE_ACCEPT = '.csv,.xlsx,.xls'
 
-const normalizeCourseName = (name: string) =>
-  name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .slice(0, 32)
-    .toUpperCase();
+const normalizeCpfDigits = (cpfRaw: string) => {
+  const digits = (cpfRaw ?? '').replace(/\D/g, '')
+  // Regra: se vier com 10 dígitos, sempre adiciona 0 à esquerda.
+  if (digits.length === 10) return digits.padStart(11, '0')
+  return digits
+}
 
-const generateDefaultPassword = (cpf: string, courseName: string) =>
-  `${cpf}@${normalizeCourseName(courseName)}`;
+const generateDefaultPassword = (cpfRaw: string) => normalizeCpfDigits(cpfRaw)
 
 const alunoSchema = z.object({
   fullName: z.string().optional().nullable(),
@@ -265,7 +279,7 @@ export function AlunoTable() {
     const primaryCourseName = courseOptions.find((course) => course.id === createCourseIds?.[0])?.name
 
     if (cpfDigits && primaryCourseName) {
-      createForm.setValue('temporaryPassword', generateDefaultPassword(cpfDigits, primaryCourseName))
+      createForm.setValue('temporaryPassword', generateDefaultPassword(cpfDigits))
     }
   }, [createCpfValue, createCourseIds, courseOptions, createPasswordTouched, createForm])
 
@@ -279,7 +293,7 @@ export function AlunoTable() {
       return
     }
 
-    createForm.setValue('temporaryPassword', generateDefaultPassword(cpfDigits, primaryCourseName))
+    createForm.setValue('temporaryPassword', generateDefaultPassword(cpfDigits))
     setCreatePasswordTouched(true)
   }, [createCpfValue, createCourseIds, courseOptions, createForm])
 
@@ -293,7 +307,7 @@ export function AlunoTable() {
       return
     }
 
-    editForm.setValue('temporaryPassword', generateDefaultPassword(cpfDigits, primaryCourseName))
+    editForm.setValue('temporaryPassword', generateDefaultPassword(cpfDigits))
     setEditPasswordTouched(true)
   }, [courseOptions, editCpfValue, editCourseIds, editForm])
 

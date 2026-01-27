@@ -281,6 +281,13 @@ export class CronogramaService {
       0,
     );
 
+    const semanasUteis = semanas.filter((s) => !s.is_ferias);
+    if (semanasUteis.length === 0) {
+      throw new CronogramaValidationError(
+        "Nenhuma semana útil disponível no período informado (todas as semanas estão marcadas como férias/folgas).",
+      );
+    }
+
     // ============================================
     // ETAPA 4: Verificação de Viabilidade
     // ============================================
@@ -288,9 +295,9 @@ export class CronogramaService {
     if (custoTotalNecessario > capacidadeTotal) {
       const horasNecessarias = custoTotalNecessario / 60;
       const horasDisponiveis = capacidadeTotal / 60;
-      const semanasUteis = semanas.filter((s) => !s.is_ferias).length;
+      const semanasUteisCount = semanasUteis.length;
       const horasDiaNecessarias =
-        horasNecessarias / (semanasUteis * input.dias_semana);
+        horasNecessarias / (semanasUteisCount * input.dias_semana);
 
       throw new CronogramaTempoInsuficienteError("Tempo insuficiente", {
         horas_necessarias: Math.ceil(horasNecessarias),
@@ -299,6 +306,21 @@ export class CronogramaService {
         horas_dia_atual: input.horas_dia,
       });
     }
+
+    // ============================================
+    // ETAPA 4.1: Viabilidade semanal (presença obrigatória)
+    // ============================================
+    // Requisito novo:
+    // - Paralelo: toda semana útil deve ter pelo menos 1 item por frente.
+    // - Sequencial: toda semana útil deve ter pelo menos 1 item por disciplina.
+    const capacidadeSemanalMin = Math.min(
+      ...semanasUteis.map((s) => s.capacidade_minutos),
+    );
+    this.validarViabilidadeSemanal(
+      input.modalidade,
+      aulasComCusto,
+      capacidadeSemanalMin,
+    );
 
     // ============================================
     // ETAPA 5: Algoritmo de Distribuição
@@ -342,8 +364,6 @@ export class CronogramaService {
       resolvedEmpresaId,
     );
 
-    const semanasUteis = semanas.filter((s) => !s.is_ferias);
-
     return {
       success: true,
       cronograma,
@@ -356,6 +376,71 @@ export class CronogramaService {
         frentes_distribuidas: new Set(aulas.map((a) => a.frente_id)).size,
       },
     };
+  }
+
+  private validarViabilidadeSemanal(
+    modalidade: "paralelo" | "sequencial",
+    aulasComCusto: Array<AulaCompleta & { custo: number }>,
+    capacidadeSemanalMin: number,
+  ): void {
+    if (!Number.isFinite(capacidadeSemanalMin) || capacidadeSemanalMin <= 0) {
+      throw new CronogramaValidationError(
+        "Capacidade semanal inválida (horas/dia ou dias/semana não resultam em tempo útil).",
+      );
+    }
+
+    if (modalidade === "paralelo") {
+      // 1 item por frente por semana
+      const minPorFrente = new Map<string, number>();
+      aulasComCusto.forEach((a) => {
+        const prev = minPorFrente.get(a.frente_id);
+        if (prev === undefined || a.custo < prev) {
+          minPorFrente.set(a.frente_id, a.custo);
+        }
+      });
+      const minimoSemanalNecessario = Array.from(minPorFrente.values()).reduce(
+        (acc, v) => acc + v,
+        0,
+      );
+
+      if (minimoSemanalNecessario > capacidadeSemanalMin) {
+        throw new CronogramaTempoInsuficienteError(
+          "Tempo insuficiente para garantir todas as frentes em todas as semanas",
+          {
+            minimo_semanal_necessario_minutos: Math.ceil(minimoSemanalNecessario),
+            capacidade_semanal_minutos: Math.floor(capacidadeSemanalMin),
+            total_frentes: minPorFrente.size,
+            regra: "paralelo: 1 item por frente por semana",
+          } as Record<string, unknown>,
+        );
+      }
+      return;
+    }
+
+    // sequencial: 1 item por disciplina por semana
+    const minPorDisciplina = new Map<string, number>();
+    aulasComCusto.forEach((a) => {
+      const prev = minPorDisciplina.get(a.disciplina_id);
+      if (prev === undefined || a.custo < prev) {
+        minPorDisciplina.set(a.disciplina_id, a.custo);
+      }
+    });
+    const minimoSemanalNecessario = Array.from(minPorDisciplina.values()).reduce(
+      (acc, v) => acc + v,
+      0,
+    );
+
+    if (minimoSemanalNecessario > capacidadeSemanalMin) {
+      throw new CronogramaTempoInsuficienteError(
+        "Tempo insuficiente para garantir todas as disciplinas em todas as semanas",
+        {
+          minimo_semanal_necessario_minutos: Math.ceil(minimoSemanalNecessario),
+          capacidade_semanal_minutos: Math.floor(capacidadeSemanalMin),
+          total_disciplinas: minPorDisciplina.size,
+          regra: "sequencial: 1 item por disciplina por semana",
+        } as Record<string, unknown>,
+      );
+    }
   }
 
   private async deletarCronogramaAnterior(
@@ -1684,194 +1769,400 @@ export class CronogramaService {
     modalidade: "paralelo" | "sequencial",
     ordemFrentesPreferencia?: string[],
   ): ItemDistribuicao[] {
-    // Agrupar aulas por frente
-    type FrenteComCusto = Omit<FrenteDistribuicao, "aulas"> & {
-      aulas: Array<AulaCompleta & { custo: number }>;
-    };
-    const frentesMap = new Map<string, FrenteComCusto>();
-
-    for (const aula of aulasComCusto) {
-      if (!frentesMap.has(aula.frente_id)) {
-        frentesMap.set(aula.frente_id, {
-          frente_id: aula.frente_id,
-          frente_nome: aula.frente_nome,
-          aulas: [],
-          custo_total: 0,
-          peso: 0,
-        });
-      }
-
-      const frente = frentesMap.get(aula.frente_id)!;
-      frente.aulas.push(aula);
-      frente.custo_total += aula.custo;
-    }
-
-    const frentes: FrenteComCusto[] = Array.from(frentesMap.values());
-    const custoTotalNecessario = aulasComCusto.reduce(
-      (acc, aula) => acc + aula.custo,
-      0,
-    );
-
-    // Calcular pesos (modo paralelo)
-    if (modalidade === "paralelo") {
-      frentes.forEach((frente) => {
-        frente.peso = frente.custo_total / custoTotalNecessario;
-      });
-    }
-
-    // Ordenar frentes (modo sequencial)
-    if (modalidade === "sequencial" && ordemFrentesPreferencia) {
-      const ordemMap = new Map(
-        ordemFrentesPreferencia.map((nome, idx) => [nome, idx]),
-      );
-      frentes.sort((a, b) => {
-        const ordemA = ordemMap.get(a.frente_nome) ?? Infinity;
-        const ordemB = ordemMap.get(b.frente_nome) ?? Infinity;
-        return ordemA - ordemB;
-      });
-    }
-
-    // Distribuir aulas por semana
-    const itens: ItemDistribuicao[] = [];
     const semanasUteis = semanas.filter((s) => !s.is_ferias);
+    if (semanasUteis.length === 0) return [];
 
-    console.log("[CronogramaService] Distribuindo aulas:", {
+    console.log("[CronogramaService] Distribuindo aulas (novo algoritmo):", {
       totalAulas: aulasComCusto.length,
       totalSemanas: semanas.length,
       semanasUteis: semanasUteis.length,
       semanasFerias: semanas.filter((s) => s.is_ferias).length,
-      totalFrentes: frentes.length,
       modalidade,
     });
 
-    let frenteIndex = 0;
-    const aulaIndexPorFrente = new Map<string, number>();
+    if (modalidade === "paralelo") {
+      return this.distribuirParaleloPorFrente(aulasComCusto, semanasUteis);
+    }
 
-    // Inicializar índices de aula por frente
-    frentes.forEach((frente) => {
-      aulaIndexPorFrente.set(frente.frente_id, 0);
+    return this.distribuirSequencialPorDisciplina(
+      aulasComCusto,
+      semanasUteis,
+      ordemFrentesPreferencia,
+    );
+  }
+
+  private pickReviewAula(
+    pool: Array<AulaCompleta & { custo: number }>,
+    startIndex: number,
+    remaining: number,
+  ): { aula: AulaCompleta & { custo: number }; nextIndex: number } | null {
+    if (!pool.length) return null;
+
+    // Tentativa 1: rotação a partir do índice atual, mantendo “mais recentes”
+    for (let i = 0; i < pool.length; i++) {
+      const idx = (startIndex + i) % pool.length;
+      const candidate = pool[idx];
+      if (candidate.custo <= remaining) {
+        return { aula: candidate, nextIndex: (idx + 1) % pool.length };
+      }
+    }
+
+    // Tentativa 2: pegar a menor aula que cabe
+    const sortedByCost = [...pool].sort((a, b) => a.custo - b.custo);
+    const cheapestThatFits = sortedByCost.find((a) => a.custo <= remaining);
+    if (!cheapestThatFits) return null;
+
+    // Mantém o índice (não avança rotação) já que não achou nenhuma “na ordem”
+    return { aula: cheapestThatFits, nextIndex: startIndex };
+  }
+
+  private distribuirParaleloPorFrente(
+    aulasComCusto: Array<AulaCompleta & { custo: number }>,
+    semanasUteis: SemanaInfo[],
+  ): ItemDistribuicao[] {
+    const N = semanasUteis.length;
+    const REVIEW_POOL_SIZE = 5;
+
+    type FrenteState = {
+      frente_id: string;
+      frente_nome: string;
+      disciplina_id: string;
+      disciplina_nome: string;
+      aulas: Array<AulaCompleta & { custo: number }>;
+      idx: number;
+      totalCusto: number;
+      quota: number;
+      credit: number;
+      reviewPool: Array<AulaCompleta & { custo: number }>;
+      reviewIdx: number;
+    };
+
+    const byFrente = new Map<string, FrenteState>();
+    for (const a of aulasComCusto) {
+      if (!byFrente.has(a.frente_id)) {
+        byFrente.set(a.frente_id, {
+          frente_id: a.frente_id,
+          frente_nome: a.frente_nome,
+          disciplina_id: a.disciplina_id,
+          disciplina_nome: a.disciplina_nome,
+          aulas: [],
+          idx: 0,
+          totalCusto: 0,
+          quota: 0,
+          credit: 0,
+          reviewPool: [],
+          reviewIdx: 0,
+        });
+      }
+      const st = byFrente.get(a.frente_id)!;
+      st.aulas.push(a);
+      st.totalCusto += a.custo;
+    }
+
+    const frentes = Array.from(byFrente.values()).sort((a, b) => {
+      const d = a.disciplina_nome.localeCompare(b.disciplina_nome);
+      if (d !== 0) return d;
+      return a.frente_nome.localeCompare(b.frente_nome);
     });
 
-    if (modalidade === "paralelo") {
-      // Modo Paralelo: Distribuir proporcionalmente
-      for (const semana of semanasUteis) {
-        const capacidadeSemanal = semana.capacidade_minutos;
-        let tempoUsado = 0;
-        let ordemNaSemana = 1;
+    frentes.forEach((f) => {
+      f.quota = f.totalCusto / N;
+      const pool = f.aulas.slice(-Math.min(REVIEW_POOL_SIZE, f.aulas.length));
+      f.reviewPool = pool;
+      f.reviewIdx = 0;
+    });
 
-        // Distribuir cada frente proporcionalmente
-        for (const frente of frentes) {
-          const cotaFrente = capacidadeSemanal * frente.peso;
-          let tempoFrenteUsado = 0;
-          let aulaIndex = aulaIndexPorFrente.get(frente.frente_id) ?? 0;
+    const itens: ItemDistribuicao[] = [];
 
-          while (
-            aulaIndex < frente.aulas.length &&
-            tempoFrenteUsado + frente.aulas[aulaIndex].custo <= cotaFrente &&
-            tempoUsado + frente.aulas[aulaIndex].custo <= capacidadeSemanal
-          ) {
-            itens.push({
-              cronograma_id: "", // Será preenchido após criar cronograma
-              aula_id: frente.aulas[aulaIndex].id,
-              semana_numero: semana.numero,
-              ordem_na_semana: ordemNaSemana++,
-            });
+    for (const semana of semanasUteis) {
+      const capacidadeSemanal = semana.capacidade_minutos;
+      let remaining = capacidadeSemanal;
+      let ordemNaSemana = 1;
 
-            tempoFrenteUsado += frente.aulas[aulaIndex].custo;
-            tempoUsado += frente.aulas[aulaIndex].custo;
-            aulaIndex++;
-          }
+      // Atualizar créditos semanais
+      frentes.forEach((f) => {
+        f.credit += f.quota;
+      });
 
-          aulaIndexPorFrente.set(frente.frente_id, aulaIndex);
-        }
+      // 1) Garantia: 1 item por frente por semana (aula ou revisão)
+      for (const f of frentes) {
+        const nextAula = f.idx < f.aulas.length ? f.aulas[f.idx] : null;
 
-        // Fallback: Se sobrou tempo, preencher com aulas restantes
-        for (const frente of frentes) {
-          let aulaIndex = aulaIndexPorFrente.get(frente.frente_id) ?? 0;
-          while (
-            aulaIndex < frente.aulas.length &&
-            tempoUsado + frente.aulas[aulaIndex].custo <= capacidadeSemanal
-          ) {
-            itens.push({
-              cronograma_id: "",
-              aula_id: frente.aulas[aulaIndex].id,
-              semana_numero: semana.numero,
-              ordem_na_semana: ordemNaSemana++,
-            });
+        let chosen: AulaCompleta & { custo: number } | null = null;
+        let isTeaching = false;
 
-            tempoUsado += frente.aulas[aulaIndex].custo;
-            aulaIndex++;
-          }
-          aulaIndexPorFrente.set(frente.frente_id, aulaIndex);
-        }
-
-        // Garantir que pelo menos uma aula seja adicionada se houver aulas disponíveis e capacidade
-        if (ordemNaSemana === 1 && capacidadeSemanal > 0) {
-          // Nenhuma aula foi adicionada nesta semana, mas há capacidade
-          // Tentar adicionar pelo menos uma aula de qualquer frente
-          for (const frente of frentes) {
-            const aulaIndex = aulaIndexPorFrente.get(frente.frente_id) ?? 0;
-            if (
-              aulaIndex < frente.aulas.length &&
-              tempoUsado + frente.aulas[aulaIndex].custo <= capacidadeSemanal
-            ) {
-              itens.push({
-                cronograma_id: "",
-                aula_id: frente.aulas[aulaIndex].id,
-                semana_numero: semana.numero,
-                ordem_na_semana: ordemNaSemana++,
-              });
-              tempoUsado += frente.aulas[aulaIndex].custo;
-              aulaIndexPorFrente.set(frente.frente_id, aulaIndex + 1);
-              break; // Adicionar apenas uma aula para garantir progresso
-            }
+        if (nextAula && nextAula.custo <= remaining) {
+          chosen = nextAula;
+          isTeaching = true;
+        } else {
+          const reviewPick = this.pickReviewAula(
+            f.reviewPool,
+            f.reviewIdx,
+            remaining,
+          );
+          if (reviewPick) {
+            chosen = reviewPick.aula;
+            f.reviewIdx = reviewPick.nextIndex;
           }
         }
+
+        if (!chosen) {
+          // Deveria ter sido barrado por validarViabilidadeSemanal
+          throw new Error(
+            `Falha ao garantir presença semanal da frente ${f.frente_nome}: nenhum item cabe na semana`,
+          );
+        }
+
+        itens.push({
+          cronograma_id: "",
+          aula_id: chosen.id,
+          semana_numero: semana.numero,
+          ordem_na_semana: ordemNaSemana++,
+        });
+        remaining -= chosen.custo;
+        f.credit -= chosen.custo;
+        if (isTeaching) f.idx++;
       }
-    } else {
-      // Modo Sequencial: Completar uma frente antes de iniciar próxima
-      for (const semana of semanasUteis) {
-        const capacidadeSemanal = semana.capacidade_minutos;
-        let tempoUsado = 0;
-        let ordemNaSemana = 1;
 
-        while (frenteIndex < frentes.length && tempoUsado < capacidadeSemanal) {
-          const frente = frentes[frenteIndex];
-          let aulaIndex = aulaIndexPorFrente.get(frente.frente_id) ?? 0;
+      // 2) Preenchimento por crédito (mantém “terminar junto”)
+      let progressed = true;
+      while (progressed && remaining > 0) {
+        progressed = false;
+        for (const f of frentes) {
+          const nextAula = f.idx < f.aulas.length ? f.aulas[f.idx] : null;
+          if (!nextAula) continue;
+          if (nextAula.custo > remaining) continue;
+          if (f.credit < nextAula.custo) continue;
 
-          if (aulaIndex >= frente.aulas.length) {
-            frenteIndex++;
-            continue;
-          }
-
-          if (tempoUsado + frente.aulas[aulaIndex].custo <= capacidadeSemanal) {
-            itens.push({
-              cronograma_id: "",
-              aula_id: frente.aulas[aulaIndex].id,
-              semana_numero: semana.numero,
-              ordem_na_semana: ordemNaSemana++,
-            });
-
-            tempoUsado += frente.aulas[aulaIndex].custo;
-            aulaIndex++;
-            aulaIndexPorFrente.set(frente.frente_id, aulaIndex);
-          } else {
-            break;
-          }
+          itens.push({
+            cronograma_id: "",
+            aula_id: nextAula.id,
+            semana_numero: semana.numero,
+            ordem_na_semana: ordemNaSemana++,
+          });
+          remaining -= nextAula.custo;
+          f.credit -= nextAula.custo;
+          f.idx++;
+          progressed = true;
+          if (remaining <= 0) break;
         }
       }
     }
 
-    console.log("[CronogramaService] Distribuição concluída:", {
-      totalItens: itens.length,
-      itensPorSemana: itens.reduce(
-        (acc, item) => {
-          acc[item.semana_numero] = (acc[item.semana_numero] || 0) + 1;
-          return acc;
-        },
-        {} as Record<number, number>,
-      ),
+    return itens;
+  }
+
+  private distribuirSequencialPorDisciplina(
+    aulasComCusto: Array<AulaCompleta & { custo: number }>,
+    semanasUteis: SemanaInfo[],
+    ordemFrentesPreferencia?: string[],
+  ): ItemDistribuicao[] {
+    const N = semanasUteis.length;
+    const REVIEW_POOL_SIZE = 5;
+
+    type FrenteDentroDisciplina = {
+      frente_id: string;
+      frente_nome: string;
+      aulas: Array<AulaCompleta & { custo: number }>;
+      idx: number;
+      reviewPool: Array<AulaCompleta & { custo: number }>;
+      reviewIdx: number;
+    };
+
+    type DisciplinaState = {
+      disciplina_id: string;
+      disciplina_nome: string;
+      frentes: FrenteDentroDisciplina[];
+      currentFrontIdx: number;
+      totalCusto: number;
+      quota: number;
+      credit: number;
+      // Pool de revisão “global” da disciplina (usado quando a disciplina já acabou)
+      reviewPool: Array<AulaCompleta & { custo: number }>;
+      reviewIdx: number;
+    };
+
+    const byDisciplina = new Map<string, DisciplinaState>();
+    for (const a of aulasComCusto) {
+      if (!byDisciplina.has(a.disciplina_id)) {
+        byDisciplina.set(a.disciplina_id, {
+          disciplina_id: a.disciplina_id,
+          disciplina_nome: a.disciplina_nome,
+          frentes: [],
+          currentFrontIdx: 0,
+          totalCusto: 0,
+          quota: 0,
+          credit: 0,
+          reviewPool: [],
+          reviewIdx: 0,
+        });
+      }
+      const d = byDisciplina.get(a.disciplina_id)!;
+      d.totalCusto += a.custo;
+
+      let frente = d.frentes.find((f) => f.frente_id === a.frente_id);
+      if (!frente) {
+        frente = {
+          frente_id: a.frente_id,
+          frente_nome: a.frente_nome,
+          aulas: [],
+          idx: 0,
+          reviewPool: [],
+          reviewIdx: 0,
+        };
+        d.frentes.push(frente);
+      }
+      frente.aulas.push(a);
+    }
+
+    const disciplinas = Array.from(byDisciplina.values()).sort((a, b) =>
+      a.disciplina_nome.localeCompare(b.disciplina_nome),
+    );
+
+    // Ordenação opcional das frentes dentro de cada disciplina
+    disciplinas.forEach((d) => {
+      if (ordemFrentesPreferencia?.length) {
+        const ordemMap = new Map(
+          ordemFrentesPreferencia.map((nome, idx) => [nome, idx]),
+        );
+        d.frentes.sort((a, b) => {
+          const oa = ordemMap.get(a.frente_nome) ?? Infinity;
+          const ob = ordemMap.get(b.frente_nome) ?? Infinity;
+          return oa - ob;
+        });
+      } else {
+        d.frentes.sort((a, b) => a.frente_nome.localeCompare(b.frente_nome));
+      }
+
+      d.quota = d.totalCusto / N;
+      // Pool de revisão por frente (para manter “1 frente por disciplina por semana”)
+      d.frentes.forEach((f) => {
+        f.reviewPool = f.aulas.slice(-Math.min(REVIEW_POOL_SIZE, f.aulas.length));
+        f.reviewIdx = 0;
+      });
+
+      // Pool de revisão da disciplina (apenas quando a disciplina já terminou todas as frentes)
+      const allAulas = d.frentes.flatMap((f) => f.aulas);
+      d.reviewPool = allAulas.slice(
+        -Math.min(REVIEW_POOL_SIZE, allAulas.length),
+      );
+      d.reviewIdx = 0;
     });
+
+    const itens: ItemDistribuicao[] = [];
+
+    for (const semana of semanasUteis) {
+      const capacidadeSemanal = semana.capacidade_minutos;
+      let remaining = capacidadeSemanal;
+      let ordemNaSemana = 1;
+
+      // Atualizar créditos semanais por disciplina
+      disciplinas.forEach((d) => {
+        d.credit += d.quota;
+      });
+
+      // 1) Garantia: 1 item por disciplina por semana (somente 1 frente por disciplina)
+      for (const d of disciplinas) {
+        // avançar frentes concluídas (para a próxima semana)
+        while (
+          d.currentFrontIdx < d.frentes.length &&
+          d.frentes[d.currentFrontIdx].idx >= d.frentes[d.currentFrontIdx].aulas.length
+        ) {
+          d.currentFrontIdx++;
+        }
+
+        const currentFront =
+          d.currentFrontIdx < d.frentes.length ? d.frentes[d.currentFrontIdx] : null;
+        const nextAula =
+          currentFront && currentFront.idx < currentFront.aulas.length
+            ? currentFront.aulas[currentFront.idx]
+            : null;
+
+        let chosen: AulaCompleta & { custo: number } | null = null;
+        let isTeaching = false;
+
+        if (nextAula && nextAula.custo <= remaining) {
+          chosen = nextAula;
+          isTeaching = true;
+        } else {
+          // Se ainda existe uma frente “ativa” para a disciplina, a revisão deve vir dessa frente
+          // para manter a regra “1 frente por disciplina por semana”.
+          if (currentFront) {
+            const reviewPick = this.pickReviewAula(
+              currentFront.reviewPool,
+              currentFront.reviewIdx,
+              remaining,
+            );
+            if (reviewPick) {
+              chosen = reviewPick.aula;
+              currentFront.reviewIdx = reviewPick.nextIndex;
+            }
+          } else {
+            const reviewPick = this.pickReviewAula(
+              d.reviewPool,
+              d.reviewIdx,
+              remaining,
+            );
+            if (reviewPick) {
+              chosen = reviewPick.aula;
+              d.reviewIdx = reviewPick.nextIndex;
+            }
+          }
+        }
+
+        if (!chosen) {
+          throw new Error(
+            `Falha ao garantir presença semanal da disciplina ${d.disciplina_nome}: nenhum item cabe na semana`,
+          );
+        }
+
+        itens.push({
+          cronograma_id: "",
+          aula_id: chosen.id,
+          semana_numero: semana.numero,
+          ordem_na_semana: ordemNaSemana++,
+        });
+        remaining -= chosen.custo;
+        d.credit -= chosen.custo;
+        if (isTeaching && currentFront) {
+          currentFront.idx++;
+        }
+      }
+
+      // 2) Preenchimento por crédito (sem trocar de frente na mesma semana)
+      let progressed = true;
+      while (progressed && remaining > 0) {
+        progressed = false;
+        for (const d of disciplinas) {
+          if (d.currentFrontIdx >= d.frentes.length) continue;
+          const currentFront = d.frentes[d.currentFrontIdx];
+          const nextAula =
+            currentFront.idx < currentFront.aulas.length
+              ? currentFront.aulas[currentFront.idx]
+              : null;
+          if (!nextAula) continue;
+          if (nextAula.custo > remaining) continue;
+          if (d.credit < nextAula.custo) continue;
+
+          itens.push({
+            cronograma_id: "",
+            aula_id: nextAula.id,
+            semana_numero: semana.numero,
+            ordem_na_semana: ordemNaSemana++,
+          });
+          remaining -= nextAula.custo;
+          d.credit -= nextAula.custo;
+          currentFront.idx++;
+          progressed = true;
+          if (remaining <= 0) break;
+
+          // Se a frente acabou, não avançar para a próxima nesta semana
+          if (currentFront.idx >= currentFront.aulas.length) {
+            continue;
+          }
+        }
+      }
+    }
 
     return itens;
   }

@@ -17,8 +17,6 @@ import { UserBaseService } from "./user-base.service";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import type { PaginationParams } from "@/app/shared/types/dtos/api-responses";
 import {
-  isValidBRPhone,
-  isValidCPF,
   normalizeBRPhone,
   normalizeCpf,
 } from "@/app/shared/library/br";
@@ -47,9 +45,31 @@ export class StudentService extends UserBaseService {
 
     const existingByEmail = await this.repository.findByEmail(email);
     if (existingByEmail) {
-      throw new StudentConflictError(
-        `Student with email "${email}" already exists`,
-      );
+      // Comportamento desejado (SaaS multi-tenant):
+      // - Se o aluno já existe, não impedir cadastro por conflito: apenas vincular ao(s) curso(s) informado(s).
+      // - Proteção multi-tenant: não permitir vincular aluno que já pertence a outra empresa (exceto fluxos superadmin,
+      //   que são tratados no endpoint específico com service role).
+      if (
+        payload.empresaId &&
+        existingByEmail.empresaId &&
+        existingByEmail.empresaId !== payload.empresaId
+      ) {
+        throw new StudentConflictError(
+          "Este e-mail já pertence a um aluno de outra empresa. Não é possível vincular automaticamente.",
+        );
+      }
+
+      const courseIds =
+        payload.courseIds && payload.courseIds.length > 0
+          ? this.validateCourseIds(payload.courseIds)
+          : [];
+
+      if (courseIds.length > 0) {
+        await this.repository.addCourses(existingByEmail.id, courseIds);
+      }
+
+      const updated = await this.repository.findById(existingByEmail.id);
+      return updated ?? existingByEmail;
     }
 
     // Validar courseIds - permitir vazio se temporaryPassword for fornecida ou CPF fornecido
@@ -372,29 +392,26 @@ export class StudentService extends UserBaseService {
   }
 
   private validateCpf(cpf?: string): string {
-    const cleaned = normalizeCpf(cpf || "");
+    let cleaned = normalizeCpf(cpf || "");
+    // Regra: se vier com 8, 9 ou 10 dígitos, completa com 0 à esquerda até 11.
+    if (cleaned.length >= 8 && cleaned.length <= 10) {
+      cleaned = cleaned.padStart(CPF_LENGTH, "0");
+    }
     if (!cleaned || cleaned.length !== CPF_LENGTH) {
       throw new StudentValidationError(
         `CPF must have exactly ${CPF_LENGTH} digits`,
       );
     }
-    if (!isValidCPF(cleaned)) {
-      throw new StudentValidationError("Invalid CPF");
-    }
     return cleaned;
   }
 
   private validatePhone(phone?: string): string {
-    const cleaned = normalizeBRPhone(phone || "");
+    // Regra para importação (e sistema): aceitar qualquer quantidade de dígitos,
+    // com DDD ou sem DDD. Persistimos apenas os números.
+    const cleaned = (phone ?? "").replace(/\D/g, "");
     if (!cleaned) {
       throw new StudentValidationError("Phone cannot be empty");
     }
-
-    // padrão BR: 10 ou 11 dígitos (DDD + número)
-    if (!isValidBRPhone(cleaned)) {
-      throw new StudentValidationError("Invalid phone number");
-    }
-
     return cleaned;
   }
 

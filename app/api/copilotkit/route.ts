@@ -60,16 +60,6 @@ export const POST = async (req: NextRequest) => {
   // Create runtime with context-aware actions
   const copilotRuntime = new CopilotRuntime({
     actions,
-    onBeforeRequest: async ({ threadId }) => {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[CopilotKit] Processing request for thread ${threadId}`);
-      }
-    },
-    onAfterRequest: async ({ threadId }) => {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[CopilotKit] Completed request for thread ${threadId}`);
-      }
-    },
   });
 
   // Handle the request

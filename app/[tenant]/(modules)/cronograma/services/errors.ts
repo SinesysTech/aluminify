@@ -9,10 +9,20 @@ export class CronogramaTempoInsuficienteError extends Error {
   constructor(
     message: string,
     public readonly detalhes: {
-      horas_necessarias: number;
-      horas_disponiveis: number;
-      horas_dia_necessarias: number;
-      horas_dia_atual: number;
+      // Detalhes clássicos (viabilidade total)
+      horas_necessarias?: number;
+      horas_disponiveis?: number;
+      horas_dia_necessarias?: number;
+      horas_dia_atual?: number;
+
+      // Detalhes adicionais (viabilidade semanal / novas regras)
+      minimo_semanal_necessario_minutos?: number;
+      capacidade_semanal_minutos?: number;
+      total_frentes?: number;
+      total_disciplinas?: number;
+      regra?: string;
+
+      [key: string]: unknown;
     },
   ) {
     super(message);
