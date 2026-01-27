@@ -44,7 +44,7 @@ export function createStudyAssistantAgent(options: CreateStudyAssistantOptions) 
     context,
     systemPrompt = DEFAULT_SYSTEM_PROMPT,
     model = "gpt-4o-mini",
-    temperature = 0.7,
+    // temperature = 0.7, // Unused
     agentName = "Assistente de Estudos",
     agentId = "study-assistant", // Default stable ID
   } = options;
