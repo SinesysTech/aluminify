@@ -198,7 +198,7 @@ async function sendEmail(to: string, subject: string, htmlBody: string): Promise
       method: "POST",
       headers: {
         "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json; charset=utf-8"
       },
       body: JSON.stringify({
         from: emailFrom,
@@ -229,7 +229,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Metodo nao permitido" }),
-      { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status: 405, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
     );
   }
 
@@ -240,7 +240,7 @@ Deno.serve(async (req: Request) => {
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
         JSON.stringify({ error: "Configuracao do servidor invalida" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 500, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -251,7 +251,7 @@ Deno.serve(async (req: Request) => {
     if (!payload.agendamento_id || !payload.tipo || !payload.destinatario_id) {
       return new Response(
         JSON.stringify({ error: "Campos obrigatorios: agendamento_id, tipo, destinatario_id" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 400, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -266,7 +266,7 @@ Deno.serve(async (req: Request) => {
       console.error("Error fetching agendamento:", agendamentoError);
       return new Response(
         JSON.stringify({ error: "Agendamento nao encontrado" }),
-        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 404, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -277,7 +277,7 @@ Deno.serve(async (req: Request) => {
       console.error("Error fetching destinatario:", destinatarioError);
       return new Response(
         JSON.stringify({ error: "Destinatario nao encontrado" }),
-        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 404, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -303,7 +303,7 @@ Deno.serve(async (req: Request) => {
     if (!template) {
       return new Response(
         JSON.stringify({ error: "Tipo de notificacao invalido" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 400, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -408,7 +408,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
+        headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders }
       }
     );
 
@@ -421,7 +421,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
+        headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders }
       }
     );
   }

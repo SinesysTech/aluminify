@@ -80,7 +80,8 @@
       "Bash(git merge:*)",
       "Bash(npx ts-node:*)",
       "Bash(tee:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "mcp__mastra__mastraDocs"
     ],
     "deny": [],
     "ask": []

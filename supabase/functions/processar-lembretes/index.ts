@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
         JSON.stringify({ error: "Configuracao do servidor invalida" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 500, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
       console.error("Error fetching agendamentos:", fetchError);
       return new Response(
         JSON.stringify({ error: "Erro ao buscar agendamentos", details: fetchError.message }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 500, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
       console.log("No appointments found");
       return new Response(
         JSON.stringify({ success: true, processed: 0, message: "Nenhum lembrete a enviar" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 200, headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders } }
       );
     }
 
@@ -173,7 +173,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
+        headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders }
       }
     );
 
@@ -186,7 +186,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
+        headers: { "Content-Type": "application/json; charset=utf-8", ...corsHeaders }
       }
     );
   }
