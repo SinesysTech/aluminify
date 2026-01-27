@@ -1,11 +1,13 @@
 "use client"
 
+import { useMemo } from "react"
 import {
   Calendar,
   CalendarCheck,
   MessageSquare,
   LayoutDashboard,
   BookOpen,
+  Circle,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -14,6 +16,7 @@ import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
 import { useCurrentUser } from "@/components/providers/user-provider"
 import { TenantLogo } from "@/components/ui/tenant-logo"
+import { useModuleVisibility } from "@/app/shared/hooks/use-module-visibility"
 import {
   Sidebar,
   SidebarContent,
@@ -35,7 +38,25 @@ type NavItem = {
   }[]
 }
 
-const alunoNavItems: NavItem[] = [
+// Icon mapping: name string -> Lucide component
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  BookOpen,
+  CalendarCheck,
+  Calendar,
+  MessageSquare,
+}
+
+/**
+ * Get icon component from icon name string
+ * Falls back to Circle if icon not found
+ */
+function getIconComponent(iconName: string): LucideIcon {
+  return ICON_MAP[iconName] || Circle
+}
+
+// Default nav items (fallback when no config or during loading)
+const DEFAULT_NAV_ITEMS: NavItem[] = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -78,15 +99,40 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const params = useParams()
   const tenantSlug = params?.tenant as string
 
-  // Dynamic nav items based on tenant
-  const navItems = alunoNavItems.map(item => ({
-    ...item,
-    url: tenantSlug ? `/${tenantSlug}${item.url}` : item.url,
-    items: item.items?.map(subItem => ({
-      ...subItem,
-      url: tenantSlug ? `/${tenantSlug}${subItem.url}` : subItem.url,
-    })),
-  }))
+  // Get module visibility from context
+  const { modules, loading } = useModuleVisibility()
+
+  // Build nav items from module visibility or use defaults
+  const navItems = useMemo(() => {
+    // Use defaults while loading or if no config exists
+    if (loading || modules.length === 0) {
+      return DEFAULT_NAV_ITEMS.map(item => ({
+        ...item,
+        url: tenantSlug ? `/${tenantSlug}${item.url}` : item.url,
+        items: item.items?.map(subItem => ({
+          ...subItem,
+          url: tenantSlug ? `/${tenantSlug}${subItem.url}` : subItem.url,
+        })),
+      }))
+    }
+
+    // Build nav items from module visibility config
+    return modules
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map(module => ({
+        title: module.name,
+        url: tenantSlug ? `/${tenantSlug}${module.url}` : module.url,
+        icon: getIconComponent(module.iconName),
+        items: module.submodules.length > 0
+          ? module.submodules
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map(sub => ({
+                title: sub.name,
+                url: tenantSlug ? `/${tenantSlug}${sub.url}` : sub.url,
+              }))
+          : undefined,
+      }))
+  }, [modules, loading, tenantSlug])
 
   const navMainWithActive = navItems.map((item) => ({
     ...item,
@@ -134,7 +180,3 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     </Sidebar>
   )
 }
-
-
-
-
