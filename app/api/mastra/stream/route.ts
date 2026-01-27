@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         empresaId: user.empresaId ?? null,
         userRole: user.role as "aluno" | "usuario" | "superadmin",
       },
-      systemPrompt: agentConfig.systemPrompt,
+      systemPrompt: agentConfig.systemPrompt ?? undefined,
       model: agentConfig.model || "gpt-4o-mini",
       temperature: agentConfig.temperature || 0.7,
       agentName: agentConfig.name,
