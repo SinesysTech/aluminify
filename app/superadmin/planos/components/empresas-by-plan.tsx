@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/shared/components/data/table"
+} from "@/app/shared/components/dataviz/table"
 import {
   Select,
   SelectContent,

@@ -25,7 +25,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/shared/components/data/table"
+} from "@/app/shared/components/dataviz/table"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"
 import { Badge } from "@/components/ui/badge"
 import type { ProfessorWithEmpresa } from "../types"

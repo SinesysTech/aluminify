@@ -1,9 +1,0 @@
-# Silenciar mensagens de funding
-fund=false
-
-# Configurar nível de auditoria (mostrar apenas vulnerabilidades críticas)
-audit-level=high
-
-# Reduzir verbosidade de warnings de deprecated (não há opção específica, mas reduzimos log geral)
-loglevel=warn
-

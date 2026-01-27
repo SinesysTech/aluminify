@@ -1,12 +1,12 @@
 export interface SystemConfig {
-  id: string
-  key: string
-  value: string | number | boolean
-  description: string
-  category: ConfigCategory
-  type: "string" | "number" | "boolean" | "json"
-  updatedAt: string
-  updatedBy?: string
+  id: string;
+  key: string;
+  value: string | number | boolean;
+  description: string;
+  category: ConfigCategory;
+  type: "string" | "number" | "boolean" | "json";
+  updatedAt: string;
+  updatedBy?: string;
 }
 
 export type ConfigCategory =
@@ -15,15 +15,15 @@ export type ConfigCategory =
   | "notifications"
   | "limits"
   | "features"
-  | "maintenance"
+  | "maintenance";
 
-export interface ConfigCategory {
-  id: ConfigCategory
-  label: string
-  description: string
+export interface ConfigCategoryDef {
+  id: ConfigCategory;
+  label: string;
+  description: string;
 }
 
-export const CONFIG_CATEGORIES: ConfigCategory[] = [
+export const CONFIG_CATEGORIES: ConfigCategoryDef[] = [
   {
     id: "general",
     label: "Geral",
@@ -54,7 +54,7 @@ export const CONFIG_CATEGORIES: ConfigCategory[] = [
     label: "Manutenção",
     description: "Modo de manutenção e backups",
   },
-]
+];
 
 // Default system configurations
 export const DEFAULT_CONFIGS: Omit<SystemConfig, "id" | "updatedAt">[] = [
@@ -223,4 +223,4 @@ export const DEFAULT_CONFIGS: Omit<SystemConfig, "id" | "updatedAt">[] = [
     category: "maintenance",
     type: "number",
   },
-]
+];

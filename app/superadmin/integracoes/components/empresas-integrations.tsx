@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/shared/components/data/table"
+} from "@/app/shared/components/dataviz/table"
 import {
   Select,
   SelectContent,
@@ -210,9 +210,9 @@ export function EmpresasIntegrations({
                           title={
                             integration?.lastSync
                               ? `Último sync: ${formatDistanceToNow(
-                                  new Date(integration.lastSync),
-                                  { locale: ptBR, addSuffix: true }
-                                )}`
+                                new Date(integration.lastSync),
+                                { locale: ptBR, addSuffix: true }
+                              )}`
                               : config.label
                           }
                         >

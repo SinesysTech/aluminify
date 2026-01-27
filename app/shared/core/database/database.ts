@@ -33,7 +33,6 @@ function getDatabaseCredentials() {
   const DATABASE_KEY =
     env.SUPABASE_SECRET_KEY ??
     env.SUPABASE_SERVICE_ROLE_KEY ??
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY ??
     env.SUPABASE_PUBLISHABLE_KEY ??
     env.SUPABASE_ANON_KEY;
 
@@ -54,7 +53,6 @@ function getDatabaseUserCredentials() {
    * Nesse caso, fazemos fallback para a chave disponível, mantendo o JWT do usuário no header.
    */
   const DATABASE_API_KEY =
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY ??
     env.SUPABASE_ANON_KEY ??
     env.SUPABASE_PUBLISHABLE_KEY ??
     env.SUPABASE_SECRET_KEY ??

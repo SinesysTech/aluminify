@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/shared/components/data/table"
+} from "@/app/shared/components/dataviz/table"
 import { Input } from "@/app/shared/components/forms/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -101,7 +101,7 @@ export function ApiKeysList({ apiKeys, isLoading }: ApiKeysListProps) {
               const expiresIn7Days =
                 key.expiresAt &&
                 new Date(key.expiresAt) <
-                  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
               return (
                 <TableRow key={key.id}>
@@ -147,9 +147,9 @@ export function ApiKeysList({ apiKeys, isLoading }: ApiKeysListProps) {
                   <TableCell className="text-sm text-muted-foreground">
                     {key.lastUsedAt
                       ? formatDistanceToNow(new Date(key.lastUsedAt), {
-                          locale: ptBR,
-                          addSuffix: true,
-                        })
+                        locale: ptBR,
+                        addSuffix: true,
+                      })
                       : "Nunca"}
                   </TableCell>
                   <TableCell>
@@ -159,13 +159,12 @@ export function ApiKeysList({ apiKeys, isLoading }: ApiKeysListProps) {
                           <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />
                         )}
                         <span
-                          className={`text-sm ${
-                            isExpired
+                          className={`text-sm ${isExpired
                               ? "text-destructive"
                               : expiresIn7Days
                                 ? "text-orange-600"
                                 : "text-muted-foreground"
-                          }`}
+                            }`}
                         >
                           {formatDistanceToNow(new Date(key.expiresAt), {
                             locale: ptBR,

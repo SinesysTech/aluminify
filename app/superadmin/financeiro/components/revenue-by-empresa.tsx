@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/shared/components/data/table"
+} from "@/app/shared/components/dataviz/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"

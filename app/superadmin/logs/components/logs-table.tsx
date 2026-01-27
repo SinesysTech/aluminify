@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/shared/components/data/table"
+} from "@/app/shared/components/dataviz/table"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"
 import { formatDistanceToNow } from "date-fns"
