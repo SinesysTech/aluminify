@@ -37,7 +37,8 @@ services:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
       - REDIS_URL=redis://redis:6379
-    command: npm run dev
+      - NEXT_PUBLIC_MASTRA_URL=http://localhost:4111
+    command: npm run dev:all
     depends_on:
       - redis
     networks:

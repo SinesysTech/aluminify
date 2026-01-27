@@ -5,63 +5,27 @@ import {
   OpenAIAdapter,
 } from "@copilotkit/runtime";
 import { NextRequest } from "next/server";
-import { mastra } from "@/mastra";
 
 /**
- * CopilotKit Runtime API Route - Integrado com Mastra
+ * CopilotKit Runtime API Route - Fallback
  *
- * Este endpoint conecta CopilotKit aos agentes Mastra.
+ * NOTA: A integração principal usa o servidor Mastra standalone (porta 4111).
+ * Esta rota é um fallback simples caso o servidor Mastra não esteja disponível.
  *
- * Uso no frontend:
- * <CopilotKit runtimeUrl="/api/copilotkit" agent="studentAgent">
- *   <CopilotChat />
- * </CopilotKit>
- *
- * Agentes disponíveis:
- * - studentAgent: Assistente para área do aluno
- * - institutionAgent: Assistente para área administrativa
+ * Para integração completa com agentes Mastra, use:
+ * - npm run dev:all (inicia Next.js + Mastra)
+ * - CopilotProvider aponta para http://localhost:4111/chat/student
  */
 
-// Seleciona o adapter baseado no provedor configurado
 const MODEL_PROVIDER = process.env.AI_MODEL_PROVIDER || "google";
 
-function getServiceAdapter() {
-  if (MODEL_PROVIDER === "openai") {
-    return new OpenAIAdapter({
-      model: "gpt-4o",
-    });
-  }
-  return new GoogleGenerativeAIAdapter({
-    model: "gemini-2.0-flash",
-  });
-}
-
-// Tipos de agentes disponíveis no Mastra
-type AgentId = "studentAgent" | "institutionAgent";
-
-const VALID_AGENTS: AgentId[] = ["studentAgent", "institutionAgent"];
-
-function isValidAgent(name: string): name is AgentId {
-  return VALID_AGENTS.includes(name as AgentId);
-}
-
 export const POST = async (req: NextRequest) => {
-  const serviceAdapter = getServiceAdapter();
+  const serviceAdapter =
+    MODEL_PROVIDER === "openai"
+      ? new OpenAIAdapter({ model: "gpt-4o" })
+      : new GoogleGenerativeAIAdapter({ model: "gemini-2.0-flash" });
 
-  // Get the agent name from query params or default to studentAgent
-  const url = new URL(req.url);
-  const agentParam = url.searchParams.get("agent") || "studentAgent";
-  const agentName: AgentId = isValidAgent(agentParam) ? agentParam : "studentAgent";
-
-  // Get the Mastra agent to use its instructions
-  const agent = mastra.getAgent(agentName);
-  const instructions = agent
-    ? await agent.getInstructions()
-    : "Você é um assistente útil.";
-
-  const runtime = new CopilotRuntime({
-    instructions: typeof instructions === "string" ? instructions : undefined,
-  });
+  const runtime = new CopilotRuntime();
 
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
     runtime,
@@ -72,5 +36,4 @@ export const POST = async (req: NextRequest) => {
   return handleRequest(req);
 };
 
-// Aumenta o timeout para streaming de respostas longas
 export const maxDuration = 60;
