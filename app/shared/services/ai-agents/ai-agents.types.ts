@@ -9,7 +9,7 @@
 // Integration Types
 // ============================================
 
-export type IntegrationType = 'copilotkit' | 'n8n' | 'custom';
+export type IntegrationType = 'copilotkit' | 'mastra' | 'n8n' | 'custom';
 
 export interface N8nIntegrationConfig {
   webhook_url: string;
@@ -17,6 +17,11 @@ export interface N8nIntegrationConfig {
 
 export interface CopilotKitIntegrationConfig {
   actions_enabled?: boolean;
+}
+
+export interface MastraIntegrationConfig {
+  streaming_enabled?: boolean;
+  max_steps?: number;
 }
 
 export interface CustomIntegrationConfig {
@@ -28,6 +33,7 @@ export interface CustomIntegrationConfig {
 export type IntegrationConfig =
   | N8nIntegrationConfig
   | CopilotKitIntegrationConfig
+  | MastraIntegrationConfig
   | CustomIntegrationConfig
   | Record<string, unknown>;
 
@@ -96,6 +102,7 @@ export interface AIAgentChatConfig {
   placeholderText: string;
   systemPrompt: string | null;
   model: string;
+  temperature: number;
   integrationType: IntegrationType;
   integrationConfig: IntegrationConfig;
   supportsAttachments: boolean;

@@ -68,6 +68,7 @@ function mapToChatConfig(row: AIAgentRow): AIAgentChatConfig {
     placeholderText: row.placeholder_text,
     systemPrompt: row.system_prompt,
     model: row.model,
+    temperature: Number(row.temperature),
     integrationType: row.integration_type as IntegrationType,
     integrationConfig: row.integration_config as IntegrationConfig,
     supportsAttachments: row.supports_attachments,

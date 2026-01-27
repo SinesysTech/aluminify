@@ -4,10 +4,15 @@ import { useMemo } from "react"
 import {
   Calendar,
   CalendarCheck,
+  CalendarDays,
   MessageSquare,
   LayoutDashboard,
   BookOpen,
   Circle,
+  Clock,
+  Library,
+  Layers,
+  CalendarPlus,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -44,7 +49,12 @@ const ICON_MAP: Record<string, LucideIcon> = {
   BookOpen,
   CalendarCheck,
   Calendar,
+  CalendarDays,
+  CalendarPlus,
   MessageSquare,
+  Clock,
+  Library,
+  Layers,
 }
 
 /**
@@ -63,35 +73,48 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Estudos",
+    title: "Sala de Estudos",
     url: "/sala-de-estudos",
     icon: BookOpen,
-    items: [
-      { title: "Modo Foco", url: "/foco" },
-      { title: "Biblioteca", url: "/biblioteca" },
-      { title: "Flashcards", url: "/flashcards" },
-    ],
   },
   {
     title: "Cronograma",
     url: "/cronograma",
     icon: CalendarCheck,
-    items: [
-      { title: "Calendário", url: "/cronograma/calendario" },
-    ],
   },
   {
-    title: "Agendamentos",
-    url: "/agendamentos",
+    title: "Calendário",
+    url: "/cronograma/calendario",
+    icon: CalendarDays,
+  },
+  {
+    title: "Modo Foco",
+    url: "/foco",
+    icon: Clock,
+  },
+  {
+    title: "Biblioteca",
+    url: "/biblioteca",
+    icon: Library,
+  },
+  {
+    title: "Flashcards",
+    url: "/flashcards",
+    icon: Layers,
+  },
+  {
+    title: "Meus Agendamentos",
+    url: "/agendamentos/meus",
     icon: Calendar,
-    items: [
-      { title: "Meus Agendamentos", url: "/agendamentos/meus" },
-      { title: "Agendar", url: "/agendamentos" },
-    ],
   },
   {
-    title: "TobIAs",
-    url: "/tobias",
+    title: "Agendar Mentoria",
+    url: "/agendamentos",
+    icon: CalendarPlus,
+  },
+  {
+    title: "Assistente",
+    url: "/agente",
     icon: MessageSquare,
   },
 ]
