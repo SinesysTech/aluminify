@@ -110,11 +110,17 @@ function CustomChatContent() {
   return (
     <div className="custom-chat-interface">
       <div className="messages">
-        {visibleMessages.map((msg, i) => (
-          <div key={i} className={`message ${msg.role}`}>
-            {typeof msg.content === "string" ? msg.content : ""}
-          </div>
-        ))}
+        {visibleMessages.map((msg, i) => {
+          // Use type guard - only TextMessage has role and content
+          if (msg.isTextMessage()) {
+            return (
+              <div key={i} className={`message ${msg.role}`}>
+                {msg.content}
+              </div>
+            );
+          }
+          return null;
+        })}
       </div>
       <form onSubmit={handleSubmit}>
         <input name="message" disabled={isLoading} />
