@@ -85,7 +85,8 @@
       "mcp__mastra__mastraExamples",
       "Bash(pnpm add:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm install)"
     ],
     "deny": [],
     "ask": []
