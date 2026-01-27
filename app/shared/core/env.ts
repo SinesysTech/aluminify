@@ -8,6 +8,7 @@ const envSchema = z.object({
 
   // Supabase
   SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
 
   // Keys - pelo menos um par de chaves deve existir (Client e Server)
   // Server-side keys (Service Role)
@@ -17,6 +18,7 @@ const envSchema = z.object({
   // Client-side keys (Anon/Public)
   SUPABASE_ANON_KEY: z.string().optional(),
   SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY: z.string().optional(),
 });
 
 // Validação refinada para garantir que temos chaves suficientes
@@ -25,7 +27,9 @@ const refinedEnv = envSchema.superRefine((data, ctx) => {
     data.SUPABASE_SERVICE_ROLE_KEY || data.SUPABASE_SECRET_KEY
   );
   const hasClientKey = !!(
-    data.SUPABASE_ANON_KEY || data.SUPABASE_PUBLISHABLE_KEY
+    data.SUPABASE_ANON_KEY ||
+    data.SUPABASE_PUBLISHABLE_KEY ||
+    data.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY
   );
 
   if (!hasServerKey) {
@@ -41,7 +45,7 @@ const refinedEnv = envSchema.superRefine((data, ctx) => {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message:
-        "É necessário definir SUPABASE_ANON_KEY ou SUPABASE_PUBLISHABLE_KEY",
+        "É necessário definir SUPABASE_ANON_KEY, SUPABASE_PUBLISHABLE_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY",
       path: ["SUPABASE_ANON_KEY"],
     });
   }

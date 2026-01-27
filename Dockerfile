@@ -1,4 +1,5 @@
-# Multi-stage Dockerfile for Aluminify Next.js Application
+# Multi-stage Dockerfile for Aluminify
+# Next.js (port 3000) + Mastra Studio (port 4111)
 # Optimized for production with security best practices
 
 # Stage 1: Builder - Build the application
@@ -10,20 +11,18 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install all dependencies (including dev dependencies)
-# Using npm install instead of npm ci to handle lock file sync issues
 RUN npm install --no-audit --prefer-offline --ignore-scripts
 
 # Copy source code
 COPY . .
 
-# Build-time environment variables (NEXT_PUBLIC_* are embedded in the build)
+# Build-time environment variables
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG UPSTASH_REDIS_REST_URL
 ARG UPSTASH_REDIS_REST_TOKEN
 
-# Set environment variables for the build
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY
 ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
@@ -32,6 +31,9 @@ ENV UPSTASH_REDIS_REST_TOKEN=$UPSTASH_REDIS_REST_TOKEN
 
 # Build Next.js application
 RUN npm run build
+
+# Build Mastra with Studio UI
+RUN npx mastra build --dir mastra --studio
 
 # Stage 2: Runner - Production runtime
 FROM node:20-alpine AS runner
@@ -55,18 +57,25 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 
+# Copy Mastra build output
+COPY --from=builder /app/.mastra/output ./.mastra/output
+
+# Copy startup script
+COPY --from=builder /app/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Set ownership to non-root user
 RUN chown -R nextjs:nodejs /app
 
 # Switch to non-root user
 USER nextjs
 
-# Expose port
-EXPOSE 3000
+# Expose ports: Next.js (3000) and Mastra Studio (4111)
+EXPOSE 3000 4111
 
-# Health check
+# Health check for Next.js
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application
-CMD ["npm", "start"]
+# Start both services
+CMD ["./start.sh"]
