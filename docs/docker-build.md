@@ -1,6 +1,6 @@
 # Docker Build - Aluminify
 
-Guia para build e deploy da imagem Docker do Aluminify (Next.js + Mastra Studio).
+Guia para build e deploy da imagem Docker do Aluminify (Next.js).
 
 ## Arquitetura
 
