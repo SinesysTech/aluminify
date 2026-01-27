@@ -36,6 +36,9 @@ export function ModeSelector({
         }
     }
 
+    const utiMode = MODOS.find((m) => m.id === 'mais_errados')
+    const otherModes = MODOS.filter((m) => m.id !== 'mais_errados')
+
     return (
         <div className="space-y-6">
             <div>
@@ -103,9 +106,49 @@ export function ModeSelector({
             {/* Grid de Modos */}
             <TooltipProvider delayDuration={200}>
                 <div className="grid gap-4 md:grid-cols-2">
-                    {MODOS.map((m) => {
+                    {utiMode && (() => {
+                        const isSelected = modo === utiMode.id
+
+                        return (
+                            <Tooltip key={utiMode.id}>
+                                <TooltipTrigger asChild>
+                                    <Card
+                                        role="button"
+                                        tabIndex={0}
+                                        className={[
+                                            'cursor-pointer transition',
+                                            'border-primary/70 bg-muted/25 shadow-lg',
+                                            'hover:border-primary',
+                                            'md:col-span-2',
+                                            isSelected ? 'border-primary ring-1 ring-primary/30' : '',
+                                        ].join(' ')}
+                                        onClick={() => onSelectMode(utiMode.id)}
+                                        onKeyDown={(e) => handleKeyDown(e, utiMode.id)}
+                                    >
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center justify-center gap-2 text-center text-lg">
+                                                <span>{utiMode.title}</span>
+                                                <span className="text-muted-foreground">
+                                                    <Info className="h-4 w-4" aria-hidden="true" />
+                                                </span>
+                                            </CardTitle>
+                                            <CardDescription className="text-center">{utiMode.desc}</CardDescription>
+                                        </CardHeader>
+                                    </Card>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" align="start" className="max-w-xs p-3">
+                                    <div className="space-y-2 text-sm">
+                                        {utiMode.tooltip.map((t, i) => (
+                                            <p key={i}>{t}</p>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        )
+                    })()}
+
+                    {otherModes.map((m) => {
                         const isSelected = modo === m.id
-                        const isUti = m.id === 'mais_errados'
 
                         return (
                             <Tooltip key={m.id}>
@@ -113,8 +156,12 @@ export function ModeSelector({
                                     <Card
                                         role="button"
                                         tabIndex={0}
-                                        className={`cursor-pointer transition hover:border-primary ${isUti ? 'md:col-span-2' : ''
-                                            } ${isSelected ? 'border-primary shadow-md' : ''}`}
+                                        className={[
+                                            'cursor-pointer transition',
+                                            'border-primary/70 bg-muted/25 shadow-lg',
+                                            'hover:border-primary',
+                                            isSelected ? 'border-primary ring-1 ring-primary/30' : '',
+                                        ].join(' ')}
                                         onClick={() => onSelectMode(m.id)}
                                         onKeyDown={(e) => handleKeyDown(e, m.id)}
                                     >

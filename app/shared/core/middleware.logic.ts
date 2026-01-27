@@ -124,6 +124,27 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const host = request.headers.get("host") || "";
 
+  const accept = request.headers.get("accept") || "";
+  const isNextInternalPath =
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/static") ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/manifest.json";
+  const isApiRoute = pathname === "/api" || pathname.startsWith("/api/");
+  // Next.js App Router signals
+  const isServerAction = request.method === "POST" && !!request.headers.get("next-action");
+  const isRscRequest =
+    request.headers.get("rsc") === "1" || accept.includes("text/x-component");
+  const isNextDataRequest = request.headers.get("x-nextjs-data") === "1";
+  const isHtmlNavigation =
+    request.method === "GET" &&
+    accept.includes("text/html") &&
+    !isRscRequest &&
+    !isNextDataRequest &&
+    !isApiRoute;
+
   console.log(
     "[DEBUG] Middleware - processando requisição:",
     pathname,
@@ -280,6 +301,22 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  const copyCookiesAndHeaders = (target: NextResponse) => {
+    // Copy cookies to keep browser/server in sync (Supabase SSR)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      target.cookies.set(cookie.name, cookie.value);
+    });
+    // Add tenant headers to response
+    if (tenantContext.empresaId) {
+      target.headers.set("x-tenant-id", tenantContext.empresaId);
+      target.headers.set("x-tenant-slug", tenantContext.empresaSlug!);
+      if (tenantContext.resolutionType) {
+        target.headers.set("x-tenant-resolution", tenantContext.resolutionType);
+      }
+    }
+    return target;
+  };
+
   // Rotas públicas que não precisam de autenticação
   // Nota: as rotas /auth/login, /auth/login e /auth/sign-up
   // existem para compatibilidade futura com o sistema de multi-tenant baseado em domínio.
@@ -366,9 +403,25 @@ export async function updateSession(request: NextRequest) {
   // Se houver erro de autenticação (incluindo refresh token inválido/não encontrado)
   // ou se não houver usuário autenticado
   if (error || !user) {
+    // Never redirect Next.js internal assets/requests
+    if (isNextInternalPath) {
+      return supabaseResponse;
+    }
+
     // Se não for rota pública, redirecionar para login
     // O cliente Supabase irá limpar os cookies inválidos automaticamente
     if (!isPublicPath) {
+      // For API/RSC/Server Actions, avoid HTML redirects (breaks clients and can cause
+      // "An unexpected response was received from the server" in Next.js).
+      if (!isHtmlNavigation || isApiRoute || isRscRequest || isServerAction || isNextDataRequest) {
+        const response = NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 },
+        );
+        response.headers.set("cache-control", "no-store");
+        return copyCookiesAndHeaders(response);
+      }
+
       console.log(
         "[DEBUG] Middleware - redirecionando para /auth (não autenticado em rota protegida)",
       );
@@ -381,7 +434,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = "/auth";
       }
 
-      return NextResponse.redirect(url);
+      return copyCookiesAndHeaders(NextResponse.redirect(url));
     }
     // Se for rota pública, continuar normalmente (usuário não autenticado é esperado)
     console.log(

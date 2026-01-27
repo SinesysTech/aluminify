@@ -43,12 +43,15 @@ export default function EmpresaAdminsPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedProfessor, setSelectedProfessor] = useState<string>('');
+  const [canManageAdmins, setCanManageAdmins] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       // Buscar empresa do usuário
       const userResponse = await fetch('/api/usuario/perfil');
       const userData = await userResponse.json();
+      setCurrentUserId(userData?.id ?? null);
 
       if (userData.empresaId) {
         // Buscar admins
@@ -56,6 +59,15 @@ export default function EmpresaAdminsPage() {
         if (adminsResponse.ok) {
           const adminsData = await adminsResponse.json();
           setAdmins(adminsData);
+          const isSuperAdmin = userData?.role === 'superadmin';
+          const isOwner =
+            !!userData?.id &&
+            Array.isArray(adminsData) &&
+            adminsData.some((a: Admin) => a.user_id === userData.id && a.is_owner);
+          setCanManageAdmins(Boolean(isSuperAdmin || isOwner));
+        } else {
+          // Se não conseguimos listar admins, por segurança, não permitir gerenciar
+          setCanManageAdmins(false);
         }
 
         // Buscar professores
@@ -95,7 +107,10 @@ export default function EmpresaAdminsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao adicionar admin');
+        const body = await response.json().catch(() => null);
+        const apiMessage =
+          body && typeof body === 'object' && 'error' in body ? String((body as any).error) : null;
+        throw new Error(apiMessage || `Erro ao adicionar admin (HTTP ${response.status})`);
       }
 
       toast({
@@ -109,7 +124,7 @@ export default function EmpresaAdminsPage() {
       console.error('Error adding admin:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao adicionar admin',
+        description: error instanceof Error ? error.message : 'Erro ao adicionar admin',
         variant: 'destructive',
       });
     }
@@ -125,7 +140,10 @@ export default function EmpresaAdminsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao remover admin');
+        const body = await response.json().catch(() => null);
+        const apiMessage =
+          body && typeof body === 'object' && 'error' in body ? String((body as any).error) : null;
+        throw new Error(apiMessage || `Erro ao remover admin (HTTP ${response.status})`);
       }
 
       toast({
@@ -161,36 +179,43 @@ export default function EmpresaAdminsPage() {
               Gerencie os administradores da sua empresa
             </p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>Adicionar Admin</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Administrador</DialogTitle>
-                <DialogDescription>
-                  Selecione um professor para promover a administrador
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Select value={selectedProfessor} onValueChange={setSelectedProfessor}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um professor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {professoresNaoAdmin.map((prof) => (
-                      <SelectItem key={prof.id} value={prof.id}>
-                        {prof.fullName || prof.nome} ({prof.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleAddAdmin} disabled={!selectedProfessor}>
-                  Adicionar
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {canManageAdmins ? (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button>Adicionar Admin</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Adicionar Administrador</DialogTitle>
+                  <DialogDescription>
+                    Selecione um professor para promover a administrador
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Select value={selectedProfessor} onValueChange={setSelectedProfessor}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um professor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {professoresNaoAdmin.map((prof) => (
+                        <SelectItem key={prof.id} value={prof.id}>
+                          {prof.fullName || prof.nome} ({prof.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleAddAdmin} disabled={!selectedProfessor}>
+                    Adicionar
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <div className="text-sm text-muted-foreground text-right max-w-xs">
+              Apenas <span className="font-medium">owner</span> ou{' '}
+              <span className="font-medium">superadmin</span> pode adicionar admins.
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
