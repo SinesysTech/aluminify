@@ -9,7 +9,7 @@
  */
 
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import type { Action } from "@copilotkit/runtime";
+import type { Action } from "@copilotkit/shared";
 
 export interface ActionContext {
   userId: string;
@@ -140,15 +140,11 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
 
         // Students can only view their own progress
         if (userRole === "aluno" && targetStudentId !== userId) {
-          throw new Error(
-            "Alunos só podem visualizar seu próprio progresso."
-          );
+          throw new Error("Alunos só podem visualizar seu próprio progresso.");
         }
 
         if (!targetStudentId) {
-          throw new Error(
-            "ID do aluno é necessário para buscar o progresso."
-          );
+          throw new Error("ID do aluno é necessário para buscar o progresso.");
         }
 
         const client = getDatabaseClient();
@@ -170,9 +166,7 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
           empresaId &&
           studentData.empresa_id !== empresaId
         ) {
-          throw new Error(
-            "Você não tem permissão para visualizar este aluno."
-          );
+          throw new Error("Você não tem permissão para visualizar este aluno.");
         }
 
         // Get progress data
@@ -184,7 +178,7 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
         if (progressError) {
           console.error(
             "[CopilotKit Action] getStudentProgress error:",
-            progressError
+            progressError,
           );
           throw new Error(`Erro ao buscar progresso: ${progressError.message}`);
         }
@@ -254,9 +248,7 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
       }) => {
         // Permission check: only usuarios and superadmin can search students
         if (userRole === "aluno") {
-          throw new Error(
-            "Apenas administradores podem buscar alunos."
-          );
+          throw new Error("Apenas administradores podem buscar alunos.");
         }
 
         if (!searchTerm || !searchTerm.trim()) {
