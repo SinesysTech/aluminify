@@ -16,5 +16,9 @@ export default async function ProtectedPage() {
     redirect('/primeiro-acesso')
   }
 
-  redirect(getDefaultRouteForRole(user.role))
+  const defaultRoute = getDefaultRouteForRole(user.role)
+  const redirectUrl = user.empresaSlug && user.role !== 'superadmin'
+    ? `/${user.empresaSlug}${defaultRoute}`
+    : defaultRoute
+  redirect(redirectUrl)
 }

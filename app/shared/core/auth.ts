@@ -293,7 +293,11 @@ export async function requireUser(
     );
 
     if (!normalizedAllowed.has(user.role)) {
-      redirect(getDefaultRouteForRole(user.role));
+      const defaultRoute = getDefaultRouteForRole(user.role);
+      const redirectUrl = user.empresaSlug && user.role !== "superadmin"
+        ? `/${user.empresaSlug}${defaultRoute}`
+        : defaultRoute;
+      redirect(redirectUrl);
     }
   }
 

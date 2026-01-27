@@ -22,7 +22,11 @@ export async function requireAlunoRoute() {
   }
 
   // Caso contrário, redirecionar
-  redirect(getDefaultRouteForRole(user.role))
+  const defaultRoute = getDefaultRouteForRole(user.role)
+  const redirectUrl = user.empresaSlug && user.role !== 'superadmin'
+    ? `/${user.empresaSlug}${defaultRoute}`
+    : defaultRoute
+  redirect(redirectUrl)
 }
 
 /**
@@ -67,7 +71,11 @@ export async function allowImpersonation() {
   }
 
   // Caso contrário, redirecionar
-  redirect(getDefaultRouteForRole(user.role))
+  const defaultRoute = getDefaultRouteForRole(user.role)
+  const redirectUrl = user.empresaSlug && user.role !== 'superadmin'
+    ? `/${user.empresaSlug}${defaultRoute}`
+    : defaultRoute
+  redirect(redirectUrl)
 }
 
 /**
