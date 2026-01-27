@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -37,7 +37,7 @@ import {
 import { Loader2, X, AlertCircle, Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
-import { cn } from '@/app/shared/core/utils'
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
@@ -248,6 +248,8 @@ const calcularSemanasCronograma = (
 
 export function ScheduleWizard() {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -299,7 +301,7 @@ export function ScheduleWizard() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        router.push('/auth/login')
+        router.push(tenant ? `/${tenant}/auth/login` : '/auth/login')
         return
       }
       setUserId(user.id)
@@ -398,7 +400,7 @@ export function ScheduleWizard() {
     }
 
     loadData()
-  }, [router])
+  }, [router, tenant])
 
   // Carregar disciplinas do curso selecionado
   React.useEffect(() => {
@@ -698,12 +700,12 @@ export function ScheduleWizard() {
             )
             const concluidas = aulas.filter((aula: AulaData) => concluidasSet.has(aula.id)).length
 
-            const importanciaValida: ModuloResumo['importancia'] = 
-              modulo.importancia === 'Alta' || modulo.importancia === 'Media' || 
-              modulo.importancia === 'Baixa' || modulo.importancia === 'Base'
+            const importanciaValida: ModuloResumo['importancia'] =
+              modulo.importancia === 'Alta' || modulo.importancia === 'Media' ||
+                modulo.importancia === 'Baixa' || modulo.importancia === 'Base'
                 ? modulo.importancia
                 : null;
-            
+
             return {
               id: modulo.id,
               nome: modulo.nome,
@@ -854,14 +856,14 @@ export function ScheduleWizard() {
               )
             )
           `)
-          .in('modulos.frentes.disciplina_id', disciplinasSelecionadas)) as { 
-            data: Array<{ 
-              id: string; 
-              tempo_estimado_minutos: number | null; 
+          .in('modulos.frentes.disciplina_id', disciplinasSelecionadas)) as {
+            data: Array<{
+              id: string;
+              tempo_estimado_minutos: number | null;
               prioridade: number | null;
               modulos: { id: string; frentes: { disciplina_id: string } }
-            }> | null; 
-            error: unknown 
+            }> | null;
+            error: unknown
           }
 
         if (error) {
@@ -1130,7 +1132,7 @@ export function ScheduleWizard() {
       }
 
       if (result?.success) {
-        router.push('/cronograma')
+        router.push(tenant ? `/${tenant}/cronograma` : '/cronograma')
       } else {
         setError('Erro desconhecido ao gerar cronograma')
         setLoading(false)

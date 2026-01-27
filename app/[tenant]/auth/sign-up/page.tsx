@@ -7,7 +7,8 @@ interface TenantSignUpPageProps {
 }
 
 export default async function TenantSignUpPage({ params }: TenantSignUpPageProps) {
-  const { tenant: tenantSlug } = await params;
+  const { tenant } = await params;
+  const tenantSlug = (tenant || '').toLowerCase();
 
   // Get tenant data
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export default async function TenantSignUpPage({ params }: TenantSignUpPageProps
   const { data: empresa, error } = await supabase
     .from('empresas')
     .select('id, nome, slug')
-    .eq('slug', tenantSlug)
+    .or(`slug.eq.${tenantSlug},subdomain.eq.${tenantSlug}`)
     .eq('ativo', true)
     .maybeSingle();
 

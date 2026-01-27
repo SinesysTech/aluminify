@@ -23,21 +23,22 @@
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { env } from "@/app/shared/core/env";
 
 let cachedClient: SupabaseClient<Database> | null = null;
 
 function getDatabaseCredentials() {
-  const DATABASE_URL = process.env.SUPABASE_URL;
+  const DATABASE_URL = env.SUPABASE_URL;
   // Prioriza as novas chaves (sb_secret_... ou sb_publishable_...), depois as antigas para compatibilidade
   const DATABASE_KEY =
-    process.env.SUPABASE_SECRET_KEY ??
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-    process.env.SUPABASE_ANON_KEY;
+    env.SUPABASE_SECRET_KEY ??
+    env.SUPABASE_SERVICE_ROLE_KEY ??
+    env.SUPABASE_PUBLISHABLE_KEY ??
+    env.SUPABASE_ANON_KEY;
 
-  if (!DATABASE_URL || !DATABASE_KEY) {
+  if (!DATABASE_KEY) {
     throw new Error(
-      "Database credentials are not configured. Set SUPABASE_URL and either SUPABASE_SECRET_KEY (recommended) or SUPABASE_SERVICE_ROLE_KEY.",
+      "Database credentials are not configured properly (missing keys).",
     );
   }
 
@@ -45,22 +46,20 @@ function getDatabaseCredentials() {
 }
 
 function getDatabaseUserCredentials() {
-  const DATABASE_URL = process.env.SUPABASE_URL;
+  const DATABASE_URL = env.SUPABASE_URL;
   /**
    * Preferimos anon/publishable para manter o modelo “user-scoped” alinhado com RLS.
    * Porém, em alguns ambientes o projeto roda apenas com SUPABASE_SECRET_KEY / SERVICE_ROLE_KEY.
    * Nesse caso, fazemos fallback para a chave disponível, mantendo o JWT do usuário no header.
    */
   const DATABASE_API_KEY =
-    process.env.SUPABASE_ANON_KEY ??
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-    process.env.SUPABASE_SECRET_KEY ??
-    process.env.SUPABASE_SERVICE_ROLE_KEY;
+    env.SUPABASE_ANON_KEY ??
+    env.SUPABASE_PUBLISHABLE_KEY ??
+    env.SUPABASE_SECRET_KEY ??
+    env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!DATABASE_URL || !DATABASE_API_KEY) {
-    throw new Error(
-      "Database user credentials are not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY). If you only have server keys, set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.",
-    );
+  if (!DATABASE_API_KEY) {
+    throw new Error("Database user credentials are not configured properly.");
   }
 
   return { DATABASE_URL, DATABASE_API_KEY };

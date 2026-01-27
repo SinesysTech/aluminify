@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/app/shared/components/forms/label"
 import { Textarea } from "@/app/shared/components/forms/textarea"
 import { Badge } from "@/components/ui/badge"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { createAgendamento } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 import { Loader2, Clock, Calendar } from "lucide-react"
@@ -20,6 +20,8 @@ interface FormPanelProps {
 
 export function FormPanel({ professorId, timeZone, durationMinutes }: FormPanelProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const searchParams = useSearchParams()
   const slotParam = searchParams.get("slot")
 
@@ -50,7 +52,7 @@ export function FormPanel({ professorId, timeZone, durationMinutes }: FormPanelP
         status: "pendente" // Initial status, may be auto-confirmed by server
       })
       toast.success("Agendamento solicitado com sucesso!")
-      router.push("/meus-agendamentos")
+      router.push(tenant ? `/${tenant}/meus-agendamentos` : "/meus-agendamentos")
       router.refresh()
     } catch (error) {
       console.error(error)

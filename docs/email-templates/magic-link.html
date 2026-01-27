@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seu link de acesso</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="max-width: 480px; width: 100%; border-collapse: collapse;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 32px 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px 16px 0 0; text-align: center;">
+              <div style="width: 56px; height: 56px; background-color: rgba(255,255,255,0.2); border-radius: 12px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 28px; color: #ffffff;">&#128273;</span>
+              </div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #ffffff; letter-spacing: -0.5px;">
+                Seu link de acesso
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px; background-color: #ffffff; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);">
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #334155;">
+                Olá! Você solicitou um link de acesso à plataforma.
+              </p>
+              <p style="margin: 0 0 32px; font-size: 16px; line-height: 1.6; color: #334155;">
+                Clique no botão abaixo para entrar na sua conta. Este link é válido por tempo limitado.
+              </p>
+
+              <!-- Button -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center">
+                    <a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 10px; box-shadow: 0 4px 14px 0 rgba(16,185,129,0.4);">
+                      Entrar na minha conta
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Security Notice -->
+              <div style="margin: 32px 0 0; padding: 16px; background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #166534;">
+                  <strong>Dica de segurança:</strong> Nunca compartilhe este link com outras pessoas.
+                </p>
+              </div>
+
+              <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                Se você não solicitou este link, pode ignorar este e-mail.
+              </p>
+
+              <!-- Divider -->
+              <hr style="margin: 32px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+              <!-- Alternative link -->
+              <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                Se o botão não funcionar, copie e cole este link no seu navegador:
+              </p>
+              <p style="margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: #10b981; word-break: break-all;">
+                {{ .ConfirmationURL }}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 40px; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;">
+                Este e-mail foi enviado automaticamente. Por favor, não responda.
+              </p>
+              <p style="margin: 0; font-size: 12px; color: #cbd5e1;">
+                Powered by <span style="color: #64748b; font-weight: 500;">Aluminify</span>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

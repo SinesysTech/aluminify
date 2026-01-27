@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/app/shared/core/server';
+import { getDatabaseClient } from '@/app/shared/core/database/database';
 import type { Database } from '@/app/shared/core/database.types';
 import type { AppUserRole } from '@/app/shared/types/entities/user';
 import type { RoleTipo } from '@/app/shared/types/entities/papel';
@@ -10,6 +11,9 @@ import { isAdminRoleTipo } from '@/app/shared/core/roles';
  * Retorna dados básicos do usuário logado (role, empresaId, etc).
  *
  * Usado pelas telas em `app/(dashboard)/empresa/detalhes/*`.
+ *
+ * IMPORTANTE: Usa getDatabaseClient() (service role) para buscar dados da tabela usuarios
+ * para evitar problemas de RLS que podem bloquear a consulta em alguns cenários.
  */
 export async function GET() {
   try {
@@ -31,23 +35,34 @@ export async function GET() {
     let roleType: RoleTipo | null = null;
 
     if (role === 'usuario' || role === 'superadmin') {
-      const { data: usuario } = await supabase
+      // Use service role client to bypass RLS for reliable data access
+      const adminClient = getDatabaseClient();
+
+      // Query 1: Get usuario data
+      const { data: usuarioRow, error: usuarioError } = await adminClient
         .from('usuarios')
-        .select(`
-          empresa_id,
-          nome_completo,
-          papeis!inner(tipo)
-        `)
+        .select('empresa_id, nome_completo, papel_id')
         .eq('id', user.id)
         .eq('ativo', true)
         .is('deleted_at', null)
         .maybeSingle();
 
-      if (usuario) {
-        empresaId = usuario.empresa_id;
-        fullName = usuario.nome_completo;
-        const papelData = usuario.papeis as unknown as { tipo: string } | null;
-        roleType = (papelData?.tipo as RoleTipo) ?? null;
+      if (!usuarioError && usuarioRow) {
+        empresaId = usuarioRow.empresa_id;
+        fullName = usuarioRow.nome_completo;
+
+        // Query 2: Get papel data
+        if (usuarioRow.papel_id) {
+          const { data: papelRow } = await adminClient
+            .from('papeis')
+            .select('tipo')
+            .eq('id', usuarioRow.papel_id)
+            .maybeSingle();
+
+          if (papelRow) {
+            roleType = papelRow.tipo as RoleTipo;
+          }
+        }
       } else {
         // Fallback para metadata (apenas para superadmin sem registro em usuarios)
         empresaId = (user.user_metadata?.empresa_id as string | undefined) ?? null;

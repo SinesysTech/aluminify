@@ -1,0 +1,6 @@
+export { FinanceiroContent } from "./financeiro-content"
+export { FinancialSummary } from "./financial-summary"
+export { RevenueChart } from "./revenue-chart"
+export { RevenueByEmpresaTable } from "./revenue-by-empresa"
+export { PaymentMethodsChart } from "./payment-methods-chart"
+export { RecentTransactions } from "./recent-transactions"

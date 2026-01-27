@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/app/shared/components/forms/input'
 import { Label } from '@/app/shared/components/forms/label'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -22,6 +22,8 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +35,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
       // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push('/protected')
+      router.push(tenant ? `/${tenant}/protected` : '/protected')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

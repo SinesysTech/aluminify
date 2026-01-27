@@ -14,7 +14,7 @@ import {
   VisibilityState,
 } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Trash2, Plus, BookOpen, Search, Eye, Users } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -133,6 +133,8 @@ type CursoFormValues = z.infer<typeof cursoSchema>
 
 export function CursoTable() {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [data, setData] = React.useState<Curso[]>([])
   const [segmentos, setSegmentos] = React.useState<Segmento[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
@@ -494,7 +496,7 @@ export function CursoTable() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
-                  onClick={() => router.push(`/curso/admin/${curso.id}`)}
+                  onClick={() => router.push(tenant ? `/${tenant}/curso/admin/${curso.id}` : `/curso/admin/${curso.id}`)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -966,7 +968,7 @@ export function CursoTable() {
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => router.push(`/curso/admin/${curso.id}`)}
+                              onClick={() => router.push(tenant ? `/${tenant}/curso/admin/${curso.id}` : `/curso/admin/${curso.id}`)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>

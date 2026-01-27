@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: 'Materiais'
 }
 
-export default function MateriaisRedirectPage() {
-  redirect('/biblioteca/materiais')
+export default async function MateriaisRedirectPage({
+  params,
+}: {
+  params: Promise<{ tenant: string }>
+}) {
+  const { tenant } = await params
+  redirect(`/${tenant}/biblioteca/materiais`)
 }

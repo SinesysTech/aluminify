@@ -62,7 +62,7 @@ export function SubjectDistribution({
     }
   }, [])
 
-  // Resetar sele��es dependentes quando subir no n�vel
+  // Resetar seleções dependentes quando subir no nível
   useEffect(() => {
     if (groupBy === 'curso') {
       setSelectedDisciplineId(null)
@@ -92,8 +92,8 @@ export function SubjectDistribution({
       if (selectedDisciplineId) return
       setIsLoading(true)
       try {
-        // Importante: op��es de disciplina v�m da estrutura (performance), n�o do tempo (distribui��o),
-        // para n�o ficar vazio quando ainda n�o h� sess�es suficientes.
+        // Importante: opções de disciplina vêm da estrutura (performance), não do tempo (distribuição),
+        // para não ficar vazio quando ainda não há sessões suficientes.
         const res = await fetchPerformance({
           groupBy: 'disciplina',
           scope: 'curso',
@@ -123,7 +123,7 @@ export function SubjectDistribution({
       if (selectedFrontId) return
       setIsLoading(true)
       try {
-        // Op��es de frente tamb�m v�m da estrutura (performance), para evitar dropdown vazio.
+        // Opções de frente também vêm da estrutura (performance), para evitar dropdown vazio.
         const res = await fetchPerformance({
           groupBy: 'frente',
           scope: 'disciplina',
@@ -192,7 +192,7 @@ export function SubjectDistribution({
         <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="widget-title">
-              Distribui��o por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'M�dulo'}
+              Distribuição por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'Módulo'}
             </h2>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
@@ -200,7 +200,7 @@ export function SubjectDistribution({
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                    aria-label="Informa��es sobre distribui��o por disciplina"
+                    aria-label="Informações sobre distribuição por disciplina"
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -213,16 +213,16 @@ export function SubjectDistribution({
                 >
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este gr�fico mostra como seu tempo de estudo est� distribu�do (aulas assistidas no cronograma + tempo registrado em listas de exerc�cios).
+                      Este gráfico mostra como seu tempo de estudo está distribuído (aulas assistidas no cronograma + tempo registrado em listas de exercícios).
                     </p>
                     <p>
-                      Cada cor representa um grupo (curso, disciplina, frente ou m�dulo) e o tamanho do segmento indica a porcentagem do tempo total.
+                      Cada cor representa um grupo (curso, disciplina, frente ou módulo) e o tamanho do segmento indica a porcentagem do tempo total.
                     </p>
                     <p>
-                      O n�mero no centro mostra o total de horas estudadas.
+                      O número no centro mostra o total de horas estudadas.
                     </p>
                     <p>
-                      Uma distribui��o equilibrada ajuda a manter un bom desempenho em todas as �reas.
+                      Uma distribuição equilibrada ajuda a manter um bom desempenho em todas as áreas.
                     </p>
                   </div>
                 </TooltipContent>
@@ -275,8 +275,8 @@ export function SubjectDistribution({
                 <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
-                {/* op��es de disciplina s�o obtidas via fetch quando necess�rio */}
-                {/** Reaproveitamos a chamada em ensureDiscipline; se ainda n�o h�, a UI fica carregando */}
+                {/* opções de disciplina são obtidas via fetch quando necessário */}
+                {/** Reaproveitamos a chamada em ensureDiscipline; se ainda não há, a UI fica carregando */}
                 {disciplineOptions.map((i) => (
                   <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                 ))}

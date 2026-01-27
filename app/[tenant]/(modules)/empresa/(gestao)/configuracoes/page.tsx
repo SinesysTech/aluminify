@@ -1,34 +1,8 @@
-import { createClient } from "@/app/shared/core/server"
-import { redirect } from "next/navigation"
 import { SettingsTabs } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/settings-tabs"
-import { mapSupabaseUserToAuthUser } from "@/app/[tenant]/auth/middleware"
-import type { AppUser, AppUserRole } from "@/app/shared/types"
+import { requireUser } from "@/app/shared/core/auth"
 
 export default async function EmpresaConfiguracoesPage() {
-    const supabase = await createClient()
-    const {
-      data: { user: supabaseUser },
-    } = await supabase.auth.getUser()
-
-    if (!supabaseUser) {
-        redirect("/auth/login")
-    }
-
-    const authUser = await mapSupabaseUserToAuthUser(supabaseUser)
-    
-    if (!authUser) {
-        redirect("/auth/login")
-    }
-
-    // Convert AuthUser to AppUser
-    const appUser: AppUser = {
-        id: authUser.id,
-        email: authUser.email,
-        role: authUser.role as AppUserRole,
-        empresaId: authUser.empresaId,
-        roleType: authUser.roleType,
-        permissions: authUser.permissions,
-    }
+    const user = await requireUser({ allowedRoles: ["usuario"] })
 
     return (
         <div className="container mx-auto py-6 space-y-6">
@@ -39,7 +13,7 @@ export default async function EmpresaConfiguracoesPage() {
                 </p>
             </div>
 
-            <SettingsTabs user={appUser} />
+            <SettingsTabs user={user} />
         </div>
     )
 }

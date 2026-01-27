@@ -4,14 +4,19 @@ import { redirect } from "next/navigation"
 import { getConfiguracoesProfessor } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 import { ConfiguracoesForm } from "./components/configuracoes-form"
 
-export default async function ProfessorConfiguracoesPage() {
+export default async function ProfessorConfiguracoesPage({
+  params,
+}: {
+  params: Promise<{ tenant: string }>
+}) {
+  const { tenant } = await params
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login")
+    redirect(`/${tenant}/auth/login`)
   }
 
   const configuracoes = await getConfiguracoesProfessor(user.id)

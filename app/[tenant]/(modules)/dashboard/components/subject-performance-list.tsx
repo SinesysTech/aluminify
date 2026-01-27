@@ -183,7 +183,7 @@ export function SubjectPerformanceList({
     }
   }, [groupBy, scopeParams.scope, scopeParams.scopeId, period])
 
-  // Fun��o para ordenar os dados
+  // Função para ordenar os dados
   const renderItems: PerformanceItem[] = items ?? subjects.map((s) => ({
     id: String(s.id),
     name: s.name,
@@ -205,7 +205,7 @@ export function SubjectPerformanceList({
     }
   })
 
-  // Fun��o para determinar a cor da barra baseada no score
+  // Função para determinar a cor da barra baseada no score
   const getBarColor = (score: number) => {
     if (score >= 80) {
       return 'bg-green-500'
@@ -218,10 +218,10 @@ export function SubjectPerformanceList({
 
   const importanciaLabel = (v?: PerformanceItem['importancia']) => {
     if (!v) return null
-    // garantir capitaliza��o consistente
+    // garantir capitalização consistente
     if (v === 'Base') return 'Base'
     if (v === 'Alta') return 'Alta'
-    if (v === 'Media') return 'M�dia'
+    if (v === 'Media') return 'Média'
     if (v === 'Baixa') return 'Baixa'
     return String(v)
   }
@@ -240,7 +240,7 @@ export function SubjectPerformanceList({
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                    aria-label="Informa��es sobre as classifica��es de performance"
+                    aria-label="Informações sobre as classificações de performance"
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -252,7 +252,7 @@ export function SubjectPerformanceList({
                   sideOffset={8}
                 >
                   <div className="space-y-2">
-                    <p className="font-semibold text-sm">Classifica��es:</p>
+                    <p className="font-semibold text-sm">Classificações:</p>
                     <ul className="space-y-1.5 text-xs">
                       <li className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />

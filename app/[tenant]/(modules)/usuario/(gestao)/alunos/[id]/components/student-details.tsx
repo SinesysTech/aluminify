@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   User,
@@ -141,6 +141,8 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string; i
 
 export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [isEditing, setIsEditing] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -154,7 +156,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
         title: 'Aluno excluído',
         description: 'O aluno foi excluído com sucesso.',
       })
-      router.push('/usuario/alunos')
+      router.push(tenant ? `/${tenant}/usuario/alunos` : '/usuario/alunos')
     } catch (error) {
       console.error('Error deleting student:', error)
       toast({
@@ -209,7 +211,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
           description: 'Você está visualizando a plataforma como este aluno.',
         })
         await new Promise(resolve => setTimeout(resolve, 100))
-        router.push('/dashboard')
+        router.push(tenant ? `/${tenant}/dashboard` : '/dashboard')
         router.refresh()
       }
     } catch (error) {
@@ -409,7 +411,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
                     key={course.id}
                     variant="outline"
                     className="cursor-pointer hover:bg-zinc-100"
-                    onClick={() => router.push(`/curso/admin/${course.id}`)}
+                    onClick={() => router.push(tenant ? `/${tenant}/curso/admin/${course.id}` : `/curso/admin/${course.id}`)}
                   >
                     {course.name}
                   </Badge>

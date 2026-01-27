@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/app/shared/core/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { useCurrentUser } from '@/components/providers/user-provider';
 
 export default function ProfessorNovaEmpresaPage() {
   const router = useRouter();
+  const params = useParams();
+  const tenant = params?.tenant as string;
   const { toast } = useToast();
   const user = useCurrentUser();
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function ProfessorNovaEmpresaPage() {
           description: 'Redirecionando para a página da sua empresa...',
         });
         setTimeout(() => {
-          router.push('/empresa/detalhes');
+          router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
         }, 1500);
         return;
       }
@@ -56,7 +58,7 @@ export default function ProfessorNovaEmpresaPage() {
               description: 'Redirecionando para a página da sua empresa...',
             });
             setTimeout(() => {
-              router.push('/empresa/detalhes');
+              router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
             }, 1500);
             return;
           }
@@ -69,7 +71,7 @@ export default function ProfessorNovaEmpresaPage() {
     }
 
     checkEmpresa();
-  }, [user, router, toast]);
+  }, [user, router, toast, tenant]);
 
   async function handleCreateEmpresa() {
     console.log('[Criar Empresa] Iniciando criação...', { formData });
@@ -142,7 +144,7 @@ export default function ProfessorNovaEmpresaPage() {
             description: 'Redirecionando para a página da sua empresa...',
           });
           setTimeout(() => {
-            router.push('/empresa/detalhes');
+            router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
             router.refresh();
           }, 1500);
           return;
@@ -161,7 +163,7 @@ export default function ProfessorNovaEmpresaPage() {
 
       // Aguardar um pouco para o toast aparecer antes de redirecionar
       setTimeout(() => {
-        router.push('/empresa/detalhes');
+        router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
         router.refresh();
       }, 1000);
     } catch (error) {

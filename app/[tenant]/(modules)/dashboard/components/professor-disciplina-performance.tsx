@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { ProfessorDisciplinaPerformance } from '@/app/[tenant]/(modules)/dashboard/types'
-import { cn } from '@/app/shared/core/utils'
+import { cn } from '@/lib/utils'
 import { BookOpen } from 'lucide-react'
 
 interface ProfessorDisciplinaPerformanceListProps {

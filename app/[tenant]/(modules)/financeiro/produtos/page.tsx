@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Package,
   Plus,
@@ -65,6 +65,8 @@ interface PaginationMeta {
 
 export default function ProductsPage() {
   const router = useRouter();
+  const routeParams = useParams();
+  const tenant = routeParams?.tenant as string;
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
@@ -188,7 +190,7 @@ export default function ProductsPage() {
             Gerencie os produtos disponíveis para venda
           </p>
         </div>
-        <Button onClick={() => router.push("/financeiro/produtos/novo")}>
+        <Button onClick={() => router.push(tenant ? `/${tenant}/financeiro/produtos/novo` : "/financeiro/produtos/novo")}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Produto
         </Button>
@@ -297,7 +299,7 @@ export default function ProductsPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() =>
-                          router.push(`/financeiro/produtos/${product.id}`)
+                          router.push(tenant ? `/${tenant}/financeiro/produtos/${product.id}` : `/financeiro/produtos/${product.id}`)
                         }
                       >
                         <ExternalLink className="h-4 w-4" />
@@ -306,7 +308,7 @@ export default function ProductsPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() =>
-                          router.push(`/financeiro/produtos/${product.id}/editar`)
+                          router.push(tenant ? `/${tenant}/financeiro/produtos/${product.id}/editar` : `/financeiro/produtos/${product.id}/editar`)
                         }
                       >
                         <Edit className="h-4 w-4" />

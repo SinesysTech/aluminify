@@ -42,7 +42,25 @@ export async function POST(request: NextRequest) {
 
     const adminClient = getDatabaseClient();
 
-    // Professor vinculado diretamente à empresa
+    // Usuario (staff) vinculado diretamente à empresa
+    const { data: usuarioRow, error: usuarioError } = await adminClient
+      .from("usuarios")
+      .select("id")
+      .eq("id", user.id)
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (usuarioError) {
+      console.error("[validate-tenant] erro ao verificar usuario:", usuarioError);
+    }
+
+    if (usuarioRow?.id) {
+      return NextResponse.json({ valid: true, roles: ["usuario"] });
+    }
+
+    // Professor vinculado diretamente à empresa (legacy - mantido para compatibilidade)
     const { data: professorRow, error: professorError } = await adminClient
       .from("professores")
       .select("id")
@@ -58,7 +76,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ valid: true, roles: ["professor"] });
     }
 
-    // Aluno vinculado via cursos -> empresa
+    // Aluno vinculado via matriculas -> empresa (nova estrutura)
+    const { data: matriculaRow, error: matriculaError } = await adminClient
+      .from("matriculas")
+      .select("aluno_id")
+      .eq("aluno_id", user.id)
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true)
+      .limit(1);
+
+    if (matriculaError) {
+      console.error("[validate-tenant] erro ao verificar matricula:", matriculaError);
+    }
+
+    if (Array.isArray(matriculaRow) && matriculaRow.length > 0) {
+      return NextResponse.json({ valid: true, roles: ["aluno"] });
+    }
+
+    // Aluno vinculado via cursos -> empresa (legacy)
     const { data: alunoCursoRow, error: alunoError } = await adminClient
       .from("alunos_cursos")
       .select("aluno_id, cursos!inner(empresa_id)")
@@ -67,7 +102,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (alunoError) {
-      console.error("[validate-tenant] erro ao verificar aluno:", alunoError);
+      console.error("[validate-tenant] erro ao verificar aluno_cursos:", alunoError);
     }
 
     if (Array.isArray(alunoCursoRow) && alunoCursoRow.length > 0) {

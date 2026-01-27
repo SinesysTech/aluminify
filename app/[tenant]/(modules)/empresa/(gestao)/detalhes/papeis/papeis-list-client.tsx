@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -61,6 +61,8 @@ interface PapeisListClientProps {
 
 export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -101,7 +103,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
             Gerencie os papéis e suas permissões de acesso
           </p>
         </div>
-        <Button onClick={() => router.push('/empresa/detalhes/papeis/novo')}>
+        <Button onClick={() => router.push(tenant ? `/${tenant}/empresa/detalhes/papeis/novo` : '/empresa/detalhes/papeis/novo')}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Papel
         </Button>
@@ -145,7 +147,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => router.push(`/empresa/detalhes/papeis/${papel.id}`)}
+                      onClick={() => router.push(tenant ? `/${tenant}/empresa/detalhes/papeis/${papel.id}` : `/empresa/detalhes/papeis/${papel.id}`)}
                       title="Visualizar"
                     >
                       <Pencil className="h-4 w-4" />
@@ -175,7 +177,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
             <Button
               variant="outline"
               className="mt-4"
-              onClick={() => router.push('/empresa/detalhes/papeis/novo')}
+              onClick={() => router.push(tenant ? `/${tenant}/empresa/detalhes/papeis/novo` : '/empresa/detalhes/papeis/novo')}
             >
               <Plus className="mr-2 h-4 w-4" />
               Criar primeiro papel
@@ -212,7 +214,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => router.push(`/empresa/detalhes/papeis/${papel.id}`)}
+                          onClick={() => router.push(tenant ? `/${tenant}/empresa/detalhes/papeis/${papel.id}` : `/empresa/detalhes/papeis/${papel.id}`)}
                           title="Editar"
                         >
                           <Pencil className="h-4 w-4" />

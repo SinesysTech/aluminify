@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/app/shared/core/database.types';
 import { Empresa, CreateEmpresaInput, UpdateEmpresaInput } from './empresa.types';
+import { slugify } from '@/shared/library/slugify';
 
 export interface EmpresaRepository {
   create(input: CreateEmpresaInput): Promise<Empresa>;
@@ -43,7 +44,8 @@ export class EmpresaRepositoryImpl implements EmpresaRepository {
   async create(input: CreateEmpresaInput): Promise<Empresa> {
     const insertData: EmpresaInsert = {
       nome: input.nome,
-      slug: input.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      // IMPORTANT: use consistent slugify (handles accents like "física" -> "fisica")
+      slug: slugify(input.nome),
       cnpj: input.cnpj ?? null,
       email_contato: input.emailContato ?? null,
       telefone: input.telefone ?? null,
@@ -99,7 +101,7 @@ export class EmpresaRepositoryImpl implements EmpresaRepository {
     if (input.nome !== undefined) {
       updateData.nome = input.nome;
       // Atualizar slug se nome mudou
-      updateData.slug = input.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      updateData.slug = slugify(input.nome);
     }
 
     if (input.cnpj !== undefined) {

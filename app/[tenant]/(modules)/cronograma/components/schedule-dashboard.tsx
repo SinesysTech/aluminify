@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/app/shared/core/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/app/shared/components/feedback/progress'
@@ -129,6 +129,8 @@ interface Cronograma {
 
 export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [loading, setLoading] = useState(true)
   const [cronograma, setCronograma] = useState<Cronograma | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -696,7 +698,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
       }
 
       // Redirecionar para a página de criação de novo cronograma
-      router.push('/cronograma/novo')
+      router.push(tenant ? `/${tenant}/cronograma/novo` : '/cronograma/novo')
     } catch (err) {
       console.error('Erro inesperado ao deletar cronograma:', err)
       alert('Erro ao deletar cronograma. Tente novamente.')
@@ -721,7 +723,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             <CardTitle>Cronograma n�o encontrado</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/cronograma/novo')}>
+            <Button onClick={() => router.push(tenant ? `/${tenant}/cronograma/novo` : '/cronograma/novo')}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Novo Cronograma
             </Button>
@@ -868,7 +870,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                     <AlertDialogAction
                       onClick={() => {
                         setShowDeleteDialog(false)
-                        router.push('/cronograma/novo')
+                        router.push(tenant ? `/${tenant}/cronograma/novo` : '/cronograma/novo')
                       }}
                     >
                       Sim, criar novo cronograma

@@ -3,7 +3,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/app/shared/components/feedback/alert"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, X } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { useCurrentUser } from "@/components/providers/user-provider"
 import { createClient } from "@/app/shared/core/client"
@@ -11,6 +11,8 @@ import { createClient } from "@/app/shared/core/client"
 export function ImpersonationBanner() {
   const user = useCurrentUser()
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string | undefined
   const [isStopping, setIsStopping] = useState(false)
 
   // Verificar se está em modo impersonação
@@ -44,7 +46,8 @@ export function ImpersonationBanner() {
       const data = await response.json().catch(() => ({ error: 'Erro desconhecido' }))
 
       if (response.ok) {
-        router.push(data.redirectTo || '/dashboard')
+        const defaultRedirect = tenant ? `/${tenant}/dashboard` : '/dashboard'
+        router.push(data.redirectTo || defaultRedirect)
         router.refresh()
       } else {
         console.error('Erro ao parar impersonação:', {

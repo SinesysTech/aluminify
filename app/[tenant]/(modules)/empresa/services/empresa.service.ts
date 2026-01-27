@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { EmpresaRepositoryImpl } from './empresa.repository';
 import { Empresa, CreateEmpresaInput, UpdateEmpresaInput } from './empresa.types';
 import { isValidCNPJ, normalizeCnpj } from '@/shared/library/br';
+import { slugify } from '@/shared/library/slugify';
 
 export class EmpresaService {
   constructor(
@@ -141,14 +142,7 @@ export class EmpresaService {
   }
 
   private generateSlug(nome: string): string {
-    return nome
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/\s+/g, '-') // Substitui espaços por hífens
-      .replace(/[^a-z0-9-]/g, '') // Remove caracteres especiais
-      .replace(/-+/g, '-') // Remove hífens duplicados
-      .replace(/^-|-$/g, ''); // Remove hífens no início e fim
+    return slugify(nome);
   }
 }
 

@@ -99,9 +99,10 @@ export function DynamicBreadcrumb() {
   // Build breadcrumb items
   const breadcrumbItems = segments.map((segment, index) => {
     const path = "/" + segments.slice(0, index + 1).join("/")
-    const label = routeLabels[path] || segment.charAt(0).toUpperCase() + segment.slice(1)
+    // Busca pelo segmento individual (ex: "financeiro", "transacoes")
+    const label = routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")
     const isLast = index === segments.length - 1
-    
+
     return { path, label, isLast }
   })
 

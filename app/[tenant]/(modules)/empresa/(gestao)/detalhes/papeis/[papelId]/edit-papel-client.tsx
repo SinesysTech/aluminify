@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,8 @@ interface EditPapelClientProps {
 
 export function EditPapelClient({ papel, empresaId }: EditPapelClientProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (data: {
@@ -44,7 +46,7 @@ export function EditPapelClient({ papel, empresaId }: EditPapelClientProps) {
       }
 
       toast.success('Papel atualizado com sucesso')
-      router.push('/empresa/detalhes/papeis')
+      router.push(tenant ? `/${tenant}/empresa/detalhes/papeis` : '/empresa/detalhes/papeis')
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao atualizar papel')

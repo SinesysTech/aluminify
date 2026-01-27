@@ -6,21 +6,21 @@ import { EditPapelClient } from './edit-papel-client'
 import type { RolePermissions, RoleTipo } from '@/app/shared/types/entities/papel'
 
 interface PageProps {
-  params: Promise<{ papelId: string }>
+  params: Promise<{ papelId: string; tenant: string }>
 }
 
 export default async function EditPapelPage({ params }: PageProps) {
-  const { papelId } = await params
+  const { papelId, tenant } = await params
   const user = await requireUser()
 
   // Only admins can access this page
   const isAdmin = user.role === 'superadmin' || (user.roleType && isAdminRoleTipo(user.roleType))
   if (!isAdmin) {
-    redirect('/dashboard')
+    redirect(`/${tenant}/dashboard`)
   }
 
   if (!user.empresaId) {
-    redirect('/dashboard')
+    redirect(`/${tenant}/dashboard`)
   }
 
   const supabase = await createClient()

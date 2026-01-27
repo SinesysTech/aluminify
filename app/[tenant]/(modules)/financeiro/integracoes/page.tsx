@@ -1,27 +1,10 @@
-import { createClient } from "@/app/shared/core/server";
-import { redirect } from "next/navigation";
+import { requireUser } from "@/app/shared/core/auth";
 import { HotmartIntegration } from "./components/hotmart-integration";
 
 export default async function FinanceiroIntegracoesPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await requireUser({ allowedRoles: ["usuario"] });
 
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  // Get user's empresa_id from usuarios
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("empresa_id")
-    .eq("id", user.id)
-    .single();
-
-  const empresaId = usuario?.empresa_id;
-
-  if (!empresaId) {
+  if (!user.empresaId) {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
@@ -45,7 +28,7 @@ export default async function FinanceiroIntegracoesPage() {
         </p>
       </div>
 
-      <HotmartIntegration empresaId={empresaId} />
+      <HotmartIntegration empresaId={user.empresaId} />
     </div>
   );
 }

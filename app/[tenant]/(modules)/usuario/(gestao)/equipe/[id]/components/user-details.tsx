@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   User,
@@ -150,6 +150,8 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string; i
 
 export function UserDetails({ user, empresaId, papeis, onUpdate }: UserDetailsProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [isEditing, setIsEditing] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -170,7 +172,7 @@ export function UserDetails({ user, empresaId, papeis, onUpdate }: UserDetailsPr
         title: 'Usuário excluído',
         description: 'O usuário foi excluído com sucesso.',
       })
-      router.push('/empresa/agendamentos/configuracoes?tab=usuarios')
+      router.push(tenant ? `/${tenant}/empresa/agendamentos/configuracoes?tab=usuarios` : '/empresa/agendamentos/configuracoes?tab=usuarios')
     } catch (error) {
       console.error('Error deleting user:', error)
       toast({

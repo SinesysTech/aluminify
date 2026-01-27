@@ -35,6 +35,7 @@ interface Product {
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
+  const tenant = params?.tenant as string;
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -63,7 +64,7 @@ export default function EditProductPage() {
               description: "Produto não encontrado",
               variant: "destructive",
             });
-            router.push("/financeiro/produtos");
+            router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos");
             return;
           }
           throw new Error("Failed to fetch product");
@@ -95,7 +96,7 @@ export default function EditProductPage() {
     };
 
     fetchProduct();
-  }, [productId, router, toast]);
+  }, [productId, router, toast, tenant]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,7 +151,7 @@ export default function EditProductPage() {
         description: "Produto atualizado com sucesso",
       });
 
-      router.push(`/financeiro/produtos/${productId}`);
+      router.push(tenant ? `/${tenant}/financeiro/produtos/${productId}` : `/financeiro/produtos/${productId}`);
     } catch (error) {
       console.error("Error updating product:", error);
       toast({
@@ -178,7 +179,7 @@ export default function EditProductPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push(`/financeiro/produtos/${productId}`)}
+          onClick={() => router.push(tenant ? `/${tenant}/financeiro/produtos/${productId}` : `/financeiro/produtos/${productId}`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -348,7 +349,7 @@ export default function EditProductPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push(`/financeiro/produtos/${productId}`)}
+              onClick={() => router.push(tenant ? `/${tenant}/financeiro/produtos/${productId}` : `/financeiro/produtos/${productId}`)}
             >
               Cancelar
             </Button>

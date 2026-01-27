@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter, useSearchParams as useNextSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams as useNextSearchParams } from 'next/navigation'
 import { useStudyTimer } from '@/hooks/use-study-timer'
 import { createClient } from '@/app/shared/core/client'
 import { MetodoEstudo } from '@/app/[tenant]/(modules)/sala-de-estudos/types'
@@ -32,6 +32,8 @@ function formatMs(ms: number) {
 
 export default function FocoClient() {
     const router = useRouter()
+    const params = useParams()
+    const tenant = params?.tenant as string
     const nextSearchParams = useNextSearchParams()
     const supabase = useMemo(() => createClient(), [])
 
@@ -330,7 +332,7 @@ export default function FocoClient() {
                 atividadeId
             )
 
-            router.push('/sala-de-estudos')
+            router.push(tenant ? `/${tenant}/sala-de-estudos` : '/sala-de-estudos')
         } catch (err) {
             console.error(err)
             setErro(err instanceof Error ? err.message : 'Erro ao finalizar')

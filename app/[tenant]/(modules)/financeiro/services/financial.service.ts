@@ -48,11 +48,6 @@ interface ProductWithCourse {
   curso_id: string | null;
 }
 
-interface StudentRecord {
-  id: string;
-  email: string;
-}
-
 // ============================================================================
 // Helper Functions
 // ============================================================================

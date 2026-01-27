@@ -77,6 +77,7 @@ export default function CourseDetailPage() {
   const params = useParams()
   const router = useRouter()
   const courseId = params.id as string
+  const tenant = params?.tenant as string
 
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -406,7 +407,7 @@ export default function CourseDetailPage() {
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0"
-                                onClick={() => router.push(`/usuario/alunos?email=${student.email}`)}
+                                onClick={() => router.push(tenant ? `/${tenant}/usuario/alunos?email=${student.email}` : `/usuario/alunos?email=${student.email}`)}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -489,7 +490,7 @@ export default function CourseDetailPage() {
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0"
-                                  onClick={() => router.push(`/usuario/alunos?email=${student.email}`)}
+                                  onClick={() => router.push(tenant ? `/${tenant}/usuario/alunos?email=${student.email}` : `/usuario/alunos?email=${student.email}`)}
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>

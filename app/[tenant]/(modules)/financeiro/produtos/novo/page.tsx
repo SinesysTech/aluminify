@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function NewProductPage() {
   const router = useRouter();
+  const params = useParams();
+  const tenant = params?.tenant as string;
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -88,7 +90,7 @@ export default function NewProductPage() {
         description: "Produto criado com sucesso",
       });
 
-      router.push("/financeiro/produtos");
+      router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos");
     } catch (error) {
       console.error("Error creating product:", error);
       toast({
@@ -108,7 +110,7 @@ export default function NewProductPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push("/financeiro/produtos")}
+          onClick={() => router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -278,7 +280,7 @@ export default function NewProductPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/financeiro/produtos")}
+              onClick={() => router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos")}
             >
               Cancelar
             </Button>

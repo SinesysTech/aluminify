@@ -46,6 +46,7 @@ interface Product {
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const tenant = params?.tenant as string;
   const { toast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +66,7 @@ export default function ProductDetailPage() {
               description: "Produto não encontrado",
               variant: "destructive",
             });
-            router.push("/financeiro/produtos");
+            router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos");
             return;
           }
           throw new Error("Failed to fetch product");
@@ -86,7 +87,7 @@ export default function ProductDetailPage() {
     };
 
     fetchProduct();
-  }, [productId, router, toast]);
+  }, [productId, router, toast, tenant]);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -104,7 +105,7 @@ export default function ProductDetailPage() {
         description: "Produto excluído com sucesso",
       });
 
-      router.push("/financeiro/produtos");
+      router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos");
     } catch (error) {
       console.error("Error deleting product:", error);
       toast({
@@ -165,7 +166,7 @@ export default function ProductDetailPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/financeiro/produtos")}
+            onClick={() => router.push(tenant ? `/${tenant}/financeiro/produtos` : "/financeiro/produtos")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -178,7 +179,7 @@ export default function ProductDetailPage() {
           <Button
             variant="outline"
             onClick={() =>
-              router.push(`/financeiro/produtos/${productId}/editar`)
+              router.push(tenant ? `/${tenant}/financeiro/produtos/${productId}/editar` : `/financeiro/produtos/${productId}/editar`)
             }
           >
             <Edit className="mr-2 h-4 w-4" />

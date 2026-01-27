@@ -25,7 +25,7 @@ export default async function MeusAgendamentosPage({ params }: MeusAgendamentosP
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth")
+    redirect(`/${tenant}/auth`)
   }
 
   const agendamentos = await getAgendamentosAluno(user.id)

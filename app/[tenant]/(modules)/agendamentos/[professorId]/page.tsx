@@ -56,7 +56,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth")
+    redirect(`/${tenant}/auth`)
   }
 
   // Fetch professor data

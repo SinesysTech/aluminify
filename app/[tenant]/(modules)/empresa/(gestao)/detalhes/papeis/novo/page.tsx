@@ -3,17 +3,22 @@ import { redirect } from 'next/navigation'
 import { isAdminRoleTipo } from '@/app/shared/core/roles'
 import { NovoPapelClient } from './novo-papel-client'
 
-export default async function NovoPapelPage() {
+export default async function NovoPapelPage({
+  params,
+}: {
+  params: Promise<{ tenant: string }>
+}) {
   const user = await requireUser()
+  const { tenant } = await params
 
   // Only admins can access this page
   const isAdmin = user.role === 'superadmin' || (user.roleType && isAdminRoleTipo(user.roleType))
   if (!isAdmin) {
-    redirect('/dashboard')
+    redirect(`/${tenant}/dashboard`)
   }
 
   if (!user.empresaId) {
-    redirect('/dashboard')
+    redirect(`/${tenant}/dashboard`)
   }
 
   return (

@@ -4,17 +4,22 @@ import { redirect } from 'next/navigation'
 import { PapeisListClient } from './papeis-list-client'
 import { isAdminRoleTipo } from '@/app/shared/core/roles'
 
-export default async function PapeisPage() {
+export default async function PapeisPage({
+  params,
+}: {
+  params: Promise<{ tenant: string }>
+}) {
   const user = await requireUser()
+  const { tenant } = await params
 
   // Only admins can access this page
   const isAdmin = user.role === 'superadmin' || (user.roleType && isAdminRoleTipo(user.roleType))
   if (!isAdmin) {
-    redirect('/dashboard')
+    redirect(`/${tenant}/dashboard`)
   }
 
   if (!user.empresaId) {
-    redirect('/dashboard')
+    redirect(`/${tenant}/dashboard`)
   }
 
   const supabase = await createClient()

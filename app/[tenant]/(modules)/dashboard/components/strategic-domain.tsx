@@ -208,7 +208,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                    aria-label="Informa��es sobre dom�nio estrat�gico"
+                    aria-label="Informações sobre domínio estratégico"
                   >
                     <Info className="h-4 w-4" />
                   </button>
@@ -221,17 +221,17 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                 >
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este indicador mostra seu progresso em �reas estrat�gicas do conte�do.
+                      Este indicador mostra seu progresso em áreas estratégicas do conteúdo.
                     </p>
                     <p>
-                      Aqui, voc� v� separadamente:
-                      <strong> Flashcards (mem�ria)</strong> e <strong>Quest�es (aplica��o)</strong>.
+                      Aqui, você vê separadamente:
+                      <strong> Flashcards (memória)</strong> e <strong>Questões (aplicação)</strong>.
                     </p>
                     <p>
-                      <strong>M�dulos de Base</strong> representa conte�dos fundamentais que sustentam o restante.
+                      <strong>Módulos de Base</strong> representa conteúdos fundamentais que sustentam o restante.
                     </p>
                     <p>
-                      <strong>Alta Recorr�ncia</strong> representa t�picos que aparecem frequentemente nas provas.
+                      <strong>Alta Recorrência</strong> representa tópicos que aparecem frequentemente nas provas.
                     </p>
                   </div>
                 </TooltipContent>
@@ -324,7 +324,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                         </span>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="start" className="max-w-xs">
-                        Conte�dos fundamentais que servem de base para entender o restante da mat�ria. Melhorar aqui tende a destravar evolu��o em v�rios t�picos.
+                        Conteúdos fundamentais que servem de base para entender o restante da matéria. Melhorar aqui tende a destravar evolução em vários tópicos.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -391,7 +391,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                         </span>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="start" className="max-w-xs">
-                        T�picos que caem com frequ�ncia nas provas. Dar aten��o a estes conte�dos costuma aumentar o retorno do seu estudo.
+                        Tópicos que caem com frequência nas provas. Dar atenção a estes conteúdos costuma aumentar o retorno do seu estudo.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

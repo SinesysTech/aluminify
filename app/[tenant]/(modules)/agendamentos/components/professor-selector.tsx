@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { ProfessorDisponivel } from "@/app/[tenant]/(modules)/agendamentos/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/app/shared/components/forms/input"
@@ -21,6 +21,8 @@ interface ProfessorSelectorProps {
 
 export function ProfessorSelector({ professores }: ProfessorSelectorProps) {
   const router = useRouter()
+  const params = useParams()
+  const tenant = params?.tenant as string
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -46,7 +48,7 @@ export function ProfessorSelector({ professores }: ProfessorSelectorProps) {
   }
 
   const handleSelectProfessor = (professorId: string) => {
-    router.push(`/agendamentos/${professorId}`)
+    router.push(tenant ? `/${tenant}/agendamentos/${professorId}` : `/agendamentos/${professorId}`)
   }
 
   if (professores.length === 0) {

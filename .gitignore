@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# mastra
+/.mastra/
+
 # production
 /build
 
@@ -45,3 +48,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# windows: arquivo reservado que pode aparecer como untracked
+NUL

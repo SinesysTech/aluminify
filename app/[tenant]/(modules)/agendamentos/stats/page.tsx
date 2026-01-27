@@ -113,7 +113,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login")
+    redirect(`/${tenant}/auth/login`)
   }
 
   const stats = await getDetailedStats(user.id)

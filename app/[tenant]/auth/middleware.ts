@@ -39,22 +39,35 @@ export async function mapSupabaseUserToAuthUser(
   }
 
   // Check if user exists in usuarios table (institution staff)
+  // Query 1: Get usuario data
   const { data: usuarioData, error: usuarioError } = await client
     .from("usuarios")
-    .select("empresa_id, papeis!inner(tipo, permissoes)")
+    .select("empresa_id, papel_id")
     .eq("id", user.id)
     .eq("ativo", true)
     .is("deleted_at", null)
     .maybeSingle();
 
   if (!usuarioError && usuarioData) {
-    const papelData = usuarioData.papeis as {
-      tipo: string;
-      permissoes: unknown;
-    };
-    const roleType = papelData.tipo as RoleTipo;
-    const permissions = papelData.permissoes as RolePermissions;
-    const isAdmin = isAdminRoleTipo(roleType);
+    let roleType: RoleTipo | undefined;
+    let permissions: RolePermissions | undefined;
+
+    // Query 2: Get papel data separately to avoid !inner join issues
+    if (usuarioData.papel_id) {
+      const { data: papelData } = await client
+        .from("papeis")
+        .select("tipo, permissoes")
+        .eq("id", usuarioData.papel_id)
+        .maybeSingle();
+
+      if (papelData) {
+        roleType = papelData.tipo as RoleTipo;
+        // `permissoes` vem do Supabase como Json. Fazemos cast controlado.
+        permissions = papelData.permissoes as unknown as RolePermissions;
+      }
+    }
+
+    const isAdmin = roleType ? isAdminRoleTipo(roleType) : false;
 
     return {
       id: user.id,
