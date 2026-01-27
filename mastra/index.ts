@@ -1,5 +1,6 @@
 import { Mastra } from "@mastra/core/mastra";
 import { ConsoleLogger, LogLevel } from "@mastra/core/logger";
+import { registerCopilotKit } from "@ag-ui/mastra/copilotkit";
 
 import { studentAgent, institutionAgent } from "./agents";
 
@@ -31,5 +32,18 @@ export const mastra = new Mastra({
       allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowHeaders: ["Content-Type", "Authorization"],
     },
+    apiRoutes: [
+      registerCopilotKit({
+        path: "/chat/student",
+        resourceId: "studentAgent",
+      }),
+      registerCopilotKit({
+        path: "/chat/institution",
+        resourceId: "institutionAgent",
+      }),
+    ],
+  },
+  bundler: {
+    externals: ["@copilotkit/runtime"],
   },
 });
