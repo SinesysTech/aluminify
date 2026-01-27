@@ -80,9 +80,9 @@ export function createMastraTools(context: ToolContext) {
       total: z.number(),
       searchTerm: z.string().nullable(),
     }),
-    execute: async (input) => {
+    execute: async (inputData) => {
       const client = getDatabaseClient();
-      const { searchTerm, limit = 10 } = input;
+      const { searchTerm, limit = 10 } = inputData;
 
       let query = client
         .from("cursos")
@@ -151,9 +151,9 @@ export function createMastraTools(context: ToolContext) {
       }),
       message: z.string(),
     }),
-    execute: async (input) => {
+    execute: async (inputData) => {
       // Determine which student to query
-      let targetStudentId = input.studentId;
+      let targetStudentId = inputData.studentId;
 
       // If no studentId provided and current user is a student, use their ID
       if (!targetStudentId && userRole === "aluno") {
@@ -267,13 +267,13 @@ export function createMastraTools(context: ToolContext) {
       total: z.number(),
       searchTerm: z.string(),
     }),
-    execute: async (input) => {
+    execute: async (inputData) => {
       // Permission check: only usuarios and superadmin can search students
       if (userRole === "aluno") {
         throw new Error("Apenas administradores podem buscar alunos.");
       }
 
-      const { searchTerm, limit = 10 } = input;
+      const { searchTerm, limit = 10 } = inputData;
 
       if (!searchTerm || !searchTerm.trim()) {
         throw new Error("Termo de busca é obrigatório.");
