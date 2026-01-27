@@ -59,7 +59,11 @@ export const POST = async (req: NextRequest) => {
 
   // Create runtime with context-aware actions
   const copilotRuntime = new CopilotRuntime({
-    actions,
+    // Tipagem do pacote @copilotkit/runtime varia por versão; mantemos compatibilidade em runtime.
+    actions:
+      actions as unknown as NonNullable<
+        ConstructorParameters<typeof CopilotRuntime>[0]
+      >["actions"],
   });
 
   // Handle the request

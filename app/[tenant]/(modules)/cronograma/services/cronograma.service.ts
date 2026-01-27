@@ -7,7 +7,6 @@ import {
   GerarCronogramaInput,
   GerarCronogramaResult,
   AulaCompleta,
-  FrenteDistribuicao,
   SemanaInfo,
   ItemDistribuicao,
   CronogramaSemanasDias,

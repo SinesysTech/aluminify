@@ -39,14 +39,6 @@ interface AulaCompleta {
   disciplina_nome: string;
 }
 
-interface FrenteDistribuicao {
-  frente_id: string;
-  frente_nome: string;
-  aulas: AulaCompleta[];
-  custo_total: number;
-  peso: number;
-}
-
 interface SemanaInfo {
   numero: number;
   data_inicio: Date;

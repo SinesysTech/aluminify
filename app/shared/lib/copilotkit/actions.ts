@@ -66,13 +66,8 @@ export function createCopilotKitActions(context: ActionContext) {
           required: false,
         },
       ],
-      handler: async ({
-        searchTerm,
-        limit = 10,
-      }: {
-        searchTerm?: string;
-        limit?: number;
-      }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      handler: async ({ searchTerm, limit = 10 }: any) => {
         const client = getDatabaseClient();
 
         let query = client
@@ -128,7 +123,8 @@ export function createCopilotKitActions(context: ActionContext) {
           required: false,
         },
       ],
-      handler: async ({ studentId }: { studentId?: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      handler: async ({ studentId }: any) => {
         // Determine which student to query
         let targetStudentId = studentId;
 
@@ -139,15 +135,11 @@ export function createCopilotKitActions(context: ActionContext) {
 
         // Students can only view their own progress
         if (userRole === "aluno" && targetStudentId !== userId) {
-          throw new Error(
-            "Alunos só podem visualizar seu próprio progresso."
-          );
+          throw new Error("Alunos só podem visualizar seu próprio progresso.");
         }
 
         if (!targetStudentId) {
-          throw new Error(
-            "ID do aluno é necessário para buscar o progresso."
-          );
+          throw new Error("ID do aluno é necessário para buscar o progresso.");
         }
 
         const client = getDatabaseClient();
@@ -169,9 +161,7 @@ export function createCopilotKitActions(context: ActionContext) {
           empresaId &&
           studentData.empresa_id !== empresaId
         ) {
-          throw new Error(
-            "Você não tem permissão para visualizar este aluno."
-          );
+          throw new Error("Você não tem permissão para visualizar este aluno.");
         }
 
         // Get progress data
@@ -183,7 +173,7 @@ export function createCopilotKitActions(context: ActionContext) {
         if (progressError) {
           console.error(
             "[CopilotKit Action] getStudentProgress error:",
-            progressError
+            progressError,
           );
           throw new Error(`Erro ao buscar progresso: ${progressError.message}`);
         }
@@ -244,18 +234,11 @@ export function createCopilotKitActions(context: ActionContext) {
           required: false,
         },
       ],
-      handler: async ({
-        searchTerm,
-        limit = 10,
-      }: {
-        searchTerm: string;
-        limit?: number;
-      }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      handler: async ({ searchTerm, limit = 10 }: any) => {
         // Permission check: only usuarios and superadmin can search students
         if (userRole === "aluno") {
-          throw new Error(
-            "Apenas administradores podem buscar alunos."
-          );
+          throw new Error("Apenas administradores podem buscar alunos.");
         }
 
         if (!searchTerm || !searchTerm.trim()) {

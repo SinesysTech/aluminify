@@ -17,7 +17,6 @@ import { UserBaseService } from "./user-base.service";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import type { PaginationParams } from "@/app/shared/types/dtos/api-responses";
 import {
-  normalizeBRPhone,
   normalizeCpf,
 } from "@/app/shared/library/br";
 import { SupabaseClient } from "@supabase/supabase-js";

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/app/shared/components/forms/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MessageSquare, Paperclip, X, ArrowUp, Loader2, ChevronDown, Sparkles } from 'lucide-react'
 import { cn } from '@/shared/library/utils'
 import type { Conversation as ConversationType } from '@/app/[tenant]/(modules)/tobias/services/conversation/conversation.types'
@@ -594,187 +594,187 @@ export default function TobIAsPage() {
           <CopilotChatSection className="h-full w-full" />
         </div>
       ) : (
-      <div className="flex flex-1 min-h-0 overflow-hidden rounded-lg border">
-        {/* Painel de conversas */}
-        <ConversationsPanel
-          selectedConversationId={selectedConversationId}
-          onSelectConversation={(conv) => {
-            handleSelectConversation(conv)
-          }}
-          onConversationUpdated={handleConversationUpdated}
-          accessToken={accessToken}
-          open={conversationsPanelOpen}
-          onOpenChange={setConversationsPanelOpen}
-        />
+        <div className="flex flex-1 min-h-0 overflow-hidden rounded-lg border">
+          {/* Painel de conversas */}
+          <ConversationsPanel
+            selectedConversationId={selectedConversationId}
+            onSelectConversation={(conv) => {
+              handleSelectConversation(conv)
+            }}
+            onConversationUpdated={handleConversationUpdated}
+            accessToken={accessToken}
+            open={conversationsPanelOpen}
+            onOpenChange={setConversationsPanelOpen}
+          />
 
-        {/* Área do chat - full width em mobile quando painel fechado */}
-        <div className="relative flex flex-1 flex-col min-h-0">
-          {/* Messages area */}
-          <ScrollArea
-            className="flex-1 p-4"
-            ref={scrollAreaRef}
-            onScrollCapture={handleScroll}
-          >
-            <div className="flex flex-col gap-4">
-              {messages.length === 0 && (
-                <div className="group flex w-full items-end gap-2 py-4 justify-start">
-                  <Avatar className="ring-1 ring-border size-10 mr-2">
-                    <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
-                    <AvatarFallback>TO</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm bg-secondary max-w-[80%]">
-                    <div className="whitespace-pre-wrap">
-                      {`Olá! Eu sou @ TobIAs, responsável pela monitoria do curso CDF.\n\nComo posso ajudá-lo hoje?`}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'group flex w-full items-end gap-2 py-2',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
-                  {message.role === 'assistant' && (
+          {/* Área do chat - full width em mobile quando painel fechado */}
+          <div className="relative flex flex-1 flex-col min-h-0">
+            {/* Messages area */}
+            <ScrollArea
+              className="flex-1 p-4"
+              ref={scrollAreaRef}
+              onScrollCapture={handleScroll}
+            >
+              <div className="flex flex-col gap-4">
+                {messages.length === 0 && (
+                  <div className="group flex w-full items-end gap-2 py-4 justify-start">
                     <Avatar className="ring-1 ring-border size-10 mr-2">
                       <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
                       <AvatarFallback>TO</AvatarFallback>
                     </Avatar>
-                  )}
-                  <div
-                    className={cn(
-                      'flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-sm max-w-[80%]',
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground'
-                    )}
-                  >
-                    {message.role === 'user' ? (
-                      renderUserMessage(message.content)
-                    ) : (
-                      <div className="whitespace-pre-wrap">{message.content}</div>
-                    )}
-                  </div>
-                  {message.role === 'user' && (
-                    <Avatar className="ring-1 ring-border size-8 ml-2">
-                      <AvatarImage alt="Você" src="" />
-                      <AvatarFallback>VO</AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              ))}
-
-              {isLoading && (
-                <div className="group flex w-full items-end gap-2 py-2 justify-start">
-                  <Avatar className="ring-1 ring-border size-10 mr-2">
-                    <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
-                    <AvatarFallback>TO</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm bg-secondary">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-destructive/10 text-destructive rounded-lg p-4">
-                  <p className="font-medium">Erro ao enviar mensagem</p>
-                  <p className="text-sm">{error}</p>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Scroll to bottom button */}
-          {showScrollButton && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute bottom-24 right-4 rounded-full shadow-md"
-              onClick={scrollToBottom}
-            >
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          )}
-
-          <div className="bg-background p-2 md:p-4 sticky bottom-0">
-            <div className="space-y-2">
-              {attachments.length > 0 && (
-                <div className="flex flex-wrap gap-2 rounded-md border border-dashed border-muted-foreground/40 p-2 text-xs">
-                  {attachments.map((file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className="flex items-center gap-2 rounded bg-muted px-2 py-1.5"
-                    >
-                      <span className="truncate max-w-[120px] md:max-w-[150px] text-xs">{file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(index)}
-                        className="text-muted-foreground hover:text-foreground h-5 w-5 flex items-center justify-center"
-                        aria-label="Remover anexo"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                    <div className="flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm bg-secondary max-w-[80%]">
+                      <div className="whitespace-pre-wrap">
+                        {`Olá! Eu sou @ TobIAs, responsável pela monitoria do curso CDF.\n\nComo posso ajudá-lo hoje?`}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
 
-              <form
-                onSubmit={handleSubmit}
-                className="w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm"
-              >
-                <Textarea
-                  ref={inputRef}
-                  name="message"
-                  placeholder="Digite sua mensagem..."
-                  disabled={isLoading || !userId}
-                  onKeyDown={handleKeyDown}
-                  className="w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0 field-sizing-content max-h-[6lh] bg-transparent dark:bg-transparent focus-visible:ring-0 min-h-11 text-sm md:text-base"
-                />
-                <div className="flex items-center justify-between p-1">
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
-                    multiple
-                    hidden
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    disabled={isLoading || !userId}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-10 w-10 md:h-9 md:w-9"
-                  >
-                    <Paperclip className="h-4 w-4" />
-                    <span className="sr-only">Adicionar anexos</span>
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !userId}
-                    className="h-8 w-8 gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 p-0"
-                    size="icon"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <ArrowUp className="size-3.5" />
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'group flex w-full items-end gap-2 py-2',
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
                     )}
-                  </Button>
-                </div>
-              </form>
+                  >
+                    {message.role === 'assistant' && (
+                      <Avatar className="ring-1 ring-border size-10 mr-2">
+                        <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
+                        <AvatarFallback>TO</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={cn(
+                        'flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-sm max-w-[80%]',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-foreground'
+                      )}
+                    >
+                      {message.role === 'user' ? (
+                        renderUserMessage(message.content)
+                      ) : (
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                      )}
+                    </div>
+                    {message.role === 'user' && (
+                      <Avatar className="ring-1 ring-border size-8 ml-2">
+                        <AvatarImage alt="Você" src="" />
+                        <AvatarFallback>VO</AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+
+                {isLoading && (
+                  <div className="group flex w-full items-end gap-2 py-2 justify-start">
+                    <Avatar className="ring-1 ring-border size-10 mr-2">
+                      <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
+                      <AvatarFallback>TO</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm bg-secondary">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="bg-destructive/10 text-destructive rounded-lg p-4">
+                    <p className="font-medium">Erro ao enviar mensagem</p>
+                    <p className="text-sm">{error}</p>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Scroll to bottom button */}
+            {showScrollButton && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute bottom-24 right-4 rounded-full shadow-md"
+                onClick={scrollToBottom}
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            )}
+
+            <div className="bg-background p-2 md:p-4 sticky bottom-0">
+              <div className="space-y-2">
+                {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 rounded-md border border-dashed border-muted-foreground/40 p-2 text-xs">
+                    {attachments.map((file, index) => (
+                      <div
+                        key={`${file.name}-${index}`}
+                        className="flex items-center gap-2 rounded bg-muted px-2 py-1.5"
+                      >
+                        <span className="truncate max-w-[120px] md:max-w-[150px] text-xs">{file.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="text-muted-foreground hover:text-foreground h-5 w-5 flex items-center justify-center"
+                          aria-label="Remover anexo"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm"
+                >
+                  <Textarea
+                    ref={inputRef}
+                    name="message"
+                    placeholder="Digite sua mensagem..."
+                    disabled={isLoading || !userId}
+                    onKeyDown={handleKeyDown}
+                    className="w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0 field-sizing-content max-h-[6lh] bg-transparent dark:bg-transparent focus-visible:ring-0 min-h-11 text-sm md:text-base"
+                  />
+                  <div className="flex items-center justify-between p-1">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
+                      multiple
+                      hidden
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={isLoading || !userId}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-10 w-10 md:h-9 md:w-9"
+                    >
+                      <Paperclip className="h-4 w-4" />
+                      <span className="sr-only">Adicionar anexos</span>
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !userId}
+                      className="h-8 w-8 gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 p-0"
+                      size="icon"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <ArrowUp className="size-3.5" />
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
     </div>
   )

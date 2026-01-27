@@ -327,7 +327,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
     // Se não existe, segue criação padrão via service role
     // (mantém validações e criação do auth.users dentro do serviço).
-    let service = createStudentService(db);
+    const service = createStudentService(db);
 
     const student = await service.create({
       id: body?.id,

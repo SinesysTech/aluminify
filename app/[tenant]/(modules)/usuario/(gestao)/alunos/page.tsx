@@ -9,14 +9,26 @@ export const metadata: Metadata = {
   title: 'Alunos'
 }
 
-export default async function AlunosPage({ searchParams }: { searchParams: { page?: string, query?: string, courseId?: string, turmaId?: string } }) {
+export default async function AlunosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    page?: string
+    query?: string
+    courseId?: string
+    turmaId?: string
+  }>
+}) {
   // Superadmins e admins de empresa podem ver alunos (RLS filtra por empresa)
   await requireUser({ allowedRoles: ['superadmin', 'usuario'] })
 
-  const page = Number(searchParams.page) || 1
-  const query = searchParams.query || ''
-  const courseId = searchParams.courseId || undefined
-  const turmaId = searchParams.turmaId || undefined
+  const { page: pageStr, query: queryStr, courseId: courseIdStr, turmaId: turmaIdStr } =
+    await searchParams
+
+  const page = Number(pageStr) || 1
+  const query = queryStr || ''
+  const courseId = courseIdStr || undefined
+  const turmaId = turmaIdStr || undefined
 
   // Usar cliente com contexto do usuário para respeitar RLS
   const supabase = await createClient()

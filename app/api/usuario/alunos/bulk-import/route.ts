@@ -130,14 +130,6 @@ const parseXLSXFile = async (
   }
 };
 
-const normalizeCourseName = (name: string) =>
-  name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]/g, "")
-    .slice(0, 32)
-    .toUpperCase();
-
 const normalizeCpfDigits = (cpfRaw: string) => {
   const digits = (cpfRaw ?? "").replace(/\D/g, "");
   // Regra: se vier com 8, 9 ou 10 dígitos, completa com 0 à esquerda até 11.
