@@ -36,7 +36,7 @@ export default function BibliotecaClient({
     const [disciplinaSelecionada, setDisciplinaSelecionada] = React.useState<string>('')
     const [frenteSelecionada, setFrenteSelecionada] = React.useState<string>('')
 
-    const [isLoading, setIsLoading] = React.useState(false)
+    const [isLoading, setIsLoading] = React.useState(true)
     const [error, setError] = React.useState<string | null>(null)
     const [estruturaHierarquica, setEstruturaHierarquica] = React.useState<CursoComDisciplinas[]>([])
 
