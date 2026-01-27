@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/app/shared/components/forms/input'
 import { Label } from '@/app/shared/components/forms/label'
-import type { Conversation } from '@/app/[tenant]/(modules)/tobias/services/conversation/conversation.types'
+import type { Conversation } from '@/app/[tenant]/(modules)/agente/services/conversation/conversation.types'
 
 interface RenameConversationDialogProps {
   open: boolean

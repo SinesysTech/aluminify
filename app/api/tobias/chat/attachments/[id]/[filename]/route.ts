@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cleanupChatAttachments, loadAttachmentMetadata } from '@/app/[tenant]/(modules)/tobias/services/chat/attachments.service';
+import { cleanupChatAttachments, loadAttachmentMetadata } from '@/app/[tenant]/(modules)/agente/services/chat/attachments.service';
 import fs from 'fs/promises';
 import path from 'path';
 

@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Plus, MessageSquare } from 'lucide-react'
 import { ConversationItem } from './conversation-item'
 import { RenameConversationDialog } from './rename-conversation-dialog'
-import type { Conversation } from '@/app/[tenant]/(modules)/tobias/services/conversation/conversation.types'
+import type { Conversation } from '@/app/[tenant]/(modules)/agente/services/conversation/conversation.types'
 import { ListSkeleton } from '@/components/ui/list-skeleton'
 
 interface ConversationsSidebarProps {

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/app/shared/components/overlay/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import type { Conversation } from '@/app/[tenant]/(modules)/tobias/services/conversation/conversation.types'
+import type { Conversation } from '@/app/[tenant]/(modules)/agente/services/conversation/conversation.types'
 import { cn } from '@/shared/library/utils'
 
 interface ConversationListItemProps {
