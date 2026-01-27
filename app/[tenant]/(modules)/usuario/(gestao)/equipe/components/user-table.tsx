@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { Eye } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import type { UsuarioSummary } from '@/app/shared/types/entities/usuario'
@@ -18,14 +17,9 @@ interface UserTableProps {
 }
 
 export function UserTable({ usuarios }: UserTableProps) {
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const params = useParams()
   const tenant = params?.tenant as string
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   return (
     <TooltipProvider>
@@ -81,29 +75,27 @@ export function UserTable({ usuarios }: UserTableProps) {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      {mounted ? (
-                        <div className="flex items-center justify-end gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => router.push(tenant ? `/${tenant}/usuario/equipe/${usuario.id}` : `/usuario/equipe/${usuario.id}`)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Ver Perfil</TooltipContent>
-                          </Tooltip>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() =>
+                                router.push(
+                                  tenant
+                                    ? `/${tenant}/usuario/equipe/${usuario.id}`
+                                    : `/usuario/equipe/${usuario.id}`
+                                )
+                              }
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Ver Perfil</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </td>
                   </tr>
                 )

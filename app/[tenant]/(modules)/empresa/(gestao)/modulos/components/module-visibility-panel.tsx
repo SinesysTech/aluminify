@@ -10,7 +10,6 @@ import {
   Circle,
   ChevronDown,
   ChevronRight,
-  GripVertical,
   RotateCcw,
   Save,
   Lock,
@@ -20,16 +19,11 @@ import {
 import type { LucideIcon } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Input } from '@/app/shared/components/forms/input';
+import { Label } from '@/app/shared/components/forms/label';
+import { Switch } from '@/app/shared/components/forms/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +37,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import type {
   ModuleWithVisibility,
-  SubmoduleWithVisibility,
   BulkUpdateModuleVisibilityInput,
   UpdateModuleVisibilityInput,
   UpdateSubmoduleVisibilityInput,
@@ -92,7 +85,7 @@ interface ModuleVisibilityPanelProps {
 }
 
 export function ModuleVisibilityPanel({
-  empresaId,
+  empresaId: _empresaId,
   initialConfig,
   onSave,
   onReset,
@@ -107,7 +100,7 @@ export function ModuleVisibilityPanel({
   // Initialize state from config
   useEffect(() => {
     if (initialConfig) {
-      const editState: ModuleEditState[] = initialConfig.map((module, index) => ({
+      const editState: ModuleEditState[] = initialConfig.map((module) => ({
         id: module.id,
         isVisible: module.visibility?.isVisible ?? true,
         customName: module.visibility?.customName || '',
@@ -115,7 +108,7 @@ export function ModuleVisibilityPanel({
         isCore: module.isCore,
         originalName: module.name,
         iconName: module.iconName,
-        submodules: module.submodules.map((sub, subIndex) => ({
+        submodules: module.submodules.map((sub) => ({
           id: sub.id,
           moduleId: module.id,
           isVisible: sub.visibility?.isVisible ?? true,

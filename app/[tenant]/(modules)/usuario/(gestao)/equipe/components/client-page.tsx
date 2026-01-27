@@ -5,7 +5,6 @@ import { Users } from 'lucide-react'
 import type { UsuarioSummary } from '@/app/shared/types/entities/usuario'
 import { UserFilters } from './user-filters'
 import { UserTable } from './user-table'
-import type { RoleTipo } from '@/app/shared/types/entities/papel'
 
 interface EquipeClientPageProps {
   usuarios: UsuarioSummary[]

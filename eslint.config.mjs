@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Tool-generated artifacts
+    ".mastra/**",
     // Generated files that should not be linted
     "lib/database.types.ts",
     // SQL migrations/seeds are not linted by ESLint in this repo

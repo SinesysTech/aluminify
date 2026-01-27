@@ -44,14 +44,12 @@ export default function EmpresaAdminsPage() {
   const [open, setOpen] = useState(false);
   const [selectedProfessor, setSelectedProfessor] = useState<string>('');
   const [canManageAdmins, setCanManageAdmins] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       // Buscar empresa do usuário
       const userResponse = await fetch('/api/usuario/perfil');
       const userData = await userResponse.json();
-      setCurrentUserId(userData?.id ?? null);
 
       if (userData.empresaId) {
         // Buscar admins
@@ -109,7 +107,9 @@ export default function EmpresaAdminsPage() {
       if (!response.ok) {
         const body = await response.json().catch(() => null);
         const apiMessage =
-          body && typeof body === 'object' && 'error' in body ? String((body as any).error) : null;
+          body && typeof body === 'object' && 'error' in body
+            ? String((body as Record<string, unknown>).error)
+            : null;
         throw new Error(apiMessage || `Erro ao adicionar admin (HTTP ${response.status})`);
       }
 
@@ -142,7 +142,9 @@ export default function EmpresaAdminsPage() {
       if (!response.ok) {
         const body = await response.json().catch(() => null);
         const apiMessage =
-          body && typeof body === 'object' && 'error' in body ? String((body as any).error) : null;
+          body && typeof body === 'object' && 'error' in body
+            ? String((body as Record<string, unknown>).error)
+            : null;
         throw new Error(apiMessage || `Erro ao remover admin (HTTP ${response.status})`);
       }
 

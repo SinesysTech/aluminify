@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/app/shared/components/forms/select"
 import { ROLE_TIPO_OPTIONS } from '@/app/shared/utils/papel-display'
 
 interface UserFiltersProps {
