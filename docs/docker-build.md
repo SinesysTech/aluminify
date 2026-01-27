@@ -19,30 +19,29 @@ Guia para build e deploy da imagem Docker do Aluminify (Next.js + Mastra Studio)
 
 As seguintes variáveis são necessárias no momento do **build** (ARGs):
 
-| Variável | Descrição |
-|----------|-----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Chave pública do Supabase |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | ID do Google Analytics |
-| `UPSTASH_REDIS_REST_URL` | URL do Redis Upstash |
-| `UPSTASH_REDIS_REST_TOKEN` | Token do Redis Upstash |
+| Variável | Descrição | Obrigatório |
+|----------|-----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase | Sim |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Chave pública do Supabase | Sim |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | ID do Google Analytics | Não |
+| `UPSTASH_REDIS_REST_URL` | URL do Redis Upstash | Sim |
+| `UPSTASH_REDIS_REST_TOKEN` | Token do Redis Upstash | Sim |
 
 > As variáveis `NEXT_PUBLIC_*` são embutidas no build do Next.js e não podem ser alteradas em runtime.
 
-## Build da Imagem
+## Build e Push (Comando Único)
 
-### Método Recomendado: docker-compose (já consome .env.local)
+### Método Recomendado: docker-compose
 
 ```bash
-docker-compose -f docker-compose.prod.yml build
+# Build e push em um comando
+docker-compose -f docker-compose.prod.yml build && docker push sinesystec/aluminify:latest
 ```
 
-### Build Manual para Linux AMD64
-
-Carregue as variáveis do `.env.local` e execute o build:
+### Build + Push Manual (Linux AMD64)
 
 ```bash
-# Carregar variáveis e buildar
+# Carregar variáveis, buildar e fazer push
 export $(grep -v '^#' .env.local | xargs) && \
 docker build --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
@@ -50,23 +49,11 @@ docker build --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
   --build-arg UPSTASH_REDIS_REST_URL=$UPSTASH_REDIS_REST_URL \
   --build-arg UPSTASH_REDIS_REST_TOKEN=$UPSTASH_REDIS_REST_TOKEN \
-  -t aluminify:latest .
+  -t sinesystec/aluminify:latest . && \
+docker push sinesystec/aluminify:latest
 ```
 
-### Build com tag para Docker Hub
-
-```bash
-export $(grep -v '^#' .env.local | xargs) && \
-docker build --platform linux/amd64 \
-  --build-arg NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
-  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY \
-  --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
-  --build-arg UPSTASH_REDIS_REST_URL=$UPSTASH_REDIS_REST_URL \
-  --build-arg UPSTASH_REDIS_REST_TOKEN=$UPSTASH_REDIS_REST_TOKEN \
-  -t sinesystec/aluminify:latest .
-```
-
-### Build sem cache
+### Build + Push sem Cache
 
 ```bash
 export $(grep -v '^#' .env.local | xargs) && \
@@ -76,7 +63,16 @@ docker build --platform linux/amd64 --no-cache \
   --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
   --build-arg UPSTASH_REDIS_REST_URL=$UPSTASH_REDIS_REST_URL \
   --build-arg UPSTASH_REDIS_REST_TOKEN=$UPSTASH_REDIS_REST_TOKEN \
-  -t aluminify:latest .
+  -t sinesystec/aluminify:latest . && \
+docker push sinesystec/aluminify:latest
+```
+
+## Pré-requisitos
+
+Antes de fazer push, faça login no Docker Hub:
+
+```bash
+docker login
 ```
 
 ## Executar Container
@@ -87,9 +83,10 @@ docker build --platform linux/amd64 --no-cache \
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### Produção (apenas docker)
+### Produção (pull + run)
 
 ```bash
+docker pull sinesystec/aluminify:latest && \
 docker run -d \
   --name aluminify \
   --platform linux/amd64 \
@@ -97,23 +94,13 @@ docker run -d \
   -p 4111:4111 \
   --env-file .env.local \
   --restart always \
-  aluminify:latest
+  sinesystec/aluminify:latest
 ```
 
 ### Desenvolvimento
 
 ```bash
 docker-compose up -d
-```
-
-## Push para Docker Hub
-
-```bash
-# Login no Docker Hub
-docker login
-
-# Push da imagem
-docker push sinesystec/aluminify:latest
 ```
 
 ## URLs dos Serviços
@@ -142,6 +129,9 @@ docker inspect --format='{{.State.Health.Status}}' aluminify
 
 # Acessar shell do container
 docker exec -it aluminify sh
+
+# Ver imagens locais
+docker images | grep aluminify
 ```
 
 ## Estrutura de Build
