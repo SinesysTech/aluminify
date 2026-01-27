@@ -1,15 +1,10 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import MateriaisClientPage from './materiais-client'
 
 export const metadata: Metadata = {
   title: 'Materiais'
 }
 
-export default async function MateriaisRedirectPage({
-  params,
-}: {
-  params: Promise<{ tenant: string }>
-}) {
-  const { tenant } = await params
-  redirect(`/${tenant}/biblioteca/materiais`)
+export default function MateriaisPage() {
+  return <MateriaisClientPage />
 }
