@@ -81,7 +81,8 @@
       "Bash(npx ts-node:*)",
       "Bash(tee:*)",
       "Bash(npx supabase:*)",
-      "mcp__mastra__mastraDocs"
+      "mcp__mastra__mastraDocs",
+      "mcp__mastra__mastraExamples"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,154 @@
+import { SupabaseClient } from '@supabase/supabase-js';
+import { ModuleVisibilityRepositoryImpl } from './module-visibility.repository';
+import type {
+  ModuleWithVisibility,
+  VisibleModule,
+  UpdateModuleVisibilityInput,
+  UpdateSubmoduleVisibilityInput,
+  BulkUpdateModuleVisibilityInput,
+  ModuleDefinition,
+} from './module-visibility.types';
+
+export class ModuleVisibilityService {
+  private readonly repository: ModuleVisibilityRepositoryImpl;
+
+  constructor(private readonly client: SupabaseClient) {
+    this.repository = new ModuleVisibilityRepositoryImpl(client);
+  }
+
+  /**
+   * Get visible modules for a tenant (used by sidebar)
+   * Returns all modules with their visibility applied
+   * Default: all modules visible if no configuration exists
+   */
+  async getVisibleModules(empresaId: string): Promise<VisibleModule[]> {
+    return this.repository.getVisibleModulesForEmpresa(empresaId);
+  }
+
+  /**
+   * Get full module visibility config for admin UI
+   * Includes all modules with their definitions and tenant-specific settings
+   */
+  async getModuleVisibilityConfig(empresaId: string): Promise<ModuleWithVisibility[]> {
+    return this.repository.getModuleVisibilityConfig(empresaId);
+  }
+
+  /**
+   * Get all module definitions (for reference)
+   */
+  async getModuleDefinitions(): Promise<ModuleDefinition[]> {
+    return this.repository.findAllModuleDefinitions();
+  }
+
+  /**
+   * Update visibility for a single module
+   * Validates that core modules cannot be hidden
+   */
+  async updateModuleVisibility(
+    empresaId: string,
+    input: UpdateModuleVisibilityInput,
+    userId: string
+  ): Promise<void> {
+    // Validate that core modules cannot be hidden
+    if (input.isVisible === false) {
+      const definitions = await this.repository.findAllModuleDefinitions();
+      const moduleDef = definitions.find(m => m.id === input.moduleId);
+
+      if (moduleDef?.isCore) {
+        throw new Error(`O módulo "${moduleDef.name}" é essencial e não pode ser desabilitado`);
+      }
+    }
+
+    await this.repository.upsertModuleVisibility(
+      empresaId,
+      input.moduleId,
+      {
+        isVisible: input.isVisible,
+        customName: input.customName,
+        customUrl: input.customUrl,
+        displayOrder: input.displayOrder,
+        options: input.options,
+      },
+      userId
+    );
+  }
+
+  /**
+   * Update visibility for a single submodule
+   */
+  async updateSubmoduleVisibility(
+    empresaId: string,
+    input: UpdateSubmoduleVisibilityInput,
+    userId: string
+  ): Promise<void> {
+    await this.repository.upsertSubmoduleVisibility(
+      empresaId,
+      input.moduleId,
+      input.submoduleId,
+      {
+        isVisible: input.isVisible,
+        customName: input.customName,
+        customUrl: input.customUrl,
+        displayOrder: input.displayOrder,
+      },
+      userId
+    );
+  }
+
+  /**
+   * Bulk update module and submodule visibility
+   * Used when saving the entire configuration from admin UI
+   */
+  async bulkUpdateVisibility(
+    empresaId: string,
+    input: BulkUpdateModuleVisibilityInput,
+    userId: string
+  ): Promise<void> {
+    // Validate core modules
+    const definitions = await this.repository.findAllModuleDefinitions();
+    const coreModules = definitions.filter(m => m.isCore);
+
+    for (const moduleInput of input.modules) {
+      const isCore = coreModules.some(m => m.id === moduleInput.moduleId);
+      if (isCore && moduleInput.isVisible === false) {
+        const moduleName = coreModules.find(m => m.id === moduleInput.moduleId)?.name;
+        throw new Error(`O módulo "${moduleName}" é essencial e não pode ser desabilitado`);
+      }
+    }
+
+    // Update modules
+    for (const moduleInput of input.modules) {
+      await this.updateModuleVisibility(empresaId, moduleInput, userId);
+    }
+
+    // Update submodules
+    for (const submoduleInput of input.submodules) {
+      await this.updateSubmoduleVisibility(empresaId, submoduleInput, userId);
+    }
+  }
+
+  /**
+   * Reset visibility to defaults (delete all customizations)
+   * After reset, all modules will be visible with default names and order
+   */
+  async resetToDefaults(empresaId: string): Promise<void> {
+    await this.repository.deleteAllVisibilityForEmpresa(empresaId);
+  }
+
+  /**
+   * Check if user is admin of the empresa
+   */
+  async isEmpresaAdmin(userId: string, empresaId: string): Promise<boolean> {
+    const { data, error } = await this.client.rpc('is_empresa_admin', {
+      user_id_param: userId,
+      empresa_id_param: empresaId,
+    });
+
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+
+    return data === true;
+  }
+}
