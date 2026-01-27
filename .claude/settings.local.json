@@ -87,7 +87,11 @@
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm install)",
-      "Bash(npm ping:*)"
+      "Bash(npm ping:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(findstr:*)",
+      "Bash(where:*)",
+      "Bash(\"/c/Program Files/nodejs/npm\" --version)"
     ],
     "deny": [],
     "ask": []

@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  Users,
   LayoutDashboard,
   BookOpen,
   Calendar,
