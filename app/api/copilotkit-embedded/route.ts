@@ -21,9 +21,18 @@ import { mastra } from "@/mastra";
  * - institutionAgent: Assistente para área administrativa
  */
 
+// Tipos de agentes disponíveis no Mastra
+type AgentId = "studentAgent" | "institutionAgent";
+const VALID_AGENTS: AgentId[] = ["studentAgent", "institutionAgent"];
+
+function isValidAgent(name: string): name is AgentId {
+  return VALID_AGENTS.includes(name as AgentId);
+}
+
 export const POST = async (req: NextRequest) => {
   const { searchParams } = new URL(req.url);
-  const agentName = searchParams.get("agent") || "studentAgent";
+  const agentParam = searchParams.get("agent") || "studentAgent";
+  const agentName: AgentId = isValidAgent(agentParam) ? agentParam : "studentAgent";
 
   // Create AG-UI compatible agent from Mastra
   const aguiAgent = getLocalAgent({
