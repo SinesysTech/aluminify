@@ -76,6 +76,9 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     title: "Cronograma",
     url: "/cronograma",
     icon: CalendarCheck,
+    items: [
+      { title: "Calendário", url: "/cronograma/calendario" },
+    ],
   },
   {
     title: "Agendamentos",

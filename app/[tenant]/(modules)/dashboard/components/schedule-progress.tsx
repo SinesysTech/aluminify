@@ -59,14 +59,14 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
                 >
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este indicador mostra o percentual de aulas do seu cronograma que voc� j� completou.
+                      Este indicador mostra o percentual de aulas do seu cronograma que você já completou.
                     </p>
                     <p>
-                      O c�lculo considera todas as aulas previstas no seu cronograma de estudos e quantas
-                      delas voc� j� marcou como conclu�das.
+                      O cálculo considera todas as aulas previstas no seu cronograma de estudos e quantas
+                      delas você já marcou como concluídas.
                     </p>
                     <p>
-                      Quanto maior o percentual, mais pr�ximo voc� est� de finalizar todo o conte�do planejado.
+                      Quanto maior o percentual, mais próximo você está de finalizar todo o conteúdo planejado.
                     </p>
                   </div>
                 </TooltipContent>
@@ -78,7 +78,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
             </span>
           </div>
           <p className="text-muted-foreground text-sm md:text-base">
-            Voc� completou {value}% do cronograma previsto.
+            Você completou {value}% do cronograma previsto.
           </p>
           <div className="w-full bg-muted rounded-full h-2.5">
             <div

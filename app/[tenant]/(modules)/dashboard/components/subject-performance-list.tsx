@@ -114,7 +114,7 @@ export function SubjectPerformanceList({
     }
   }, [groupBy])
 
-  // Garantir disciplina selecionada quando necess�rio (groupBy=frente)
+  // Garantir disciplina selecionada quando necessário (groupBy=frente)
   useEffect(() => {
     let cancelled = false
     async function ensureDiscipline() {
@@ -137,7 +137,7 @@ export function SubjectPerformanceList({
     }
   }, [groupBy, selectedDisciplineId, selectedCourseId, period])
 
-  // Garantir frente selecionada quando necess�rio (groupBy=modulo)
+  // Garantir frente selecionada quando necessário (groupBy=modulo)
   useEffect(() => {
     let cancelled = false
     async function ensureFront() {
@@ -232,7 +232,7 @@ export function SubjectPerformanceList({
         <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="widget-title">
-              Performance por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'M�dulo'}
+              Performance por {groupBy === 'curso' ? 'Curso' : groupBy === 'disciplina' ? 'Disciplina' : groupBy === 'frente' ? 'Frente' : 'Módulo'}
             </h2>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
@@ -268,7 +268,7 @@ export function SubjectPerformanceList({
                       </li>
                       <li className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
-                        <span>N�o iniciada: Sem atividades conclu�das</span>
+                        <span>Não iniciada: Sem atividades concluídas</span>
                       </li>
                     </ul>
                   </div>
@@ -278,7 +278,7 @@ export function SubjectPerformanceList({
           </div>
         </div>
 
-        {/* Controles (ocupam o card inteiro como no Dom�nio Estrat�gico) */}
+        {/* Controles (ocupam o card inteiro como no Domínio Estratégico) */}
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-2 items-center mb-4 md:mb-6">
           <ToggleGroup
             type="single"
@@ -294,7 +294,7 @@ export function SubjectPerformanceList({
             <ToggleGroupItem value="curso" variant="segmented" size="sm">Curso</ToggleGroupItem>
             <ToggleGroupItem value="disciplina" variant="segmented" size="sm">Disciplina</ToggleGroupItem>
             <ToggleGroupItem value="frente" variant="segmented" size="sm">Frente</ToggleGroupItem>
-            <ToggleGroupItem value="modulo" variant="segmented" size="sm">M�dulo</ToggleGroupItem>
+            <ToggleGroupItem value="modulo" variant="segmented" size="sm">Módulo</ToggleGroupItem>
           </ToggleGroup>
 
           <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
@@ -304,7 +304,7 @@ export function SubjectPerformanceList({
             <SelectContent>
               <SelectItem value="worst-best">Pior para Melhor</SelectItem>
               <SelectItem value="best-worst">Melhor para Pior</SelectItem>
-              <SelectItem value="alphabetical">Ordem Alfab�tica</SelectItem>
+              <SelectItem value="alphabetical">Ordem Alfabética</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -351,7 +351,7 @@ export function SubjectPerformanceList({
         </div>
 
         {isLoading && (
-          <p className="text-xs text-muted-foreground mb-2">Atualizando�</p>
+          <p className="text-xs text-muted-foreground mb-2">Atualizando...</p>
         )}
 
         <div className="flex-1 min-h-0 overflow-y-auto pr-1">
@@ -371,7 +371,7 @@ export function SubjectPerformanceList({
                         <span className="inline-flex items-center gap-2 flex-wrap">
                           <span>
                             {subject.moduloNumero != null
-                              ? `M�dulo ${subject.moduloNumero} (${subject.name})`
+                              ? `Módulo ${subject.moduloNumero} (${subject.name})`
                               : subject.name}
                           </span>
                           {importanciaLabel(subject.importancia) && (
@@ -406,7 +406,7 @@ export function SubjectPerformanceList({
                     <span className="font-medium text-muted-foreground">
                       {subject.isNotStarted ? (
                         <span className="text-muted-foreground italic">
-                          N�o iniciada
+                          Não iniciada
                         </span>
                       ) : (
                         `${subject.score}%`

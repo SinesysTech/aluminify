@@ -73,7 +73,7 @@ insert into public.module_definitions (id, name, description, icon_name, default
     ('estudos', 'Estudos', 'Sala de estudos com materiais e atividades', 'BookOpen', '/sala-de-estudos', 2, false),
     ('cronograma', 'Cronograma', 'Planejamento e cronograma de estudos', 'CalendarCheck', '/cronograma', 3, false),
     ('agendamentos', 'Agendamentos', 'Sistema de agendamentos e mentorias', 'Calendar', '/agendamentos', 4, false),
-    ('tobias', 'TobIAs', 'Assistente de IA para estudos', 'MessageSquare', '/tobias', 5, false)
+    ('agente', 'Assistente', 'Assistente de IA para estudos', 'MessageSquare', '/agente', 5, false)
 on conflict (id) do nothing;
 
 -- 6. Seed default submodule definitions
