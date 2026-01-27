@@ -48,7 +48,13 @@ function mapRow(row: AIAgentRow): AIAgent {
   };
 }
 
+<<<<<<< HEAD
 function mapToSummary(row: Pick<AIAgentRow, 'id' | 'slug' | 'name' | 'avatar_url' | 'is_default'>): AIAgentSummary {
+=======
+type AIAgentSummaryRow = Pick<AIAgentRow, 'id' | 'slug' | 'name' | 'avatar_url' | 'is_default'>;
+
+function mapToSummary(row: AIAgentSummaryRow): AIAgentSummary {
+>>>>>>> bc262e8af7ab1e101494f99aebdda5c5af3d08d1
   return {
     id: row.id,
     slug: row.slug,
