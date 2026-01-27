@@ -36,12 +36,22 @@ function getServiceAdapter() {
   });
 }
 
+// Tipos de agentes disponíveis no Mastra
+type AgentId = "studentAgent" | "institutionAgent";
+
+const VALID_AGENTS: AgentId[] = ["studentAgent", "institutionAgent"];
+
+function isValidAgent(name: string): name is AgentId {
+  return VALID_AGENTS.includes(name as AgentId);
+}
+
 export const POST = async (req: NextRequest) => {
   const serviceAdapter = getServiceAdapter();
 
   // Get the agent name from query params or default to studentAgent
   const url = new URL(req.url);
-  const agentName = url.searchParams.get("agent") || "studentAgent";
+  const agentParam = url.searchParams.get("agent") || "studentAgent";
+  const agentName: AgentId = isValidAgent(agentParam) ? agentParam : "studentAgent";
 
   // Get the Mastra agent to use its instructions
   const agent = mastra.getAgent(agentName);
