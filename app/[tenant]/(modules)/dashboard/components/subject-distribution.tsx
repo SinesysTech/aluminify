@@ -84,7 +84,7 @@ export function SubjectDistribution({
     }
   }, [groupBy])
 
-  // Garantir disciplina selecionada quando necess�rio (groupBy=frente)
+  // Garantir disciplina selecionada quando necessário (groupBy=frente)
   useEffect(() => {
     let cancelled = false
     async function ensureDiscipline() {
@@ -114,7 +114,7 @@ export function SubjectDistribution({
     }
   }, [groupBy, selectedDisciplineId, selectedCourseId, period])
 
-  // Garantir frente selecionada quando necess�rio (groupBy=modulo)
+  // Garantir frente selecionada quando necessário (groupBy=modulo)
   useEffect(() => {
     let cancelled = false
     async function ensureFront() {
@@ -148,7 +148,7 @@ export function SubjectDistribution({
   useEffect(() => {
     let cancelled = false
     async function load() {
-      // N�o disparar fetch enquanto faltar escopo obrigat�rio
+      // Não disparar fetch enquanto faltar escopo obrigatório
       if ((groupBy === 'frente' && !scopeParams.scopeId) || (groupBy === 'modulo' && !scopeParams.scopeId)) {
         return
       }
@@ -245,10 +245,10 @@ export function SubjectDistribution({
           <ToggleGroupItem value="curso" variant="segmented" size="sm">Curso</ToggleGroupItem>
           <ToggleGroupItem value="disciplina" variant="segmented" size="sm">Disciplina</ToggleGroupItem>
           <ToggleGroupItem value="frente" variant="segmented" size="sm">Frente</ToggleGroupItem>
-          <ToggleGroupItem value="modulo" variant="segmented" size="sm">M�dulo</ToggleGroupItem>
+          <ToggleGroupItem value="modulo" variant="segmented" size="sm">Módulo</ToggleGroupItem>
         </ToggleGroup>
 
-        {/* Filtros dependentes (mant�m UI simples: s� aparece quando necess�rio) */}
+        {/* Filtros dependentes (mantém UI simples: só aparece quando necessário) */}
         <div className="flex flex-wrap gap-2 mb-2">
           {groupBy !== 'curso' && courses.length > 1 && (
             <Select
@@ -302,13 +302,13 @@ export function SubjectDistribution({
         </div>
 
         {isLoading && (
-          <p className="text-xs text-muted-foreground mb-2">Atualizando�</p>
+          <p className="text-xs text-muted-foreground mb-2">Atualizando...</p>
         )}
 
         {renderItems.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Sem dados suficientes no per�odo selecionado.
+              Sem dados suficientes no período selecionado.
             </p>
           </div>
         ) : (
@@ -316,7 +316,7 @@ export function SubjectDistribution({
             <div className="flex flex-1 items-center justify-center py-4">
               <div className="relative flex items-center justify-center w-48 h-48">
                 <svg className="w-full h-full" viewBox="0 0 36 36">
-                  {/* C�rculo de fundo */}
+                  {/* Círculo de fundo */}
                   <circle
                     cx="18"
                     cy="18"
@@ -326,7 +326,7 @@ export function SubjectDistribution({
                     strokeWidth="4"
                     className="text-muted"
                   />
-                  {/* Segmentos do gr�fico */}
+                  {/* Segmentos do gráfico */}
                   {itemsWithOffsets.map(({ item, offset }, index) => {
                     const dashArray = `${(item.percentage / 100) * circumference} ${circumference}`
 
