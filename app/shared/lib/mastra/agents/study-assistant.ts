@@ -52,6 +52,7 @@ export function createStudyAssistantAgent(options: CreateStudyAssistantOptions) 
 
   // Create the agent
   const agent = new Agent({
+    id: "study-assistant",
     name: agentName,
     instructions: systemPrompt,
     model: openai(model),
