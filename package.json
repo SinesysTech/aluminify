@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:all": "concurrently --kill-others-on-fail \"npm run dev\" \"npm run mastra:dev\"",
     "dev:webpack": "next dev --webpack",
     "build": "next build --turbopack",
     "start": "next start",
+    "start:all": "concurrently \"npm run start\" \"npm run mastra:start\"",
     "mastra:dev": "npx mastra dev --dir mastra",
     "mastra:build": "npx mastra build --dir mastra",
     "mastra:start": "npx mastra start",
