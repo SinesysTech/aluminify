@@ -59,7 +59,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
                 >
                   <div className="space-y-2 text-sm">
                     <p>
-                      Este indicador mostra o percentual de aulas do seu cronograma que voc� j� completou.
+                      Este indicador mostra o percentual de aulas do seu cronograma que você já completou.
                     </p>
                     <p>
                       O cálculo considera todas as aulas previstas no seu cronograma de estudos e quantas
