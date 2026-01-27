@@ -3,12 +3,12 @@ import {
   chatService,
   ChatValidationError,
   ChatServiceError,
-} from '@/app/[tenant]/(modules)/tobias/services/chat';
-import { conversationService } from '@/app/[tenant]/(modules)/tobias/services/conversation';
-import type { ChatMessage } from '@/app/[tenant]/(modules)/tobias/services/conversation';
+} from '@/app/[tenant]/(modules)/agente/services/chat';
+import { conversationService } from '@/app/[tenant]/(modules)/agente/services/conversation';
+import type { ChatMessage } from '@/app/[tenant]/(modules)/agente/services/conversation';
 import { requireAuth, AuthenticatedRequest } from '@/app/[tenant]/auth/middleware';
-import { saveChatAttachments, cleanupChatAttachments } from '@/app/[tenant]/(modules)/tobias/services/chat/attachments.service';
-import type { ChatAttachment } from '@/app/[tenant]/(modules)/tobias/services/chat/chat.types';
+import { saveChatAttachments, cleanupChatAttachments } from '@/app/[tenant]/(modules)/agente/services/chat/attachments.service';
+import type { ChatAttachment } from '@/app/[tenant]/(modules)/agente/services/chat/chat.types';
 
 export const runtime = 'nodejs';
 
