@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for Aluminify
-# Next.js (port 3000) + Mastra Studio (port 4111)
+# Next.js (port 3000)
 # Optimized for production with security best practices
 
 # Stage 1: Builder - Build the application
@@ -30,12 +30,6 @@ ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 # Superadmin
 ARG SUPERADMIN_USERNAME
 ARG SUPERADMIN_PASSWORD
-# Mastra AI
-ARG AI_MODEL_PROVIDER
-ARG GOOGLE_GENERATIVE_AI_API_KEY
-ARG OPENAI_API_KEY
-ARG LOG_LEVEL
-ARG NEXT_PUBLIC_MASTRA_URL
 
 # Set environment variables
 ENV SUPABASE_URL=$SUPABASE_URL
@@ -47,17 +41,9 @@ ENV UPSTASH_REDIS_REST_TOKEN=$UPSTASH_REDIS_REST_TOKEN
 ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 ENV SUPERADMIN_USERNAME=$SUPERADMIN_USERNAME
 ENV SUPERADMIN_PASSWORD=$SUPERADMIN_PASSWORD
-ENV AI_MODEL_PROVIDER=$AI_MODEL_PROVIDER
-ENV GOOGLE_GENERATIVE_AI_API_KEY=$GOOGLE_GENERATIVE_AI_API_KEY
-ENV OPENAI_API_KEY=$OPENAI_API_KEY
-ENV LOG_LEVEL=$LOG_LEVEL
-ENV NEXT_PUBLIC_MASTRA_URL=$NEXT_PUBLIC_MASTRA_URL
 
 # Build Next.js application
 RUN npm run build
-
-# Build Mastra with Studio UI
-RUN npx mastra build --dir mastra --studio
 
 # Stage 2: Runner - Production runtime
 FROM node:20-alpine AS runner
@@ -81,9 +67,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 
-# Copy Mastra build output
-COPY --from=builder /app/.mastra/output ./.mastra/output
-
 # Copy startup script
 COPY --from=builder /app/start.sh ./start.sh
 RUN chmod +x ./start.sh
@@ -94,12 +77,12 @@ RUN chown -R nextjs:nodejs /app
 # Switch to non-root user
 USER nextjs
 
-# Expose ports: Next.js (3000) and Mastra Studio (4111)
-EXPOSE 3000 4111
+# Expose ports: Next.js (3000)
+EXPOSE 3000
 
 # Health check for Next.js
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start both services
+# Start service
 CMD ["./start.sh"]

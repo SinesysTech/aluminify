@@ -15,7 +15,6 @@ services:
     container_name: aluminify-app-dev
     ports:
       - "3000:3000"   # Next.js
-      - "4111:4111"   # Mastra Studio (opcional no dev)
     volumes:
       # Hot-reload volumes for development
       - ./app:/app/app
@@ -26,19 +25,16 @@ services:
       - ./types:/app/types
       - ./public:/app/public
       - ./styles:/app/styles
-      - ./mastra:/app/mastra
       # Prevent overwriting node_modules
       - /app/node_modules
       - /app/.next
-      - /app/.mastra
     env_file:
       - .env.local
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
       - REDIS_URL=redis://redis:6379
-      - NEXT_PUBLIC_MASTRA_URL=http://localhost:4111
-    command: npm run dev:all
+    command: npm run dev
     depends_on:
       - redis
     networks:

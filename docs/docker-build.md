@@ -8,10 +8,10 @@ Guia para build e deploy da imagem Docker do Aluminify (Next.js + Mastra Studio)
 ┌─────────────────────────────────────────┐
 │           Container Docker              │
 │                                         │
-│  ┌─────────────┐    ┌────────────────┐  │
-│  │   Next.js   │    │ Mastra Studio  │  │
-│  │  :3000      │    │  :4111         │  │
-│  └─────────────┘    └────────────────┘  │
+│  ┌─────────────┐                        │
+│  │   Next.js   │                        │
+│  │  :3000      │                        │
+│  └─────────────┘                        │
 └─────────────────────────────────────────┘
 ```
 
@@ -20,37 +20,33 @@ Guia para build e deploy da imagem Docker do Aluminify (Next.js + Mastra Studio)
 As seguintes variáveis são necessárias no momento do **build** (ARGs):
 
 ### Supabase (Obrigatório)
-| Variável | Descrição | Obrigatório |
-|----------|-----------|-------------|
-| `SUPABASE_URL` | URL do projeto Supabase (server-side) | Sim |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase (client-side) | Sim |
-| `SUPABASE_SECRET_KEY` | Service role key do Supabase | Sim |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Chave pública do Supabase | Sim |
+
+| Variável                                       | Descrição                             | Obrigatório |
+| ---------------------------------------------- | ------------------------------------- | ----------- |
+| `SUPABASE_URL`                                 | URL do projeto Supabase (server-side) | Sim         |
+| `NEXT_PUBLIC_SUPABASE_URL`                     | URL do projeto Supabase (client-side) | Sim         |
+| `SUPABASE_SECRET_KEY`                          | Service role key do Supabase          | Sim         |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Chave pública do Supabase             | Sim         |
 
 ### Redis (Obrigatório)
-| Variável | Descrição | Obrigatório |
-|----------|-----------|-------------|
-| `UPSTASH_REDIS_REST_URL` | URL do Redis Upstash | Sim |
-| `UPSTASH_REDIS_REST_TOKEN` | Token do Redis Upstash | Sim |
+
+| Variável                   | Descrição              | Obrigatório |
+| -------------------------- | ---------------------- | ----------- |
+| `UPSTASH_REDIS_REST_URL`   | URL do Redis Upstash   | Sim         |
+| `UPSTASH_REDIS_REST_TOKEN` | Token do Redis Upstash | Sim         |
 
 ### Superadmin (Obrigatório)
-| Variável | Descrição | Obrigatório |
-|----------|-----------|-------------|
-| `SUPERADMIN_USERNAME` | Username do superadmin | Sim |
-| `SUPERADMIN_PASSWORD` | Password do superadmin | Sim |
 
-### Mastra AI (Obrigatório)
-| Variável | Descrição | Obrigatório |
-|----------|-----------|-------------|
-| `AI_MODEL_PROVIDER` | Provedor de AI: "google" ou "openai" | Sim |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | API key do Google AI (se provider=google) | Condicional |
-| `OPENAI_API_KEY` | API key da OpenAI (se provider=openai) | Condicional |
-| `LOG_LEVEL` | Nível de log: debug, info, warn, error | Não |
+| Variável              | Descrição              | Obrigatório |
+| --------------------- | ---------------------- | ----------- |
+| `SUPERADMIN_USERNAME` | Username do superadmin | Sim         |
+| `SUPERADMIN_PASSWORD` | Password do superadmin | Sim         |
 
 ### Analytics (Opcional)
-| Variável | Descrição | Obrigatório |
-|----------|-----------|-------------|
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | ID do Google Analytics | Não |
+
+| Variável                        | Descrição              | Obrigatório |
+| ------------------------------- | ---------------------- | ----------- |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | ID do Google Analytics | Não         |
 
 > As variáveis `NEXT_PUBLIC_*` são embutidas no build do Next.js e não podem ser alteradas em runtime.
 
@@ -146,12 +142,12 @@ docker-compose up -d
 
 ## URLs dos Serviços
 
-| Serviço | Porta | URL |
-|---------|-------|-----|
-| Next.js | 3000 | http://localhost:3000 |
-| Mastra Studio | 4111 | http://localhost:4111 |
-| Swagger API | 4111 | http://localhost:4111/swagger-ui |
-| Health Check | 3000 | http://localhost:3000/api/health |
+| Serviço       | Porta | URL                              |
+| ------------- | ----- | -------------------------------- |
+| Next.js       | 3000  | http://localhost:3000            |
+| Mastra Studio | 4111  | http://localhost:4111            |
+| Swagger API   | 4111  | http://localhost:4111/swagger-ui |
+| Health Check  | 3000  | http://localhost:3000/api/health |
 
 ## Comandos Úteis
 
@@ -183,6 +179,7 @@ O Dockerfile usa multi-stage build:
 2. **Stage runner**: Imagem final otimizada para produção
 
 Arquivos copiados para a imagem final:
+
 - `.next/` - Build do Next.js
 - `.mastra/output/` - Build do Mastra com Studio
 - `node_modules/` - Dependências de produção

@@ -59,31 +59,36 @@ N8N_WEBHOOK_URL=https://seu-webhook.n8n.cloud
 # Next.js
 NODE_ENV=production
 PORT=3000
+# Next.js
+NODE_ENV=production
+PORT=3000
 HOSTNAME=0.0.0.0
 ```
 
 ### Variáveis Importantes
 
-| Variável | Descrição | Obrigatória |
-|----------|-----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase | ✅ |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Chave pública do Supabase | ✅ |
-| `SUPABASE_SECRET_KEY` | Chave secreta do Supabase | ✅ |
-| `UPSTASH_REDIS_REST_URL` | URL do Redis | ✅ |
-| `N8N_WEBHOOK_URL` | URL do webhook N8N | ❌ |
-| `NODE_ENV` | Ambiente de execução | ✅ |
+| Variável                                       | Descrição                 | Obrigatória |
+| ---------------------------------------------- | ------------------------- | ----------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                     | URL do projeto Supabase   | ✅          |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Chave pública do Supabase | ✅          |
+| `SUPABASE_SECRET_KEY`                          | Chave secreta do Supabase | ✅          |
+| `UPSTASH_REDIS_REST_URL`                       | URL do Redis              | ✅          |
+| `N8N_WEBHOOK_URL`                              | URL do webhook N8N        | ❌          |
+| `NODE_ENV`                                     | Ambiente de execução      | ✅          |
 
 ## Build da Imagem
 
 ### Método 1: Script Automatizado (Recomendado)
 
 **Linux/Mac:**
+
 ```bash
 chmod +x scripts/docker-build.sh
 ./scripts/docker-build.sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 .\scripts\docker-build.ps1
 ```
@@ -114,12 +119,14 @@ DOCKER_BUILD=true docker build --build-arg DOCKER_BUILD=true -t sinesystec/alumi
 ### Método 1: Script Automatizado (Recomendado)
 
 **Linux/Mac:**
+
 ```bash
 chmod +x scripts/docker-run.sh
 ./scripts/docker-run.sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 .\scripts\docker-run.ps1
 ```
@@ -138,6 +145,7 @@ docker run -d \
 ### Acessar a Aplicação
 
 Após iniciar o container, acesse:
+
 - **URL**: http://localhost:3000
 
 ### Comandos Úteis
@@ -167,30 +175,36 @@ docker exec -it aluminify-app sh
 ### Desenvolvimento
 
 O `docker-compose.yml` inclui:
+
 - Aplicação Next.js com hot-reload
 - Redis local para cache
 
 **Iniciar:**
+
 ```bash
 docker-compose up
 ```
 
 **Iniciar em background:**
+
 ```bash
 docker-compose up -d
 ```
 
 **Ver logs:**
+
 ```bash
 docker-compose logs -f app
 ```
 
 **Parar:**
+
 ```bash
 docker-compose down
 ```
 
 **Rebuild e iniciar:**
+
 ```bash
 docker-compose up --build
 ```
@@ -198,27 +212,32 @@ docker-compose up --build
 ### Produção
 
 O `docker-compose.prod.yml` inclui:
+
 - Build otimizado para produção
 - Resource limits (CPU, memória)
 - Logging configurado
 - Restart automático
 
 **Iniciar:**
+
 ```bash
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 **Ver logs:**
+
 ```bash
 docker-compose -f docker-compose.prod.yml logs -f app
 ```
 
 **Parar:**
+
 ```bash
 docker-compose -f docker-compose.prod.yml down
 ```
 
 **Atualizar:**
+
 ```bash
 docker-compose -f docker-compose.prod.yml pull
 docker-compose -f docker-compose.prod.yml up -d
@@ -234,16 +253,19 @@ docker-compose -f docker-compose.prod.yml up -d
    - Use secrets para dados sensíveis
 
 2. **Build otimizado:**
+
 ```bash
 DOCKER_BUILD=true docker build -t sinesystec/aluminify:prod .
 ```
 
 3. **Tag para registry:**
+
 ```bash
 docker tag sinesystec/aluminify:prod sinesystec/aluminify:v1.0.0
 ```
 
 4. **Push para registry:**
+
 ```bash
 docker push sinesystec/aluminify:v1.0.0
 ```
@@ -251,6 +273,7 @@ docker push sinesystec/aluminify:v1.0.0
 ### Health Check
 
 A imagem inclui health check automático que verifica:
+
 - Endpoint: `http://localhost:3000/api/health`
 - Intervalo: 30 segundos
 - Timeout: 10 segundos
@@ -264,10 +287,12 @@ A imagem inclui health check automático que verifica:
 O `docker-compose.prod.yml` define:
 
 **App:**
+
 - CPU: 1-2 cores
 - Memória: 1-2 GB
 
 **Redis:**
+
 - CPU: 0.25-0.5 cores
 - Memória: 256-512 MB
 
@@ -278,18 +303,20 @@ Ajuste conforme necessário para seu ambiente.
 ### Problema: Container não inicia
 
 **Solução:**
+
 ```bash
 # Ver logs detalhados
 docker logs aluminify-app
 
-# Verificar se a porta está em uso
-netstat -ano | findstr :3000  # Windows
+# Verificar# Expose ports: Next.js (3000)
+EXPOSE 3000 # Windows
 lsof -i :3000                 # Linux/Mac
 ```
 
 ### Problema: Erro de conexão com Supabase
 
 **Solução:**
+
 - Verifique as variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY`
 - Confirme que as URLs estão corretas
 - Teste a conexão manualmente
@@ -297,6 +324,7 @@ lsof -i :3000                 # Linux/Mac
 ### Problema: Redis não conecta
 
 **Solução:**
+
 ```bash
 # Verificar se o Redis está rodando
 docker-compose ps redis
@@ -311,6 +339,7 @@ docker exec -it aluminify-redis-dev redis-cli ping
 ### Problema: Build falha
 
 **Solução:**
+
 ```bash
 # Limpar cache do Docker
 docker builder prune -a
@@ -322,6 +351,7 @@ docker build --no-cache -t aluminify:latest .
 ### Problema: Hot-reload não funciona
 
 **Solução:**
+
 - Certifique-se de estar usando `docker-compose.yml` (não o `.prod.yml`)
 - Verifique se os volumes estão montados corretamente
 - No Windows, pode ser necessário habilitar WSL 2
@@ -344,6 +374,7 @@ docker build --no-cache -t aluminify:latest .
    - Aproveite o cache do Docker
 
 2. **Build paralelo:**
+
    ```bash
    docker buildx build --platform linux/amd64,linux/arm64 .
    ```
@@ -367,6 +398,7 @@ docker build --no-cache -t aluminify:latest .
 ### AWS ECS (Elastic Container Service)
 
 1. **Push para ECR:**
+
 ```bash
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin seu-account.dkr.ecr.us-east-1.amazonaws.com
 docker tag aluminify:latest seu-account.dkr.ecr.us-east-1.amazonaws.com/aluminify:latest
@@ -468,6 +500,7 @@ docker system prune -a
 ## Suporte
 
 Para mais informações, consulte:
+
 - [Documentação do Next.js](https://nextjs.org/docs)
 - [Documentação do Docker](https://docs.docker.com/)
 - [Documentação do Supabase](https://supabase.com/docs)
