@@ -9,7 +9,7 @@
  */
 
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import type { Action } from "@copilotkit/shared";
+import type { Action, Parameter } from "@copilotkit/shared";
 
 export interface ActionContext {
   userId: string;
@@ -20,7 +20,9 @@ export interface ActionContext {
 /**
  * Creates the CopilotKit actions array with the given user context
  */
-export function createCopilotKitActions(context: ActionContext): Action[] {
+export function createCopilotKitActions(
+  context: ActionContext,
+): (Action<Parameter[]> | Action<[]>)[] {
   const { userId, empresaId, userRole } = context;
 
   return [
@@ -67,13 +69,7 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
           required: false,
         },
       ],
-      handler: async ({
-        searchTerm,
-        limit = 10,
-      }: {
-        searchTerm?: string;
-        limit?: number;
-      }) => {
+      handler: async ({ searchTerm, limit = 10 }: any) => {
         const client = getDatabaseClient();
 
         let query = client
@@ -129,7 +125,7 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
           required: false,
         },
       ],
-      handler: async ({ studentId }: { studentId?: string }) => {
+      handler: async ({ studentId }: any) => {
         // Determine which student to query
         let targetStudentId = studentId;
 
@@ -239,13 +235,7 @@ export function createCopilotKitActions(context: ActionContext): Action[] {
           required: false,
         },
       ],
-      handler: async ({
-        searchTerm,
-        limit = 10,
-      }: {
-        searchTerm: string;
-        limit?: number;
-      }) => {
+      handler: async ({ searchTerm, limit = 10 }: any) => {
         // Permission check: only usuarios and superadmin can search students
         if (userRole === "aluno") {
           throw new Error("Apenas administradores podem buscar alunos.");
