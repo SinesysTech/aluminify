@@ -101,20 +101,12 @@ export function TenantBrandingProvider({ children, user, overrideEmpresaId }: Te
 
   const loadBrandingData = useCallback(async (empresaId: string): Promise<CompleteBrandingConfig | null> => {
     try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const headers: HeadersInit = {};
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-
-      const response = await fetch(`/api/empresa/personalizacao/${empresaId}`, {
-        headers
-      });
+      // Use the public endpoint for reading branding (doesn't require admin access)
+      const response = await fetch(`/api/empresa/personalizacao/${empresaId}/public`);
       if (response.ok) {
-        const branding: CompleteBrandingConfig = await response.json();
-        return branding;
+        const result = await response.json();
+        // The public endpoint returns { success: true, data: branding }
+        return result.data || null;
       } else if (response.status === 404) {
         // No custom branding found - this is not an error
         return null;
