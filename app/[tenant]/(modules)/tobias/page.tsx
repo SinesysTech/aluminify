@@ -1,27 +1,16 @@
 'use client'
 
 import React from 'react'
-
 import { useEffect, useState, useRef, useCallback } from 'react'
 import type { ChangeEvent } from 'react'
 import { createClient } from '@/app/shared/core/client'
-import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from '@/app/shared/components/ui/ai/conversation'
-import { Message, MessageContent, MessageAvatar } from '@/app/shared/components/ui/ai/message'
-import { Response } from '@/app/shared/components/ui/ai/response'
-import {
-  PromptInput,
-  PromptInputTextarea,
-  PromptInputToolbar,
-  PromptInputSubmit,
-} from '@/app/shared/components/ui/ai/prompt-input'
-import { Loader } from '@/app/shared/components/ui/ai/loader'
 import { ConversationsPanel } from './components/conversations-panel'
 import { Button } from '@/components/ui/button'
-import { MessageSquare, Paperclip, X } from 'lucide-react'
+import { Textarea } from '@/app/shared/components/forms/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { MessageSquare, Paperclip, X, ArrowUp, Loader2, ChevronDown } from 'lucide-react'
+import { cn } from '@/shared/library/utils'
 import type { Conversation as ConversationType } from '@/app/[tenant]/(modules)/tobias/services/conversation/conversation.types'
 
 interface ChatMessage {
@@ -43,14 +32,27 @@ export default function TobIAsPage() {
   const [conversationsPanelOpen, setConversationsPanelOpen] = useState(true)
   const [attachments, setAttachments] = useState<File[]>([])
   const [isNewConversation, setIsNewConversation] = useState(false)
+  const [showScrollButton, setShowScrollButton] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const ATTACHMENT_LIMITS = {
     allowedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf'],
     maxFileSizeMb: 5,
     maxTotalSizeMb: 15,
   }
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement
+    const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100
+    setShowScrollButton(!isNearBottom)
+  }, [])
 
   // Função para carregar conversa
   const loadConversation = useCallback(async (conversation: ConversationType, isNew = false) => {
@@ -410,6 +412,9 @@ export default function TobIAsPage() {
     setIsLoading(true)
     setError(null)
 
+    // Scroll to bottom after adding user message
+    setTimeout(scrollToBottom, 100)
+
     try {
       const supabase = createClient()
 
@@ -494,6 +499,9 @@ export default function TobIAsPage() {
       // Após enviar a primeira mensagem, marcar que não é mais uma nova conversa
       setIsNewConversation(false)
 
+      // Scroll to bottom after receiving response
+      setTimeout(scrollToBottom, 100)
+
       // Recarregar conversa para ter os dados atualizados
       if (currentConversation) {
         await handleConversationUpdated()
@@ -523,10 +531,20 @@ export default function TobIAsPage() {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      const form = e.currentTarget.form
+      if (form) {
+        form.requestSubmit()
+      }
+    }
+  }
+
   if (isInitializing) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -566,60 +584,74 @@ export default function TobIAsPage() {
 
         {/* Área do chat - full width em mobile quando painel fechado */}
         <div className="relative flex flex-1 flex-col min-h-0">
-          <Conversation>
-            <ConversationContent>
+          {/* Messages area */}
+          <ScrollArea
+            className="flex-1 p-4"
+            ref={scrollAreaRef}
+            onScrollCapture={handleScroll}
+          >
+            <div className="flex flex-col gap-4">
               {messages.length === 0 && (
-                <Message from="assistant">
-                  <MessageAvatar
-                    src="/tobiasavatar.png"
-                    name="TobIAs"
-                    className="mr-2"
-                  />
-                  <MessageContent>
-                    <Response>
+                <div className="group flex w-full items-end gap-2 py-4 justify-start">
+                  <Avatar className="ring-1 ring-border size-10 mr-2">
+                    <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
+                    <AvatarFallback>TO</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm bg-secondary max-w-[80%]">
+                    <div className="whitespace-pre-wrap">
                       {`Olá! Eu sou @ TobIAs, responsável pela monitoria do curso CDF.\n\nComo posso ajudá-lo hoje?`}
-                    </Response>
-                  </MessageContent>
-                </Message>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {messages.map((message) => (
-                <Message key={message.id} from={message.role}>
-                  {message.role === 'assistant' && (
-                    <MessageAvatar
-                      src="/tobiasavatar.png"
-                      name="TobIAs"
-                      className="mr-2"
-                    />
+                <div
+                  key={message.id}
+                  className={cn(
+                    'group flex w-full items-end gap-2 py-2',
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
-                  <MessageContent>
+                >
+                  {message.role === 'assistant' && (
+                    <Avatar className="ring-1 ring-border size-10 mr-2">
+                      <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
+                      <AvatarFallback>TO</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={cn(
+                      'flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-sm max-w-[80%]',
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-foreground'
+                    )}
+                  >
                     {message.role === 'user' ? (
                       renderUserMessage(message.content)
                     ) : (
-                      <Response>{message.content}</Response>
+                      <div className="whitespace-pre-wrap">{message.content}</div>
                     )}
-                  </MessageContent>
+                  </div>
                   {message.role === 'user' && (
-                    <MessageAvatar
-                      src=""
-                      name="Você"
-                      className="ml-2"
-                    />
+                    <Avatar className="ring-1 ring-border size-8 ml-2">
+                      <AvatarImage alt="Você" src="" />
+                      <AvatarFallback>VO</AvatarFallback>
+                    </Avatar>
                   )}
-                </Message>
+                </div>
               ))}
 
               {isLoading && (
-                <Message from="assistant">
-                  <MessageAvatar
-                    src=""
-                    name="TobIAs"
-                    className="mr-2"
-                  />
-                  <MessageContent>
-                    <Loader />
-                  </MessageContent>
-                </Message>
+                <div className="group flex w-full items-end gap-2 py-2 justify-start">
+                  <Avatar className="ring-1 ring-border size-10 mr-2">
+                    <AvatarImage alt="TobIAs" src="/tobiasavatar.png" />
+                    <AvatarFallback>TO</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2 overflow-hidden rounded-lg px-4 py-3 text-foreground text-sm bg-secondary">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  </div>
+                </div>
               )}
 
               {error && (
@@ -628,9 +660,22 @@ export default function TobIAsPage() {
                   <p className="text-sm">{error}</p>
                 </div>
               )}
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
+
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Scroll to bottom button */}
+          {showScrollButton && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute bottom-24 right-4 rounded-full shadow-md"
+              onClick={scrollToBottom}
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          )}
 
           <div className="bg-background p-2 md:p-4 sticky bottom-0">
             <div className="space-y-2">
@@ -655,14 +700,19 @@ export default function TobIAsPage() {
                 </div>
               )}
 
-              <PromptInput onSubmit={handleSubmit}>
-                <PromptInputTextarea
+              <form
+                onSubmit={handleSubmit}
+                className="w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm"
+              >
+                <Textarea
                   ref={inputRef}
+                  name="message"
                   placeholder="Digite sua mensagem..."
                   disabled={isLoading || !userId}
-                  className="min-h-11 text-sm md:text-base"
+                  onKeyDown={handleKeyDown}
+                  className="w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0 field-sizing-content max-h-[6lh] bg-transparent dark:bg-transparent focus-visible:ring-0 min-h-11 text-sm md:text-base"
                 />
-                <PromptInputToolbar>
+                <div className="flex items-center justify-between p-1">
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
@@ -682,12 +732,20 @@ export default function TobIAsPage() {
                     <Paperclip className="h-4 w-4" />
                     <span className="sr-only">Adicionar anexos</span>
                   </Button>
-                  <PromptInputSubmit
+                  <Button
+                    type="submit"
                     disabled={isLoading || !userId}
-                    className="h-8 w-8"
-                  />
-                </PromptInputToolbar>
-              </PromptInput>
+                    className="h-8 w-8 gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 p-0"
+                    size="icon"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <ArrowUp className="size-3.5" />
+                    )}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
