@@ -71,18 +71,51 @@ export async function identifyUserRoleAction(
 
     // Persistir o role detectado no metadata para que guards/redirects (lib/auth.ts) fiquem consistentes.
     // Importante: só o server atualiza isso (admin API), o cliente não define role.
-    try {
-      await adminClient.auth.admin.updateUserById(user.id, {
-        user_metadata: {
+    // CRITICAL: Only update if we have valid role details to avoid overwriting correct data with fallback
+    const currentRole = user.user_metadata?.role;
+    const hasValidRoleDetails = roleDetails && roleDetails.length > 0;
+    const firstRoleDetail = roleDetails?.[0];
+
+    // Only update metadata if:
+    // 1. We have valid role details (not just fallback)
+    // 2. Or the current role is not set
+    const shouldUpdateRole = hasValidRoleDetails || !currentRole;
+
+    if (shouldUpdateRole) {
+      try {
+        // Preserve existing metadata and merge with new values
+        const existingMetadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+        const updatedMetadata: Record<string, unknown> = {
+          ...existingMetadata,
           role: primaryRole,
-        },
-      });
-    } catch (persistError) {
-      console.warn(
-        "[identifyUserRoleAction] Falha ao persistir role no metadata:",
-        persistError,
-      );
-      // Não bloquear login por falha de persistência
+        };
+
+        // Add empresaSlug and roleType if available from role details
+        if (firstRoleDetail) {
+          if (firstRoleDetail.empresaSlug) {
+            updatedMetadata.empresa_slug = firstRoleDetail.empresaSlug;
+          }
+          if (firstRoleDetail.empresaId) {
+            updatedMetadata.empresa_id = firstRoleDetail.empresaId;
+          }
+          if (firstRoleDetail.roleType) {
+            updatedMetadata.role_type = firstRoleDetail.roleType;
+          }
+          if (firstRoleDetail.isAdmin !== undefined) {
+            updatedMetadata.is_admin = firstRoleDetail.isAdmin;
+          }
+        }
+
+        await adminClient.auth.admin.updateUserById(user.id, {
+          user_metadata: updatedMetadata,
+        });
+      } catch (persistError) {
+        console.warn(
+          "[identifyUserRoleAction] Falha ao persistir role no metadata:",
+          persistError,
+        );
+        // Não bloquear login por falha de persistência
+      }
     }
 
     return { success: true, redirectUrl };

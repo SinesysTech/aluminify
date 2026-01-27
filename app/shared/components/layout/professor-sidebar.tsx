@@ -6,6 +6,7 @@ import {
   FolderOpen,
   Users,
   LayoutDashboard,
+  UserCog,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -45,6 +46,11 @@ const professorNavItems: NavItem[] = [
     title: "Alunos",
     url: "/usuario/alunos",
     icon: Users,
+  },
+  {
+    title: "Usuarios",
+    url: "/usuario/equipe",
+    icon: UserCog,
   },
   {
     title: "Cursos",

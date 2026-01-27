@@ -143,6 +143,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 2.2 Também criar registro em `usuarios` para consistência com UserRoleIdentifierService
+    // Buscar papel_id para professor_admin
+    const { data: papelAdmin } = await adminClient
+      .from("papeis")
+      .select("id")
+      .eq("tipo", "professor_admin")
+      .eq("is_system", true)
+      .maybeSingle();
+
+    if (papelAdmin?.id) {
+      const { error: insertUsuarioError } = await adminClient
+        .from("usuarios")
+        .upsert({
+          id: newUser.user.id,
+          email: newUser.user.email || email,
+          nome_completo: fullName,
+          empresa_id: empresa.id,
+          papel_id: papelAdmin.id,
+          ativo: true,
+        });
+
+      if (insertUsuarioError) {
+        console.error("Error creating usuario record:", insertUsuarioError);
+        // Don't fail - professor record is already created and that's sufficient
+      }
+    }
+
     // 3. Inserir em empresa_admins como owner
     const { error: adminError } = await adminClient
       .from("empresa_admins")

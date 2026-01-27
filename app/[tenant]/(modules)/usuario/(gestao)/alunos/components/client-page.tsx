@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Plus, Upload, UserPlus, Download, ChevronDown } from 'lucide-react'
 import { Student } from '@/app/shared/types/entities/user'
 import { StudentFilters } from './student-filters'
@@ -56,6 +56,11 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
     const [importReportOpen, setImportReportOpen] = useState(false)
     const [importIssues, setImportIssues] = useState<ImportIssueRow[]>([])
     const [importSummaryText, setImportSummaryText] = useState<string>('')
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const isDatabaseEmpty = totalAll === 0
 
@@ -303,25 +308,33 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="h-9 px-4 rounded-md border border-[#E4E4E7] bg-white text-sm font-medium hover:bg-zinc-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2 text-zinc-900">
-                                        <Upload className="w-5 h-5" strokeWidth={1.5} />
-                                        Importar
-                                        <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
-                                    </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={handleDownloadTemplate} disabled={isDownloading}>
-                                        <Download className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                                        {isDownloading ? 'Baixando...' : 'Baixar Modelo'}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={handlePickImportFile} disabled={isImporting}>
-                                        <Upload className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                                        {isImporting ? 'Importando...' : 'Importar Planilha'}
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            {mounted ? (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="h-9 px-4 rounded-md border border-[#E4E4E7] bg-white text-sm font-medium hover:bg-zinc-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2 text-zinc-900">
+                                            <Upload className="w-5 h-5" strokeWidth={1.5} />
+                                            Importar
+                                            <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={handleDownloadTemplate} disabled={isDownloading}>
+                                            <Download className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                                            {isDownloading ? 'Baixando...' : 'Baixar Modelo'}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handlePickImportFile} disabled={isImporting}>
+                                            <Upload className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                                            {isImporting ? 'Importando...' : 'Importar Planilha'}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            ) : (
+                                <button className="h-9 px-4 rounded-md border border-[#E4E4E7] bg-white text-sm font-medium hover:bg-zinc-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2 text-zinc-900" disabled>
+                                    <Upload className="w-5 h-5" strokeWidth={1.5} />
+                                    Importar
+                                    <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
+                                </button>
+                            )}
                             <button
                                 onClick={() => setIsSheetOpen(true)}
                                 className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"

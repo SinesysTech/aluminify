@@ -6,8 +6,10 @@
     },
     "mastra": {
       "type": "stdio",
-      "command": "npx",
+      "command": "cmd",
       "args": [
+        "/c",
+        "npx",
         "-y",
         "@mastra/mcp-docs-server@latest"
       ],

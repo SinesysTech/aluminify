@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import { UserProvider } from '@/components/providers/user-provider'
 import { TenantBrandingProvider } from '@/components/providers/tenant-branding-provider'
 import { StudentOrganizationsProvider } from '@/components/providers/student-organizations-provider'
+import { ModuleVisibilityProvider } from '@/components/providers/module-visibility-provider'
 import { BottomNavigation } from '@/components/layout/bottom-navigation'
 import { ImpersonationBanner } from '@/components/layout/impersonation-banner'
 import {
@@ -40,6 +41,10 @@ export async function DashboardLayout({
         <UserProvider user={user}>
             <TenantBrandingProvider user={user}>
                 <StudentOrganizationsProvider user={user}>
+                    <ModuleVisibilityProvider
+                        empresaId={user.empresaId || null}
+                        userRole={user.role}
+                    >
                     <StudentBrandingCoordinator />
                     <SidebarProvider
                         // 3. Aplicação das variáveis de fonte e classes base no Provider
@@ -60,6 +65,7 @@ export async function DashboardLayout({
                             <BottomNavigation />
                         </SidebarInset>
                     </SidebarProvider>
+                    </ModuleVisibilityProvider>
                 </StudentOrganizationsProvider>
             </TenantBrandingProvider>
         </UserProvider>

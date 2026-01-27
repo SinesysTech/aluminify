@@ -48,6 +48,7 @@ export class UserRoleIdentifierService {
     }
 
     // Check for usuario role (institution staff)
+    // First check in 'usuarios' table (new structure)
     const usuarioRoles = await this.checkUsuarioRoles(
       userId,
       empresaId,
@@ -58,6 +59,23 @@ export class UserRoleIdentifierService {
       empresaIdsSet.add(role.empresaId);
       if (includeDetails) {
         roleDetails.push(role);
+      }
+    }
+
+    // Also check in 'professores' table (legacy structure used by trigger)
+    // This is needed because handle_new_user trigger inserts into professores
+    if (!usuarioRoles.length) {
+      const professorRoles = await this.checkProfessorRoles(
+        userId,
+        empresaId,
+        userEmail,
+      );
+      for (const role of professorRoles) {
+        rolesSet.add("usuario");
+        empresaIdsSet.add(role.empresaId);
+        if (includeDetails) {
+          roleDetails.push(role);
+        }
       }
     }
 
@@ -314,6 +332,111 @@ export class UserRoleIdentifierService {
   }
 
   /**
+   * Check for professor roles in the 'professores' table (legacy structure).
+   * The handle_new_user trigger inserts into this table when role is 'professor' or 'usuario'.
+   */
+  private async checkProfessorRoles(
+    userId: string,
+    empresaId?: string,
+    email?: string | null,
+  ): Promise<UserRoleDetail[]> {
+    let query = this.client
+      .from("professores")
+      .select(
+        `
+        id,
+        empresa_id,
+        is_admin,
+        empresas!inner (
+          id,
+          nome,
+          slug
+        )
+      `,
+      )
+      .eq("id", userId)
+      .not("empresa_id", "is", null);
+
+    if (empresaId) {
+      query = query.eq("empresa_id", empresaId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(
+        "[UserRoleIdentifier] Error checking professor roles:",
+        error,
+      );
+    }
+
+    type ProfessorQueryRow = {
+      id: string;
+      empresa_id: string;
+      is_admin: boolean;
+      empresas:
+        | { id: string; nome: string; slug: string }
+        | { id: string; nome: string; slug: string }[];
+    };
+
+    const rows = (data || []) as ProfessorQueryRow[];
+
+    // Fallback by email if no results by id
+    if (!rows.length && email) {
+      let emailQuery = this.client
+        .from("professores")
+        .select(
+          `
+          id,
+          empresa_id,
+          is_admin,
+          empresas!inner (
+            id,
+            nome,
+            slug
+          )
+        `,
+        )
+        .eq("email", email)
+        .not("empresa_id", "is", null);
+
+      if (empresaId) {
+        emailQuery = emailQuery.eq("empresa_id", empresaId);
+      }
+
+      const { data: emailData, error: emailError } = await emailQuery;
+      if (emailError) {
+        console.error(
+          "[UserRoleIdentifier] Error checking professor roles by email:",
+          emailError,
+        );
+      } else {
+        rows.push(...((emailData || []) as ProfessorQueryRow[]));
+      }
+    }
+
+    return rows.map((row) => {
+      const empresa = Array.isArray(row.empresas)
+        ? row.empresas[0]
+        : row.empresas;
+
+      // Professors from legacy table are treated as 'usuario' role
+      // with roleType based on is_admin flag
+      const roleType: RoleTipo = row.is_admin ? "professor_admin" : "professor";
+
+      return {
+        role: "usuario" as const,
+        empresaId: row.empresa_id,
+        empresaNome: empresa.nome,
+        empresaSlug: empresa.slug,
+        isAdmin: row.is_admin,
+        roleType,
+        permissions: {} as RolePermissions,
+      };
+    });
+  }
+
+  /**
    * Verifica se existe cadastro de aluno (tabela alunos) para este usuário.
    * Importante: isso não garante vínculo com cursos/empresa (detalhes vêm via alunos_cursos).
    */
@@ -360,12 +483,70 @@ export class UserRoleIdentifierService {
   }
 
   /**
-   * Detalhes de aluno por empresa, via vínculo em cursos (alunos_cursos -> cursos -> empresas).
+   * Detalhes de aluno por empresa.
+   * First checks directly in 'alunos' table (which has empresa_id),
+   * then falls back to alunos_cursos -> cursos -> empresas for legacy data.
    */
   private async checkAlunoRoleDetails(
     userId: string,
     empresaId?: string,
   ): Promise<UserRoleDetail[]> {
+    const empresaMap = new Map<string, UserRoleDetail>();
+
+    // First, check directly in alunos table (new structure with empresa_id)
+    let alunoQuery = this.client
+      .from("alunos")
+      .select(
+        `
+        id,
+        empresa_id,
+        empresas!inner (
+          id,
+          nome,
+          slug
+        )
+      `,
+      )
+      .eq("id", userId)
+      .not("empresa_id", "is", null);
+
+    if (empresaId) {
+      alunoQuery = alunoQuery.eq("empresa_id", empresaId);
+    }
+
+    const { data: alunoData, error: alunoError } = await alunoQuery;
+
+    if (alunoError) {
+      console.error(
+        "[UserRoleIdentifier] Error checking aluno direct empresa:",
+        alunoError,
+      );
+    }
+
+    type AlunoQueryRow = {
+      id: string;
+      empresa_id: string;
+      empresas:
+        | { id: string; nome: string; slug: string }
+        | { id: string; nome: string; slug: string }[];
+    };
+
+    for (const row of (alunoData || []) as AlunoQueryRow[]) {
+      const empresa = Array.isArray(row.empresas)
+        ? row.empresas[0]
+        : row.empresas;
+
+      if (!empresaMap.has(row.empresa_id)) {
+        empresaMap.set(row.empresa_id, {
+          role: "aluno" as const,
+          empresaId: row.empresa_id,
+          empresaNome: empresa.nome,
+          empresaSlug: empresa.slug,
+        });
+      }
+    }
+
+    // Also check via alunos_cursos -> cursos -> empresas (legacy structure)
     const query = this.client
       .from("alunos_cursos")
       .select(
@@ -387,13 +568,10 @@ export class UserRoleIdentifierService {
 
     if (error) {
       console.error(
-        "[UserRoleIdentifier] Error checking aluno role details:",
+        "[UserRoleIdentifier] Error checking aluno role details via cursos:",
         error,
       );
-      return [];
     }
-
-    const empresaMap = new Map<string, UserRoleDetail>();
 
     for (const row of data || []) {
       const cursoRaw = row.cursos as unknown as {

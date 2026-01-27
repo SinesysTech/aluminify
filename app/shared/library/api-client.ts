@@ -40,7 +40,7 @@ async function apiRequest<T>(
   const token = await getAuthToken()
   
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
     ...(options.headers as Record<string, string>),
   }
 
