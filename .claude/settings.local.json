@@ -97,7 +97,8 @@
       "Bash(npm outdated:*)",
       "Bash(npm show:*)",
       "WebSearch",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:mastra.ai)"
     ],
     "deny": [],
     "ask": []
