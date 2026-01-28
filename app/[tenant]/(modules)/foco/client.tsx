@@ -86,10 +86,6 @@ export default function FocoClient() {
     const [presence, setPresence] = useState<PresenceCounter>({ count: 1, channel: 'geral' })
     const [erro, setErro] = useState<string | null>(null)
 
-    // Stats State (for header display - would come from API in production)
-    const [streak, _setStreak] = useState(0)
-    const [todayMinutes, _setTodayMinutes] = useState(0)
-
     // -- Effects: Data Loading --
 
     // Restore context from localStorage (when URL doesn't specify it)
@@ -450,13 +446,8 @@ export default function FocoClient() {
                 />
             )}
 
-            <div className="space-y-6 container py-6 mx-auto max-w-3xl" aria-hidden={isCleanView}>
-                <FocusHeader
-                    presenceCount={presence.count}
-                    streak={streak}
-                    todayMinutes={todayMinutes}
-                    dailyGoal={120}
-                />
+            <div className="space-y-3 container py-3 md:py-4 mx-auto max-w-3xl" aria-hidden={isCleanView}>
+                <FocusHeader presenceCount={presence.count} />
 
                 {erro && (
                     <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm flex items-center gap-2">

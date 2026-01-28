@@ -359,7 +359,7 @@ export function LogoUploadComponent({
             </div>
           </div>
           {previewUrl && !selectedFile && (
-            <Badge variant="secondary" className="bg-green-500/10 text-green-700 border-green-500/20">
+            <Badge variant="success">
               Ativo
             </Badge>
           )}

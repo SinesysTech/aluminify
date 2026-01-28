@@ -19,7 +19,17 @@ const badgeVariants = cva(
           "border border-green-400 bg-green-50 text-green-800 [a&]:hover:bg-green-500/90 focus-visible:ring-green-500/20 dark:focus-visible:ring-green-500/40 dark:bg-green-900/70 dark:text-green-100",
         destructive:
           "border border-red-400 bg-red-50 text-red-800 [a&]:hover:bg-red-500/90 focus-visible:ring-red-500/20 dark:focus-visible:ring-red-500/40 dark:bg-red-900/70 dark:text-red-100",
-        outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground"
+        outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+
+        // Importance levels - Solid badges with white text
+        "importance-base":
+          "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600 focus-visible:ring-blue-500/20 dark:focus-visible:ring-blue-500/40",
+        "importance-high":
+          "border-transparent bg-red-500 text-white [a&]:hover:bg-red-600 focus-visible:ring-red-500/20 dark:focus-visible:ring-red-500/40",
+        "importance-medium":
+          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber-600 focus-visible:ring-amber-500/20 dark:focus-visible:ring-amber-500/40",
+        "importance-low":
+          "border-transparent bg-emerald-500 text-white [a&]:hover:bg-emerald-600 focus-visible:ring-emerald-500/20 dark:focus-visible:ring-emerald-500/40"
       }
     },
     defaultVariants: {

@@ -51,13 +51,13 @@ interface UserManagementProps {
   empresaId: string
 }
 
-// Mapeamento de tipos de papel para labels e ícones
+// Mapeamento de tipos de papel para labels e ícones - cores sólidas com texto branco
 const ROLE_CONFIG: Record<RoleTipo, { label: string; icon: React.ElementType; color: string }> = {
-  professor: { label: 'Professor', icon: GraduationCap, color: 'text-blue-500 bg-blue-500/10' },
-  professor_admin: { label: 'Professor Admin', icon: GraduationCap, color: 'text-purple-500 bg-purple-500/10' },
-  staff: { label: 'Staff', icon: Briefcase, color: 'text-green-500 bg-green-500/10' },
-  admin: { label: 'Administrador', icon: Shield, color: 'text-amber-500 bg-amber-500/10' },
-  monitor: { label: 'Monitor', icon: BookOpen, color: 'text-cyan-500 bg-cyan-500/10' },
+  professor: { label: 'Professor', icon: GraduationCap, color: 'bg-blue-500 text-white' },
+  professor_admin: { label: 'Professor Admin', icon: GraduationCap, color: 'bg-purple-500 text-white' },
+  staff: { label: 'Staff', icon: Briefcase, color: 'bg-emerald-500 text-white' },
+  admin: { label: 'Administrador', icon: Shield, color: 'bg-amber-500 text-white' },
+  monitor: { label: 'Monitor', icon: BookOpen, color: 'bg-cyan-500 text-white' },
 }
 
 export function UserManagement({ empresaId }: UserManagementProps) {
