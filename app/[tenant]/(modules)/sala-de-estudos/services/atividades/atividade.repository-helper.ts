@@ -98,6 +98,17 @@ export async function listByAlunoMatriculasHelper(
   }
 
   const cursoIds = filteredCursos.map((ac) => ac.curso_id);
+  const allowedEmpresaIds = [
+    ...new Set(
+      filteredCursos
+        .map((ac) => {
+          const c = ac.cursos;
+          const curso = Array.isArray(c) ? c[0] : c;
+          return curso?.empresa_id ?? null;
+        })
+        .filter((v): v is string => typeof v === "string" && v.length > 0),
+    ),
+  ];
 
   // 2. Buscar cursos_disciplinas para esses cursos
   const { data: cursosDisciplinas, error: cdError } = await client
@@ -161,11 +172,22 @@ export async function listByAlunoMatriculasHelper(
   const moduloIds = modulos.map((m) => m.id);
 
   // 5. Buscar atividades desses módulos
-  const { data: atividades, error: atividadesError } = await client
+  // IMPORTANTE (multi-org):
+  // `atividades` tem `empresa_id`. Se um módulo/frente for "global" (curso_id null),
+  // sem este filtro poderíamos trazer atividades de outra empresa do mesmo aluno.
+  let atividadesQuery = client
     .from("atividades")
     .select("*")
-    .in("modulo_id", moduloIds)
-    .order("ordem_exibicao", { ascending: true, nullsFirst: false });
+    .in("modulo_id", moduloIds);
+  if (empresaId) {
+    atividadesQuery = atividadesQuery.eq("empresa_id", empresaId);
+  } else if (allowedEmpresaIds.length > 0) {
+    atividadesQuery = atividadesQuery.in("empresa_id", allowedEmpresaIds);
+  }
+  const { data: atividades, error: atividadesError } = await atividadesQuery.order(
+    "ordem_exibicao",
+    { ascending: true, nullsFirst: false },
+  );
 
   if (atividadesError) {
     throw new Error(`Failed to fetch atividades: ${atividadesError.message}`);
@@ -177,13 +199,19 @@ export async function listByAlunoMatriculasHelper(
 
   // 6. Buscar progresso do aluno para essas atividades (incluindo campos de desempenho)
   const atividadeIds = atividades.map((a) => a.id);
-  const { data: progressos, error: progressosError } = await client
+  let progressosQuery = client
     .from("progresso_atividades")
     .select(
       "atividade_id, status, data_inicio, data_conclusao, questoes_totais, questoes_acertos, dificuldade_percebida, anotacoes_pessoais",
     )
     .eq("aluno_id", alunoId)
     .in("atividade_id", atividadeIds);
+  if (empresaId) {
+    progressosQuery = progressosQuery.eq("empresa_id", empresaId);
+  } else if (allowedEmpresaIds.length > 0) {
+    progressosQuery = progressosQuery.in("empresa_id", allowedEmpresaIds);
+  }
+  const { data: progressos, error: progressosError } = await progressosQuery;
 
   if (progressosError) {
     throw new Error(`Failed to fetch progressos: ${progressosError.message}`);

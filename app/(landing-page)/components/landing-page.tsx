@@ -14,7 +14,6 @@ import {
     Users,
     MessageCircle,
     TrendingUp,
-    DollarSign,
     BarChart3,
     CheckCircle2,
     Clock,

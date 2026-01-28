@@ -40,6 +40,7 @@ export class ProgressoAtividadeService {
     alunoId: string,
     atividadeId: string,
     status: StatusAtividade,
+    empresaId?: string | null,
   ): Promise<ProgressoAtividade> {
     if (!alunoId || !alunoId.trim()) {
       throw new ProgressoValidationError("Aluno ID is required");
@@ -53,11 +54,15 @@ export class ProgressoAtividadeService {
       alunoId,
       atividadeId,
       status,
+      empresaId ?? null,
     );
 
     const updateData: UpdateProgressoInput = {
       status,
     };
+    if (empresaId !== undefined) {
+      updateData.empresaId = empresaId;
+    }
 
     // Definir datas conforme o status
     if (status === "Pendente") {
@@ -118,6 +123,7 @@ export class ProgressoAtividadeService {
         | "Muito Dificil";
       anotacoesPessoais?: string | null;
     },
+    empresaId?: string | null,
   ): Promise<ProgressoAtividade> {
     // Validações
     if (desempenho.questoesTotais < 1) {
@@ -147,10 +153,12 @@ export class ProgressoAtividadeService {
       alunoId,
       atividadeId,
       "Concluido",
+      empresaId ?? null,
     );
 
     const updateData: UpdateProgressoInput = {
       status: "Concluido",
+      ...(empresaId !== undefined ? { empresaId } : {}),
       dataConclusao: new Date(),
       questoesTotais: desempenho.questoesTotais,
       questoesAcertos: desempenho.questoesAcertos,

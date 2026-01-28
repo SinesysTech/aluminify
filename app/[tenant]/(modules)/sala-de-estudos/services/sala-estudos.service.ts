@@ -378,14 +378,22 @@ export class SalaEstudosService {
     } = await this.supabase.auth.getSession();
     if (!session) throw new Error("Sessão inválida");
 
-    await fetch(`/api/sala-de-estudos/progresso/atividade/${atividadeId}`, {
+    const response = await fetch(
+      `/api/sala-de-estudos/progresso/atividade/${atividadeId}`,
+      {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({ status }),
-    });
+      },
+    );
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.error || "Falha ao atualizar status da atividade");
+    }
   }
 
   async updateDesempenho(
@@ -398,20 +406,32 @@ export class SalaEstudosService {
     } = await this.supabase.auth.getSession();
     if (!session) throw new Error("Sessão inválida");
 
-    await fetch(`/api/sala-de-estudos/progresso/atividade/${atividadeId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
+    const response = await fetch(
+      `/api/sala-de-estudos/progresso/atividade/${atividadeId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        // IMPORTANTE:
+        // A API espera `desempenho` (camelCase) quando a atividade requer desempenho.
+        body: JSON.stringify({
+          status,
+          desempenho: {
+            questoesTotais: desempenho.questoesTotais,
+            questoesAcertos: desempenho.questoesAcertos,
+            dificuldadePercebida: desempenho.dificuldadePercebida,
+            anotacoesPessoais: desempenho.anotacoesPessoais ?? null,
+          },
+        }),
       },
-      body: JSON.stringify({
-        status,
-        questoes_totais: desempenho.questoesTotais,
-        questoes_acertos: desempenho.questoesAcertos,
-        dificuldade_percebida: desempenho.dificuldadePercebida,
-        anotacoes_pessoais: desempenho.anotacoesPessoais,
-      }),
-    });
+    );
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.error || "Falha ao registrar desempenho da atividade");
+    }
   }
 }
 

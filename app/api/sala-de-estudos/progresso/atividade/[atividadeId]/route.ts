@@ -8,6 +8,7 @@ import {
   atividadeService,
   atividadeRequerDesempenho,
 } from "@/app/[tenant]/(modules)/sala-de-estudos/services/atividades";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import {
   requireAuth,
   AuthenticatedRequest,
@@ -100,6 +101,52 @@ async function patchHandler(
       );
     }
 
+    // Resolver empresa_id do conteúdo (evita vazamento multi-org).
+    // Fonte de verdade: `atividades.empresa_id` (obrigatório).
+    const db = getDatabaseClient();
+    const { data: atividadeMeta, error: atividadeMetaError } = await db
+      .from("atividades")
+      .select("empresa_id, tipo")
+      .eq("id", params.atividadeId)
+      .maybeSingle<{ empresa_id: string; tipo: string }>();
+
+    if (atividadeMetaError || !atividadeMeta) {
+      return NextResponse.json(
+        { error: "Atividade não encontrada" },
+        { status: 404 },
+      );
+    }
+
+    const empresaId = atividadeMeta.empresa_id;
+
+    // Se for aluno, garantir que ele tem vínculo com a empresa da atividade
+    // (aluno multi-org não pode gravar/ler dados de outra empresa por acidente).
+    if (request.user?.role === "aluno") {
+      const { data: vinculo, error: vinculoErr } = await db
+        .from("alunos_cursos")
+        .select("curso_id, cursos!inner(empresa_id)")
+        .eq("aluno_id", alunoId)
+        .eq("cursos.empresa_id", empresaId)
+        .limit(1);
+
+      if (vinculoErr) {
+        return NextResponse.json(
+          { error: "Erro ao validar vínculo do aluno com a empresa" },
+          { status: 500 },
+        );
+      }
+
+      if (!vinculo || vinculo.length === 0) {
+        return NextResponse.json(
+          {
+            error:
+              "Acesso negado: esta atividade pertence a outra empresa/organização",
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     // Se for concluir, verificar se precisa de dados de desempenho
     if (status === "Concluido" && body.desempenho) {
       // Buscar atividade para validar tipo
@@ -135,6 +182,7 @@ async function patchHandler(
               dificuldadePercebida: desempenho.dificuldadePercebida,
               anotacoesPessoais: desempenho.anotacoesPessoais || null,
             },
+            empresaId,
           );
         return NextResponse.json({ data: serializeProgresso(updated) });
       }
@@ -158,6 +206,7 @@ async function patchHandler(
       alunoId,
       params.atividadeId,
       status,
+      empresaId,
     );
     return NextResponse.json({ data: serializeProgresso(updated) });
   } catch (error) {

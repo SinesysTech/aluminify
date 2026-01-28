@@ -12,6 +12,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/app/shared/components/overlay/tooltip'
+import { Markdown } from '@/app/shared/components/ui/custom/prompt/markdown'
 import { Flashcard } from '../types'
 
 interface StudySessionProps {
@@ -45,6 +46,15 @@ export function StudySession({
     const frontMeasureRef = React.useRef<HTMLDivElement | null>(null)
     const backMeasureRef = React.useRef<HTMLDivElement | null>(null)
     const [flipHeight, setFlipHeight] = React.useState<number>(400)
+
+    const normalizeMathDelimiters = React.useCallback((value?: string | null) => {
+        if (!value) return ""
+        return value
+            .replaceAll("\\(", "$")
+            .replaceAll("\\)", "$")
+            .replaceAll("\\[", "$$")
+            .replaceAll("\\]", "$$")
+    }, [])
 
     const getImportanciaBadgeClass = (importancia: string) => {
         switch (importancia) {
@@ -152,7 +162,7 @@ export function StudySession({
                                 <div className="mb-4 flex items-center justify-between w-full">
                                     <Badge
                                         variant="outline"
-                                        className="uppercase tracking-wider text-xs border-transparent bg-[#22D3EE] text-white shadow-sm"
+                                        className="uppercase tracking-wider text-xs border-transparent bg-[#A78BFA] text-white shadow-sm"
                                     >
                                         Pergunta
                                     </Badge>
@@ -178,9 +188,11 @@ export function StudySession({
                                             />
                                         </div>
                                     )}
-                                    <p className="text-xl font-medium leading-relaxed sm:text-2xl whitespace-normal wrap-anywhere">
-                                        {current.pergunta}
-                                    </p>
+                                    <div className="text-xl font-medium leading-relaxed sm:text-2xl whitespace-normal wrap-anywhere text-card-foreground">
+                                        <Markdown>
+                                            {normalizeMathDelimiters(current.pergunta)}
+                                        </Markdown>
+                                    </div>
                                 </div>
 
                                 <div className="mt-8 w-full shrink-0 border-t pt-6">
@@ -230,9 +242,11 @@ export function StudySession({
                                             />
                                         </div>
                                     )}
-                                    <p className="text-lg leading-relaxed text-muted-foreground sm:text-xl whitespace-normal wrap-anywhere">
-                                        {current.resposta}
-                                    </p>
+                                    <div className="text-lg leading-relaxed sm:text-xl whitespace-normal wrap-anywhere text-card-foreground">
+                                        <Markdown>
+                                            {normalizeMathDelimiters(current.resposta)}
+                                        </Markdown>
+                                    </div>
                                 </div>
 
                                 <div className="mt-8 w-full shrink-0 border-t pt-6">

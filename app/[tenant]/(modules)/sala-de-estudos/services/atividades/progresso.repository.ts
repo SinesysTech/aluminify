@@ -24,6 +24,7 @@ export interface ProgressoAtividadeRepository {
     alunoId: string,
     atividadeId: string,
     status?: StatusAtividade,
+    empresaId?: string | null,
   ): Promise<ProgressoAtividade>;
 }
 
@@ -41,6 +42,7 @@ function mapRow(row: ProgressoRow): ProgressoAtividade {
     id: row.id,
     alunoId: row.aluno_id ?? "",
     atividadeId: row.atividade_id ?? "",
+    empresaId: row.empresa_id ?? null,
     status: (row.status as StatusAtividade) ?? "Pendente",
     dataInicio: row.data_inicio ? new Date(row.data_inicio) : null,
     dataConclusao: row.data_conclusao ? new Date(row.data_conclusao) : null,
@@ -107,6 +109,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     const insertData = {
       aluno_id: payload.alunoId,
       atividade_id: payload.atividadeId,
+      empresa_id: payload.empresaId ?? null,
       status: payload.status ?? "Pendente",
       data_inicio: payload.dataInicio?.toISOString() ?? null,
       data_conclusao: payload.dataConclusao?.toISOString() ?? null,
@@ -137,6 +140,9 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
 
     if (payload.status !== undefined) {
       updateData.status = payload.status;
+    }
+    if (payload.empresaId !== undefined) {
+      updateData.empresa_id = payload.empresaId;
     }
     if (payload.dataInicio !== undefined) {
       updateData.data_inicio = payload.dataInicio?.toISOString() ?? null;
@@ -175,6 +181,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     alunoId: string,
     atividadeId: string,
     status: StatusAtividade = "Pendente",
+    empresaId: string | null = null,
   ): Promise<ProgressoAtividade> {
     // Primeiro tentar encontrar
     const existing = await this.findByAlunoAndAtividade(alunoId, atividadeId);
@@ -186,6 +193,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     return this.create({
       alunoId,
       atividadeId,
+      empresaId,
       status,
     });
   }

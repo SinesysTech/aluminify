@@ -273,10 +273,16 @@ export class DashboardAnalyticsService {
       scope: DashboardScopeLevel;
       scopeId?: string;
       period: DashboardPeriod;
+      /** Filter by organization ID (multi-org students) */
+      empresaId?: string;
     },
   ): Promise<SubjectDistributionFilteredResult> {
     const client = getDatabaseClient();
-    const { cursoIds } = await this.resolveCursoScope(alunoId, client);
+    const { cursoIds } = await this.resolveCursoScope(
+      alunoId,
+      client,
+      opts.empresaId,
+    );
     const effectiveCursoIds = this.effectiveCourseIds(
       cursoIds,
       opts.scope,
@@ -576,10 +582,16 @@ export class DashboardAnalyticsService {
       scope: DashboardScopeLevel;
       scopeId?: string;
       period: DashboardPeriod;
+      /** Filter by organization ID (multi-org students) */
+      empresaId?: string;
     },
   ): Promise<PerformanceFilteredResult> {
     const client = getDatabaseClient();
-    const { cursoIds } = await this.resolveCursoScope(alunoId, client);
+    const { cursoIds } = await this.resolveCursoScope(
+      alunoId,
+      client,
+      opts.empresaId,
+    );
     const effectiveCursoIds = this.effectiveCourseIds(
       cursoIds,
       opts.scope,
@@ -687,10 +699,12 @@ export class DashboardAnalyticsService {
     // 4) Atividades desses módulos
     const atividades: Array<{ id: string; modulo_id: string }> = [];
     for (const idsChunk of chunk(moduloIds, 900)) {
-      const { data: chunkRows, error: chunkErr } = await client
+      let q = client
         .from("atividades")
         .select("id, modulo_id")
         .in("modulo_id", idsChunk);
+      if (opts.empresaId) q = q.eq("empresa_id", opts.empresaId);
+      const { data: chunkRows, error: chunkErr } = await q;
       if (chunkErr) {
         console.error(
           "[dashboard-analytics] Erro ao buscar atividades por modulo_id:",
@@ -742,7 +756,7 @@ export class DashboardAnalyticsService {
     }> = [];
     const inicioPeriodo = this.getPeriodStart(opts.period);
     for (const idsChunk of chunk(atividadeIds, 900)) {
-      const { data: chunkRows, error: chunkErr } = await client
+      let q = client
         .from("progresso_atividades")
         .select("atividade_id, questoes_totais, questoes_acertos")
         .eq("aluno_id", alunoId)
@@ -751,6 +765,8 @@ export class DashboardAnalyticsService {
         .gt("questoes_totais", 0)
         .gte("data_conclusao", inicioPeriodo.toISOString())
         .in("atividade_id", idsChunk);
+      if (opts.empresaId) q = q.eq("empresa_id", opts.empresaId);
+      const { data: chunkRows, error: chunkErr } = await q;
       if (chunkErr) {
         console.error(
           "[dashboard-analytics] Erro ao buscar progresso_atividades por atividade_id:",
@@ -984,6 +1000,8 @@ export class DashboardAnalyticsService {
       scope: DashboardScopeLevel;
       scopeId?: string;
       period: DashboardPeriod;
+      /** Filter by organization ID (multi-org students) */
+      empresaId?: string;
     },
   ): Promise<StrategicDomainFilteredResult> {
     const client = getDatabaseClient();
@@ -996,7 +1014,11 @@ export class DashboardAnalyticsService {
       modules: [],
     };
 
-    const { cursoIds } = await this.resolveCursoScope(alunoId, client);
+    const { cursoIds } = await this.resolveCursoScope(
+      alunoId,
+      client,
+      opts.empresaId,
+    );
     const effectiveCursoIds = this.effectiveCourseIds(
       cursoIds,
       opts.scope,
@@ -1205,10 +1227,15 @@ export class DashboardAnalyticsService {
     >();
 
     // Primeiro restringir atividades aos módulos estratégicos para evitar varrer tudo do aluno
-    const { data: atividadesInScope, error: atividadesScopeErr } = await client
+    let atividadesScopeQuery = client
       .from("atividades")
       .select("id, modulo_id")
       .in("modulo_id", strategicModuleIds);
+    if (opts.empresaId) {
+      atividadesScopeQuery = atividadesScopeQuery.eq("empresa_id", opts.empresaId);
+    }
+    const { data: atividadesInScope, error: atividadesScopeErr } =
+      await atividadesScopeQuery;
 
     if (atividadesScopeErr) {
       console.error(
@@ -1237,7 +1264,7 @@ export class DashboardAnalyticsService {
       }> = [];
 
       for (const idsChunk of chunk(atividadeIds, 900)) {
-        const { data: progChunk, error: progErr } = await client
+        let q = client
           .from("progresso_atividades")
           .select("atividade_id, questoes_totais, questoes_acertos")
           .eq("aluno_id", alunoId)
@@ -1246,6 +1273,8 @@ export class DashboardAnalyticsService {
           .gt("questoes_totais", 0)
           .gte("data_conclusao", inicioPeriodo.toISOString())
           .in("atividade_id", idsChunk);
+        if (opts.empresaId) q = q.eq("empresa_id", opts.empresaId);
+        const { data: progChunk, error: progErr } = await q;
 
         if (progErr) {
           console.error(
@@ -1661,7 +1690,7 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
-    _empresaId?: string,
+    empresaId?: string,
   ) {
     // Progresso do cronograma (simplificado - pode ser melhorado)
     const scheduleProgress = await this.getScheduleProgress(alunoId, client);
@@ -1678,10 +1707,11 @@ export class DashboardAnalyticsService {
       alunoId,
       client,
       period,
+      empresaId,
     );
 
     // Aproveitamento médio (coordenado com o período selecionado)
-    const accuracy = await this.getAccuracy(alunoId, client, period);
+    const accuracy = await this.getAccuracy(alunoId, client, period, empresaId);
 
     // Flashcards revisados (coordenado com o período selecionado quando possível)
     const flashcardsReviewed = await this.getFlashcardsReviewed(
@@ -1807,15 +1837,18 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
+    empresaId?: string,
   ): Promise<{ questionsAnswered: number; periodLabel: string }> {
     const inicioPeriodo = this.getPeriodStart(period);
 
-    const { data: progressos } = await client
+    let query = client
       .from("progresso_atividades")
       .select("questoes_totais")
       .eq("aluno_id", alunoId)
       .eq("status", "Concluido")
       .gte("data_conclusao", inicioPeriodo.toISOString());
+    if (empresaId) query = query.eq("empresa_id", empresaId);
+    const { data: progressos } = await query;
 
     const total =
       progressos?.reduce((acc, p) => acc + (p.questoes_totais || 0), 0) || 0;
@@ -1838,9 +1871,10 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
+    empresaId?: string,
   ): Promise<number> {
     const inicioPeriodo = this.getPeriodStart(period);
-    const { data: progressos } = await client
+    let query = client
       .from("progresso_atividades")
       .select("questoes_totais, questoes_acertos")
       .eq("aluno_id", alunoId)
@@ -1848,6 +1882,8 @@ export class DashboardAnalyticsService {
       .gte("data_conclusao", inicioPeriodo.toISOString())
       .not("questoes_totais", "is", null)
       .gt("questoes_totais", 0);
+    if (empresaId) query = query.eq("empresa_id", empresaId);
+    const { data: progressos } = await query;
 
     if (!progressos || progressos.length === 0) return 0;
 
@@ -1998,32 +2034,10 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
-    _empresaId?: string,
+    empresaId?: string,
   ) {
-    // 1. Buscar cursos do aluno (ou todos se for professor)
-    const { data: professorData } = await client
-      .from("professores")
-      .select("id")
-      .eq("id", alunoId)
-      .maybeSingle();
-
-    const isProfessor = !!professorData;
-    let cursoIds: string[] = [];
-
-    if (isProfessor) {
-      // Professores: buscar todos os cursos
-      const { data: todosCursos } = await client.from("cursos").select("id");
-      cursoIds = (todosCursos ?? []).map((c: { id: string }) => c.id);
-    } else {
-      // Alunos: buscar cursos matriculados
-      const { data: alunosCursos } = await client
-        .from("alunos_cursos")
-        .select("curso_id")
-        .eq("aluno_id", alunoId);
-      cursoIds = (alunosCursos ?? []).map(
-        (ac: { curso_id: string }) => ac.curso_id,
-      );
-    }
+    // 1. Buscar cursos no escopo (respeita empresaId para alunos multi-org)
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client, empresaId);
 
     if (cursoIds.length === 0) return [];
 
@@ -2078,7 +2092,7 @@ export class DashboardAnalyticsService {
 
     // 5. Buscar progressos com questões (se houver)
     const inicioPeriodo = this.getPeriodStart(period);
-    const { data: progressos } = await client
+    let progressosQuery = client
       .from("progresso_atividades")
       .select(
         `
@@ -2092,6 +2106,8 @@ export class DashboardAnalyticsService {
       .gte("data_conclusao", inicioPeriodo.toISOString())
       .not("questoes_totais", "is", null)
       .gt("questoes_totais", 0);
+    if (empresaId) progressosQuery = progressosQuery.eq("empresa_id", empresaId);
+    const { data: progressos } = await progressosQuery;
 
     // 6. Se houver progressos, calcular performance por frente
     const performanceMap = new Map<
@@ -2104,10 +2120,12 @@ export class DashboardAnalyticsService {
       const atividadeIds = progressos
         .map((p) => p.atividade_id)
         .filter((id): id is string => Boolean(id));
-      const { data: atividades } = await client
+      let atividadesQuery = client
         .from("atividades")
         .select("id, modulo_id")
         .in("id", atividadeIds);
+      if (empresaId) atividadesQuery = atividadesQuery.eq("empresa_id", empresaId);
+      const { data: atividades } = await atividadesQuery;
 
       if (atividades && atividades.length > 0) {
         // Buscar módulos
@@ -2267,13 +2285,14 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
-    _empresaId?: string,
+    empresaId?: string,
   ): Promise<SubjectDistributionItem[]> {
     const filtered = await this.getSubjectDistributionFiltered(alunoId, {
       groupBy: "disciplina",
       scope: "curso",
       scopeId: undefined, // internal logic handles scope based on data
       period,
+      empresaId,
     });
     return filtered.items;
   }
@@ -2285,7 +2304,7 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
-    _empresaId?: string,
+    empresaId?: string,
   ): Promise<StrategicDomain> {
     // Reusar a versão filtrável para manter consistência e respeitar o período selecionado.
     // (Mantemos a implementação antiga abaixo como fallback/legado.)
@@ -2294,6 +2313,7 @@ export class DashboardAnalyticsService {
         scope: "curso",
         scopeId: undefined,
         period,
+        empresaId,
       });
       return filtered.data;
     } catch (e) {

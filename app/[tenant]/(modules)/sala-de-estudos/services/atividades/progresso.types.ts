@@ -13,6 +13,8 @@ export interface ProgressoAtividade {
   id: string;
   alunoId: string;
   atividadeId: string;
+  /** Empresa/organização do conteúdo (multi-tenant / multi-org). */
+  empresaId: string | null;
   status: StatusAtividade;
   dataInicio: Date | null;
   dataConclusao: Date | null;
@@ -27,6 +29,8 @@ export interface ProgressoAtividade {
 export interface CreateProgressoInput {
   alunoId: string;
   atividadeId: string;
+  /** Define a empresa vinculada a este progresso. */
+  empresaId?: string | null;
   status?: StatusAtividade;
   dataInicio?: Date | null;
   dataConclusao?: Date | null;
@@ -44,6 +48,8 @@ export interface UpdateProgressoInput {
   questoesAcertos?: number;
   dificuldadePercebida?: DificuldadePercebida | null;
   anotacoesPessoais?: string | null;
+  /** Atualiza a empresa vinculada a este progresso. */
+  empresaId?: string | null;
 }
 
 

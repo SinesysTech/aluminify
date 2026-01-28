@@ -120,7 +120,7 @@ export const POST = async (req: NextRequest) => {
   // Determine mode based on integration type
   const useMastra = config.integrationType === "mastra";
 
-  let copilotRuntime: CopilotRuntime<any>;
+  let copilotRuntime: CopilotRuntime<unknown>;
   let serviceAdapter: OpenAIAdapter | InstanceType<typeof ExperimentalEmptyAdapter>;
 
   if (useMastra) {
@@ -173,7 +173,6 @@ export const POST = async (req: NextRequest) => {
       model: config.model || "gpt-4o-mini",
     });
 
-    // @ts-expect-error - CopilotKit actions type compatibility
     copilotRuntime = new CopilotRuntime({
       actions:
         actions as unknown as NonNullable<

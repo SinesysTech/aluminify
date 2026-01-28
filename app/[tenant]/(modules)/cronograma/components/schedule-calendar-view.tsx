@@ -2252,10 +2252,10 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
               </p>
 
               {/* Legenda e Instruções */}
-              <Card className="mt-3 w-full py-1">
-                <div className="flex flex-col md:flex-row gap-3 items-start">
+              <Card className="mt-3 w-full py-1 overflow-hidden">
+                <div className="flex flex-col lg:flex-row gap-3 items-start">
                   {/* Primeira parte: Legendas */}
-                  <div className="md:w-64 shrink-0">
+                  <div className="w-full lg:w-64 lg:shrink-0 min-w-0">
                     <CardHeader className="pb-1 pt-1.5 px-3">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-base font-bold">Legendas</CardTitle>
@@ -2328,10 +2328,10 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   </div>
 
                   {/* Divisor vertical */}
-                  <Separator orientation="vertical" className="hidden md:block" />
+                  <Separator orientation="vertical" className="hidden lg:block" />
 
                   {/* Segunda parte: Instruções */}
-                  <div className="md:w-[500px] shrink-0">
+                  <div className="w-full lg:flex-1 lg:max-w-[500px] min-w-0">
                     <CardHeader className="pb-1 pt-1.5 px-3">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-base font-bold">Como usar</CardTitle>
@@ -2375,8 +2375,8 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                         </TooltipProvider>
                       </div>
                     </CardHeader>
-                    <CardContent className="px-3 pb-1.5 pt-0">
-                      <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground wrap-break-word">
+                    <CardContent className="px-3 pb-1.5 pt-0 min-w-0">
+                      <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground wrap-break-word whitespace-normal">
                         <li className="leading-snug">
                           Selecione os dias da semana em que deseja estudar no painel lateral
                         </li>

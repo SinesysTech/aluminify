@@ -9,6 +9,7 @@ import { fontVariables } from "@/app/shared/core/fonts";
 import NextTopLoader from "nextjs-toploader";
 
 import "./globals.css";
+import "katex/dist/katex.min.css";
 
 
 import { DEFAULT_THEME } from "@/app/shared/core/themes";
