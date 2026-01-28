@@ -309,7 +309,7 @@ export default function StudentDashboardClientPage() {
             />
 
             {/* Linha 3: 2 Colunas - Subject Performance List e Subject Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6 mb-6 md:mb-8 items-stretch">
                 <div className="lg:col-span-3 lg:h-[446px]">
                     <SubjectPerformanceList subjects={data.subjects} period={heatmapPeriod as Parameters<typeof SubjectPerformanceList>[0]['period']} />
                 </div>
@@ -319,7 +319,7 @@ export default function StudentDashboardClientPage() {
             </div>
 
             {/* Linha 4: 2 Colunas - Focus Efficiency Chart e Strategic Domain */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 <FocusEfficiencyChart data={data.focusEfficiency} />
                 <StrategicDomain data={data.strategicDomain} />
             </div>
