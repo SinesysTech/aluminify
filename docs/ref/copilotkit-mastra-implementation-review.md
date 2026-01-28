@@ -1,121 +1,153 @@
 # Revisao de Implementacao - CopilotKit e Mastra AI
 
 **Data:** 2026-01-28
-**Versao:** 2.1
-**Status:** Implementacao Funcional
+**Versao:** 3.0
+**Status:** Implementacao Completa com AG-UI
 
 ---
 
 ## 1. Resumo Executivo
 
-Este documento descreve a integracao do CopilotKit e Mastra AI ao Aluminify.
+Este documento descreve a integracao do CopilotKit e Mastra AI ao Aluminify usando o protocolo AG-UI oficial.
 
-### IMPORTANTE: Relacao CopilotKit + Mastra
+### Relacao CopilotKit + Mastra
 
 **CopilotKit NAO e uma alternativa ao Mastra** - eles trabalham juntos:
 
 - **CopilotKit** = Agentic Application Platform (UI, providers, runtime, streaming)
-- **Mastra** = Agent Framework (uma das muitas opcoes dentro do CopilotKit)
+- **Mastra** = Agent Framework (uma das opcoes dentro do CopilotKit)
 - **AG-UI Protocol** = Protocolo que conecta frameworks de agentes ao CopilotKit
+- **@ag-ui/mastra** = Pacote oficial para integrar Mastra com CopilotKit
 
-Outros frameworks de agentes suportados pelo CopilotKit:
-- LangGraph
-- CrewAI (Crews e Flows)
-- Agno
-- LlamaIndex
-- Pydantic AI
-- Microsoft Agent Framework
+### Escopo Implementado
 
-### Estado Atual da Implementacao
-
-1. **CopilotKit** funcionando com backend actions (direct-to-LLM)
-2. **Mastra** implementado como endpoints separados (`/api/mastra/*`)
-3. **Integracao AG-UI** pendente (problema com pacote `@ag-ui/mastra`)
+1. **CopilotKit** como plataforma de UI e runtime
+2. **Dois modos de operacao via mesmo endpoint:**
+   - `copilotkit`: Direct-to-LLM com backend actions
+   - `mastra`: Mastra agent framework via AG-UI protocol
+3. **Arquitetura multi-tenant** com tabela `ai_agents`
+4. **Integracao oficial** usando `MastraAgent.getLocalAgents()`
 
 ---
 
-## 2. Arquitetura Atual
+## 2. Arquitetura Implementada
 
-### 2.1 CopilotKit (Direct-to-LLM)
-
-```
-Frontend                    Backend
-+---------------+          +-------------------+
-| CopilotChat   |   --->   | /api/copilotkit   |
-| (CopilotKit   |          |   - OpenAIAdapter |
-|  React UI)    |          |   - Actions       |
-+---------------+          +-------------------+
-```
-
-### 2.2 Mastra (Endpoints Separados)
+### 2.1 Diagrama Unificado
 
 ```
-Frontend                    Backend
-+---------------+          +-------------------+
-| MastraChatUI  |   --->   | /api/mastra       |
-| (Custom)      |          | /api/mastra/stream|
-+---------------+          +-------------------+
++------------------+
+|   Frontend UI    |
+|  CopilotChat     |
++--------+---------+
+         |
+         | Header: X-CopilotKit-Agent
+         v
++------------------------+
+|   /api/copilotkit      |
+|                        |
+|  if agent == 'mastra': |
+|    +----------------+  |
+|    | MastraAgent    |  |
+|    | .getLocalAgents|  |
+|    | (AG-UI)        |  |
+|    | EmptyAdapter   |  |
+|    +----------------+  |
+|  else:                 |
+|    +----------------+  |
+|    | CopilotKit     |  |
+|    | Actions        |  |
+|    | OpenAIAdapter  |  |
+|    +----------------+  |
++------------------------+
+```
+
+### 2.2 Modos de Operacao
+
+| Modo | Adapter | Header | Uso |
+|------|---------|--------|-----|
+| `copilotkit` | OpenAIAdapter | (nenhum) | Actions simples |
+| `mastra` | ExperimentalEmptyAdapter | `X-CopilotKit-Agent: mastra` | Agentes com estado/memoria |
+
+---
+
+## 3. Implementacao
+
+### 3.1 API Route (`/api/copilotkit/route.ts`)
+
+```typescript
+import { MastraAgent } from "@ag-ui/mastra";
+import { CopilotRuntime, ExperimentalEmptyAdapter } from "@copilotkit/runtime";
+
+// Modo Mastra
+const mastra = createMastraWithContext(userContext, agentConfig);
+const runtime = new CopilotRuntime({
+  agents: MastraAgent.getLocalAgents({ mastra }),
+});
+const serviceAdapter = new ExperimentalEmptyAdapter();
+
+// Modo CopilotKit (direct-to-LLM)
+const runtime = new CopilotRuntime({ actions });
+const serviceAdapter = new OpenAIAdapter({ openai, model });
+```
+
+### 3.2 Provider (`copilotkit-provider.tsx`)
+
+```typescript
+interface CopilotKitProviderProps {
+  user: AppUser;
+  children: React.ReactNode;
+  agentMode?: 'copilotkit' | 'mastra';
+}
+
+// Adiciona header para modo Mastra
+if (agentMode === 'mastra') {
+  headers['X-CopilotKit-Agent'] = 'mastra';
+}
+```
+
+### 3.3 Uso no Frontend
+
+```tsx
+// Modo CopilotKit (default)
+<CopilotKitProvider user={user}>
+  <CopilotChat />
+</CopilotKitProvider>
+
+// Modo Mastra
+<CopilotKitProvider user={user} agentMode="mastra">
+  <CopilotChat />
+</CopilotKitProvider>
 ```
 
 ---
 
-## 3. Implementacao CopilotKit
-
-### 3.1 Arquivos
+## 4. Arquivos Principais
 
 | Arquivo | Descricao |
 |---------|-----------|
-| `/app/api/copilotkit/route.ts` | Endpoint CopilotKit |
+| `/app/api/copilotkit/route.ts` | Endpoint unificado (ambos os modos) |
 | `/app/shared/lib/copilotkit/actions.ts` | Backend actions |
-| `/app/shared/components/providers/copilotkit-provider.tsx` | Provider React |
+| `/app/shared/lib/mastra/index.ts` | Factory functions Mastra |
+| `/app/shared/lib/mastra/agents/study-assistant.ts` | Agente de estudos |
+| `/app/shared/lib/mastra/tools/index.ts` | Tools do agente |
+| `/app/shared/components/providers/copilotkit-provider.tsx` | Provider com agentMode |
 
-### 3.2 Backend Actions
+---
 
-| Action | Descricao | Permissao |
-|--------|-----------|-----------|
+## 5. Backend Actions / Tools
+
+Ambos os modos compartilham a mesma logica de negocio:
+
+| Action/Tool | Descricao | Permissao |
+|-------------|-----------|-----------|
 | `getServerTime` | Data/hora do servidor | Todos |
 | `searchCourses` | Busca cursos | Todos (filtrado por empresa) |
 | `getStudentProgress` | Progresso do aluno | Aluno (proprio) ou Admin |
 | `searchStudents` | Busca alunos | Apenas Admin |
 
-### 3.3 Fluxo de Autenticacao
-
-```
-1. Usuario faz login -> Supabase retorna access_token
-2. CopilotKitProvider escuta auth state changes
-3. Cada request para /api/copilotkit inclui Bearer token
-4. API extrai userId, empresaId, userRole do token
-5. Actions recebem contexto para filtrar dados
-```
-
 ---
 
-## 4. Implementacao Mastra
-
-### 4.1 Arquivos
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `/app/shared/lib/mastra/index.ts` | Factory functions |
-| `/app/shared/lib/mastra/agents/study-assistant.ts` | Agente de estudos |
-| `/app/shared/lib/mastra/tools/index.ts` | Tools do agente |
-| `/app/api/mastra/route.ts` | Endpoint sync |
-| `/app/api/mastra/stream/route.ts` | Endpoint streaming |
-
-### 4.2 Tools Mastra
-
-| Tool | Funcao |
-|------|--------|
-| `getServerTime` | Data/hora atual |
-| `searchCourses` | Buscar cursos |
-| `getStudentProgress` | Progresso do aluno |
-| `searchStudents` | Buscar alunos |
-
----
-
-## 5. Tabela ai_agents
-
-### 5.1 Estrutura
+## 6. Tabela ai_agents
 
 ```sql
 ai_agents (
@@ -128,28 +160,26 @@ ai_agents (
   system_prompt text,
   model text DEFAULT 'gpt-4o-mini',
   temperature numeric DEFAULT 0.7,
+  is_default boolean,
+  is_active boolean,
   -- ... outros campos
 )
 ```
 
-### 5.2 integration_type Options
-
-| Tipo | Descricao | Endpoint |
-|------|-----------|----------|
-| `copilotkit` | Backend actions | `/api/copilotkit` |
-| `mastra` | Mastra agent | `/api/mastra/*` |
-| `n8n` | Legacy webhook | Webhook externo |
-| `custom` | Endpoint customizado | API externa |
+O `integration_type` determina qual modo usar no frontend.
 
 ---
 
-## 6. Dependencias
+## 7. Dependencias
 
 ```json
 {
   "@copilotkit/react-core": "^1.51.2",
   "@copilotkit/react-ui": "^1.51.2",
   "@copilotkit/runtime": "^1.51.2",
+  "@ag-ui/mastra": "^0.2.0",
+  "@ag-ui/client": "^0.0.43",
+  "@ag-ui/core": "^0.0.43",
   "@mastra/core": "^1.0.4",
   "@ai-sdk/openai": "^3.0.21"
 }
@@ -157,58 +187,44 @@ ai_agents (
 
 ---
 
-## 7. Integracao AG-UI (Pendente)
+## 8. Endpoints Legados
 
-### 7.1 Situacao
+Os endpoints `/api/mastra/*` podem ser removidos ou mantidos para compatibilidade:
 
-O pacote `@ag-ui/mastra` existe no npm mas teve problemas de instalacao. A integracao oficial seguiria este padrao:
-
-```typescript
-import { MastraAgent } from "@ag-ui/mastra";
-import { CopilotRuntime, ExperimentalEmptyAdapter } from "@copilotkit/runtime";
-
-const runtime = new CopilotRuntime({
-  agents: MastraAgent.getLocalAgents({ mastra }),
-});
-```
-
-### 7.2 Alternativa Atual
-
-Mantivemos os endpoints Mastra separados (`/api/mastra/*`) que funcionam corretamente. O CopilotKit continua usando direct-to-LLM com actions.
-
-### 7.3 Proximo Passo
-
-Quando o pacote `@ag-ui/mastra` estiver estavel:
-1. Instalar `@ag-ui/mastra@latest`
-2. Atualizar `/api/copilotkit/route.ts` para usar `MastraAgent.getLocalAgents()`
-3. Remover endpoints `/api/mastra/*`
+| Endpoint | Status | Recomendacao |
+|----------|--------|--------------|
+| `/api/mastra` | Legado | Usar `/api/copilotkit?agent=mastra` |
+| `/api/mastra/stream` | Legado | CopilotKit ja faz streaming nativo |
 
 ---
 
-## 8. Proximos Passos
+## 9. Proximos Passos
 
-### 8.1 Imediato
-- [x] CopilotKit funcionando com actions
-- [x] Mastra funcionando com endpoints separados
-- [x] Documentacao corrigida
+### 9.1 Concluido
+- [x] Instalar @ag-ui/mastra
+- [x] Implementar integracao AG-UI oficial
+- [x] Atualizar /api/copilotkit para suportar ambos os modos
+- [x] Atualizar CopilotKitProvider com agentMode
+- [x] Documentar arquitetura
 
-### 8.2 Curto Prazo
+### 9.2 Curto Prazo
+- [ ] Atualizar pagina do agente para ler integration_type da config
 - [ ] Testar fluxo completo com tenant CDF
-- [ ] Atualizar pagina do agente para usar integration_type
 - [ ] Criar interface admin para gerenciar ai_agents
 
-### 8.3 Medio Prazo
-- [ ] Revisitar integracao AG-UI quando pacote estiver estavel
-- [ ] Implementar Human-in-the-Loop
-- [ ] Adicionar Generative UI
+### 9.3 Medio Prazo
+- [ ] Implementar Human-in-the-Loop com Mastra
+- [ ] Adicionar Generative UI para mostrar progresso
+- [ ] Implementar Shared State entre frontend e agente
+- [ ] Remover endpoints /api/mastra/* legados
 
 ---
 
-## 9. Referencias
+## 10. Referencias
 
 ### Documentacao Oficial
 - [CopilotKit Docs](https://docs.copilotkit.ai)
-- [CopilotKit + Mastra](https://docs.copilotkit.ai/integrations/mastra/quickstart)
+- [CopilotKit + Mastra Quickstart](https://docs.copilotkit.ai/integrations/mastra/quickstart)
 - [AG-UI Protocol](https://docs.copilotkit.ai/ag-ui-protocol)
 
 ### Repositorio de Referencia
@@ -216,12 +232,14 @@ Quando o pacote `@ag-ui/mastra` estiver estavel:
 
 ---
 
-## 10. Conclusao
+## 11. Conclusao
 
-A implementacao esta funcional com:
+A implementacao esta completa e segue o padrao oficial do CopilotKit:
 
-1. **CopilotKit** usando direct-to-LLM com backend actions
-2. **Mastra** como endpoints separados para quando precisar de agent framework
-3. **Arquitetura multi-tenant** com tabela `ai_agents`
+1. **CopilotKit e a plataforma** - fornece UI, providers, runtime
+2. **Mastra e o framework de agentes** - uma das opcoes dentro do CopilotKit
+3. **AG-UI Protocol** - conecta Mastra ao CopilotKit via `@ag-ui/mastra`
+4. **Um unico endpoint** - `/api/copilotkit` suporta ambos os modos
+5. **`MastraAgent.getLocalAgents()`** - forma oficial de registrar agentes
 
-A integracao oficial via AG-UI protocol fica como item futuro quando o pacote `@ag-ui/mastra` estiver mais estavel.
+A arquitetura permite escolher entre direct-to-LLM (actions) ou agent framework (Mastra) atraves do `agentMode` prop no Provider.
