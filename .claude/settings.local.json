@@ -103,7 +103,8 @@
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; npm install 2>&1 | Select-Object -Last 30\")",
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; npm run typecheck 2>&1 | Select-Object -Last 20\")",
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; node -e \"\"const t = require\\(''@mastra/core/tools''\\); console.log\\(Object.keys\\(t\\)\\);\"\" 2>&1\")",
-      "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/tools/index.d.ts | Select-Object -First 80\")"
+      "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/tools/index.d.ts | Select-Object -First 80\")",
+      "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/tools/types.d.ts | Select-Object -First 100\")"
     ],
     "deny": [],
     "ask": []
