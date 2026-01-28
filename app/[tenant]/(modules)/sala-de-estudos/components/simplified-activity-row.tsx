@@ -3,16 +3,15 @@
 import * as React from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { MoreVertical, Timer, PlayCircle, Eye, FileX, CheckCircle, FileText, Video, BookOpen, HelpCircle } from 'lucide-react'
+import { Timer, PlayCircle, Eye, FileX, CheckCircle, FileText, Video, BookOpen, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/app/shared/components/overlay/dropdown-menu'
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/app/shared/components/overlay/tooltip'
 import { cn } from '@/lib/utils'
 import { StatusAtividade, DificuldadePercebida, TipoAtividade } from '@/app/shared/types/enums'
 import { atividadeRequerDesempenho } from '@/app/shared/types/entities/activity'
@@ -195,61 +194,109 @@ export function SimplifiedActivityRow({
           </div>
         </div>
 
-        {/* Actions Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-            >
-              <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Ações</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem asChild>
-              <Link href={focoHref} className="cursor-pointer">
-                <Timer className="h-4 w-4 mr-2" />
+        {/* Action Icons */}
+        <TooltipProvider delayDuration={300}>
+          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+            {/* Modo Foco */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  asChild
+                >
+                  <Link href={focoHref}>
+                    <Timer className="h-4 w-4" />
+                    <span className="sr-only">Modo Foco</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
                 Modo Foco
-              </Link>
-            </DropdownMenuItem>
+              </TooltipContent>
+            </Tooltip>
 
+            {/* Iniciar (apenas para pendentes) */}
             {isPendente && !isReadOnly && (
-              <DropdownMenuItem
-                onClick={() => handleStatusChange('Iniciado')}
-                disabled={isUpdating}
-              >
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Iniciar
-              </DropdownMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+                    onClick={() => handleStatusChange('Iniciado')}
+                    disabled={isUpdating}
+                  >
+                    <PlayCircle className="h-4 w-4" />
+                    <span className="sr-only">Iniciar</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Iniciar
+                </TooltipContent>
+              </Tooltip>
             )}
 
+            {/* Marcar como concluído */}
             {!isConcluido && !isReadOnly && (
-              <DropdownMenuItem
-                onClick={handleQuickComplete}
-                disabled={isUpdating}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Marcar como Concluído
-              </DropdownMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+                    onClick={handleQuickComplete}
+                    disabled={isUpdating}
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="sr-only">Marcar como Concluído</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Marcar como Concluído
+                </TooltipContent>
+              </Tooltip>
             )}
 
-            <DropdownMenuSeparator />
-
+            {/* Ver PDF */}
             {hasFile ? (
-              <DropdownMenuItem onClick={() => setPdfModalOpen(true)}>
-                <Eye className="h-4 w-4 mr-2" />
-                Visualizar PDF
-              </DropdownMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setPdfModalOpen(true)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="sr-only">Visualizar PDF</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Visualizar PDF
+                </TooltipContent>
+              </Tooltip>
             ) : (
-              <DropdownMenuItem disabled>
-                <FileX className="h-4 w-4 mr-2" />
-                PDF não disponível
-              </DropdownMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 opacity-40 cursor-not-allowed"
+                    disabled
+                  >
+                    <FileX className="h-4 w-4" />
+                    <span className="sr-only">PDF não disponível</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  PDF não disponível
+                </TooltipContent>
+              </Tooltip>
             )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/* Modal de registro de desempenho */}
