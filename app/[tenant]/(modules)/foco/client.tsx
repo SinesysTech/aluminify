@@ -87,8 +87,8 @@ export default function FocoClient() {
     const [erro, setErro] = useState<string | null>(null)
 
     // Stats State (for header display - would come from API in production)
-    const [streak, setStreak] = useState(0)
-    const [todayMinutes, setTodayMinutes] = useState(0)
+    const [streak, _setStreak] = useState(0)
+    const [todayMinutes, _setTodayMinutes] = useState(0)
 
     // -- Effects: Data Loading --
 
@@ -411,10 +411,8 @@ export default function FocoClient() {
         const pauseCount = logPausas.filter(p => p.tipo === 'manual').length
         const distractionCount = logPausas.filter(p => p.tipo === 'distracao').length
         const totalPauseMs = logPausas.reduce((acc, p) => {
-            if (p.fim) {
-                return acc + (new Date(p.fim).getTime() - new Date(p.inicio).getTime())
-            }
-            return acc
+            if (!p.inicio || !p.fim) return acc
+            return acc + (new Date(p.fim).getTime() - new Date(p.inicio).getTime())
         }, 0)
 
         return { pauseCount, distractionCount, totalPauseMs }

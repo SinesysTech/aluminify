@@ -57,13 +57,19 @@ export function CleanView({
 }: CleanViewProps) {
     const [showControls, setShowControls] = useState(true)
     const [mouseIdle, setMouseIdle] = useState(false)
-    const [motivationalMessage, setMotivationalMessage] = useState('')
-    const [reducedMotion, setReducedMotion] = useState(false)
+    const [motivationalMessage, setMotivationalMessage] = useState(() => {
+        const isBreakInit = pomodoroPhase === 'short_break' || pomodoroPhase === 'long_break'
+        const messages = isBreakInit ? BREAK_MESSAGES : MOTIVATIONAL_MESSAGES
+        return messages[Math.floor(Math.random() * messages.length)]
+    })
+    const [reducedMotion, setReducedMotion] = useState(() => {
+        if (typeof window === 'undefined') return false
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    })
 
     // Detect reduced motion preference
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-        setReducedMotion(mediaQuery.matches)
         const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
         mediaQuery.addEventListener('change', handler)
         return () => mediaQuery.removeEventListener('change', handler)
@@ -102,13 +108,18 @@ export function CleanView({
     useEffect(() => {
         const isBreak = pomodoroPhase === 'short_break' || pomodoroPhase === 'long_break'
         const messages = isBreak ? BREAK_MESSAGES : MOTIVATIONAL_MESSAGES
-        setMotivationalMessage(messages[Math.floor(Math.random() * messages.length)])
+        const timeout = setTimeout(() => {
+            setMotivationalMessage(messages[Math.floor(Math.random() * messages.length)])
+        }, 0)
 
         const interval = setInterval(() => {
             setMotivationalMessage(messages[Math.floor(Math.random() * messages.length)])
         }, 30000) // Change every 30s
 
-        return () => clearInterval(interval)
+        return () => {
+            clearTimeout(timeout)
+            clearInterval(interval)
+        }
     }, [pomodoroPhase])
 
     // Calculate progress percentage

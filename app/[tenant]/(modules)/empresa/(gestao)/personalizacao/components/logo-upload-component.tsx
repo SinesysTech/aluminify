@@ -44,12 +44,6 @@ const LOGO_TYPE_DESCRIPTIONS: Record<LogoType, string> = {
   favicon: 'Ícone da aba do navegador'
 };
 
-const LOGO_TYPE_ICONS: Record<LogoType, string> = {
-  login: '🔐',
-  sidebar: '📋',
-  favicon: '🌐'
-};
-
 const LOGO_TYPE_COLORS: Record<LogoType, { bg: string; border: string; icon: string }> = {
   login: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: 'text-blue-600' },
   sidebar: { bg: 'bg-purple-500/10', border: 'border-purple-500/20', icon: 'text-purple-600' },

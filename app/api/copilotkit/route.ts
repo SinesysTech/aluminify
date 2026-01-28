@@ -27,6 +27,7 @@ import {
   ExperimentalEmptyAdapter,
   copilotRuntimeNextJSAppRouterEndpoint,
 } from "@copilotkit/runtime";
+import type { Parameter } from "@copilotkit/shared";
 import { MastraAgent } from "@ag-ui/mastra";
 import OpenAI from "openai";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
@@ -120,7 +121,7 @@ export const POST = async (req: NextRequest) => {
   // Determine mode based on integration type
   const useMastra = config.integrationType === "mastra";
 
-  let copilotRuntime: CopilotRuntime<unknown>;
+  let copilotRuntime: CopilotRuntime<[] | Parameter[]>;
   let serviceAdapter: OpenAIAdapter | InstanceType<typeof ExperimentalEmptyAdapter>;
 
   if (useMastra) {

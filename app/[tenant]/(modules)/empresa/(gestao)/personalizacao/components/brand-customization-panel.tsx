@@ -424,6 +424,7 @@ export function BrandCustomizationPanel({
                           {/* Sidebar Logo Preview */}
                           <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
                             {brandingState.logos.sidebar ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={brandingState.logos.sidebar}
                                 alt="Logo"

@@ -5,7 +5,6 @@ import { Nav } from "./nav";
 import { Footer } from "./footer";
 import {
     ArrowRight,
-    Github,
     Layout,
     Zap,
     Shield,

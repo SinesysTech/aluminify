@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/shared/components/forms/select';
 import {
-  Eye,
   Save,
   Trash2,
   AlertTriangle,
@@ -256,7 +255,7 @@ export function FontSchemeSelector({
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('editor');
-  const [previewMode, setPreviewMode] = useState(false);
+  const previewMode = activeTab === 'preview';
   const [selectedGoogleFont, setSelectedGoogleFont] = useState<string>('');
   const [loadingGoogleFont, setLoadingGoogleFont] = useState(false);
 
@@ -520,17 +519,6 @@ export function FontSchemeSelector({
       setIsSaving(false);
     }
   }, [schemeData, onSave, validateScheme]);
-
-  // Toggle preview mode
-  const togglePreview = useCallback(() => {
-    setPreviewMode(prev => {
-      const newPreviewMode = !prev;
-      if (newPreviewMode) {
-        onPreview(schemeData);
-      }
-      return newPreviewMode;
-    });
-  }, [schemeData, onPreview]);
 
   return (
     <div className="space-y-6">
