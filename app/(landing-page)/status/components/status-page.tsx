@@ -132,7 +132,7 @@ export function StatusPage() {
             </main>
 
             <footer className="py-8 text-center text-sm text-muted-foreground border-t border-border">
-                © 2026 Aluminify Status Page.
+                © 2026 Aluminify — Status da plataforma
             </footer>
         </div>
     );
