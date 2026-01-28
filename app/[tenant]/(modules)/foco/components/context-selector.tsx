@@ -111,8 +111,8 @@ export function ContextSelector({
             <CardContent className="space-y-2 pb-2.5 px-3">
                 {/* Quick Start Option */}
                 {hasValidLastContext && !disciplinaId && (
-                    <div className="p-3 rounded-md border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors">
-                        <div className="flex items-center justify-between gap-3">
+                    <div className="p-2.5 rounded-md border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors">
+                        <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                                 <Sparkles className="h-4 w-4 text-primary" />
                                 <div>
@@ -136,7 +136,7 @@ export function ContextSelector({
                 )}
 
                 {/* Primary selections - always visible */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {/* Curso */}
                     <div className="space-y-1.5">
                         <Label htmlFor="curso" className="flex items-center gap-1.5 text-xs">

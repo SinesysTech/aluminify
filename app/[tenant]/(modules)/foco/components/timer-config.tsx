@@ -145,7 +145,7 @@ export function TimerConfig({
 
             <CardContent className="space-y-2 pb-2.5 px-3">
                 {/* Method Selection - Horizontal Cards */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                     {METHODS.map((method) => {
                         const Icon = method.icon
                         const isSelected = metodo === method.id
@@ -156,7 +156,7 @@ export function TimerConfig({
                                 type="button"
                                 onClick={() => onMetodoChange(method.id)}
                                 className={cn(
-                                    'relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border-2 transition-all cursor-pointer',
+                                    'relative flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg border-2 transition-all cursor-pointer',
                                     'hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50',
                                     isSelected
                                         ? `${method.borderColor} ${method.bgColor}`
@@ -164,7 +164,7 @@ export function TimerConfig({
                                 )}
                             >
                                 <div className={cn(
-                                    'flex h-9 w-9 items-center justify-center rounded-full transition-colors',
+                                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
                                     isSelected ? method.bgColor : 'bg-muted'
                                 )}>
                                     <Icon className={cn(
@@ -189,7 +189,7 @@ export function TimerConfig({
                 </div>
 
                 {/* Configuration Panel */}
-                <div className="min-h-[100px]">
+                <div className="min-h-[88px]">
                     {/* Cronômetro - No config needed */}
                     {metodo === 'cronometro' && (
                         <div className="flex flex-col items-center justify-center h-[100px] text-center p-3 rounded-lg bg-muted/30 border border-dashed">
@@ -372,7 +372,7 @@ export function TimerConfig({
                 {/* Start Button */}
                 <Button
                     size="default"
-                    className="w-full h-11 text-sm gap-2 shadow-md hover:shadow-lg transition-shadow"
+                    className="w-full h-10 text-sm gap-2 shadow-md hover:shadow-lg transition-shadow"
                     onClick={onStart}
                     disabled={iniciando || !disciplinaId}
                 >
