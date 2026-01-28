@@ -72,14 +72,14 @@ export function LandingPage() {
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24">
                             <Link
                                 className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-                                href="/signup"
+                                href="/auth/sign-up"
                             >
                                 Começar Agora
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
                             <a
                                 className="w-full sm:w-auto px-8 py-4 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-all flex items-center justify-center gap-2 group"
-                                href="https://github.com/aluminify"
+                                href="https://github.com/SinesysTech/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -88,65 +88,176 @@ export function LandingPage() {
                             </a>
                         </div>
 
-                        {/* App Screenshot Mockup */}
-                        <div className="relative max-w-6xl mx-auto rounded-xl border border-border bg-card/50 shadow-2xl backdrop-blur-sm overflow-hidden aspect-video group">
-                            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10 pointer-events-none"></div>
-                            
+                        {/* App Screenshot Mockup - Rich Version */}
+                        <div className="relative max-w-6xl mx-auto rounded-2xl border border-border/50 bg-card shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)] overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-transparent z-20 pointer-events-none" />
+
                             {/* Browser Header */}
-                            <div className="border-b border-border bg-muted/50 p-3 flex items-center gap-4">
-                                <div className="flex gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                            <div className="border-b border-border bg-white p-3 flex items-center gap-4">
+                                <div className="flex gap-1.5">
+                                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                                    <div className="w-3 h-3 rounded-full bg-green-400" />
                                 </div>
-                                <div className="h-6 w-full max-w-md bg-background rounded-md border border-border flex items-center px-3 mx-auto">
-                                    <span className="text-[10px] text-muted-foreground font-mono">aluno.seucurso.com.br/dashboard</span>
+                                <div className="h-7 flex-1 max-w-lg bg-gray-100 rounded-lg border border-gray-200 flex items-center px-3 mx-auto gap-2">
+                                    <div className="w-3 h-3 rounded-full border-2 border-gray-400" />
+                                    <span className="text-[11px] text-gray-500 font-medium">aluno.seucurso.com.br/sala-de-estudos</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center">
+                                        <Layout className="w-3.5 h-3.5 text-gray-400" />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Dashboard UI Simulation */}
-                            <div className="flex h-full text-left">
+                            {/* Dashboard UI */}
+                            <div className="flex h-[420px] text-left">
                                 {/* Sidebar */}
-                                <div className="w-64 border-r border-border bg-card p-4 hidden md:flex flex-col gap-4">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-8 h-8 bg-primary rounded-lg"></div>
-                                        <div className="h-4 w-24 bg-muted rounded"></div>
+                                <div className="w-56 border-r border-border bg-white p-4 hidden md:flex flex-col">
+                                    {/* Logo */}
+                                    <div className="flex items-center gap-2.5 mb-6 px-2">
+                                        <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                            <span className="text-white text-xs font-bold">A</span>
+                                        </div>
+                                        <span className="font-semibold text-sm text-gray-800">Academia Pro</span>
                                     </div>
-                                    <div className="space-y-1">
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <div key={i} className={`h-10 rounded-lg flex items-center px-3 gap-3 ${i === 1 ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
-                                                <div className="w-4 h-4 rounded-sm bg-current opacity-20"></div>
-                                                <div className="h-2 w-20 bg-current opacity-20 rounded"></div>
+
+                                    {/* Nav Items */}
+                                    <nav className="space-y-1 flex-1">
+                                        {[
+                                            { icon: Layout, label: 'Dashboard', active: false },
+                                            { icon: Play, label: 'Sala de Estudos', active: true },
+                                            { icon: BookOpen, label: 'Meus Cursos', active: false },
+                                            { icon: Award, label: 'Certificados', active: false },
+                                        ].map((item, i) => (
+                                            <div key={i} className={`h-9 rounded-lg flex items-center px-3 gap-2.5 text-xs font-medium transition-colors ${item.active ? 'bg-violet-50 text-violet-600 border border-violet-100' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                                <item.icon className="w-4 h-4" />
+                                                <span>{item.label}</span>
                                             </div>
                                         ))}
+                                    </nav>
+
+                                    {/* User */}
+                                    <div className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 mt-4">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-medium text-gray-800 truncate">João Silva</p>
+                                            <p className="text-[10px] text-gray-400">Aluno Premium</p>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 p-8 bg-background/50">
-                                    <div className="flex justify-between items-center mb-8">
+                                <div className="flex-1 bg-gray-50/80 overflow-hidden">
+                                    {/* Header */}
+                                    <div className="bg-white border-b border-border px-6 py-4 flex justify-between items-center">
                                         <div>
-                                            <div className="h-8 w-48 bg-foreground/10 rounded mb-2"></div>
-                                            <div className="h-4 w-64 bg-muted rounded"></div>
+                                            <h2 className="text-base font-semibold text-gray-800">Marketing Digital Avançado</h2>
+                                            <p className="text-xs text-gray-500">Módulo 3 • Aula 7 de 12</p>
                                         </div>
-                                        <div className="flex gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-muted border border-border"></div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-6 mb-8">
-                                        {[1, 2, 3].map((i) => (
-                                            <div key={i} className="h-32 rounded-xl border border-border bg-card p-4 flex flex-col justify-between">
-                                                <div className="w-8 h-8 rounded-lg bg-primary/10 mb-2"></div>
-                                                <div className="h-4 w-24 bg-muted rounded"></div>
-                                                <div className="h-8 w-16 bg-foreground/10 rounded"></div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                <span>45min restantes</span>
                                             </div>
-                                        ))}
+                                            <div className="h-6 w-px bg-gray-200" />
+                                            <div className="flex -space-x-2">
+                                                {['from-violet-400 to-purple-500', 'from-blue-400 to-cyan-500', 'from-emerald-400 to-teal-500'].map((color, i) => (
+                                                    <div key={i} className={`w-6 h-6 rounded-full bg-gradient-to-br ${color} border-2 border-white`} />
+                                                ))}
+                                                <div className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[9px] font-medium text-gray-500">+5</div>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className="h-64 rounded-xl border border-border bg-card relative overflow-hidden flex items-center justify-center group-hover:scale-[1.01] transition-transform duration-700">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-                                        <Play className="w-16 h-16 text-primary opacity-50" />
+                                    {/* Video Area */}
+                                    <div className="p-6">
+                                        <div className="flex gap-4 h-[280px]">
+                                            {/* Video Player */}
+                                            <div className="flex-1 rounded-xl bg-zinc-900 relative overflow-hidden shadow-xl">
+                                                {/* Video Gradient */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-transparent to-blue-600/20" />
+
+                                                {/* Play Button */}
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-500 shadow-lg">
+                                                        <Play className="w-6 h-6 text-white fill-white ml-1" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Video Info Overlay */}
+                                                <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                                                    <div className="px-2.5 py-1 bg-black/40 backdrop-blur-sm rounded-md">
+                                                        <span className="text-[10px] text-white font-medium">Ao Vivo</span>
+                                                    </div>
+                                                    <div className="px-2.5 py-1 bg-black/40 backdrop-blur-sm rounded-md flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                                        <span className="text-[10px] text-white">HD 1080p</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Progress Bar */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className="text-[10px] text-white/80 font-mono">18:42</span>
+                                                        <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                                            <div className="h-full w-[42%] bg-gradient-to-r from-violet-500 to-purple-500 rounded-full relative">
+                                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg" />
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[10px] text-white/80 font-mono">45:00</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <p className="text-xs text-white/90 font-medium">Estratégias de Tráfego Pago</p>
+                                                        <div className="flex gap-2">
+                                                            <div className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
+                                                                <MessageCircle className="w-3.5 h-3.5 text-white/70" />
+                                                            </div>
+                                                            <div className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
+                                                                <FileText className="w-3.5 h-3.5 text-white/70" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Side Panel */}
+                                            <div className="w-64 hidden lg:flex flex-col gap-3">
+                                                {/* Progress Card */}
+                                                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <span className="text-xs font-medium text-gray-700">Seu Progresso</span>
+                                                        <span className="text-xs font-bold text-emerald-500">67%</span>
+                                                    </div>
+                                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                        <div className="h-full w-[67%] bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" />
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-400 mt-2">8 de 12 aulas concluídas</p>
+                                                </div>
+
+                                                {/* Next Lessons */}
+                                                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex-1">
+                                                    <span className="text-xs font-medium text-gray-700 mb-3 block">Próximas Aulas</span>
+                                                    <div className="space-y-2">
+                                                        {[
+                                                            { title: 'Facebook Ads', duration: '32min', done: false },
+                                                            { title: 'Google Ads', duration: '45min', done: false },
+                                                            { title: 'Analytics', duration: '28min', done: false },
+                                                        ].map((lesson, i) => (
+                                                            <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                                                                <div className="w-6 h-6 rounded-md bg-violet-50 flex items-center justify-center text-[10px] font-bold text-violet-500">
+                                                                    {i + 8}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-[11px] font-medium text-gray-700 truncate">{lesson.title}</p>
+                                                                    <p className="text-[9px] text-gray-400">{lesson.duration}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -438,16 +549,16 @@ export function LandingPage() {
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                href="/signup"
+                                href="/auth/sign-up"
                                 className="w-full sm:w-auto px-8 py-4 bg-foreground text-background font-bold rounded-lg hover:opacity-90 transition-all"
                             >
                                 Criar Conta Grátis
                             </Link>
                             <Link
-                                href="/contact"
+                                href="/pricing"
                                 className="w-full sm:w-auto px-8 py-4 bg-background border border-border font-bold rounded-lg hover:bg-muted transition-all"
                             >
-                                Falar com Vendas
+                                Ver Planos
                             </Link>
                         </div>
                     </div>

@@ -47,7 +47,7 @@ export function DocsPage() {
                         </div>
                         <div className="flex items-center gap-4 text-sm">
                             <Link className="text-muted-foreground hover:text-primary transition-colors" href="/">Voltar ao site</Link>
-                            <a className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1" href="https://github.com/aluminify" target="_blank" rel="noopener noreferrer">
+                            <a className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1" href="https://github.com/SinesysTech/aluminify" target="_blank" rel="noopener noreferrer">
                                 <Github className="w-4 h-4" />
                                 <span className="hidden sm:inline">GitHub</span>
                             </a>
@@ -211,7 +211,7 @@ export function DocsPage() {
                                 <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
                                     <span className="text-xs text-zinc-400">bash</span>
                                     <button 
-                                        onClick={() => copyToClipboard("git clone https://github.com/aluminify/core.git\ncd aluminify-core\ncp .env.example .env.local\ndocker-compose up -d")}
+                                        onClick={() => copyToClipboard("git clone https://github.com/SinesysTech/aluminify.git\ncd aluminify\ncp .env.example .env.local\ndocker-compose up -d")}
                                         className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
                                     >
                                         {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -220,7 +220,7 @@ export function DocsPage() {
                                 </div>
                                 <div className="p-4 text-zinc-300 overflow-x-auto">
                                     <span className="text-zinc-500"># Clone o repositório</span><br />
-                                    <span className="text-purple-400">git</span> clone https://github.com/aluminify/core.git<br /><br />
+                                    <span className="text-purple-400">git</span> clone https://github.com/SinesysTech/aluminify.git<br /><br />
                                     <span className="text-zinc-500"># Entre na pasta</span><br />
                                     <span className="text-purple-400">cd</span> aluminify-core<br /><br />
                                     <span className="text-zinc-500"># Configure ambiente</span><br />
@@ -277,7 +277,7 @@ export function DocsPage() {
 
                     <div className="mt-16 pt-8 border-t border-border flex justify-between">
                         <div></div>
-                        <a href="https://github.com/aluminify" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-right group">
+                        <a href="https://github.com/SinesysTech/aluminify" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-right group">
                             <div>
                                 <div className="text-xs text-muted-foreground mb-1">Próximo</div>
                                 <div className="text-foreground font-bold group-hover:text-primary transition-colors">Repositório GitHub</div>
