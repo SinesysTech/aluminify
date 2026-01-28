@@ -98,7 +98,8 @@
       "Bash(npm show:*)",
       "WebSearch",
       "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:mastra.ai)"
+      "WebFetch(domain:mastra.ai)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
