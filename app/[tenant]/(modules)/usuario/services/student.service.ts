@@ -44,19 +44,9 @@ export class StudentService extends UserBaseService {
 
     const existingByEmail = await this.repository.findByEmail(email);
     if (existingByEmail) {
-      // Comportamento desejado (SaaS multi-tenant):
-      // - Se o aluno já existe, não impedir cadastro por conflito: apenas vincular ao(s) curso(s) informado(s).
-      // - Proteção multi-tenant: não permitir vincular aluno que já pertence a outra empresa (exceto fluxos superadmin,
-      //   que são tratados no endpoint específico com service role).
-      if (
-        payload.empresaId &&
-        existingByEmail.empresaId &&
-        existingByEmail.empresaId !== payload.empresaId
-      ) {
-        throw new StudentConflictError(
-          "Este e-mail já pertence a um aluno de outra empresa. Não é possível vincular automaticamente.",
-        );
-      }
+      // Aluno já existe no sistema (possivelmente em outra empresa)
+      // Permitir vínculo cross-tenant - apenas vincular aos cursos solicitados
+      // O empresa_id "primário" do aluno permanece inalterado para compatibilidade
 
       const courseIds =
         payload.courseIds && payload.courseIds.length > 0

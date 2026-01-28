@@ -252,20 +252,10 @@ async function postHandler(request: AuthenticatedRequest) {
     }
 
     if (resolvedExistingAluno?.id) {
-      const existingEmpresaId =
-        (resolvedExistingAluno as { empresa_id?: string | null }).empresa_id ?? null;
+      // Aluno já existe no sistema (possivelmente em outra empresa)
+      // Permitir vínculo cross-tenant - apenas vincular aos cursos da empresa atual
+      // O empresa_id "primário" do aluno permanece inalterado para compatibilidade
       const isSuperAdmin = !!request.user?.isSuperAdmin;
-
-      // Bloqueia tentativa de reutilizar aluno de outra empresa (a não ser superadmin).
-      if (existingEmpresaId && existingEmpresaId !== empresaId && !isSuperAdmin) {
-        return NextResponse.json(
-          {
-            error:
-              "Este e-mail já pertence a um aluno de outra empresa. Não é possível cadastrar/vincular automaticamente.",
-          },
-          { status: 409 },
-        );
-      }
 
       // Validar que os cursos informados pertencem à empresa (evita vínculo cross-tenant).
       if (courseIds.length > 0 && !isSuperAdmin) {

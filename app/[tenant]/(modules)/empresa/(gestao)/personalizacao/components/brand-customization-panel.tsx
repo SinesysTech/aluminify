@@ -665,7 +665,7 @@ export function BrandCustomizationPanel({
                     </div>
                   </div>
                   {/* Auto-save indicator */}
-                  <Badge variant="secondary" className="bg-green-500/10 text-green-700 border-green-500/20 gap-1.5">
+                  <Badge variant="success" className="gap-1.5">
                     <Check className="h-3 w-3" />
                     Salvamento automático
                   </Badge>
@@ -819,7 +819,7 @@ export function BrandCustomizationPanel({
                     </div>
                   </div>
                   {/* Auto-save indicator */}
-                  <Badge variant="secondary" className="bg-green-500/10 text-green-700 border-green-500/20 gap-1.5">
+                  <Badge variant="success" className="gap-1.5">
                     <Check className="h-3 w-3" />
                     Salvamento automático
                   </Badge>
