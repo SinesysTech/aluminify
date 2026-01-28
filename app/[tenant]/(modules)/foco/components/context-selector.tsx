@@ -94,7 +94,7 @@ export function ContextSelector({
 
     return (
         <Card>
-            <CardHeader className="pb-2 pt-3 px-4">
+            <CardHeader className="pb-1.5 pt-2.5 px-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-primary" />
@@ -108,7 +108,7 @@ export function ContextSelector({
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 pb-3 px-4">
+            <CardContent className="space-y-2 pb-2.5 px-3">
                 {/* Quick Start Option */}
                 {hasValidLastContext && !disciplinaId && (
                     <div className="p-3 rounded-md border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors">
@@ -246,9 +246,9 @@ export function ContextSelector({
 
                                 {/* Módulo - only show if frente selected */}
                                 {frenteId && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="modulo" className="flex items-center gap-2 text-sm">
-                                            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="modulo" className="flex items-center gap-1.5 text-xs">
+                                            <Layers className="h-3 w-3 text-muted-foreground" />
                                             Módulo
                                         </Label>
                                         <Select
@@ -256,11 +256,11 @@ export function ContextSelector({
                                             onValueChange={onModuloChange}
                                             disabled={loadingModulos}
                                         >
-                                            <SelectTrigger className="h-10">
+                                            <SelectTrigger className="h-8">
                                                 <SelectValue placeholder={
                                                     loadingModulos ? 'Carregando...' :
-                                                    modulos.length === 0 ? 'Nenhum módulo disponível' :
-                                                    'Selecione o módulo'
+                                                    modulos.length === 0 ? 'Nenhum módulo' :
+                                                    'Selecione'
                                                 } />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -276,22 +276,22 @@ export function ContextSelector({
 
                                 {/* Atividade - only show if módulo selected */}
                                 {moduloId && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="atividade" className="flex items-center gap-2 text-sm">
-                                            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="atividade" className="flex items-center gap-1.5 text-xs">
+                                            <FileText className="h-3 w-3 text-muted-foreground" />
                                             Atividade
-                                            <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+                                            <span className="text-[10px] text-muted-foreground font-normal">(opcional)</span>
                                         </Label>
                                         <Select
                                             value={atividadeId || undefined}
                                             onValueChange={onAtividadeChange}
                                             disabled={loadingAtividades}
                                         >
-                                            <SelectTrigger className="h-10">
+                                            <SelectTrigger className="h-8">
                                                 <SelectValue placeholder={
                                                     loadingAtividades ? 'Carregando...' :
-                                                    atividades.length === 0 ? 'Nenhuma atividade disponível' :
-                                                    'Selecione a atividade'
+                                                    atividades.length === 0 ? 'Nenhuma atividade' :
+                                                    'Selecione'
                                                 } />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -302,9 +302,6 @@ export function ContextSelector({
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <p className="text-xs text-muted-foreground">
-                                            Vincular permite marcar como concluída ao final da sessão.
-                                        </p>
                                     </div>
                                 )}
                             </div>

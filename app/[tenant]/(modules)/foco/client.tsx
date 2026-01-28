@@ -446,7 +446,7 @@ export default function FocoClient() {
                 />
             )}
 
-            <div className="space-y-4 container py-4 md:py-6 mx-auto max-w-3xl" aria-hidden={isCleanView}>
+            <div className="space-y-3 container py-3 md:py-4 mx-auto max-w-3xl" aria-hidden={isCleanView}>
                 <FocusHeader presenceCount={presence.count} />
 
                 {erro && (
