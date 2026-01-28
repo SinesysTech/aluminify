@@ -5,7 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Rocket, School } from 'lucide-react'
+import { ArrowRight, School } from 'lucide-react'
 import { AuthPageLayout } from '@/app/[tenant]/auth/components/auth-page-layout'
 import { SignupDecorativeTerminal } from '@/app/[tenant]/auth/components/signup-decorative-terminal'
 import { Input } from '@/app/shared/components/forms/input'
@@ -73,7 +73,7 @@ export default function SignUpPage() {
         | null
 
       if (!response.ok) {
-        const message = data?.error || 'Erro ao inicializar instância'
+        const message = data?.error || 'Erro ao criar conta'
 
         if (message.includes('já está cadastrado') || message.includes('already registered')) {
           toast.error('Conta já existe', {
@@ -92,10 +92,10 @@ export default function SignUpPage() {
         return
       }
 
-      toast.success('Instância criada!', {
+      toast.success('Conta criada!', {
         description:
           data?.message ||
-          'Sua conta e empresa foram criadas. Você já pode fazer login.',
+          'Sua conta foi criada. Você já pode fazer login.',
       })
 
       router.push('/auth/sign-up-success')
