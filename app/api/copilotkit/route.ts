@@ -68,8 +68,8 @@ export const POST = async (req: NextRequest) => {
     url.searchParams.get("agent") === "mastra" ||
     req.headers.get("X-CopilotKit-Agent") === "mastra";
 
-  let copilotRuntime: CopilotRuntime;
-  let serviceAdapter: OpenAIAdapter | ExperimentalEmptyAdapter;
+  let copilotRuntime: CopilotRuntime<any>;
+  let serviceAdapter: OpenAIAdapter | InstanceType<typeof ExperimentalEmptyAdapter>;
 
   if (useMastra) {
     // Mastra Agent Mode: Use MastraAgent.getLocalAgents() via AG-UI protocol
@@ -87,7 +87,6 @@ export const POST = async (req: NextRequest) => {
 
     copilotRuntime = new CopilotRuntime({
       // Use MastraAgent.getLocalAgents to register Mastra agents with CopilotKit
-      // @ts-expect-error - AG-UI integration type compatibility
       agents: MastraAgent.getLocalAgents({ mastra }),
     });
 

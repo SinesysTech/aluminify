@@ -83,6 +83,31 @@ export default function FocoClient() {
 
     // -- Effects: Data Loading --
 
+    // Restore context from localStorage (when URL doesn't specify it)
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        try {
+            const raw = window.localStorage.getItem(FOCUS_CONTEXT_STORAGE_KEY)
+            if (!raw) return
+            const parsed = JSON.parse(raw) as Partial<{
+                cursoId: string
+                disciplinaId: string
+                frenteId: string
+                moduloId: string
+                atividadeId: string
+            }>
+
+            if (parsed.cursoId) setCursoId(parsed.cursoId)
+            if (parsed.disciplinaId) setDisciplinaId(parsed.disciplinaId)
+            if (parsed.frenteId) setFrenteId(parsed.frenteId)
+            if (parsed.moduloId) setModuloId(parsed.moduloId)
+            if (parsed.atividadeId) setAtividadeId(parsed.atividadeId)
+        } catch {
+            /* ignore */
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     // load from URL
     useEffect(() => {
         const cid = nextSearchParams.get('cursoId')
