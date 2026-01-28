@@ -18,7 +18,7 @@ export function BrandingSyncProvider({ children }: BrandingSyncProviderProps) {
 
         const unsubscribe = sync.subscribe((message) => {
             if (message.empresaId === activeEmpresaId) {
-                if (message.type === 'invalidate' || message.type === 'update') {
+                if (message.type === 'INVALIDATE' || message.type === 'UPDATE') {
                     refresh();
                 }
             }

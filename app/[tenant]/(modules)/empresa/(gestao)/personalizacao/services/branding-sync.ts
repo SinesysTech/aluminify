@@ -9,7 +9,7 @@
 type BrandingUpdateMessage = {
   type: "UPDATE" | "INVALIDATE";
   empresaId: string;
-  data?: any;
+  data?: unknown;
   timestamp: number;
 };
 
@@ -17,18 +17,28 @@ export class BrandingSync {
   private channel: BroadcastChannel | null = null;
   private readonly CHANNEL_NAME = "tenant-branding-sync";
   private listeners: Set<(message: BrandingUpdateMessage) => void> = new Set();
+  private useLocalStorageFallback = false;
 
   constructor() {
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      this.channel = new BroadcastChannel(this.CHANNEL_NAME);
-      this.channel.onmessage = this.handleMessage.bind(this);
+    if (typeof window !== "undefined") {
+      if ("BroadcastChannel" in window) {
+        this.channel = new BroadcastChannel(this.CHANNEL_NAME);
+        this.channel.onmessage = this.handleMessage.bind(this);
+      } else {
+        // Fallback for environments not supporting BroadcastChannel (e.g. older Safari)
+        this.useLocalStorageFallback = true;
+        (window as Window).addEventListener(
+          "storage",
+          this.handleStorageEvent.bind(this),
+        );
+      }
     }
   }
 
   /**
    * Publish an update to other tabs
    */
-  publishUpdate(empresaId: string, data?: any) {
+  publishUpdate(empresaId: string, data?: unknown) {
     this.postMessage({
       type: "UPDATE",
       empresaId,
@@ -64,18 +74,47 @@ export class BrandingSync {
       this.channel.close();
       this.channel = null;
     }
+    if (this.useLocalStorageFallback && typeof window !== "undefined") {
+      window.removeEventListener("storage", this.handleStorageEvent.bind(this));
+    }
     this.listeners.clear();
   }
 
   private postMessage(message: BrandingUpdateMessage) {
     if (this.channel) {
       this.channel.postMessage(message);
+    } else if (
+      this.useLocalStorageFallback &&
+      typeof localStorage !== "undefined"
+    ) {
+      // Use localStorage as message bus
+      localStorage.setItem(this.CHANNEL_NAME, JSON.stringify(message));
+      // Immediate cleanup not needed as 'storage' event fires on other tabs only
+      // But we might want to clear it after a moment to avoid stale state?
+      // Actually standard pattern is just setting it.
+      // To ensure repeated same-messages trigger event (storage event only fires on change),
+      // we already include 'timestamp' in message which guarantees uniqueness.
     }
   }
 
   private handleMessage(event: MessageEvent<BrandingUpdateMessage>) {
-    if (this.listeners.size > 0 && event.data) {
-      this.listeners.forEach((listener) => listener(event.data));
+    this.notifyListeners(event.data);
+  }
+
+  private handleStorageEvent(event: StorageEvent) {
+    if (event.key === this.CHANNEL_NAME && event.newValue) {
+      try {
+        const message = JSON.parse(event.newValue) as BrandingUpdateMessage;
+        this.notifyListeners(message);
+      } catch (e) {
+        console.warn("Failed to parse branding sync message", e);
+      }
+    }
+  }
+
+  private notifyListeners(message: BrandingUpdateMessage) {
+    if (this.listeners.size > 0 && message) {
+      this.listeners.forEach((listener) => listener(message));
     }
   }
 }
