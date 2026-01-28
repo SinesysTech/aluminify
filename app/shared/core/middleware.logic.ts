@@ -229,7 +229,6 @@ export async function updateSession(request: NextRequest) {
     "/auth/login",
     "/auth/sign-up",
     "/api/auth/signup-with-empresa",
-    "/api/admin/fix-permissions",
     "/api/tobias/chat/attachments",
     "/api/health",
     "/",
