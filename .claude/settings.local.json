@@ -91,7 +91,9 @@
       "Bash(pnpm run lint)",
       "Bash(npm search:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(npm info:*)"
+      "Bash(npm info:*)",
+      "Bash(pnpm why:*)",
+      "WebFetch(domain:registry.npmjs.org)"
     ],
     "deny": [],
     "ask": []

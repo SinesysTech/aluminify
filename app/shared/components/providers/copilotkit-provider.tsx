@@ -5,17 +5,9 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/app/shared/core/client'
 import type { AppUser } from '@/app/shared/types'
 
-type AgentMode = 'copilotkit' | 'mastra';
-
 interface CopilotKitProviderProps {
   user: AppUser
   children: React.ReactNode
-  /**
-   * Agent mode determines which backend integration to use:
-   * - 'copilotkit': Direct-to-LLM with CopilotKit actions (default)
-   * - 'mastra': Mastra agent framework via AG-UI protocol
-   */
-  agentMode?: AgentMode
 }
 
 /**
@@ -26,13 +18,12 @@ interface CopilotKitProviderProps {
  * - Runtime for connecting to LLMs and agent frameworks
  * - State management and streaming
  *
- * Agent Mode:
- * - 'copilotkit': Uses direct LLM calls with backend actions (OpenAIAdapter)
- * - 'mastra': Uses Mastra agents via AG-UI protocol (ExperimentalEmptyAdapter)
- *
- * Both modes use the same /api/copilotkit endpoint, with mode determined by headers.
+ * This provider wraps children with CopilotKit context, providing:
+ * - Runtime URL pointing to /api/copilotkit
+ * - Authentication via Bearer token (automatically refreshed)
+ * - User properties forwarded to backend actions
  */
-export function CopilotKitProvider({ user, children, agentMode = 'copilotkit' }: CopilotKitProviderProps) {
+export function CopilotKitProvider({ user, children }: CopilotKitProviderProps) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -72,26 +63,17 @@ export function CopilotKitProvider({ user, children, agentMode = 'copilotkit' }:
     return <>{children}</>
   }
 
-  // Build headers based on agent mode
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${accessToken}`,
-  };
-
-  // Add agent mode header for Mastra integration
-  if (agentMode === 'mastra') {
-    headers['X-CopilotKit-Agent'] = 'mastra';
-  }
-
   return (
     <CopilotKit
       runtimeUrl="/api/copilotkit"
-      headers={headers}
+      headers={{
+        Authorization: `Bearer ${accessToken}`,
+      }}
       properties={{
         userId: user.id,
         empresaId: user.empresaId ?? null,
         userRole: user.role,
         userName: user.fullName ?? user.email,
-        agentMode, // Pass agent mode to frontend for UI customization
       }}
     >
       {children}
