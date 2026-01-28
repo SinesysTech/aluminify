@@ -9,11 +9,14 @@ import {
 } from "@/app/[tenant]/auth/middleware";
 
 function handleError(error: unknown) {
+  // Erros esperados de validação - log informativo apenas
   if (error instanceof CronogramaValidationError) {
+    console.log("[Cronograma] Validação:", error.message);
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
   if (error instanceof CronogramaTempoInsuficienteError) {
+    console.log("[Cronograma] Tempo insuficiente:", JSON.stringify(error.detalhes));
     return NextResponse.json(
       {
         error: error.message,
@@ -24,22 +27,21 @@ function handleError(error: unknown) {
   }
 
   if (error instanceof CronogramaConflictError) {
+    console.log("[Cronograma] Conflito:", error.message);
     return NextResponse.json({ error: error.message }, { status: 409 });
   }
 
-  // Log detalhado do erro
-  console.error("Cronograma API Error:", error);
-
-  // Extrair mensagem de erro mais detalhada
-  let errorMessage = "Internal server error";
+  // Erro inesperado - log completo para debug
+  console.error("[Cronograma] Erro inesperado:", error);
   if (error instanceof Error) {
-    errorMessage = error.message || errorMessage;
-    console.error("Error stack:", error.stack);
-  } else if (typeof error === "string") {
-    errorMessage = error;
-  } else if (error && typeof error === "object" && "message" in error) {
-    errorMessage = String(error.message);
+    console.error("[Cronograma] Stack:", error.stack);
   }
+
+  const errorMessage = error instanceof Error
+    ? error.message
+    : typeof error === "string"
+      ? error
+      : "Internal server error";
 
   return NextResponse.json(
     {
@@ -118,16 +120,6 @@ async function postHandler(request: AuthenticatedRequest) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error("[Cronograma POST] Error generating schedule:", error);
-    console.error("[Cronograma POST] Error type:", error?.constructor?.name);
-    console.error(
-      "[Cronograma POST] Error message:",
-      error instanceof Error ? error.message : String(error),
-    );
-    console.error(
-      "[Cronograma POST] Error stack:",
-      error instanceof Error ? error.stack : "N/A",
-    );
     return handleError(error);
   }
 }

@@ -22,6 +22,7 @@ import { NavUser } from "@/components/layout/nav-user"
 import { useCurrentUser } from "@/components/providers/user-provider"
 import { TenantLogo } from "@/components/ui/tenant-logo"
 import { useModuleVisibility } from "@/app/shared/hooks/use-module-visibility"
+import { Skeleton } from "@/app/shared/components/feedback/skeleton"
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +31,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 import { getDefaultRouteForRole } from "@/app/shared/core/roles"
 
@@ -65,7 +68,30 @@ function getIconComponent(iconName: string): LucideIcon {
   return ICON_MAP[iconName] || Circle
 }
 
-// Default nav items (fallback when no config or during loading)
+/**
+ * Skeleton component for sidebar menu items while loading
+ * Shows placeholder items to prevent layout shift without showing actual menu items
+ */
+function NavMenuSkeleton() {
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>Menu</SidebarGroupLabel>
+      <SidebarMenu>
+        {/* Show 5 skeleton items to match typical module count */}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <SidebarMenuItem key={i}>
+            <SidebarMenuButton disabled className="pointer-events-none">
+              <Skeleton className="h-4 w-4 rounded" />
+              <Skeleton className="h-4 flex-1" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    </SidebarGroup>
+  )
+}
+
+// Default nav items (fallback ONLY when no config exists, NOT during loading)
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   {
     title: "Dashboard",
@@ -129,9 +155,16 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const { modules, loading } = useModuleVisibility()
 
   // Build nav items from module visibility or use defaults
+  // IMPORTANT: During loading, return null to show skeleton (prevents flash)
+  // Only use defaults if loading is complete but no modules exist
   const navItems = useMemo(() => {
-    // Use defaults while loading or if no config exists
-    if (loading || modules.length === 0) {
+    // Still loading - return null to trigger skeleton display
+    if (loading) {
+      return null
+    }
+
+    // Loading complete but no modules configured - use defaults as fallback
+    if (modules.length === 0) {
       return DEFAULT_NAV_ITEMS.map(item => ({
         ...item,
         url: tenantSlug ? `/${tenantSlug}${item.url}` : item.url,
@@ -160,10 +193,11 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       }))
   }, [modules, loading, tenantSlug])
 
-  const navMainWithActive = navItems.map((item) => ({
+  // Only compute active state if we have nav items (not during loading)
+  const navMainWithActive = navItems?.map((item) => ({
     ...item,
     isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
-  }))
+  })) ?? null
 
   const homeLink = tenantSlug
     ? `/${tenantSlug}${getDefaultRouteForRole(user.role)}`
@@ -198,7 +232,11 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMainWithActive} label="Menu" />
+        {navMainWithActive ? (
+          <NavMain items={navMainWithActive} label="Menu" />
+        ) : (
+          <NavMenuSkeleton />
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
