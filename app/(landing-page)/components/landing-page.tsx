@@ -45,11 +45,12 @@ export function LandingPage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                    {/* Background Grid */}
-                    <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#e5e5e5_1px,transparent_1px),linear-gradient(to_bottom,#e5e5e5_1px,transparent_1px)] bg-[size:40px_40px]">
-                        <div className="absolute left-0 right-0 top-0 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]"></div>
-                    </div>
+                <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gray-50">
+                    {/* Background Grid - mesma estrutura do login */}
+                    <div className="absolute inset-0 bg-grid-pattern opacity-60" />
+
+                    {/* Ambient Glow */}
+                    <div className="absolute left-0 right-0 top-0 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]" />
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border mb-8 animate-fade-in-up">
