@@ -1,9 +1,8 @@
 import React from 'react'
-
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { UserProvider } from '@/components/providers/user-provider'
 import { CopilotKitProvider } from '@/components/providers/copilotkit-provider'
-import { TenantBrandingProvider } from '@/components/providers/tenant-branding-provider'
+import { BrandingProvider } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/providers/branding-provider"
 import { StudentOrganizationsProvider } from '@/components/providers/student-organizations-provider'
 import { ModuleVisibilityProvider } from '@/components/providers/module-visibility-provider'
 import { BottomNavigation } from '@/components/layout/bottom-navigation'
@@ -41,35 +40,35 @@ export async function DashboardLayout({
     return (
         <UserProvider user={user}>
             <CopilotKitProvider user={user}>
-                <TenantBrandingProvider user={user}>
+                <BrandingProvider empresaId={user.empresaId || ''}>
                     <StudentOrganizationsProvider user={user}>
-                    <ModuleVisibilityProvider
-                        empresaId={user.empresaId || null}
-                        userRole={user.role}
-                    >
-                    <StudentBrandingCoordinator />
-                    <SidebarProvider
-                        // 3. Aplicação das variáveis de fonte e classes base no Provider
-                        className={cn(
-                            "font-sans antialiased",
-                            fontSans.variable,
-                            fontMono.variable
-                        )}
-                    >
-                        <AppSidebar />
-                        <SidebarInset>
-                            <DashboardHeader />
-                            <ImpersonationBanner />
-                            {/* Main content - scroll nativo do body */}
-                            <div className="p-4 md:px-8 md:py-6 pb-20 md:pb-8 bg-background">
-                                {children}
-                            </div>
-                            <BottomNavigation />
-                        </SidebarInset>
-                    </SidebarProvider>
-                    </ModuleVisibilityProvider>
+                        <ModuleVisibilityProvider
+                            empresaId={user.empresaId || null}
+                            userRole={user.role}
+                        >
+                            <StudentBrandingCoordinator />
+                            <SidebarProvider
+                                // 3. Aplicação das variáveis de fonte e classes base no Provider
+                                className={cn(
+                                    "font-sans antialiased",
+                                    fontSans.variable,
+                                    fontMono.variable
+                                )}
+                            >
+                                <AppSidebar />
+                                <SidebarInset>
+                                    <DashboardHeader />
+                                    <ImpersonationBanner />
+                                    {/* Main content - scroll nativo do body */}
+                                    <div className="p-4 md:px-8 md:py-6 pb-20 md:pb-8 bg-background">
+                                        {children}
+                                    </div>
+                                    <BottomNavigation />
+                                </SidebarInset>
+                            </SidebarProvider>
+                        </ModuleVisibilityProvider>
                     </StudentOrganizationsProvider>
-                </TenantBrandingProvider>
+                </BrandingProvider>
             </CopilotKitProvider>
         </UserProvider>
     )

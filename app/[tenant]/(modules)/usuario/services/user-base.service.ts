@@ -8,14 +8,35 @@ export class UserBaseService {
     return getServiceRoleClient();
   }
 
-  private async findAuthUserIdByEmail(
-    email: string,
-  ): Promise<string | null> {
+  private async findAuthUserIdByEmail(email: string): Promise<string | null> {
     const adminClient = this.getAdminClient();
     const normalized = email.trim().toLowerCase();
 
+    // OTIMIZAÇÃO: Tentar buscar via RPC (O(1)) para evitar listar todos os usuários (O(N))
+    // A função get_auth_user_id_by_email deve existir no banco (migration).
+    try {
+      const { data: userId, error } = await adminClient.rpc(
+        "get_auth_user_id_by_email",
+        {
+          email: normalized,
+        },
+      );
+
+      if (!error) {
+        // Retorna ID se encontrado ou null se não encontrado
+        return (userId as string) || null;
+      }
+
+      console.warn(
+        "RPC get_auth_user_id_by_email failed, falling back to listUsers:",
+        error,
+      );
+    } catch (err) {
+      console.warn("Exception calling get_auth_user_id_by_email:", err);
+    }
+
+    // FALLBACK LEGADO: Manter lógica antiga caso a RPC falhe ou não exista
     // Paginar de forma segura: em instalações com muitos usuários, o usuário pode não estar na 1ª página.
-    // A API retorna `nextPage` e `lastPage` (ver Pagination em @supabase/auth-js).
     let page: number | null = 1;
     const perPage = 1000;
 
@@ -124,7 +145,10 @@ export class UserBaseService {
   ) {
     const adminClient = this.getAdminClient();
 
-    const updatePayload: { password?: string; user_metadata?: Record<string, unknown> } = {};
+    const updatePayload: {
+      password?: string;
+      user_metadata?: Record<string, unknown>;
+    } = {};
     if (updates.password) updatePayload.password = updates.password;
 
     const metadataUpdates: Record<string, unknown> = {};

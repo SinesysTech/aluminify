@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useStudentOrganizations } from "@/components/providers/student-organizations-provider";
-import { useTenantBranding } from "@/components/providers/tenant-branding-provider";
+import { useTenantBranding } from "@/app/shared/hooks/use-tenant-branding";
 
 /**
  * Coordinates branding changes for multi-org students.

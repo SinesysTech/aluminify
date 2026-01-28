@@ -1,36 +1,88 @@
 /**
  * Tenant Branding Hook
- * 
+ *
  * Custom hook for managing tenant branding state and real-time updates.
  * Provides utilities for components that need to react to branding changes.
  */
 
-import { useCallback, useEffect, useState, useContext } from 'react';
-import { useTenantBranding, TenantBrandingContext, type TenantBrandingContextType } from '@/components/providers/tenant-branding-provider';
-import { getCSSPropertiesManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/css-properties-manager';
-import type { CompleteBrandingConfig, ColorPalette, FontScheme, LogoType } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types';
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { useBranding } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/providers/branding-provider";
+import { getCSSPropertiesManager } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/css-properties-manager";
+import type {
+  CompleteBrandingConfig,
+  ColorPalette,
+  FontScheme,
+  LogoType,
+} from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types";
+
+// Define legacy context type for compatibility
+export interface TenantBrandingContextType {
+  loadingBranding: boolean;
+  error: string | null;
+  currentBranding: CompleteBrandingConfig | null;
+  refreshBranding: () => Promise<void>;
+  clearError: () => void;
+  triggerCrossTabUpdate: () => void;
+  logoVersion: number;
+  getLogoUrl: (type: LogoType) => string | null;
+  loadBrandingForEmpresa: (empresaId: string | null) => Promise<void>;
+  activeEmpresaId: string | null;
+}
+
+// Adapter Hook
+export function useTenantBranding(): TenantBrandingContextType {
+  const { branding, isLoading, error, refresh, setEmpresaId, activeEmpresaId } =
+    useBranding();
+
+  const logoVersion = useMemo(() => {
+    return branding ? new Date(branding.tenantBranding.updatedAt).getTime() : 0;
+  }, [branding]);
+
+  const getLogoUrl = useCallback(
+    (type: LogoType) => {
+      if (!branding?.logos[type]?.logoUrl) return null;
+      const url = branding.logos[type]!.logoUrl;
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}v=${logoVersion}`;
+    },
+    [branding, logoVersion],
+  );
+
+  return {
+    loadingBranding: isLoading,
+    error,
+    currentBranding: branding,
+    refreshBranding: refresh,
+    clearError: () => {}, // No-op in new provider
+    triggerCrossTabUpdate: () => {}, // Handled automatically by service on save
+    logoVersion,
+    getLogoUrl,
+    loadBrandingForEmpresa: async (id) => setEmpresaId(id),
+    activeEmpresaId,
+  };
+}
 
 export interface TenantBrandingHookReturn {
   // State
   branding: CompleteBrandingConfig | null;
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   refresh: () => Promise<void>;
   clearError: () => void;
-  
+
   // Utilities
   hasCustomBranding: boolean;
   hasCustomColors: boolean;
   hasCustomFonts: boolean;
   hasCustomLogos: boolean;
-  
+
   // CSS Properties
   appliedProperties: string[];
   isPropertyApplied: (property: string) => boolean;
   getPropertyValue: (property: string) => string;
-  
+
   // Real-time updates
   triggerUpdate: () => void;
 }
@@ -62,9 +114,9 @@ export function useTenantBrandingState(): TenantBrandingHookReturn {
   const hasCustomColors = Boolean(currentBranding?.colorPalette);
   const hasCustomFonts = Boolean(currentBranding?.fontScheme);
   const hasCustomLogos = Boolean(
-    currentBranding?.logos.login || 
-    currentBranding?.logos.sidebar || 
-    currentBranding?.logos.favicon
+    currentBranding?.logos.login ||
+    currentBranding?.logos.sidebar ||
+    currentBranding?.logos.favicon,
   );
 
   const isPropertyApplied = useCallback((property: string): boolean => {
@@ -86,22 +138,22 @@ export function useTenantBrandingState(): TenantBrandingHookReturn {
     branding: currentBranding,
     loading: loadingBranding,
     error,
-    
+
     // Actions
     refresh: refreshBranding,
     clearError,
-    
+
     // Utilities
     hasCustomBranding,
     hasCustomColors,
     hasCustomFonts,
     hasCustomLogos,
-    
+
     // CSS Properties
     appliedProperties,
     isPropertyApplied,
     getPropertyValue,
-    
+
     // Real-time updates
     triggerUpdate,
   };
@@ -111,7 +163,7 @@ export function useTenantBrandingState(): TenantBrandingHookReturn {
  * Hook for listening to specific branding property changes
  */
 export function useBrandingProperty(property: string) {
-  const [value, setValue] = useState<string>('');
+  const [value, setValue] = useState<string>("");
   const { branding } = useTenantBrandingState();
 
   useEffect(() => {
@@ -134,9 +186,9 @@ export function useColorPalette(): {
   foregroundColor: string;
 } {
   const { branding } = useTenantBrandingState();
-  const primaryColor = useBrandingProperty('--primary');
-  const backgroundColor = useBrandingProperty('--background');
-  const foregroundColor = useBrandingProperty('--foreground');
+  const primaryColor = useBrandingProperty("--primary");
+  const backgroundColor = useBrandingProperty("--background");
+  const foregroundColor = useBrandingProperty("--foreground");
 
   return {
     palette: branding?.colorPalette || null,
@@ -157,8 +209,8 @@ export function useFontScheme(): {
   fontMono: string;
 } {
   const { branding } = useTenantBrandingState();
-  const fontSans = useBrandingProperty('--font-sans');
-  const fontMono = useBrandingProperty('--font-mono');
+  const fontSans = useBrandingProperty("--font-sans");
+  const fontMono = useBrandingProperty("--font-mono");
 
   return {
     scheme: branding?.fontScheme || null,
@@ -235,7 +287,8 @@ export function useBrandingChangeDetection(): {
   const { branding } = useTenantBrandingState();
   const [hasChanged, setHasChanged] = useState(false);
   const [lastChangeTime, setLastChangeTime] = useState<Date | null>(null);
-  const [previousBranding, setPreviousBranding] = useState<CompleteBrandingConfig | null>(null);
+  const [previousBranding, setPreviousBranding] =
+    useState<CompleteBrandingConfig | null>(null);
 
   useEffect(() => {
     if (JSON.stringify(branding) !== JSON.stringify(previousBranding)) {
@@ -258,30 +311,34 @@ export function useBrandingChangeDetection(): {
 }
 
 /**
- * Optional hook that returns null when used outside of TenantBrandingProvider
+ * Optional hook that returns null when used outside of BrandingProvider
  * Useful for components that need to work in both authenticated and unauthenticated contexts
  */
 export function useTenantBrandingOptional(): TenantBrandingContextType | null {
-  const context = useContext(TenantBrandingContext);
+  const { service } = useBranding();
+  // Safe to call useTenantBranding as it just calls useBranding and maps values
+  const adapter = useTenantBranding();
 
-  // Check if we have a valid context with actual data
-  // The default context has empty functions, so we check if refreshBranding is the default no-op
-  if (!context || context.refreshBranding.toString() === 'async () => {}') {
+  // If service is null, we are not in a provider (assuming simple check)
+  if (!service) {
     return null;
   }
 
-  return context;
+  return adapter;
 }
 
 /**
  * Hook for getting a specific logo URL with cache-busting
  * Works in both connected (via provider) and standalone modes
  */
-export function useLogoUrl(logoType: LogoType, empresaId?: string): {
+export function useLogoUrl(
+  logoType: LogoType,
+  empresaId?: string,
+): {
   url: string | null;
   loading: boolean;
   error: boolean;
-  mode: 'connected' | 'standalone';
+  mode: "connected" | "standalone";
 } {
   const context = useTenantBrandingOptional();
   const [standaloneUrl, setStandaloneUrl] = useState<string | null>(null);
@@ -301,7 +358,9 @@ export function useLogoUrl(logoType: LogoType, empresaId?: string): {
       setStandaloneError(false);
 
       try {
-        const response = await fetch(`/api/empresa/personalizacao/${empresaId}/logos/${logoType}/public`);
+        const response = await fetch(
+          `/api/empresa/personalizacao/${empresaId}/logos/${logoType}/public`,
+        );
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data?.logoUrl) {
@@ -327,15 +386,16 @@ export function useLogoUrl(logoType: LogoType, empresaId?: string): {
   if (isConnected && context) {
     const logo = context.currentBranding!.logos[logoType];
     const url = logo?.logoUrl || null;
-    const versionedUrl = url && context.logoVersion
-      ? `${url}${url.includes('?') ? '&' : '?'}v=${context.logoVersion}`
-      : url;
+    const versionedUrl =
+      url && context.logoVersion
+        ? `${url}${url.includes("?") ? "&" : "?"}v=${context.logoVersion}`
+        : url;
 
     return {
       url: versionedUrl,
       loading: context.loadingBranding,
       error: !!context.error,
-      mode: 'connected',
+      mode: "connected",
     };
   }
 
@@ -343,6 +403,6 @@ export function useLogoUrl(logoType: LogoType, empresaId?: string): {
     url: standaloneUrl,
     loading: standaloneLoading,
     error: standaloneError,
-    mode: 'standalone',
+    mode: "standalone",
   };
 }

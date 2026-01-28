@@ -105,7 +105,8 @@
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; node -e \"\"const t = require\\(''@mastra/core/tools''\\); console.log\\(Object.keys\\(t\\)\\);\"\" 2>&1\")",
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/tools/index.d.ts | Select-Object -First 80\")",
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/tools/types.d.ts | Select-Object -First 100\")",
-      "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/action/types.d.ts | Select-Object -First 50\")"
+      "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/action/types.d.ts | Select-Object -First 50\")",
+      "Bash(powershell -Command:*)"
     ],
     "deny": [],
     "ask": []

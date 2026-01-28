@@ -11,6 +11,8 @@ interface BrandingContextType {
     error: string | null;
     refresh: () => Promise<void>;
     service: BrandingService | null;
+    setEmpresaId: (id: string | null) => void;
+    activeEmpresaId: string | null;
 }
 
 const BrandingContext = createContext<BrandingContextType>({
@@ -18,7 +20,9 @@ const BrandingContext = createContext<BrandingContextType>({
     isLoading: true,
     error: null,
     refresh: async () => { },
-    service: null
+    service: null,
+    setEmpresaId: () => { },
+    activeEmpresaId: null
 });
 
 export const useBranding = () => useContext(BrandingContext);
@@ -30,6 +34,9 @@ interface BrandingDataProviderProps {
 }
 
 export function BrandingDataProvider({ children, empresaId, initialData = null }: BrandingDataProviderProps) {
+    const [customEmpresaId, setCustomEmpresaId] = useState<string | null | undefined>(undefined);
+    const effectiveEmpresaId = customEmpresaId !== undefined ? customEmpresaId : empresaId;
+
     const [branding, setBranding] = useState<CompleteBrandingConfig | null>(initialData);
     const [isLoading, setIsLoading] = useState(!initialData);
     const [error, setError] = useState<string | null>(null);
@@ -37,44 +44,57 @@ export function BrandingDataProvider({ children, empresaId, initialData = null }
     const supabase = createClientComponentClient();
     const service = useMemo(() => new BrandingService(supabase), [supabase]);
 
-    const loadBranding = useCallback(async () => {
-        if (!service || !empresaId) return;
+    const loadBranding = useCallback(async (idToLoad?: string | null) => {
+        const targetId = idToLoad !== undefined ? idToLoad : effectiveEmpresaId;
+
+        if (!service) return;
+
+        // If targetId is null, reset to default (or clean state)
+        if (!targetId) {
+            setBranding(null);
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const result = await service.loadTenantBranding({ empresaId });
+            const result = await service.loadTenantBranding({ empresaId: targetId });
             if (result.success && result.data) {
                 setBranding(result.data);
                 setError(null);
             } else {
                 setError(result.error || "Failed to load branding");
-                // Fallback to default if load failed? Or keep error?
-                // Usually keeping error is better for debugging, but maybe we want a safe fallback.
-                // The service already returns default on "not found" but "error" is for real failures.
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Unknown error");
         } finally {
             setIsLoading(false);
         }
-    }, [service, empresaId]);
+    }, [service, effectiveEmpresaId]);
 
-    // Initial load
+    // Initial load and reaction to effectiveId change
     useEffect(() => {
-        if (!initialData && empresaId) {
-            loadBranding();
-        } else if (initialData) {
+        if (customEmpresaId === undefined && initialData) {
             setBranding(initialData);
             setIsLoading(false);
+        } else {
+            loadBranding(effectiveEmpresaId);
         }
-    }, [loadBranding, initialData, empresaId]);
+    }, [loadBranding, effectiveEmpresaId, initialData, customEmpresaId]);
+
+    const setEmpresaId = useCallback((id: string | null) => {
+        setCustomEmpresaId(id);
+    }, []);
 
     const contextValue = useMemo(() => ({
         branding,
         isLoading,
         error,
-        refresh: loadBranding,
-        service
-    }), [branding, isLoading, error, loadBranding, service]);
+        refresh: () => loadBranding(),
+        service,
+        setEmpresaId,
+        activeEmpresaId: effectiveEmpresaId
+    }), [branding, isLoading, error, loadBranding, service, setEmpresaId, effectiveEmpresaId]);
 
     return (
         <BrandingContext.Provider value={contextValue}>

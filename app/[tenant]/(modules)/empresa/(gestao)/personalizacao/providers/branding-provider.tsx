@@ -15,7 +15,7 @@ interface BrandingProviderProps {
 export function BrandingProvider({ children, empresaId, initialData }: BrandingProviderProps) {
     return (
         <BrandingDataProvider empresaId={empresaId} initialData={initialData}>
-            <BrandingSyncProvider empresaId={empresaId}>
+            <BrandingSyncProvider>
                 <BrandingThemeProvider>
                     {children}
                 </BrandingThemeProvider>

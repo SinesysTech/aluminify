@@ -5,12 +5,19 @@
  * - Authentication via Bearer token
  * - Backend actions with tenant context (direct-to-LLM mode)
  * - Mastra agent integration via AG-UI protocol
+ * - Dynamic agent configuration from database (ai_agents table)
  *
  * CopilotKit Architecture:
  * - CopilotKit is the Agentic Application Platform (UI, providers, runtime)
  * - You can choose between direct LLM calls with actions OR agent frameworks
  * - Mastra, LangGraph, CrewAI, Agno, etc. are agent framework OPTIONS within CopilotKit
  * - Integration uses AG-UI protocol to connect agent frameworks to CopilotRuntime
+ *
+ * Agent Configuration:
+ * - Agents are stored in the ai_agents table (per empresa/tenant)
+ * - The agent slug can be passed via X-CopilotKit-Agent-Slug header
+ * - If no slug is provided, the default agent for the empresa is used
+ * - The integration_type field determines which mode to use (copilotkit or mastra)
  */
 
 import { NextRequest } from "next/server";
@@ -25,6 +32,9 @@ import OpenAI from "openai";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
 import { createCopilotKitActions } from "@/app/shared/lib/copilotkit/actions";
 import { createMastraWithContext } from "@/app/shared/lib/mastra";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
+import { AIAgentsRepositoryImpl } from "@/app/shared/services/ai-agents/ai-agents.repository";
+import type { AIAgentChatConfig } from "@/app/shared/services/ai-agents/ai-agents.types";
 
 export const runtime = "nodejs";
 
@@ -33,14 +43,26 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Service adapter for direct-to-LLM with actions
-const openAIAdapter = new OpenAIAdapter({
-  openai,
-  model: process.env.COPILOTKIT_MODEL || "gpt-4o-mini",
-});
+// Note: OpenAIAdapter is created per-request with model from database config
 
 // Service adapter for Mastra agents (agent handles LLM calls)
 const emptyAdapter = new ExperimentalEmptyAdapter();
+
+// Default agent configuration (fallback when no database config exists)
+const DEFAULT_AGENT_CONFIG: AIAgentChatConfig = {
+  id: "default",
+  slug: "study-assistant",
+  name: "Assistente de Estudos",
+  avatarUrl: null,
+  greetingMessage: "Olá! Como posso ajudá-lo hoje?",
+  placeholderText: "Digite sua mensagem...",
+  systemPrompt: null,
+  model: "gpt-4o-mini",
+  temperature: 0.7,
+  integrationType: "copilotkit",
+  integrationConfig: {},
+  supportsAttachments: false,
+};
 
 export const POST = async (req: NextRequest) => {
   // Authenticate the user
@@ -62,11 +84,41 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Check for Mastra agent mode via query param or header
+  // Get agent slug from header or query param
   const url = new URL(req.url);
-  const useMastra =
-    url.searchParams.get("agent") === "mastra" ||
-    req.headers.get("X-CopilotKit-Agent") === "mastra";
+  const agentSlug =
+    req.headers.get("X-CopilotKit-Agent-Slug") ||
+    url.searchParams.get("agentSlug") ||
+    undefined;
+
+  // Fetch agent configuration from database
+  let agentConfig: AIAgentChatConfig | null = null;
+
+  if (user.empresaId) {
+    try {
+      const db = getDatabaseClient();
+      const repository = new AIAgentsRepositoryImpl(db);
+      agentConfig = await repository.getChatConfig(user.empresaId, agentSlug);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("[CopilotKit] Agent config from database:", {
+          slug: agentConfig?.slug,
+          name: agentConfig?.name,
+          integrationType: agentConfig?.integrationType,
+          model: agentConfig?.model,
+        });
+      }
+    } catch (error) {
+      console.error("[CopilotKit] Failed to fetch agent config:", error);
+      // Continue with default config
+    }
+  }
+
+  // Use database config or fallback to default
+  const config = agentConfig || DEFAULT_AGENT_CONFIG;
+
+  // Determine mode based on integration type
+  const useMastra = config.integrationType === "mastra";
 
   let copilotRuntime: CopilotRuntime;
   let serviceAdapter: OpenAIAdapter | ExperimentalEmptyAdapter;
@@ -80,8 +132,11 @@ export const POST = async (req: NextRequest) => {
         userRole: user.role as "aluno" | "usuario" | "superadmin",
       },
       {
-        agentId: "study-assistant",
-        agentName: "Assistente de Estudos",
+        agentId: config.slug,
+        agentName: config.name,
+        systemPrompt: config.systemPrompt ?? undefined,
+        model: config.model,
+        temperature: config.temperature,
       }
     );
 
@@ -95,7 +150,10 @@ export const POST = async (req: NextRequest) => {
     serviceAdapter = emptyAdapter;
 
     if (process.env.NODE_ENV === "development") {
-      console.log("[CopilotKit] Using Mastra agent mode via AG-UI protocol");
+      console.log("[CopilotKit] Using Mastra agent mode via AG-UI protocol", {
+        agent: config.slug,
+        model: config.model,
+      });
     }
   } else {
     // Direct-to-LLM Mode: Use CopilotKit actions with OpenAI adapter
@@ -105,6 +163,12 @@ export const POST = async (req: NextRequest) => {
       userRole: user.role as "aluno" | "usuario" | "superadmin",
     });
 
+    // Create adapter with model from config
+    const configuredOpenAIAdapter = new OpenAIAdapter({
+      openai,
+      model: config.model || "gpt-4o-mini",
+    });
+
     copilotRuntime = new CopilotRuntime({
       actions:
         actions as unknown as NonNullable<
@@ -112,10 +176,13 @@ export const POST = async (req: NextRequest) => {
         >["actions"],
     });
 
-    serviceAdapter = openAIAdapter;
+    serviceAdapter = configuredOpenAIAdapter;
 
     if (process.env.NODE_ENV === "development") {
-      console.log("[CopilotKit] Using direct-to-LLM mode with actions");
+      console.log("[CopilotKit] Using direct-to-LLM mode with actions", {
+        agent: config.slug,
+        model: config.model,
+      });
     }
   }
 
