@@ -3,7 +3,7 @@ import { createClient } from '@/app/shared/core/server';
 import { getAuthUser } from '@/app/[tenant]/auth/middleware';
 
 /**
- * GET /api/admin/check-empty-tables
+ * GET /api/superadmin/check-empty-tables
  * Verifica se as tabelas principais estão vazias
  * Requer autenticação de superadmin
  */
@@ -19,33 +19,6 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
-
-    // Tentar usar função RPC se existir (comentado pois a função pode não existir)
-    // const { data: rpcData, error: rpcError } = await supabase
-    //   .rpc('count_tables_records');
-
-    // if (!rpcError && rpcData && Array.isArray(rpcData)) {
-    //   // Usar dados da função RPC
-    //   const results: Record<string, number> = {};
-    //   rpcData.forEach((row: { tabela: string; total: number }) => {
-    //     results[row.tabela] = row.total;
-    //   });
-
-    //   return NextResponse.json({
-    //     success: true,
-    //     data: {
-    //       'auth.users': results['auth.users'] ?? 'N/A',
-    //       'public.alunos': results['public.alunos'] ?? 0,
-    //       'public.professores': results['public.professores'] ?? 0,
-    //       'public.empresa_admins': results['public.empresa_admins'] ?? 0,
-    //     },
-    //     summary: {
-    //       allEmpty: (results['public.alunos'] ?? 0) === 0 && 
-    //                (results['public.professores'] ?? 0) === 0 && 
-    //                (results['public.empresa_admins'] ?? 0) === 0,
-    //     }
-    //   });
-    // }
 
     // Fallback: usar queries diretas
     const [alunosResult, professoresResult, adminsResult] = await Promise.all([
@@ -65,8 +38,8 @@ export async function GET(request: NextRequest) {
       success: true,
       data: results,
       summary: {
-        allEmpty: results['public.alunos'] === 0 && 
-                 results['public.professores'] === 0 && 
+        allEmpty: results['public.alunos'] === 0 &&
+                 results['public.professores'] === 0 &&
                  results['public.empresa_admins'] === 0,
         note: 'auth.users não pode ser verificada diretamente via API. Use o Supabase Dashboard ou MCP.'
       }
@@ -80,6 +53,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-
-

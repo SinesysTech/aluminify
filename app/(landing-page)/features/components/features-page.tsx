@@ -26,34 +26,34 @@ export function FeaturesPage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 mb-6">
                             <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                                Sistema Operacional Educacional
+                                Tudo em um só lugar
                             </span>
                         </div>
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-6 text-foreground max-w-4xl mx-auto">
-                            Uma suíte completa de <br className="hidden md:block" />
+                            Seu curso online <br className="hidden md:block" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400">
-                                Módulos Nativos.
+                                completo e organizado.
                             </span>
                         </h1>
 
                         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed">
-                            Esqueça integrações remendadas. O Aluminify oferece uma experiência unificada
-                            onde cada módulo — do player de vídeo ao sistema financeiro — fala a mesma língua.
+                            Chega de ficar juntando várias ferramentas. O Aluminify já vem com tudo pronto:
+                            área do aluno, vídeo-aulas, materiais, pagamentos e relatórios — tudo integrado.
                         </p>
 
                         <div className="flex flex-wrap justify-center gap-6 text-sm font-medium text-muted-foreground">
                             <div className="flex items-center gap-2">
                                 <Zap className="w-4 h-4 text-amber-500" />
-                                <span>Performance Edge</span>
+                                <span>Carrega rápido</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Shield className="w-4 h-4 text-green-500" />
-                                <span>Segurança Enterprise</span>
+                                <span>Dados protegidos</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <WifiOff className="w-4 h-4 text-blue-500" />
-                                <span>Offline-First</span>
+                                <span>Funciona offline</span>
                             </div>
                         </div>
                     </div>
@@ -63,9 +63,9 @@ export function FeaturesPage() {
                 <section className="py-24 bg-background">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl font-display font-bold mb-4">Núcleo Acadêmico</h2>
+                            <h2 className="text-3xl font-display font-bold mb-4">Para seus alunos aprenderem melhor</h2>
                             <p className="text-muted-foreground max-w-2xl mx-auto">
-                                Ferramentas poderosas projetadas para maximizar a retenção e o aprendizado.
+                                Ferramentas que ajudam seus alunos a estudar com mais foco e a lembrar do conteúdo por mais tempo.
                             </p>
                         </div>
 
@@ -75,16 +75,16 @@ export function FeaturesPage() {
                                 <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <LayoutDashboard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-2">Sala de Estudos Imersiva</h3>
+                                <h3 className="text-xl font-bold mb-2">Área do Aluno Focada</h3>
                                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                                    Player de vídeo focado, sem distrações. Suporte a materiais complementares, anotações sincronizadas e modo teatro.
+                                    Seus alunos assistem às aulas sem distrações. Podem baixar materiais, fazer anotações e acompanhar o progresso.
                                 </p>
                                 <ul className="space-y-2">
                                     <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Check className="w-3 h-3 text-green-500" /> Resumo Automático (IA)
+                                        <Check className="w-3 h-3 text-green-500" /> Resumo automático das aulas
                                     </li>
                                     <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Check className="w-3 h-3 text-green-500" /> Navegação por Atalhos
+                                        <Check className="w-3 h-3 text-green-500" /> Materiais em PDF junto ao vídeo
                                     </li>
                                 </ul>
                             </div>
@@ -94,16 +94,16 @@ export function FeaturesPage() {
                                 <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <BrainCircuit className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-2">Flashcards Inteligentes</h3>
+                                <h3 className="text-xl font-bold mb-2">Flashcards para Memorização</h3>
                                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                                    Sistema de Repetição Espaçada (SRS) integrado. O aluno revisa o conteúdo certo na hora certa para fixação de longo prazo.
+                                    Seus alunos revisam o conteúdo no momento certo para não esquecer. O sistema avisa quando é hora de revisar.
                                 </p>
                                 <ul className="space-y-2">
                                     <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Check className="w-3 h-3 text-green-500" /> Algoritmo SM-2
+                                        <Check className="w-3 h-3 text-green-500" /> Revisão inteligente
                                     </li>
                                     <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Check className="w-3 h-3 text-green-500" /> Criação via IA
+                                        <Check className="w-3 h-3 text-green-500" /> IA cria os cards para você
                                     </li>
                                 </ul>
                             </div>
@@ -113,16 +113,16 @@ export function FeaturesPage() {
                                 <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-2">Mentorias e Agenda</h3>
+                                <h3 className="text-xl font-bold mb-2">Agendamento de Aulas</h3>
                                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                                    Sistema completo de agendamento para mentorias individuais ou em grupo. Sincronização com Google Calendar e Zoom.
+                                    Marque monitorias, plantões de dúvidas ou aulas particulares. Conecta com Google Agenda e Zoom automaticamente.
                                 </p>
                                 <ul className="space-y-2">
                                     <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Check className="w-3 h-3 text-green-500" /> Gestão de Fuso Horário
+                                        <Check className="w-3 h-3 text-green-500" /> Lembretes automáticos
                                     </li>
                                     <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Check className="w-3 h-3 text-green-500" /> Links Automáticos
+                                        <Check className="w-3 h-3 text-green-500" /> Link da aula enviado na hora
                                     </li>
                                 </ul>
                             </div>
@@ -136,36 +136,36 @@ export function FeaturesPage() {
                         <div className="grid md:grid-cols-2 gap-16 items-center">
                             <div>
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 mb-6">
-                                    <span className="text-xs font-medium text-foreground">Backoffice</span>
+                                    <span className="text-xs font-medium text-foreground">Área Administrativa</span>
                                 </div>
                                 <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">
-                                    Gestão Administrativa <br /> sem dor de cabeça.
+                                    Administre seu curso <br /> sem complicação.
                                 </h2>
                                 <p className="text-lg text-muted-foreground mb-8">
-                                    Uma área de gestão separada e segura. Controle matrículas, financeiro e configurações do tenant em um painel dedicado.
+                                    Tudo que você precisa para gerenciar: matrículas, pagamentos, relatórios de desempenho — em um painel simples e organizado.
                                 </p>
-                                
+
                                 <div className="space-y-6">
                                     <div className="flex gap-4">
                                         <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center shrink-0">
                                             <Users className="w-5 h-5 text-foreground" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-base">Gestão de Usuários e Papéis</h4>
+                                            <h4 className="font-bold text-base">Gerencie sua equipe</h4>
                                             <p className="text-sm text-muted-foreground mt-1">
-                                                Controle granular de permissões (RBAC). Convide professores, monitores e administradores com acessos específicos.
+                                                Adicione outros professores, monitores e secretários. Cada um acessa só o que precisa.
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex gap-4">
                                         <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center shrink-0">
                                             <BookOpen className="w-5 h-5 text-foreground" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-base">Estrutura Curricular Flexível</h4>
+                                            <h4 className="font-bold text-base">Organize do seu jeito</h4>
                                             <p className="text-sm text-muted-foreground mt-1">
-                                                Organize cursos em segmentos, disciplinas, frentes e módulos. Adapte a plataforma à sua metodologia, não o contrário.
+                                                Monte suas turmas, disciplinas e módulos como preferir. A plataforma se adapta à sua metodologia.
                                             </p>
                                         </div>
                                     </div>
@@ -206,27 +206,27 @@ export function FeaturesPage() {
                     </div>
                 </section>
 
-                {/* Technical Features */}
+                {/* Benefícios Práticos */}
                 <section className="py-24 bg-background">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h2 className="text-3xl font-display font-bold mb-12">Excelência Técnica</h2>
-                        
+                        <h2 className="text-3xl font-display font-bold mb-12">Feito para funcionar bem</h2>
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div className="p-6 bg-card border border-border rounded-xl text-center">
-                                <div className="text-3xl font-bold mb-2">99%</div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lighthouse Score</div>
+                                <div className="text-3xl font-bold mb-2">Rápido</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Carrega em segundos</div>
                             </div>
                             <div className="p-6 bg-card border border-border rounded-xl text-center">
-                                <div className="text-3xl font-bold mb-2">&lt;100ms</div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">TTFB Global</div>
+                                <div className="text-3xl font-bold mb-2">Seguro</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Seus dados protegidos</div>
                             </div>
                             <div className="p-6 bg-card border border-border rounded-xl text-center">
-                                <div className="text-3xl font-bold mb-2">100%</div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Type Safe</div>
+                                <div className="text-3xl font-bold mb-2">Estável</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sempre no ar</div>
                             </div>
                             <div className="p-6 bg-card border border-border rounded-xl text-center">
-                                <div className="text-3xl font-bold mb-2">PWA</div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Installable</div>
+                                <div className="text-3xl font-bold mb-2">Mobile</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Funciona no celular</div>
                             </div>
                         </div>
                     </div>

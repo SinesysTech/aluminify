@@ -52,6 +52,8 @@ export function createStudyAssistantAgent(options: CreateStudyAssistantOptions) 
   const tools = createMastraTools(context);
 
   // Create the agent
+  // Note: Using type assertion due to AI SDK v5 returning LanguageModelV3
+  // while Mastra currently expects LanguageModelV2. This is a known compatibility issue.
   const agent = new Agent({
     id: agentId,
     name: agentName,

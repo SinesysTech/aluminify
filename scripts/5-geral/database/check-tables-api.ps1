@@ -4,7 +4,7 @@
 Write-Host "Verificando tabelas via API..." -ForegroundColor Cyan
 Write-Host ""
 
-$apiUrl = "http://localhost:3000/api/admin/check-empty-tables"
+$apiUrl = "http://localhost:3000/api/superadmin/check-empty-tables"
 
 Write-Host "Fazendo requisicao para: $apiUrl" -ForegroundColor Yellow
 Write-Host ""

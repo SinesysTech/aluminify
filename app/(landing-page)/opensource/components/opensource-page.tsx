@@ -37,7 +37,7 @@ export function OpenSourcePage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <a
-                                href="https://github.com/aluminify/core"
+                                href="https://github.com/SinesysTech/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full sm:w-auto px-8 py-3.5 bg-foreground text-background font-medium rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
@@ -46,7 +46,7 @@ export function OpenSourcePage() {
                                 Star on GitHub
                             </a>
                             <a
-                                href="https://github.com/aluminify/core/fork"
+                                href="https://github.com/SinesysTech/aluminify/fork"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full sm:w-auto px-8 py-3.5 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-all flex items-center justify-center gap-2"
@@ -132,7 +132,7 @@ export function OpenSourcePage() {
                                     Ajude-nos a democratizar a tecnologia educacional.
                                 </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <a href="https://github.com/aluminify/core/issues" className="flex items-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition-colors">
+                                    <a href="https://github.com/SinesysTech/aluminify/issues" className="flex items-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition-colors">
                                         <Code2 className="w-5 h-5 text-purple-500" />
                                         <div className="text-sm font-bold">Resolver Issues</div>
                                     </a>

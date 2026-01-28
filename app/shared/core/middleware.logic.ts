@@ -229,18 +229,19 @@ export async function updateSession(request: NextRequest) {
     "/auth/login",
     "/auth/sign-up",
     "/api/auth/signup-with-empresa",
-    "/api/admin/fix-permissions",
     "/api/tobias/chat/attachments",
     "/api/health",
     "/",
     "/signup",
-    "/features.html",
-    "/pricing.html",
-    "/docs.html",
-    "/open-source.html",
-    "/roadmap.html",
-    "/changelog.html",
-    "/status.html",
+    // Landing page routes (route group: (landing-page))
+    "/features",
+    "/pricing",
+    "/docs",
+    "/opensource",
+    "/roadmap",
+    "/changelog",
+    "/status",
+    "/manifesto",
   ];
 
   // Check if it matches a known public base path

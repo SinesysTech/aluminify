@@ -9,7 +9,7 @@ echo ""
 # Este script assume que você tem uma sessão ativa
 # Se não tiver, faça login primeiro
 
-API_URL="http://localhost:3000/api/admin/check-empty-tables"
+API_URL="http://localhost:3000/api/superadmin/check-empty-tables"
 
 echo "📡 Fazendo requisição para: $API_URL"
 echo ""

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { getAuthUser } from "@/app/[tenant]/auth/middleware";
+import { StudentRepositoryImpl } from "@/app/[tenant]/(modules)/usuario/services";
+import { studentService } from "@/app/[tenant]/(modules)/usuario/services";
+import { randomBytes } from "crypto";
 
 /**
  * GET /api/superadmin/alunos
@@ -121,5 +124,180 @@ export async function GET(request: NextRequest) {
       { error: "Erro interno do servidor" },
       { status: 500 },
     );
+  }
+}
+
+/**
+ * POST /api/superadmin/alunos
+ * Criar aluno (apenas superadmin)
+ * Permite criar aluno com ou sem courseIds
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getAuthUser(request);
+
+    if (!user || user.role !== "superadmin") {
+      return NextResponse.json(
+        { error: "Acesso negado. Apenas superadmin pode criar alunos." },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
+    const {
+      email,
+      fullName,
+      cpf,
+      phone,
+      birthDate,
+      address,
+      zipCode,
+      enrollmentNumber,
+      instagram,
+      twitter,
+      courseIds,
+      temporaryPassword,
+    } = body;
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "email é obrigatório" },
+        { status: 400 },
+      );
+    }
+
+    const hasCourses =
+      courseIds && Array.isArray(courseIds) && courseIds.length > 0;
+    if (!hasCourses && !temporaryPassword && !cpf) {
+      return NextResponse.json(
+        {
+          error:
+            "Quando não há cursos, é necessário fornecer CPF ou senha temporária (temporaryPassword)",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (temporaryPassword && temporaryPassword.length < 8) {
+      return NextResponse.json(
+        { error: "A senha temporária deve ter pelo menos 8 caracteres" },
+        { status: 400 },
+      );
+    }
+
+    let finalTemporaryPassword = temporaryPassword;
+    if (!hasCourses && !finalTemporaryPassword) {
+      if (cpf) {
+        finalTemporaryPassword = cpf.replace(/\D/g, "");
+      } else {
+        finalTemporaryPassword = randomBytes(16).toString("hex");
+      }
+    }
+
+    try {
+      const adminClient = getDatabaseClient();
+
+      if (!hasCourses) {
+        const { data: authUser, error: authError } =
+          await adminClient.auth.admin.createUser({
+            email,
+            password: finalTemporaryPassword!,
+            email_confirm: true,
+            user_metadata: {
+              role: "aluno",
+              full_name: fullName,
+              must_change_password: true,
+            },
+          });
+
+        if (authError || !authUser?.user) {
+          return NextResponse.json(
+            {
+              error: `Erro ao criar usuário: ${authError?.message || "Unknown error"}`,
+            },
+            { status: 500 },
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const repository = new StudentRepositoryImpl(adminClient);
+        let aluno = await repository.findById(authUser.user.id);
+
+        if (!aluno) {
+          return NextResponse.json(
+            {
+              error:
+                "Aluno criado mas registro não encontrado. Tente novamente.",
+            },
+            { status: 500 },
+          );
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (cpf) updateData.cpf = cpf;
+        if (phone) updateData.phone = phone;
+        if (birthDate) updateData.birthDate = birthDate;
+        if (address) updateData.address = address;
+        if (zipCode) updateData.zipCode = zipCode;
+        if (enrollmentNumber) updateData.enrollmentNumber = enrollmentNumber;
+        if (instagram) updateData.instagram = instagram;
+        if (twitter) updateData.twitter = twitter;
+
+        if (Object.keys(updateData).length > 0) {
+          aluno = await repository.update(authUser.user.id, updateData);
+        }
+
+        return NextResponse.json(
+          {
+            id: aluno.id,
+            email: aluno.email,
+            fullName: aluno.fullName,
+            cpf: aluno.cpf,
+            phone: aluno.phone,
+            birthDate: aluno.birthDate,
+            address: aluno.address,
+            zipCode: aluno.zipCode,
+            enrollmentNumber: aluno.enrollmentNumber,
+            instagram: aluno.instagram,
+            twitter: aluno.twitter,
+            courses: [],
+            courseIds: [],
+            mustChangePassword: aluno.mustChangePassword,
+            temporaryPassword: finalTemporaryPassword,
+            createdAt: aluno.createdAt,
+            updatedAt: aluno.updatedAt,
+          },
+          { status: 201 },
+        );
+      } else {
+        const student = await studentService.create({
+          email,
+          fullName,
+          cpf,
+          phone,
+          birthDate,
+          address,
+          zipCode,
+          enrollmentNumber,
+          instagram,
+          twitter,
+          courseIds,
+          temporaryPassword: finalTemporaryPassword,
+        });
+
+        return NextResponse.json(student, { status: 201 });
+      }
+    } catch (error) {
+      console.error("Error creating student:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro ao criar aluno";
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
+    }
+  } catch (error) {
+    console.error("Error in superadmin alunos POST endpoint:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Erro ao criar aluno";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

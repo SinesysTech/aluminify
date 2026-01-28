@@ -20,7 +20,7 @@ export function Footer() {
                         <div className="flex gap-4">
                             <a
                                 className="text-zinc-400 hover:text-primary dark:hover:text-white transition-colors"
-                                href="https://github.com/aluminify"
+                                href="https://github.com/SinesysTech/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label="GitHub do Aluminify"
@@ -117,7 +117,7 @@ export function Footer() {
                             <li>
                                 <a
                                     className="hover:text-primary dark:hover:text-white transition-colors"
-                                    href="https://github.com/aluminify"
+                                    href="https://github.com/SinesysTech/aluminify"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >

@@ -13,11 +13,11 @@ export function PricingPage() {
             <main>
                 <section className="pt-24 pb-20 text-center px-4">
                     <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-6 text-foreground">
-                        Investimento Previsível.
+                        Preço justo e transparente.
                     </h1>
                     <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
-                        Escolha a infraestrutura que se adapta ao estágio do seu negócio.
-                        Do MVP ao Enterprise, sem surpresas na fatura.
+                        Escolha o plano ideal para o tamanho do seu curso.
+                        Comece pequeno e cresça sem surpresas.
                     </p>
                     
                     {/* Toggle Monthly/Yearly (Visual only for now) */}
@@ -32,8 +32,8 @@ export function PricingPage() {
                         {/* Community */}
                         <div className="bg-card border border-border rounded-2xl p-8 flex flex-col hover:border-zinc-400 transition-colors">
                             <div className="mb-4">
-                                <h3 className="text-xl font-bold font-display">Community</h3>
-                                <p className="text-sm text-muted-foreground mt-1">Para desenvolvedores.</p>
+                                <h3 className="text-xl font-bold font-display">Gratuito</h3>
+                                <p className="text-sm text-muted-foreground mt-1">Você instala e gerencia.</p>
                             </div>
                             <div className="mb-6">
                                 <span className="text-4xl font-bold">R$ 0</span>
@@ -41,7 +41,7 @@ export function PricingPage() {
                             <div className="text-sm space-y-4 mb-8 grow">
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Código Open Source (Self-hosted)</span>
+                                    <span>100% gratuito para sempre</span>
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
@@ -49,26 +49,26 @@ export function PricingPage() {
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Atualizações via Git</span>
+                                    <span>Você tem controle total</span>
                                 </div>
                                 <div className="flex gap-3 text-muted-foreground">
                                     <span className="w-5 h-5 shrink-0 flex items-center justify-center text-xs">✕</span>
-                                    <span>Suporte Dedicado</span>
+                                    <span>Requer conhecimento técnico</span>
                                 </div>
                             </div>
                             <Link href="/opensource" className="w-full py-3 border border-border rounded-lg text-center font-medium hover:bg-muted transition-colors">
-                                Ver Repositório
+                                Saiba mais
                             </Link>
                         </div>
 
                         {/* Pro Cloud */}
                         <div className="bg-zinc-900 dark:bg-zinc-50 text-white dark:text-black rounded-2xl p-8 flex flex-col shadow-2xl relative overflow-hidden transform md:-translate-y-4">
                             <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">
-                                Mais Popular
+                                Recomendado
                             </div>
                             <div className="mb-4">
-                                <h3 className="text-xl font-bold font-display">Pro Cloud</h3>
-                                <p className="text-sm text-zinc-400 dark:text-zinc-600 mt-1">Para cursos em crescimento.</p>
+                                <h3 className="text-xl font-bold font-display">Nuvem</h3>
+                                <p className="text-sm text-zinc-400 dark:text-zinc-600 mt-1">A gente cuida de tudo pra você.</p>
                             </div>
                             <div className="mb-6">
                                 <span className="text-4xl font-bold">R$ 499</span>
@@ -81,54 +81,54 @@ export function PricingPage() {
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-blue-400 shrink-0" />
-                                    <span>Infraestrutura Gerenciada</span>
+                                    <span>Sem preocupação técnica</span>
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-blue-400 shrink-0" />
-                                    <span>CDN Global de Vídeo</span>
+                                    <span>Vídeos carregam rápido</span>
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-blue-400 shrink-0" />
-                                    <span>Backup Diário</span>
+                                    <span>Seus dados sempre seguros</span>
                                 </div>
                                 <div className="p-3 bg-white/10 dark:bg-black/10 rounded-lg text-xs mt-4">
                                     + R$ 1,00 por aluno extra ativo no mês.
                                 </div>
                             </div>
                             <Link href="/signup" className="w-full py-3 bg-white dark:bg-black text-black dark:text-white rounded-lg text-center font-bold hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
-                                Começar Trial de 14 dias
+                                Testar grátis por 14 dias
                             </Link>
                         </div>
 
-                        {/* Enterprise */}
+                        {/* Personalizado */}
                         <div className="bg-card border border-border rounded-2xl p-8 flex flex-col hover:border-zinc-400 transition-colors">
                             <div className="mb-4">
-                                <h3 className="text-xl font-bold font-display">Enterprise</h3>
-                                <p className="text-sm text-muted-foreground mt-1">Para grandes operações.</p>
+                                <h3 className="text-xl font-bold font-display">Personalizado</h3>
+                                <p className="text-sm text-muted-foreground mt-1">Para cursos com muitos alunos.</p>
                             </div>
                             <div className="mb-6">
-                                <span className="text-4xl font-bold">Custom</span>
+                                <span className="text-4xl font-bold">Sob consulta</span>
                             </div>
                             <div className="text-sm space-y-4 mb-8 grow">
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Alunos Ilimitados</span>
+                                    <span>Alunos ilimitados</span>
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>SLA de 99.9%</span>
+                                    <span>Garantia de disponibilidade</span>
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Single Sign-On (SSO)</span>
+                                    <span>Login integrado com seu sistema</span>
                                 </div>
                                 <div className="flex gap-3">
                                     <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Gerente de Contas Dedicado</span>
+                                    <span>Atendimento prioritário</span>
                                 </div>
                             </div>
-                            <Link href="mailto:enterprise@aluminify.com" className="w-full py-3 border border-border rounded-lg text-center font-medium hover:bg-muted transition-colors">
-                                Falar com Vendas
+                            <Link href="mailto:contato@aluminify.com" className="w-full py-3 border border-border rounded-lg text-center font-medium hover:bg-muted transition-colors">
+                                Falar com a gente
                             </Link>
                         </div>
                     </div>
@@ -149,20 +149,20 @@ export function PricingPage() {
                             </details>
                             <details className="group border border-border rounded-lg p-4 cursor-pointer bg-background">
                                 <summary className="flex justify-between items-center font-medium list-none text-foreground">
-                                    <span>Posso migrar do Self-Hosted para o Cloud?</span>
+                                    <span>Posso migrar do plano Gratuito para o Nuvem?</span>
                                     <HelpCircle className="w-4 h-4 text-muted-foreground" />
                                 </summary>
                                 <div className="text-muted-foreground text-sm mt-3 pt-3 border-t border-border leading-relaxed">
-                                    Sim! Oferecemos ferramentas de migração de banco de dados para trazer seus dados da versão open-source para nossa nuvem gerenciada sem perda de histórico.
+                                    Sim! Ajudamos você a trazer todos os seus dados (alunos, cursos, progresso) para a nossa nuvem sem perder nada.
                                 </div>
                             </details>
                             <details className="group border border-border rounded-lg p-4 cursor-pointer bg-background">
                                 <summary className="flex justify-between items-center font-medium list-none text-foreground">
-                                    <span>Existe custo de setup?</span>
+                                    <span>Existe taxa de instalação?</span>
                                     <HelpCircle className="w-4 h-4 text-muted-foreground" />
                                 </summary>
                                 <div className="text-muted-foreground text-sm mt-3 pt-3 border-t border-border leading-relaxed">
-                                    Não para os planos Cloud padrão. Você cria a conta e começa a usar imediatamente. Para o plano Enterprise, pode haver custos dependendo das customizações solicitadas.
+                                    Não para o plano Nuvem. Você cria a conta e começa a usar na hora. No plano Personalizado, pode haver custos se precisar de ajustes específicos.
                                 </div>
                             </details>
                         </div>
