@@ -55,17 +55,16 @@ export function LandingPage() {
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border mb-8 animate-fade-in-up">
                             <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
                             <span className="text-xs font-medium text-muted-foreground">
-                                v2.2 Beta Disponível
+                                100% gratuito e open source
                             </span>
                         </div>
 
                         <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight mb-8 text-foreground max-w-5xl mx-auto leading-[1.1]">
-                            A infraestrutura invisível <br className="hidden md:block" /> da educação.
+                            Seu curso online <br className="hidden md:block" /> profissional e completo.
                         </h1>
 
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed text-balance">
-                            A primeira área do aluno <strong>Open Source</strong> e White Label projetada para escala.
-                            Do vídeo ao financeiro, sem amarras.
+                            A plataforma que você sempre quis: <strong>área do aluno, vídeo-aulas, pagamentos e relatórios</strong> — tudo pronto, com a sua marca, sem pagar comissão.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24">
@@ -73,18 +72,15 @@ export function LandingPage() {
                                 className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                                 href="/auth/sign-up"
                             >
-                                Começar Agora
+                                Criar minha conta grátis
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
-                            <a
+                            <Link
                                 className="w-full sm:w-auto px-8 py-4 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-all flex items-center justify-center gap-2 group"
-                                href="https://github.com/SinesysTech/aluminify"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href="/features"
                             >
-                                <Github className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                                Star on GitHub
-                            </a>
+                                Ver funcionalidades
+                            </Link>
                         </div>
 
                         {/* App Screenshot Mockup - Rich Version */}
@@ -334,30 +330,30 @@ export function LandingPage() {
                                 <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
                                     <Layout className="w-6 h-6 text-blue-500" />
                                 </div>
-                                <h3 className="text-xl font-bold">Design System Nativo</h3>
+                                <h3 className="text-xl font-bold">Sua marca, seu jeito</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Componentes React otimizados e acessíveis. Personalize cores, 
-                                    fontes e bordas através de variáveis CSS simples.
+                                    Personalize cores, logo e visual. Seus alunos veem a marca do seu curso,
+                                    não a nossa.
                                 </p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
                                     <Zap className="w-6 h-6 text-purple-500" />
                                 </div>
-                                <h3 className="text-xl font-bold">Edge Performance</h3>
+                                <h3 className="text-xl font-bold">Rápido de verdade</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Renderizado no Edge com Next.js 15. Carregamento instantâneo
-                                    e otimização automática de imagens e vídeos.
+                                    Carrega instantaneamente. Vídeos, imagens e materiais
+                                    são otimizados automaticamente para seus alunos.
                                 </p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
                                     <Shield className="w-6 h-6 text-green-500" />
                                 </div>
-                                <h3 className="text-xl font-bold">Soberania de Dados</h3>
+                                <h3 className="text-xl font-bold">Seus dados são seus</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Hospede onde quiser (AWS, Vercel, VPS). Banco de dados Postgres
-                                    com schema aberto e documentado.
+                                    Você tem acesso total aos dados dos seus alunos.
+                                    Exporte quando quiser, sem amarras.
                                 </p>
                             </div>
                         </div>
@@ -599,27 +595,77 @@ export function LandingPage() {
                     </div>
                 </section>
 
+                {/* Manifesto Section */}
+                <section className="py-24 border-t border-border bg-background">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                                    <span className="text-xs font-medium text-primary">Por que existimos</span>
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">
+                                    Você é professor, <br />não refém de plataformas.
+                                </h2>
+                                <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                                    Cansado de pagar taxa sobre cada matrícula? De não ter acesso aos dados dos seus próprios alunos?
+                                    De depender de plataformas que podem mudar as regras a qualquer momento?
+                                </p>
+                                <p className="text-muted-foreground mb-8">
+                                    Nós acreditamos que <strong>o professor deve ter controle total</strong> sobre seu curso,
+                                    seus alunos e sua tecnologia. Por isso criamos o Aluminify: para devolver a você a soberania
+                                    que sempre foi sua.
+                                </p>
+                                <Link
+                                    href="/manifesto"
+                                    className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
+                                >
+                                    Leia nosso manifesto
+                                    <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </div>
+                            <div className="relative">
+                                <div className="absolute -inset-4 bg-gradient-to-tr from-primary/10 to-transparent rounded-2xl blur-lg opacity-50" />
+                                <div className="relative bg-card border border-border rounded-2xl p-8 shadow-lg">
+                                    <blockquote className="text-xl font-serif italic text-foreground mb-6 leading-relaxed">
+                                        &quot;Quando você fecha a porta da sala de aula, aquele espaço é seu.
+                                        A didática é sua. No digital, deveria ser igual.&quot;
+                                    </blockquote>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                                            A
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">Manifesto Aluminify</p>
+                                            <p className="text-xs text-muted-foreground">A Soberania de Nutrir Mentes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 {/* CTA */}
                 <section className="py-24 border-t border-border bg-muted/30">
                     <div className="max-w-4xl mx-auto text-center px-4">
                         <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">
-                            Pronto para evoluir?
+                            Pronto para começar?
                         </h2>
                         <p className="text-lg text-muted-foreground mb-10">
-                            Junte-se a centenas de cursos que já estão construindo o futuro da educação com Aluminify.
+                            Junte-se a centenas de professores que já estão construindo seus cursos com total liberdade.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
                                 href="/auth/sign-up"
                                 className="w-full sm:w-auto px-8 py-4 bg-foreground text-background font-bold rounded-lg hover:opacity-90 transition-all"
                             >
-                                Criar Conta Grátis
+                                Criar minha conta grátis
                             </Link>
                             <Link
                                 href="/pricing"
                                 className="w-full sm:w-auto px-8 py-4 bg-background border border-border font-bold rounded-lg hover:bg-muted transition-all"
                             >
-                                Ver Planos
+                                Ver planos
                             </Link>
                         </div>
                     </div>

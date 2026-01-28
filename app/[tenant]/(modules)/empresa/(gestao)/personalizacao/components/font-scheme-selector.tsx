@@ -534,27 +534,6 @@ export function FontSchemeSelector({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Seletor de Esquema de Fontes</h3>
-          <p className="text-sm text-muted-foreground">
-            Escolha fontes que representem a identidade da sua marca
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={togglePreview}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            {previewMode ? 'Sair da Visualização' : 'Visualizar'}
-          </Button>
-        </div>
-      </div>
 
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
@@ -572,11 +551,11 @@ export function FontSchemeSelector({
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="editor">Editor</TabsTrigger>
-          <TabsTrigger value="presets">Predefinições</TabsTrigger>
-          <TabsTrigger value="google-fonts">Google Fonts</TabsTrigger>
-          <TabsTrigger value="preview">Visualizar</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 h-10 p-1 bg-muted/50">
+          <TabsTrigger value="editor" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Editor</TabsTrigger>
+          <TabsTrigger value="presets" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Predefinições</TabsTrigger>
+          <TabsTrigger value="google-fonts" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Google Fonts</TabsTrigger>
+          <TabsTrigger value="preview" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Preview</TabsTrigger>
         </TabsList>
 
         <TabsContent value="editor" className="space-y-6 mt-6">
@@ -970,20 +949,21 @@ export function FontSchemeSelector({
       </Tabs >
 
       {/* Save Button */}
-      < div className="flex justify-end" >
+      <div className="flex justify-end pt-4 border-t">
         <Button
           onClick={handleSave}
           disabled={isSaving || validationErrors.length > 0}
-          className="gap-2"
+          size="sm"
+          className="gap-2 min-w-[160px]"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Save className="h-4 w-4" />
           )}
-          Salvar Esquema de Fontes
+          Salvar Tipografia
         </Button>
-      </div >
+      </div>
     </div >
   );
 }

@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/app/shared/components/forms/input';
 import { Label } from '@/app/shared/components/forms/label';
 import { Alert, AlertDescription } from '@/app/shared/components/feedback/alert';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import {
   CheckCircle,
   Loader2,
   Copy,
   Check,
+  Sparkles,
+  Eye,
 } from 'lucide-react';
 import type {
   ColorPaletteEditorProps,
@@ -93,17 +96,15 @@ function ColorInput({ label, value, onChange, description, required = false, dis
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label htmlFor={label} className="text-sm font-medium text-foreground">
-          {label}
-          {required && <span className="text-destructive ml-1">*</span>}
-        </Label>
-      </div>
+      <Label htmlFor={label} className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {label}
+        {required && <span className="text-destructive ml-0.5">*</span>}
+      </Label>
 
       <div className="relative flex items-center group">
         <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center">
           <div
-            className="w-6 h-6 rounded-full border border-border shadow-sm overflow-hidden relative cursor-pointer hover:scale-105 transition-transform"
+            className="w-7 h-7 rounded-lg border-2 border-border shadow-sm overflow-hidden relative cursor-pointer hover:scale-105 hover:border-primary/50 transition-all"
             style={{ backgroundColor: isValid ? localValue : 'transparent' }}
           >
             <input
@@ -123,25 +124,24 @@ function ColorInput({ label, value, onChange, description, required = false, dis
           onBlur={handleBlur}
           placeholder="#000000"
           disabled={disabled}
-          className={`pl-10 pr-10 font-mono text-sm uppercase ${!isValid ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+          className={`pl-11 pr-9 font-mono text-sm uppercase h-10 ${!isValid ? 'border-destructive focus-visible:ring-destructive' : ''}`}
         />
-        <Button
+        <button
           onClick={copyToClipboard}
-          variant="ghost"
-          size="icon"
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+          type="button"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           title="Copiar código HEX"
         >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        </Button>
+          {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
       </div>
 
       {description && (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-[10px] text-muted-foreground leading-tight">{description}</p>
       )}
 
       {!isValid && (
-        <p className="text-xs text-destructive">Cor inválida (ex: #FF0000)</p>
+        <p className="text-[10px] text-destructive">Formato inválido</p>
       )}
     </div>
   );
@@ -150,114 +150,116 @@ function ColorInput({ label, value, onChange, description, required = false, dis
 // Color preview component showing how colors look together
 function ColorPreview({ colors, className = "" }: ColorPreviewProps) {
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="grid grid-cols-2 gap-4">
-        {/* Primary color preview */}
-        <div
-          className="p-4 rounded-lg border"
-          style={{
-            backgroundColor: colors.primaryColor,
-            color: colors.primaryForeground,
-            borderColor: colors.primaryColor
-          }}
-        >
-          <div className="font-medium">Primária</div>
-          <div className="text-sm opacity-90">Conteúdo primário</div>
-        </div>
-
-        {/* Secondary color preview */}
-        <div
-          className="p-4 rounded-lg border"
-          style={{
-            backgroundColor: colors.secondaryColor,
-            color: colors.secondaryForeground,
-            borderColor: colors.secondaryColor
-          }}
-        >
-          <div className="font-medium">Secundária</div>
-          <div className="text-sm opacity-90">Conteúdo secundário</div>
-        </div>
-
-        {/* Accent color preview */}
-        <div
-          className="p-4 rounded-lg border"
-          style={{
-            backgroundColor: colors.accentColor,
-            color: colors.accentForeground,
-            borderColor: colors.accentColor
-          }}
-        >
-          <div className="font-medium">Destaque</div>
-          <div className="text-sm opacity-90">Conteúdo destaque</div>
-        </div>
-
-        {/* Muted color preview */}
-        <div
-          className="p-4 rounded-lg border"
-          style={{
-            backgroundColor: colors.mutedColor,
-            color: colors.mutedForeground,
-            borderColor: colors.mutedColor
-          }}
-        >
-          <div className="font-medium">Suave</div>
-          <div className="text-sm opacity-90">Conteúdo suave</div>
-        </div>
+    <div className={`${className}`}>
+      {/* Color Swatches Bar */}
+      <div className="flex h-3">
+        <div className="flex-1" style={{ backgroundColor: colors.primaryColor }} />
+        <div className="flex-1" style={{ backgroundColor: colors.secondaryColor }} />
+        <div className="flex-1" style={{ backgroundColor: colors.accentColor }} />
+        <div className="flex-1" style={{ backgroundColor: colors.mutedColor }} />
       </div>
 
-      {/* Card preview */}
+      {/* Mini App Preview */}
       <div
-        className="p-4 rounded-lg border"
+        className="min-h-[280px]"
         style={{
-          backgroundColor: colors.cardColor,
-          color: colors.cardForeground,
-          borderColor: colors.mutedColor
+          backgroundColor: colors.backgroundColor,
+          color: colors.foregroundColor
         }}
       >
-        <div className="font-medium mb-2">Exemplo de Card</div>
-        <div className="text-sm text-muted-foreground mb-3">
-          É assim que os cards aparecerão com sua paleta de cores.
-        </div>
-        <div className="flex gap-2">
-          <div
-            className="px-3 py-1 rounded text-xs font-medium"
-            style={{
-              backgroundColor: colors.primaryColor,
-              color: colors.primaryForeground
-            }}
-          >
-            Botão Primário
-          </div>
-          <div
-            className="px-3 py-1 rounded text-xs font-medium border"
-            style={{
-              borderColor: colors.primaryColor,
-              color: colors.primaryColor
-            }}
-          >
-            Botão Outline
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ borderColor: colors.mutedColor }}>
+          <div className="w-6 h-6 rounded" style={{ backgroundColor: colors.primaryColor }} />
+          <div className="h-3 w-20 rounded" style={{ backgroundColor: colors.foregroundColor, opacity: 0.7 }} />
+          <div className="ml-auto flex gap-1">
+            <div className="w-6 h-6 rounded" style={{ backgroundColor: colors.mutedColor }} />
+            <div className="w-6 h-6 rounded" style={{ backgroundColor: colors.mutedColor }} />
           </div>
         </div>
-      </div>
 
-      {/* Sidebar preview */}
-      <div
-        className="p-4 rounded-lg border"
-        style={{
-          backgroundColor: colors.sidebarBackground,
-          color: colors.sidebarForeground,
-          borderColor: colors.mutedColor
-        }}
-      >
-        <div className="font-medium mb-2">Visualização da Barra Lateral</div>
-        <div
-          className="px-2 py-1 rounded text-sm"
-          style={{
-            backgroundColor: colors.sidebarPrimary,
-            color: colors.sidebarPrimaryForeground
-          }}
-        >
-          Item de Menu Ativo
+        <div className="flex">
+          {/* Mini Sidebar */}
+          <div
+            className="w-12 min-h-[200px] py-3 px-1.5 space-y-1.5"
+            style={{
+              backgroundColor: colors.sidebarBackground,
+              color: colors.sidebarForeground
+            }}
+          >
+            <div
+              className="w-full h-7 rounded-md"
+              style={{
+                backgroundColor: colors.sidebarPrimary,
+                color: colors.sidebarPrimaryForeground
+              }}
+            />
+            <div className="w-full h-7 rounded-md" style={{ backgroundColor: `${colors.sidebarForeground}10` }} />
+            <div className="w-full h-7 rounded-md" style={{ backgroundColor: `${colors.sidebarForeground}10` }} />
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 p-4 space-y-3">
+            {/* Page Title */}
+            <div className="h-4 w-24 rounded" style={{ backgroundColor: colors.foregroundColor, opacity: 0.8 }} />
+            <div className="h-3 w-40 rounded" style={{ backgroundColor: colors.mutedForeground, opacity: 0.5 }} />
+
+            {/* Card */}
+            <div
+              className="p-3 rounded-lg border mt-3"
+              style={{
+                backgroundColor: colors.cardColor,
+                color: colors.cardForeground,
+                borderColor: colors.mutedColor
+              }}
+            >
+              <div className="h-3 w-20 rounded mb-2" style={{ backgroundColor: colors.cardForeground, opacity: 0.7 }} />
+              <div className="h-2 w-full rounded mb-1" style={{ backgroundColor: colors.mutedForeground, opacity: 0.3 }} />
+              <div className="h-2 w-3/4 rounded" style={{ backgroundColor: colors.mutedForeground, opacity: 0.3 }} />
+
+              {/* Buttons */}
+              <div className="flex gap-2 mt-3">
+                <div
+                  className="px-3 py-1.5 rounded text-[10px] font-medium"
+                  style={{
+                    backgroundColor: colors.primaryColor,
+                    color: colors.primaryForeground
+                  }}
+                >
+                  Primário
+                </div>
+                <div
+                  className="px-3 py-1.5 rounded text-[10px] font-medium border"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: colors.primaryColor,
+                    color: colors.primaryColor
+                  }}
+                >
+                  Outline
+                </div>
+                <div
+                  className="px-3 py-1.5 rounded text-[10px] font-medium"
+                  style={{
+                    backgroundColor: colors.destructiveColor,
+                    color: colors.destructiveForeground
+                  }}
+                >
+                  Erro
+                </div>
+              </div>
+            </div>
+
+            {/* Input Preview */}
+            <div
+              className="h-9 rounded-md border px-3 flex items-center"
+              style={{
+                backgroundColor: colors.backgroundColor,
+                borderColor: colors.mutedColor
+              }}
+            >
+              <span className="text-[10px]" style={{ color: colors.mutedForeground }}>Digite algo...</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -453,29 +455,39 @@ export function ColorPaletteEditor({
     <div className="space-y-6">
 
 
-      {/* Preset Palettes - Quick Selection */}
-      <div className="flex flex-wrap gap-2">
-        {presetPalettes.map((preset) => (
-          <Button
-            key={preset.id}
-            onClick={() => applyPreset(preset)}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <div className="flex gap-1">
-              {Object.entries(preset.colors).slice(0, 3).map(([key, color]) => (
-                <div
-                  key={key}
-                  className="w-3 h-3 rounded-full border border-border"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-            {preset.name}
-          </Button>
-        ))}
+      {/* Preset Palettes - Visual Cards */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h4 className="text-sm font-medium">Paletas Predefinidas</h4>
+          <Badge variant="secondary" className="text-xs">Clique para aplicar</Badge>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {presetPalettes.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => applyPreset(preset)}
+              className="group relative p-3 rounded-xl border bg-card hover:shadow-md hover:border-primary/50 transition-all cursor-pointer text-left"
+            >
+              {/* Color Swatches */}
+              <div className="flex gap-1 mb-2">
+                {Object.entries(preset.colors).slice(0, 4).map(([key, color]) => (
+                  <div
+                    key={key}
+                    className="flex-1 h-8 first:rounded-l-lg last:rounded-r-lg"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-medium truncate block">{preset.name}</span>
+              {/* Hover indicator */}
+              <div className="absolute inset-0 rounded-xl ring-2 ring-primary ring-offset-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            </button>
+          ))}
+        </div>
       </div>
+
+      <Separator />
 
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -499,13 +511,11 @@ export function ColorPaletteEditor({
 
           {/* Core Colors */}
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h4 className="text-base font-semibold text-foreground">Cores Principais</h4>
-                <p className="text-sm text-muted-foreground">Define a identidade visual primária da sua marca.</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-6 rounded-full bg-primary" />
+              <h4 className="text-sm font-semibold text-foreground">Cores Principais</h4>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border">
               <ColorInput
                 label="Primária"
                 value={paletteData.primaryColor}
@@ -549,11 +559,11 @@ export function ColorPaletteEditor({
 
           {/* Background & Surface */}
           <section className="space-y-4">
-            <div className="space-y-1">
-              <h4 className="text-base font-semibold text-foreground">Fundos e Superfícies</h4>
-              <p className="text-sm text-muted-foreground">Cores de fundo para páginas, cartões e áreas de conteúdo.</p>
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-6 rounded-full bg-secondary" />
+              <h4 className="text-sm font-semibold text-foreground">Fundos e Superfícies</h4>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border">
               <ColorInput
                 label="Fundo da Página"
                 value={paletteData.backgroundColor}
@@ -595,11 +605,11 @@ export function ColorPaletteEditor({
 
           {/* Sidebar & System */}
           <section className="space-y-4">
-            <div className="space-y-1">
-              <h4 className="text-base font-semibold text-foreground">Barra Lateral</h4>
-              <p className="text-sm text-muted-foreground">Personalize a aparência do menu de navegação.</p>
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-6 rounded-full bg-accent" />
+              <h4 className="text-sm font-semibold text-foreground">Barra Lateral</h4>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border">
               <ColorInput
                 label="Fundo Sidebar"
                 value={paletteData.sidebarBackground}
@@ -630,8 +640,11 @@ export function ColorPaletteEditor({
 
           {/* Destructive */}
           <section className="space-y-4">
-            <h4 className="text-base font-semibold text-foreground">Sistema e Alertas</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 bg-card p-6 rounded-lg border shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-6 rounded-full bg-destructive" />
+              <h4 className="text-sm font-semibold text-foreground">Sistema e Alertas</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border">
               <ColorInput
                 label="Erro/Perigo"
                 value={paletteData.destructiveColor}
@@ -650,34 +663,41 @@ export function ColorPaletteEditor({
 
         {/* Right Column - Live Preview */}
         <div className="lg:sticky lg:top-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-muted-foreground">Visualização</h4>
-            <Button
-              onClick={handleValidateAccessibility}
-              variant="ghost"
-              size="sm"
-              disabled={isValidating}
-              className="gap-1 text-xs"
-            >
-              {isValidating ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <CheckCircle className="h-3 w-3" />
+          <Card className="overflow-hidden border-2">
+            <CardHeader className="pb-3 bg-muted/30 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm">Preview ao Vivo</CardTitle>
+                </div>
+                <Button
+                  onClick={handleValidateAccessibility}
+                  variant="ghost"
+                  size="sm"
+                  disabled={isValidating}
+                  className="gap-1.5 text-xs h-7"
+                >
+                  {isValidating ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-3 w-3" />
+                  )}
+                  Validar
+                </Button>
+              </div>
+              {/* Accessibility Report */}
+              {accessibilityReport && (
+                <div className={`
+                  mt-2 px-2 py-1 rounded-md text-xs font-medium
+                  ${accessibilityReport.isCompliant
+                    ? 'bg-green-500/10 text-green-700'
+                    : 'bg-destructive/10 text-destructive'
+                  }
+                `}>
+                  {accessibilityReport.isCompliant ? '✓ Contraste adequado' : '⚠ Contraste insuficiente'}
+                </div>
               )}
-              Validar Contraste
-            </Button>
-          </div>
-
-          {/* Accessibility Report */}
-          {accessibilityReport && (
-            <Alert variant={accessibilityReport.isCompliant ? "default" : "destructive"} className="py-2">
-              <AlertDescription className="text-xs">
-                {accessibilityReport.isCompliant ? 'Contraste OK' : 'Contraste insuficiente'}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <Card className="overflow-hidden">
+            </CardHeader>
             <CardContent className="p-0">
               <ColorPreview colors={paletteData} />
             </CardContent>

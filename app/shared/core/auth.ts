@@ -91,11 +91,31 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
   if (isImpersonating && impersonationContext) {
     const { data: alunoData } = await supabase
       .from("alunos")
-      .select("must_change_password, nome_completo, email")
+      .select("must_change_password, nome_completo, email, empresa_id")
       .eq("id", targetUserId)
       .maybeSingle();
 
     if (alunoData) {
+      // Carregar dados da empresa do aluno impersonado para branding
+      let impersonatedEmpresaId: string | undefined;
+      let impersonatedEmpresaNome: string | undefined;
+      let impersonatedEmpresaSlug: string | undefined;
+
+      if (alunoData.empresa_id) {
+        const adminClient = getDatabaseClient();
+        const { data: empresaRow } = await adminClient
+          .from("empresas")
+          .select("id, nome, slug")
+          .eq("id", alunoData.empresa_id)
+          .maybeSingle();
+
+        if (empresaRow) {
+          impersonatedEmpresaId = empresaRow.id;
+          impersonatedEmpresaNome = empresaRow.nome ?? undefined;
+          impersonatedEmpresaSlug = empresaRow.slug ?? undefined;
+        }
+      }
+
       return {
         id: targetUserId,
         email: alunoData.email || "",
@@ -105,6 +125,10 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
         // do usuário impersonado, porque o usuário autenticado no Supabase Auth é o "real"
         // e isso pode causar loop em /primeiro-acesso para admins/professores.
         mustChangePassword: false,
+        // Incluir dados da empresa para branding funcionar corretamente
+        empresaId: impersonatedEmpresaId,
+        empresaNome: impersonatedEmpresaNome,
+        empresaSlug: impersonatedEmpresaSlug,
         // Manter informações do usuário real para contexto
         _impersonationContext: impersonationContext,
       } as AppUser & { _impersonationContext?: typeof impersonationContext };

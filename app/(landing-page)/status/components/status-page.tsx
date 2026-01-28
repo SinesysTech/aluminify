@@ -90,18 +90,18 @@ export function StatusPage() {
 
                 {/* Infrastructure Components */}
                 <div className="space-y-4 mb-12">
-                    <h2 className="text-lg font-bold mb-4">Componentes de Infraestrutura</h2>
+                    <h2 className="text-lg font-bold mb-4">Serviços da plataforma</h2>
 
-                    <StatusRow name="API Gateway (Edge)" status={apiStatus} />
-                    <StatusRow name="Database Cluster (Postgres)" status={apiStatus === 'error' ? 'error' : 'ok'} />
-                    <StatusRow name="Video CDN" status="ok" />
-                    <StatusRow name="AI Inference Engine" status="ok" />
-                    <StatusRow name="Authentication Service" status={apiStatus === 'error' ? 'error' : 'ok'} />
+                    <StatusRow name="Sistema principal" status={apiStatus} />
+                    <StatusRow name="Banco de dados" status={apiStatus === 'error' ? 'error' : 'ok'} />
+                    <StatusRow name="Reprodução de vídeos" status="ok" />
+                    <StatusRow name="Assistente com IA" status="ok" />
+                    <StatusRow name="Login e cadastro" status={apiStatus === 'error' ? 'error' : 'ok'} />
                 </div>
 
                 {/* Uptime History */}
                 <div>
-                    <h2 className="text-lg font-bold mb-4">Uptime Histórico (API)</h2>
+                    <h2 className="text-lg font-bold mb-4">Histórico de disponibilidade</h2>
                     <div className="bg-card p-6 rounded-lg border border-border">
                         <div className="flex items-end gap-0.5 h-12 mb-2">
                             {uptimeBars.map((bar) => (
@@ -112,9 +112,9 @@ export function StatusPage() {
                                 />
                             ))}
                         </div>
-                        <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                        <div className="flex justify-between text-xs text-muted-foreground">
                             <span>90 dias atrás</span>
-                            <span className="text-green-600 font-bold">99.95% Uptime</span>
+                            <span className="text-green-600 font-bold">99.95% no ar</span>
                             <span>Hoje</span>
                         </div>
                     </div>
@@ -132,7 +132,7 @@ export function StatusPage() {
             </main>
 
             <footer className="py-8 text-center text-sm text-muted-foreground border-t border-border">
-                © 2026 Aluminify Status Page.
+                © 2026 Aluminify — Status da plataforma
             </footer>
         </div>
     );

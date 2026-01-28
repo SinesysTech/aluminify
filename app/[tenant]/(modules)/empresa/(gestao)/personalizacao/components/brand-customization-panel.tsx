@@ -9,11 +9,18 @@ import {
   RotateCcw,
   Loader2,
   ImageIcon,
+  Sparkles,
+  Check,
+  ChevronRight,
+  Monitor,
+  Smartphone,
+  Settings2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/app/shared/components/feedback/progress';
 import { createClient } from '@/app/shared/core/client';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
@@ -283,269 +290,518 @@ export function BrandCustomizationPanel({
     }
   };
 
+  // Calculate brand completion percentage
+  const calculateBrandCompletion = () => {
+    let completed = 0;
+    const total = 5; // logos (3 types count as 1), colors, fonts
+
+    if (brandingState.logos.login || brandingState.logos.sidebar || brandingState.logos.favicon) completed++;
+    if (brandingState.logos.login && brandingState.logos.sidebar && brandingState.logos.favicon) completed++; // bonus for all logos
+    if (brandingState.colorPalette) completed++;
+    if (brandingState.fontScheme) completed++;
+    // Theme customization counts as 1
+    completed++; // Base theme is always configured
+
+    return Math.round((completed / total) * 100);
+  };
+
+  const brandCompletion = calculateBrandCompletion();
+
+  // Get status items for checklist
+  const getStatusItems = () => [
+    {
+      label: 'Logo da página de login',
+      done: !!brandingState.logos.login,
+      tab: 'logos' as const
+    },
+    {
+      label: 'Logo da sidebar',
+      done: !!brandingState.logos.sidebar,
+      tab: 'logos' as const
+    },
+    {
+      label: 'Favicon personalizado',
+      done: !!brandingState.logos.favicon,
+      tab: 'logos' as const
+    },
+    {
+      label: 'Paleta de cores definida',
+      done: !!brandingState.colorPalette,
+      tab: 'colors' as const
+    },
+    {
+      label: 'Esquema de fontes configurado',
+      done: !!brandingState.fontScheme,
+      tab: 'fonts' as const
+    },
+  ];
+
   return (
     <Card className="w-full border-none shadow-none">
       <CardContent className="p-0">
         <div className="flex flex-col space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="logos">Logos</TabsTrigger>
-              <TabsTrigger value="colors">Cores</TabsTrigger>
-              <TabsTrigger value="fonts">Fontes</TabsTrigger>
-              <TabsTrigger value="theme">Tema</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 h-12 p-1 bg-muted/50">
+              <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">Visão Geral</span>
+              </TabsTrigger>
+              <TabsTrigger value="logos" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <ImageIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Logos</span>
+              </TabsTrigger>
+              <TabsTrigger value="colors" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <Palette className="h-4 w-4" />
+                <span className="hidden sm:inline">Cores</span>
+              </TabsTrigger>
+              <TabsTrigger value="fonts" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <Type className="h-4 w-4" />
+                <span className="hidden sm:inline">Fontes</span>
+              </TabsTrigger>
+              <TabsTrigger value="theme" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <Settings2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Tema</span>
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="mt-6 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configuração Atual da Marca</CardTitle>
-                  <CardDescription>
-                    Visão geral das configurações de personalização atuais
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Logos Summary */}
-                    <div className="space-y-4">
-                      <div className="font-medium flex items-center gap-2">
-                        <ImageIcon className="h-4 w-4" />
-                        Logos
-                      </div>
-                      <div className="grid gap-2">
-                        <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                          <span>Login</span>
-                          {brandingState.logos.login ? (
-                            <Badge variant="default" className="bg-green-600">Personalizado</Badge>
-                          ) : (
-                            <Badge variant="outline">Padrão</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                          <span>Sidebar</span>
-                          {brandingState.logos.sidebar ? (
-                            <Badge variant="default" className="bg-green-600">Personalizado</Badge>
-                          ) : (
-                            <Badge variant="outline">Padrão</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                          <span>Favicon</span>
-                          {brandingState.logos.favicon ? (
-                            <Badge variant="default" className="bg-green-600">Personalizado</Badge>
-                          ) : (
-                            <Badge variant="outline">Padrão</Badge>
-                          )}
-                        </div>
+            <TabsContent value="overview" className="mt-8 space-y-8">
+              {/* Brand Completion Progress */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 border border-primary/10 p-6">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Personalização da Marca</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {brandCompletion === 100
+                          ? 'Parabéns! Sua marca está completamente personalizada.'
+                          : 'Complete as etapas abaixo para personalizar sua marca.'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-3xl font-bold text-primary">{brandCompletion}%</div>
+                        <div className="text-xs text-muted-foreground">completo</div>
                       </div>
                     </div>
+                  </div>
+                  <Progress value={brandCompletion} className="h-2 bg-primary/20" />
+                </div>
+              </div>
 
-                    {/* Colors Summary */}
-                    <div className="space-y-4">
-                      <div className="font-medium flex items-center gap-2">
-                        <Palette className="h-4 w-4" />
-                        Cores
+              {/* Two Column Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left: Brand Preview */}
+                <Card className="overflow-hidden border-2 border-dashed border-muted-foreground/20 hover:border-primary/30 transition-colors">
+                  <CardHeader className="pb-3 bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Monitor className="h-4 w-4 text-muted-foreground" />
+                        Preview da Marca
+                      </CardTitle>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <Monitor className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <Smartphone className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      {brandingState.colorPalette ? (
-                        <div className="space-y-2">
-                          <div className="text-sm font-medium">{brandingState.colorPalette.name}</div>
-                          <div className="flex gap-2">
-                            <div
-                              className="w-8 h-8 rounded-full border shadow-sm"
-                              style={{ backgroundColor: brandingState.colorPalette.primaryColor }}
-                              title="Primária"
-                            />
-                            <div
-                              className="w-8 h-8 rounded-full border shadow-sm"
-                              style={{ backgroundColor: brandingState.colorPalette.secondaryColor }}
-                              title="Secundária"
-                            />
-                            <div
-                              className="w-8 h-8 rounded-full border shadow-sm"
-                              style={{ backgroundColor: brandingState.colorPalette.accentColor }}
-                              title="Destaque"
-                            />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {/* Mini Mockup of Brand Application */}
+                    <div className="relative bg-background">
+                      {/* Mockup Sidebar */}
+                      <div className="flex">
+                        <div
+                          className="w-16 min-h-[200px] border-r flex flex-col items-center py-4 gap-3"
+                          style={{
+                            backgroundColor: brandingState.colorPalette?.sidebarBackground || 'hsl(var(--sidebar-background))',
+                            color: brandingState.colorPalette?.sidebarForeground || 'hsl(var(--sidebar-foreground))'
+                          }}
+                        >
+                          {/* Sidebar Logo Preview */}
+                          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
+                            {brandingState.logos.sidebar ? (
+                              <img
+                                src={brandingState.logos.sidebar}
+                                alt="Logo"
+                                className="w-8 h-8 object-contain"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded bg-white/20" />
+                            )}
                           </div>
-                          <Badge variant="secondary">Personalizado</Badge>
+                          {/* Menu Items */}
+                          <div className="space-y-2 w-full px-2">
+                            <div
+                              className="h-8 rounded-md"
+                              style={{
+                                backgroundColor: brandingState.colorPalette?.sidebarPrimary || 'hsl(var(--sidebar-primary))'
+                              }}
+                            />
+                            <div className="h-8 rounded-md bg-white/5" />
+                            <div className="h-8 rounded-md bg-white/5" />
+                          </div>
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">
-                          Nenhuma paleta personalizada ativa. Usando cores padrão do sistema.
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Fonts Summary */}
-                    <div className="space-y-4">
-                      <div className="font-medium flex items-center gap-2">
-                        <Type className="h-4 w-4" />
-                        Fontes
-                      </div>
-                      {brandingState.fontScheme ? (
-                        <div className="space-y-2">
-                          <div className="text-sm font-medium">{brandingState.fontScheme.name}</div>
-                          <div className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
-                            <div className="font-medium mb-1">Aa Bb Cc</div>
-                            <div className="text-xs">
-                              {brandingState.fontScheme.fontSans[0] ?? brandingState.fontScheme.name}
+                        {/* Mockup Content */}
+                        <div
+                          className="flex-1 p-4"
+                          style={{
+                            backgroundColor: brandingState.colorPalette?.backgroundColor || 'hsl(var(--background))',
+                            color: brandingState.colorPalette?.foregroundColor || 'hsl(var(--foreground))'
+                          }}
+                        >
+                          <div className="space-y-3">
+                            <div className="h-4 w-32 rounded bg-current opacity-80" />
+                            <div className="h-3 w-48 rounded bg-current opacity-40" />
+                            <div className="flex gap-2 mt-4">
+                              <div
+                                className="h-8 w-20 rounded-md flex items-center justify-center text-xs font-medium"
+                                style={{
+                                  backgroundColor: brandingState.colorPalette?.primaryColor || 'hsl(var(--primary))',
+                                  color: brandingState.colorPalette?.primaryForeground || 'hsl(var(--primary-foreground))'
+                                }}
+                              >
+                                Botão
+                              </div>
+                              <div
+                                className="h-8 w-20 rounded-md border flex items-center justify-center text-xs"
+                                style={{
+                                  borderColor: brandingState.colorPalette?.primaryColor || 'hsl(var(--primary))',
+                                  color: brandingState.colorPalette?.primaryColor || 'hsl(var(--primary))'
+                                }}
+                              >
+                                Outline
+                              </div>
+                            </div>
+                            {/* Card Preview */}
+                            <div
+                              className="mt-4 p-3 rounded-lg border"
+                              style={{
+                                backgroundColor: brandingState.colorPalette?.cardColor || 'hsl(var(--card))',
+                                borderColor: brandingState.colorPalette?.mutedColor || 'hsl(var(--border))'
+                              }}
+                            >
+                              <div className="h-3 w-24 rounded bg-current opacity-70" />
+                              <div className="h-2 w-32 rounded bg-current opacity-30 mt-2" />
                             </div>
                           </div>
-                          <Badge variant="secondary">Personalizado</Badge>
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">
-                          Nenhum esquema de fonte personalizado ativo. Usando fontes padrão do sistema.
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Right: Checklist & Quick Actions */}
+                <div className="space-y-6">
+                  {/* Status Checklist */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Lista de Verificação</CardTitle>
+                      <CardDescription>Itens para completar sua personalização</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      {getStatusItems().map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setActiveTab(item.tab)}
+                          className={`
+                            w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all
+                            hover:bg-muted/50 group cursor-pointer
+                            ${item.done ? 'text-muted-foreground' : 'text-foreground'}
+                          `}
+                        >
+                          <div className={`
+                            w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                            transition-colors
+                            ${item.done
+                              ? 'bg-green-500 border-green-500 text-white'
+                              : 'border-muted-foreground/30 group-hover:border-primary/50'
+                            }
+                          `}>
+                            {item.done && <Check className="h-3 w-3" />}
+                          </div>
+                          <span className={`flex-1 text-sm ${item.done ? 'line-through' : 'font-medium'}`}>
+                            {item.label}
+                          </span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Actions Grid */}
+                  <div className="grid grid-cols-1 gap-3">
+                    <button
+                      onClick={() => setActiveTab('logos')}
+                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                          <Upload className="h-5 w-5" />
                         </div>
-                      )}
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Enviar Logos</div>
+                          <div className="text-xs text-muted-foreground">Login, sidebar e favicon</div>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('colors')}
+                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-600">
+                          <Palette className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Configurar Cores</div>
+                          <div className="text-xs text-muted-foreground">Paleta personalizada</div>
+                        </div>
+                        <div className="flex gap-1 mr-2">
+                          {brandingState.colorPalette ? (
+                            <>
+                              <div className="w-4 h-4 rounded-full border shadow-sm" style={{ backgroundColor: brandingState.colorPalette.primaryColor }} />
+                              <div className="w-4 h-4 rounded-full border shadow-sm" style={{ backgroundColor: brandingState.colorPalette.secondaryColor }} />
+                              <div className="w-4 h-4 rounded-full border shadow-sm" style={{ backgroundColor: brandingState.colorPalette.accentColor }} />
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-4 h-4 rounded-full bg-slate-200" />
+                              <div className="w-4 h-4 rounded-full bg-slate-300" />
+                              <div className="w-4 h-4 rounded-full bg-slate-400" />
+                            </>
+                          )}
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('fonts')}
+                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600">
+                          <Type className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Escolher Fontes</div>
+                          <div className="text-xs text-muted-foreground">
+                            {brandingState.fontScheme?.fontSans?.[0] || 'System default'}
+                          </div>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="logos" className="mt-8">
+              <div className="space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center justify-between pb-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                      <ImageIcon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold">Logos da Marca</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Faça upload dos logos para diferentes contextos do sistema
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  {/* Auto-save indicator */}
+                  <Badge variant="secondary" className="bg-green-500/10 text-green-700 border-green-500/20 gap-1.5">
+                    <Check className="h-3 w-3" />
+                    Salvamento automático
+                  </Badge>
+                </div>
 
-              {/* Quick Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => setActiveTab('logos')}
-                >
-                  <Upload className="h-6 w-6 mb-1" />
-                  <span>Enviar Logos</span>
-                  <span className="text-xs text-muted-foreground font-normal">Faça upload da identidade da sua marca</span>
-                </Button>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <LogoUploadComponent
+                    logoType="login"
+                    currentLogoUrl={brandingState.logos.login || undefined}
+                    onUpload={handleLogoUpload}
+                    onRemove={handleLogoRemove}
+                    maxFileSize={5 * 1024 * 1024}
+                    acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
+                  />
 
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => setActiveTab('colors')}
-                >
-                  <Palette className="h-6 w-6 mb-1" />
-                  <span>Configurar Cores</span>
-                  <span className="text-xs text-muted-foreground font-normal">Defina sua paleta de cores</span>
-                </Button>
+                  <LogoUploadComponent
+                    logoType="sidebar"
+                    currentLogoUrl={brandingState.logos.sidebar || undefined}
+                    onUpload={handleLogoUpload}
+                    onRemove={handleLogoRemove}
+                    maxFileSize={5 * 1024 * 1024}
+                    acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
+                  />
 
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => setActiveTab('fonts')}
-                >
-                  <Type className="h-6 w-6 mb-1" />
-                  <span>Escolher Fontes</span>
-                  <span className="text-xs text-muted-foreground font-normal">Selecione sua tipografia</span>
-                </Button>
+                  <LogoUploadComponent
+                    logoType="favicon"
+                    currentLogoUrl={brandingState.logos.favicon || undefined}
+                    onUpload={handleLogoUpload}
+                    onRemove={handleLogoRemove}
+                    maxFileSize={1 * 1024 * 1024}
+                    acceptedFormats={['image/png', 'image/x-icon', 'image/svg+xml']}
+                  />
+                </div>
+
+                {/* Footer info */}
+                <div className="flex items-center justify-center pt-4 border-t text-sm text-muted-foreground">
+                  <p>Os logos são salvos automaticamente após o upload. Para remover, passe o mouse sobre o logo.</p>
+                </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="logos" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <LogoUploadComponent
-                  logoType="login"
-                  currentLogoUrl={brandingState.logos.login || undefined}
-                  onUpload={handleLogoUpload}
-                  onRemove={handleLogoRemove}
-                  maxFileSize={5 * 1024 * 1024} // 5MB
-                  acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
+            <TabsContent value="colors" className="mt-8">
+              <div className="space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center justify-between pb-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-600">
+                      <Palette className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold">Paleta de Cores</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Defina as cores que representam sua identidade visual
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <ColorPaletteEditor
+                  currentPalette={currentBranding?.colorPalette}
+                  onSave={handleColorPaletteSave}
+                  onPreview={handleColorPalettePreview}
+                  onValidate={handleColorPaletteValidate}
                 />
 
-                <LogoUploadComponent
-                  logoType="sidebar"
-                  currentLogoUrl={brandingState.logos.sidebar || undefined}
-                  onUpload={handleLogoUpload}
-                  onRemove={handleLogoRemove}
-                  maxFileSize={5 * 1024 * 1024} // 5MB
-                  acceptedFormats={['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']}
-                />
+                {/* Footer Actions */}
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <Button
+                    onClick={handleReset}
+                    variant="ghost"
+                    size="sm"
+                    disabled={isSaving || isResetting}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    {isResetting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                    )}
+                    Restaurar Cores Padrão
+                  </Button>
+                  <div className="flex items-center gap-3">
+                    {hasUnsavedChanges && (
+                      <span className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        Alterações pendentes
+                      </span>
+                    )}
+                    <Button
+                      onClick={handleSave}
+                      disabled={!hasUnsavedChanges || isSaving || isResetting}
+                      size="sm"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                      )}
+                      Aplicar Paleta
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
 
-                <LogoUploadComponent
-                  logoType="favicon"
-                  currentLogoUrl={brandingState.logos.favicon || undefined}
-                  onUpload={handleLogoUpload}
-                  onRemove={handleLogoRemove}
-                  maxFileSize={1 * 1024 * 1024} // 1MB for favicon
-                  acceptedFormats={['image/png', 'image/x-icon', 'image/svg+xml']}
+            <TabsContent value="fonts" className="mt-8">
+              <div className="space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center justify-between pb-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600">
+                      <Type className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold">Tipografia</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Escolha as fontes que representam sua marca
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <FontSchemeSelector
+                  currentScheme={currentBranding?.fontScheme}
+                  availableGoogleFonts={[
+                    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
+                    'Poppins', 'Nunito', 'Raleway', 'Ubuntu', 'Fira Code', 'Source Code Pro',
+                    'JetBrains Mono', 'Inconsolata', 'Fira Sans', 'Work Sans', 'Playfair Display',
+                    'Merriweather', 'PT Sans', 'Oswald'
+                  ]}
+                  onSave={handleFontSchemeSave}
+                  onPreview={handleFontSchemePreview}
+                  onLoadGoogleFont={handleLoadGoogleFont}
                 />
               </div>
             </TabsContent>
 
-            <TabsContent value="colors" className="space-y-6 mt-6">
-              <ColorPaletteEditor
-                currentPalette={currentBranding?.colorPalette}
-                onSave={handleColorPaletteSave}
-                onPreview={handleColorPalettePreview}
-                onValidate={handleColorPaletteValidate}
-              />
-            </TabsContent>
+            <TabsContent value="theme" className="mt-8">
+              <div className="space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center justify-between pb-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600">
+                      <Settings2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold">Configurações de Tema</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Ajuste a aparência e layout do sistema
+                      </p>
+                    </div>
+                  </div>
+                  {/* Auto-save indicator */}
+                  <Badge variant="secondary" className="bg-green-500/10 text-green-700 border-green-500/20 gap-1.5">
+                    <Check className="h-3 w-3" />
+                    Salvamento automático
+                  </Badge>
+                </div>
 
-            <TabsContent value="fonts" className="space-y-6 mt-6">
-              <FontSchemeSelector
-                currentScheme={currentBranding?.fontScheme}
-                availableGoogleFonts={[
-                  'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
-                  'Poppins', 'Nunito', 'Raleway', 'Ubuntu', 'Fira Code', 'Source Code Pro',
-                  'JetBrains Mono', 'Inconsolata', 'Fira Sans', 'Work Sans', 'Playfair Display',
-                  'Merriweather', 'PT Sans', 'Oswald'
-                ]}
-                onSave={handleFontSchemeSave}
-                onPreview={handleFontSchemePreview}
-                onLoadGoogleFont={handleLoadGoogleFont}
-              />
-            </TabsContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <PresetSelector />
+                  <ThemeScaleSelector />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ThemeRadiusSelector />
+                  <ColorModeSelector />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ContentLayoutSelector />
+                  <SidebarModeSelector />
+                </div>
 
-            <TabsContent value="theme" className="space-y-6 mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações de Tema</CardTitle>
-                  <CardDescription>
-                    Customize a aparência e layout do sistema para sua empresa
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <PresetSelector />
-                    <ThemeScaleSelector />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ThemeRadiusSelector />
-                    <ColorModeSelector />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ContentLayoutSelector />
-                    <SidebarModeSelector />
-                  </div>
-                  <div className="pt-4 border-t">
-                    <ResetThemeButton />
-                  </div>
-                </CardContent>
-              </Card>
+                {/* Footer */}
+                <div className="flex items-center justify-center pt-6 border-t">
+                  <ResetThemeButton />
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
-
-          <div className="flex items-center justify-end pt-4 border-t gap-2">
-            <Button
-              onClick={handleReset}
-              variant="outline"
-              disabled={isSaving || isResetting}
-            >
-              {isResetting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RotateCcw className="h-4 w-4 mr-2" />
-              )}
-              Restaurar Padrão
-            </Button>
-
-            <Button
-              onClick={handleSave}
-              disabled={!hasUnsavedChanges || isSaving || isResetting}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Salvar Alterações
-            </Button>
-          </div>
         </div>
       </CardContent>
     </Card>

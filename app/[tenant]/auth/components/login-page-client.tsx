@@ -10,7 +10,6 @@ import { AuthPageLayout } from './auth-page-layout'
 import { AuthDivider } from './auth-divider'
 import { LoginDecorativeCard } from './login-decorative-card'
 import { MagicLinkButton } from './magic-link-button'
-import { OAuthButtons } from './oauth-buttons'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/app/shared/components/forms/checkbox'
 import { Input } from '@/app/shared/components/forms/input'
@@ -190,7 +189,7 @@ export function LoginPageClient() {
         <p>
           Não tem uma conta?{' '}
           <Link href={tenant ? `/${tenant}/auth/sign-up` : "/auth/sign-up"} className="font-medium text-primary hover:underline">
-            Criar infraestrutura
+            Criar conta grátis
           </Link>
         </p>
       }
@@ -263,11 +262,6 @@ export function LoginPageClient() {
             {isLoading ? 'Entrando...' : !password ? 'Digite a senha para entrar' : 'Entrar'}
           </Button>
         </form>
-
-        <div className="space-y-4">
-          <AuthDivider text="OU CONTINUE COM" />
-          <OAuthButtons disabled={isLoading} />
-        </div>
       </div>
     </AuthPageLayout>
   )

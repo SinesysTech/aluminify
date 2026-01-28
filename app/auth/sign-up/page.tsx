@@ -5,7 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Rocket, School } from 'lucide-react'
+import { ArrowRight, School } from 'lucide-react'
 import { AuthPageLayout } from '@/app/[tenant]/auth/components/auth-page-layout'
 import { SignupDecorativeTerminal } from '@/app/[tenant]/auth/components/signup-decorative-terminal'
 import { Input } from '@/app/shared/components/forms/input'
@@ -73,7 +73,7 @@ export default function SignUpPage() {
         | null
 
       if (!response.ok) {
-        const message = data?.error || 'Erro ao inicializar instância'
+        const message = data?.error || 'Erro ao criar conta'
 
         if (message.includes('já está cadastrado') || message.includes('already registered')) {
           toast.error('Conta já existe', {
@@ -92,10 +92,10 @@ export default function SignUpPage() {
         return
       }
 
-      toast.success('Instância criada!', {
+      toast.success('Conta criada!', {
         description:
           data?.message ||
-          'Sua conta e empresa foram criadas. Você já pode fazer login.',
+          'Sua conta foi criada. Você já pode fazer login.',
       })
 
       router.push('/auth/sign-up-success')
@@ -134,16 +134,16 @@ export default function SignUpPage() {
       <div className="space-y-6">
         {/* Badge */}
         <Badge className="border-transparent bg-primary text-primary-foreground shadow-none hover:bg-primary">
-          Early Access
+          Grátis para começar
         </Badge>
 
         {/* Header */}
         <div>
           <h1 className="font-sans text-3xl font-bold text-gray-900">
-            Inicializar nova instância
+            Crie sua conta
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Configure sua infraestrutura educacional em minutos. Sem cartão de
+            Configure seu curso online em poucos minutos. Sem cartão de
             crédito necessário.
           </p>
         </div>
@@ -180,13 +180,13 @@ export default function SignUpPage() {
 
           {/* Organization */}
           <div className="space-y-2">
-            <Label htmlFor="organization">Nome da Organização</Label>
+            <Label htmlFor="organization">Nome do seu curso ou escola</Label>
             <div className="relative">
               <School className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="organization"
                 type="text"
-                placeholder="Escola Exemplo"
+                placeholder="Ex: Cursinho do Professor João"
                 value={organization}
                 onChange={(e) => setOrganization(e.target.value)}
                 disabled={isLoading}
@@ -198,11 +198,11 @@ export default function SignUpPage() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email de Trabalho</Label>
+            <Label htmlFor="email">Seu email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="joao@escola.edu.br"
+              placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -212,7 +212,7 @@ export default function SignUpPage() {
 
           {/* Password */}
           <div className="space-y-2">
-            <Label htmlFor="password">Senha Master</Label>
+            <Label htmlFor="password">Crie uma senha</Label>
             <Input
               id="password"
               type="password"
@@ -223,7 +223,7 @@ export default function SignUpPage() {
               required
             />
             <p className="text-xs text-muted-foreground">
-              Mínimo 8 caracteres, incluindo maiúscula, número e símbolo
+              Mínimo 8 caracteres
             </p>
           </div>
 
@@ -257,8 +257,8 @@ export default function SignUpPage() {
             className="w-full"
             disabled={isLoading || !isFormValid}
           >
-            <Rocket className="mr-2 h-4 w-4" />
-            {isLoading ? 'Fazendo deploy...' : 'Fazer Deploy da Instância'}
+            {isLoading ? 'Criando conta...' : 'Criar minha conta grátis'}
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </form>
       </div>
