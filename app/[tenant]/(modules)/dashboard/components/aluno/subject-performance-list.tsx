@@ -256,11 +256,11 @@ export function SubjectPerformanceList({
                     <ul className="space-y-1.5 text-xs">
                       <li className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
-                        <span>â‰¥ 80%: Excelente</span>
+                        <span>≥ 80%: Excelente</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-yellow-500 shrink-0" />
-                        <span>â‰¥ 50%: Regular</span>
+                        <span>≥ 50%: Regular</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
