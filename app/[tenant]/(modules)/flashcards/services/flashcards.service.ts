@@ -489,13 +489,19 @@ export class FlashcardsService {
     return moduloIds;
   }
 
-  async getCursos(): Promise<CursoRow[]> {
+  async getCursos(userId: string): Promise<CursoRow[]> {
+    // Buscar apenas cursos em que o aluno está matriculado
     const { data, error } = await this.client
-      .from("cursos")
-      .select("id, nome, empresa_id");
-    
+      .from("alunos_cursos")
+      .select("curso:cursos(id, nome, empresa_id)")
+      .eq("aluno_id", userId);
+
     if (error) throw new Error(error.message);
-    return data || [];
+
+    // Extrair os cursos do resultado do join
+    return (data || [])
+      .map((row: { curso: CursoRow | null }) => row.curso)
+      .filter((curso): curso is CursoRow => curso !== null);
   }
 
   async getDisciplinas(cursoId: string): Promise<{id: string; nome: string}[]> {

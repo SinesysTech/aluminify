@@ -5,7 +5,12 @@ import { flashcardsService } from './services/flashcards.service'
 import { FlashcardsReviewScope } from './services/flashcards.service'
 
 export async function getCursos() {
-    return flashcardsService.getCursos()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    return flashcardsService.getCursos(user.id)
 }
 
 export async function getDisciplinas(cursoId: string) {
