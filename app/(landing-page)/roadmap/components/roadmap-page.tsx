@@ -11,9 +11,9 @@ export function RoadmapPage() {
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="text-center mb-16">
-                    <h1 className="text-4xl font-display font-bold mb-4">Roadmap de Produto</h1>
+                    <h1 className="text-4xl font-display font-bold mb-4">O que vem por aí</h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Acompanhe a evolução do Aluminify. Nossa missão é construir a infraestrutura educacional mais flexível e robusta do mercado.
+                        Veja o que já lançamos e o que estamos preparando para tornar seu curso ainda melhor.
                     </p>
                 </div>
 
@@ -22,37 +22,30 @@ export function RoadmapPage() {
                     <div>
                         <div className="flex items-center gap-2 mb-6">
                             <CheckCircle2 className="w-5 h-5 text-green-500" />
-                            <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Concluído (Q1 2026)</h3>
+                            <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Já disponível</h3>
                         </div>
                         <div className="space-y-4">
                             <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
                                 <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-mono text-muted-foreground">ARCH-2.0</span>
-                                    <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase">Released</span>
+                                    <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase">Lançado</span>
                                 </div>
-                                <h4 className="font-bold mb-2">Arquitetura Modular</h4>
+                                <h4 className="font-bold mb-2">Sistema completo</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Refatoração completa para sistema de módulos isolados (Curso, Usuário, Financeiro) com separação estrita entre visão do aluno e gestão.
+                                    Área do aluno, área administrativa, gestão de matrículas e pagamentos — tudo funcionando e integrado.
                                 </p>
                             </div>
 
                             <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-mono text-muted-foreground">API-2.0</span>
-                                </div>
-                                <h4 className="font-bold mb-2">API Hierárquica</h4>
+                                <h4 className="font-bold mb-2">Área do Aluno</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Nova estrutura de endpoints RESTful padronizada e localizada (/api/usuario, /api/curso), espelhando os módulos funcionais.
+                                    Sala de estudos com vídeo-aulas, flashcards para memorização, cronograma de estudos e modo foco.
                                 </p>
                             </div>
 
                             <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-mono text-muted-foreground">CORE-100</span>
-                                </div>
-                                <h4 className="font-bold mb-2">Módulos Essenciais</h4>
+                                <h4 className="font-bold mb-2">Gestão Administrativa</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Implementação completa dos módulos de Sala de Estudos, Cronograma Inteligente, Flashcards e Foco (Pomodoro).
+                                    Painel separado para você gerenciar turmas, alunos, professores e acompanhar relatórios.
                                 </p>
                             </div>
                         </div>
@@ -62,37 +55,30 @@ export function RoadmapPage() {
                     <div>
                         <div className="flex items-center gap-2 mb-6">
                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                            <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Em Desenvolvimento</h3>
+                            <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Em desenvolvimento</h3>
                         </div>
                         <div className="space-y-4">
                             <div className="bg-card p-5 rounded-xl border border-border shadow-sm border-l-4 border-l-blue-500">
                                 <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-mono text-muted-foreground">GAME-01</span>
-                                    <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase">Beta</span>
+                                    <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase">Em teste</span>
                                 </div>
-                                <h4 className="font-bold mb-2 text-blue-600 dark:text-blue-400">Gamificação</h4>
+                                <h4 className="font-bold mb-2 text-blue-600 dark:text-blue-400">Pontos e conquistas</h4>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Sistema de ranking, badges e recompensas para engajamento do aluno.
+                                    Seus alunos ganham pontos, sobem de nível e desbloqueiam conquistas. Mais motivação para estudar!
                                 </p>
                             </div>
 
                             <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-mono text-muted-foreground">MOB-01</span>
-                                </div>
-                                <h4 className="font-bold mb-2">Mobile First UX</h4>
+                                <h4 className="font-bold mb-2">Melhor no celular</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Otimização completa da Sala de Estudos e Navegação para dispositivos móveis (PWA).
+                                    Estamos deixando a experiência no celular ainda melhor para seus alunos estudarem de qualquer lugar.
                                 </p>
                             </div>
 
                             <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className="text-xs font-mono text-muted-foreground">ANA-02</span>
-                                </div>
-                                <h4 className="font-bold mb-2">Analytics Avançado</h4>
+                                <h4 className="font-bold mb-2">Relatórios inteligentes</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Dashboards preditivos de desempenho e retenção para gestores.
+                                    Veja quais alunos estão ficando para trás e receba alertas automáticos para agir a tempo.
                                 </p>
                             </div>
                         </div>
