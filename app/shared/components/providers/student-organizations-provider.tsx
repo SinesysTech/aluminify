@@ -139,8 +139,10 @@ export function StudentOrganizationsProvider({
         data: { session },
       } = await supabase.auth.getSession();
 
+      // During logout, session may be null - return gracefully
       if (!session?.access_token) {
-        throw new Error("No active session");
+        setOrganizations([]);
+        return;
       }
 
       const response = await fetch("/api/usuario/alunos/organizations", {

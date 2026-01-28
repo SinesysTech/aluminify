@@ -10,7 +10,8 @@ export class FocoService {
       data: { user },
       error,
     } = await this.supabase.auth.getUser();
-    if (error || !user) throw new Error("Usuário não autenticado");
+    // During logout, user may be null - return empty array gracefully
+    if (error || !user) return [];
 
     const role = (user.user_metadata?.role as string) || "aluno";
     const isSuperAdmin =

@@ -250,18 +250,19 @@ export default function StudentDashboardClientPage() {
             <ScheduleProgress value={data.metrics.scheduleProgress} />
 
             {/* Linha 1: Grid de 4 Metric Cards */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4 mb-6 md:mb-8">
                 <MetricCard
                     label="Tempo de Estudo"
                     value={data.metrics.focusTime}
                     icon={Clock}
+                    variant="time"
                     trend={{
                         value: data.metrics.focusTimeDelta,
                         isPositive: data.metrics.focusTimeDelta.startsWith('+'),
                     }}
                     tooltip={[
-                        'Este é o tempo total de estudo no período, somando aulas que você marcou como assistidas no cronograma e o tempo registrado em listas de exercícios (sessões vinculadas a uma atividade).',
-                        'O valor mostra a diferença em relação ao período anterior, ajudando você a acompanhar sua evolução.',
+                        'Tempo total de estudo no período, somando aulas assistidas e sessões de exercícios.',
+                        'O valor mostra a diferença em relação ao período anterior.',
                     ]}
                 />
                 <MetricCard
@@ -269,21 +270,22 @@ export default function StudentDashboardClientPage() {
                     value={data.metrics.questionsAnswered}
                     subtext={data.metrics.questionsAnsweredPeriod}
                     icon={CheckCircle2}
+                    variant="questions"
                     tooltip={[
-                        'Este número representa a quantidade total de questões que você já resolveu no período indicado.',
-                        'Resolver questões é fundamental para fixar o conteúdo e se preparar melhor para as provas.',
+                        'Total de questões resolvidas no período.',
+                        'Resolver questões é fundamental para fixar o conteúdo!',
                     ]}
                 />
                 <MetricCard
                     label="Aproveitamento"
                     value={`${data.metrics.accuracy}%`}
                     icon={Target}
+                    variant="accuracy"
                     showProgressCircle={true}
                     progressValue={data.metrics.accuracy}
                     tooltip={[
-                        'Seu aproveitamento mostra a porcentagem de acertos nas questões que você resolveu.',
-                        'Quanto maior o percentual, melhor você está dominando o conteúdo.',
-                        'Este indicador ajuda a identificar áreas que precisam de mais estudo.',
+                        'Porcentagem de acertos nas questões resolvidas.',
+                        'Quanto maior, melhor você está dominando o conteúdo.',
                     ]}
                 />
                 <MetricCard
@@ -291,9 +293,10 @@ export default function StudentDashboardClientPage() {
                     value={data.metrics.flashcardsReviewed}
                     subtext="Cartas revisadas"
                     icon={Brain}
+                    variant="flashcards"
                     tooltip={[
-                        'Este número indica quantas cartas de flashcards você já revisou.',
-                        'Os flashcards são uma técnica eficaz de memorização e revisão, ajudando você a consolidar conceitos importantes de forma rápida e eficiente.',
+                        'Cartas de flashcards revisadas.',
+                        'Técnica eficaz para memorização e revisão rápida!',
                     ]}
                 />
             </div>

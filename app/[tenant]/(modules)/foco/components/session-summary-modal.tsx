@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Button } from '@/components/ui/button'
 import { Label } from '@/app/shared/components/forms/label'
 import { Slider } from '@/components/ui/slider'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Checkbox } from '@/app/shared/components/forms/checkbox'
 import {
     Clock,
     Pause,

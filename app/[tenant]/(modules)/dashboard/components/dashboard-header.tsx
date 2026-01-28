@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Flame, Timer } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { UserInfo } from '@/app/[tenant]/(modules)/dashboard/types/student'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,8 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
+  const params = useParams()
+  const tenant = params?.tenant as string
   const searchParams = useSearchParams()
   const [storedContext] = useState<FocusContext | null>(() => {
     if (typeof window === 'undefined') return null
@@ -63,8 +65,9 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
 
     const query = qs.toString()
-    return query ? `/foco?${query}` : '/foco'
-  }, [searchParams, storedContext])
+    const basePath = tenant ? `/${tenant}/foco` : '/foco'
+    return query ? `${basePath}?${query}` : basePath
+  }, [searchParams, storedContext, tenant])
 
   // Determinar saudação baseada no horário
   const getGreeting = () => {

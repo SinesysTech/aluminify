@@ -2,8 +2,6 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type {
   FontScheme,
   CreateFontSchemeRequest,
-  FontSchemeUpdate,
-  FontSchemeInsert,
   CSSCustomProperties,
 } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types';
 import { FontLoadingError } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types';
@@ -95,16 +93,16 @@ export class FontSchemeManagerImpl implements FontSchemeManager {
         }
       }
 
-      // Create font scheme insert data
-      const schemeData: FontSchemeInsert = {
+      // Create font scheme insert data (using snake_case for database columns)
+      const schemeData = {
         name: scheme.name,
-        empresaId,
-        fontSans: scheme.fontSans,
-        fontMono: scheme.fontMono,
-        fontSizes: scheme.fontSizes || this.defaultFontSizes,
-        fontWeights: scheme.fontWeights || this.defaultFontWeights,
-        googleFonts: scheme.googleFonts || [],
-        isCustom: true,
+        empresa_id: empresaId,
+        font_sans: scheme.fontSans,
+        font_mono: scheme.fontMono,
+        font_sizes: scheme.fontSizes || this.defaultFontSizes,
+        font_weights: scheme.fontWeights || this.defaultFontWeights,
+        google_fonts: scheme.googleFonts || [],
+        is_custom: true,
       };
 
       const { data, error } = await this.client
@@ -160,11 +158,17 @@ export class FontSchemeManagerImpl implements FontSchemeManager {
         }
       }
 
-      // Create update data
-      const updateData: FontSchemeUpdate = {
-        ...scheme,
-        updatedAt: new Date(),
+      // Create update data (using snake_case for database columns)
+      const updateData: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
       };
+
+      if (scheme.name !== undefined) updateData.name = scheme.name;
+      if (scheme.fontSans !== undefined) updateData.font_sans = scheme.fontSans;
+      if (scheme.fontMono !== undefined) updateData.font_mono = scheme.fontMono;
+      if (scheme.fontSizes !== undefined) updateData.font_sizes = scheme.fontSizes;
+      if (scheme.fontWeights !== undefined) updateData.font_weights = scheme.fontWeights;
+      if (scheme.googleFonts !== undefined) updateData.google_fonts = scheme.googleFonts;
 
       const { error } = await this.client
         .from('font_schemes')

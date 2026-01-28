@@ -82,6 +82,11 @@ export function ModuleVisibilityProvider({
           setModules([]);
           return;
         }
+        if (response.status === 401) {
+          // User logged out - return gracefully without error
+          setModules([]);
+          return;
+        }
         throw new Error(`Failed to fetch module visibility: ${response.statusText}`);
       }
 

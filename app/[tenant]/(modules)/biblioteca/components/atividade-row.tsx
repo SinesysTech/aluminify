@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useParams } from 'next/navigation'
 import { PlayCircle, Eye, FileX, Loader2, FileText, Timer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/app/shared/components/forms/checkbox'
@@ -58,6 +59,8 @@ export function AtividadeRow({
     onStatusChangeWithDesempenho,
     className,
 }: AtividadeRowProps) {
+    const params = useParams()
+    const tenant = params?.tenant as string
     const [isUpdating, setIsUpdating] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [modalOpen, setModalOpen] = React.useState(false)
@@ -234,7 +237,7 @@ export function AtividadeRow({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Link
-                                        href={`/foco?cursoId=${atividade.cursoId}&atividadeId=${atividade.id}&disciplinaId=${atividade.disciplinaId}&frenteId=${atividade.frenteId}&moduloId=${atividade.moduloId}`}
+                                        href={`/${tenant}/foco?cursoId=${atividade.cursoId}&atividadeId=${atividade.id}&disciplinaId=${atividade.disciplinaId}&frenteId=${atividade.frenteId}&moduloId=${atividade.moduloId}`}
                                     >
                                         <Button type="button" variant="secondary" size="sm">
                                             <Timer className="h-4 w-4 mr-1" />

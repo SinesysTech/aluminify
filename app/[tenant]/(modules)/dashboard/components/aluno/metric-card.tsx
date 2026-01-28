@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Tooltip,
@@ -6,8 +8,10 @@ import {
   TooltipTrigger,
 } from '@/app/shared/components/overlay/tooltip'
 import type { LucideIcon } from 'lucide-react'
-import { Info } from 'lucide-react'
-import { cn } from '@/app/shared/library/utils'
+import { Info, TrendingUp, TrendingDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+export type MetricVariant = 'default' | 'time' | 'questions' | 'accuracy' | 'flashcards'
 
 interface MetricCardProps {
   label: string
@@ -20,7 +24,65 @@ interface MetricCardProps {
   }
   showProgressCircle?: boolean
   progressValue?: number
-  tooltip?: string[] // Array de parágrafos para o tooltip
+  tooltip?: string[]
+  variant?: MetricVariant
+}
+
+// Configuração visual por variante
+const variantConfig: Record<MetricVariant, {
+  gradient: string
+  iconBg: string
+  iconColor: string
+  progressColor: string
+  progressStroke: string
+  trendPositive: string
+  trendNegative: string
+}> = {
+  default: {
+    gradient: 'from-primary/5 to-transparent',
+    iconBg: 'bg-primary/10',
+    iconColor: 'text-primary',
+    progressColor: 'text-primary',
+    progressStroke: 'stroke-primary',
+    trendPositive: 'text-emerald-600 dark:text-emerald-400',
+    trendNegative: 'text-rose-600 dark:text-rose-400',
+  },
+  time: {
+    gradient: 'from-blue-500/8 to-transparent',
+    iconBg: 'bg-blue-500/10',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    progressColor: 'text-blue-600 dark:text-blue-400',
+    progressStroke: 'stroke-blue-500',
+    trendPositive: 'text-emerald-600 dark:text-emerald-400',
+    trendNegative: 'text-rose-600 dark:text-rose-400',
+  },
+  questions: {
+    gradient: 'from-emerald-500/8 to-transparent',
+    iconBg: 'bg-emerald-500/10',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    progressColor: 'text-emerald-600 dark:text-emerald-400',
+    progressStroke: 'stroke-emerald-500',
+    trendPositive: 'text-emerald-600 dark:text-emerald-400',
+    trendNegative: 'text-rose-600 dark:text-rose-400',
+  },
+  accuracy: {
+    gradient: 'from-amber-500/8 to-transparent',
+    iconBg: 'bg-amber-500/10',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    progressColor: 'text-amber-600 dark:text-amber-400',
+    progressStroke: 'stroke-amber-500',
+    trendPositive: 'text-emerald-600 dark:text-emerald-400',
+    trendNegative: 'text-rose-600 dark:text-rose-400',
+  },
+  flashcards: {
+    gradient: 'from-violet-500/8 to-transparent',
+    iconBg: 'bg-violet-500/10',
+    iconColor: 'text-violet-600 dark:text-violet-400',
+    progressColor: 'text-violet-600 dark:text-violet-400',
+    progressStroke: 'stroke-violet-500',
+    trendPositive: 'text-emerald-600 dark:text-emerald-400',
+    trendNegative: 'text-rose-600 dark:text-rose-400',
+  },
 }
 
 export function MetricCard({
@@ -32,80 +94,107 @@ export function MetricCard({
   showProgressCircle,
   progressValue = 0,
   tooltip,
+  variant = 'default',
 }: MetricCardProps) {
-  return (
-    <Card>
-      <CardContent className="p-6 relative">
-        {tooltip && (
-          <div className="absolute top-3 right-3">
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help opacity-50 hover:opacity-100 transition-opacity" />
-                </TooltipTrigger>
-                <TooltipContent 
-                  side="bottom" 
-                  align="end" 
-                  className="max-w-[280px] p-4 text-sm bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 shadow-xl z-50"
-                  sideOffset={4}
-                >
-                  <div className="space-y-3">
-                    <p className="font-semibold text-slate-100 border-b border-slate-700 pb-2">{label}</p>
-                    <div className="space-y-2 text-slate-300">
-                      {tooltip.map((paragraph, index) => (
-                        <p key={index} className="leading-relaxed">{paragraph}</p>
-                      ))}
-                    </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
+  const config = variantConfig[variant]
 
-        <div className="flex items-center justify-between space-y-0 pb-2">
+  return (
+    <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-md">
+      {/* Gradient Background */}
+      <div className={cn(
+        'absolute inset-0 bg-linear-to-br opacity-60 transition-opacity group-hover:opacity-100',
+        config.gradient
+      )} />
+
+      <CardContent className="relative p-4 md:p-6">
+        {/* Header: Label + Icon */}
+        <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <Icon className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            {tooltip && (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="bottom"
+                    align="end"
+                    className="max-w-[280px] p-4 text-sm"
+                    sideOffset={4}
+                  >
+                    <div className="space-y-3">
+                      <p className="font-semibold border-b border-border pb-2">{label}</p>
+                      <div className="space-y-2 text-muted-foreground">
+                        {tooltip.map((paragraph, index) => (
+                          <p key={index} className="leading-relaxed">{paragraph}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <div className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
+              config.iconBg
+            )}>
+              <Icon className={cn('h-4 w-4', config.iconColor)} />
+            </div>
+          </div>
         </div>
-        <div className="flex items-end justify-between pt-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-2xl font-bold">{value}</span>
+
+        {/* Value Area */}
+        <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-2xl md:text-3xl font-bold tracking-tight">{value}</span>
             {subtext && (
               <span className="text-xs text-muted-foreground">{subtext}</span>
             )}
             {trend && (
-              <span
-                className={cn(
-                  'text-xs font-medium',
-                  trend.isPositive ? 'text-green-500' : 'text-red-500'
+              <div className={cn(
+                'flex items-center gap-1 text-xs font-medium mt-1',
+                trend.isPositive ? config.trendPositive : config.trendNegative
+              )}>
+                {trend.isPositive ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
                 )}
-              >
-                {trend.value}
-              </span>
+                <span>{trend.value}</span>
+              </div>
             )}
           </div>
+
+          {/* Progress Circle */}
           {showProgressCircle && (
-            <div className="relative h-12 w-12">
+            <div className="relative h-14 w-14 md:h-16 md:w-16">
               <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
                 {/* Background Circle */}
-                <path
-                  className="text-muted"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                <circle
+                  className="stroke-muted/50"
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
                   fill="none"
-                  stroke="currentColor"
                   strokeWidth="3"
                 />
                 {/* Progress Circle */}
-                <path
-                  className="text-primary transition-all duration-500 ease-in-out"
-                  strokeDasharray={`${progressValue}, 100`}
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                <circle
+                  className={cn('transition-all duration-700 ease-out', config.progressStroke)}
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
                   fill="none"
-                  stroke="currentColor"
                   strokeWidth="3"
+                  strokeDasharray={`${progressValue} 100`}
+                  strokeLinecap="round"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">
+              <div className={cn(
+                'absolute inset-0 flex items-center justify-center text-xs md:text-sm font-bold',
+                config.progressColor
+              )}>
                 {progressValue}%
               </div>
             </div>
