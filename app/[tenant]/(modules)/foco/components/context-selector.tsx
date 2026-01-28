@@ -94,41 +94,30 @@ export function ContextSelector({
 
     return (
         <Card>
-            <CardHeader className="pb-3 pt-4">
+            <CardHeader className="pb-2 pt-3 px-4">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                            <BookOpen className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-base">O que você vai estudar?</CardTitle>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                                Selecione a disciplina para começar
-                            </p>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm font-medium">O que você vai estudar?</CardTitle>
                     </div>
-
-                    {/* Selection summary badge */}
                     {disciplinaId && (
-                        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                            {selectedCurso && <span>{selectedCurso}</span>}
-                            {selectedCurso && selectedDisciplina && <span>/</span>}
-                            {selectedDisciplina && <span className="font-medium text-foreground">{selectedDisciplina}</span>}
-                        </div>
+                        <span className="text-xs text-muted-foreground">
+                            {selectedDisciplina}
+                        </span>
                     )}
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-4 pb-4">
+            <CardContent className="space-y-3 pb-3 px-4">
                 {/* Quick Start Option */}
                 {hasValidLastContext && !disciplinaId && (
-                    <div className="p-4 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors">
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <Sparkles className="h-5 w-5 text-primary" />
+                    <div className="p-3 rounded-md border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-primary" />
                                 <div>
-                                    <p className="font-medium">Continuar onde parou</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm font-medium">Continuar onde parou</p>
+                                    <p className="text-xs text-muted-foreground">
                                         {lastContext?.cursoNome && `${lastContext.cursoNome} · `}
                                         {lastContext?.disciplinaNome}
                                     </p>
@@ -138,20 +127,20 @@ export function ContextSelector({
                                 variant="default"
                                 size="sm"
                                 onClick={onQuickStart}
-                                className="shrink-0"
+                                className="shrink-0 h-8 text-xs"
                             >
-                                Usar este contexto
+                                Usar
                             </Button>
                         </div>
                     </div>
                 )}
 
                 {/* Primary selections - always visible */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Curso */}
-                    <div className="space-y-2">
-                        <Label htmlFor="curso" className="flex items-center gap-2 text-sm">
-                            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div className="space-y-1.5">
+                        <Label htmlFor="curso" className="flex items-center gap-1.5 text-xs">
+                            <Layers className="h-3 w-3 text-muted-foreground" />
                             Curso
                         </Label>
                         <Select
@@ -159,7 +148,7 @@ export function ContextSelector({
                             onValueChange={onCursoChange}
                             disabled={loadingCursos}
                         >
-                            <SelectTrigger className="h-11">
+                            <SelectTrigger className="h-9">
                                 <SelectValue placeholder={loadingCursos ? 'Carregando...' : 'Selecione o curso'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -173,11 +162,11 @@ export function ContextSelector({
                     </div>
 
                     {/* Disciplina - Required */}
-                    <div className="space-y-2">
-                        <Label htmlFor="disciplina" className="flex items-center gap-2 text-sm">
-                            <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div className="space-y-1.5">
+                        <Label htmlFor="disciplina" className="flex items-center gap-1.5 text-xs">
+                            <BookOpen className="h-3 w-3 text-muted-foreground" />
                             Disciplina
-                            <span className="text-xs text-primary font-normal">(obrigatório)</span>
+                            <span className="text-[10px] text-primary font-normal">(obrigatório)</span>
                         </Label>
                         <Select
                             value={disciplinaId || undefined}
@@ -185,7 +174,7 @@ export function ContextSelector({
                             disabled={loadingDisciplinas}
                         >
                             <SelectTrigger className={cn(
-                                "h-11",
+                                "h-9",
                                 !disciplinaId && "border-primary/50 ring-1 ring-primary/20"
                             )}>
                                 <SelectValue placeholder={loadingDisciplinas ? 'Carregando...' : 'Selecione a disciplina'} />
@@ -203,34 +192,34 @@ export function ContextSelector({
 
                 {/* Advanced Options - Progressive Disclosure */}
                 {disciplinaId && cursoId && (
-                    <div className="pt-2">
+                    <div className="pt-1">
                         <button
                             type="button"
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full justify-between py-2 px-1 rounded-md hover:bg-muted/50 cursor-pointer"
+                            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full justify-between py-1.5 px-1 rounded-md hover:bg-muted/50 cursor-pointer"
                         >
-                            <span className="flex items-center gap-2">
-                                <FolderOpen className="h-4 w-4" />
+                            <span className="flex items-center gap-1.5">
+                                <FolderOpen className="h-3.5 w-3.5" />
                                 Especificar frente, módulo ou atividade
                                 {(frenteId || moduloId || atividadeId) && (
-                                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                                        {selectionDepth - 2} selecionado(s)
+                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                                        {selectionDepth - 2}
                                     </span>
                                 )}
                             </span>
                             {showAdvanced ? (
-                                <ChevronUp className="h-4 w-4" />
+                                <ChevronUp className="h-3.5 w-3.5" />
                             ) : (
-                                <ChevronDown className="h-4 w-4" />
+                                <ChevronDown className="h-3.5 w-3.5" />
                             )}
                         </button>
 
                         {showAdvanced && (
-                            <div className="mt-4 space-y-4 pl-4 border-l-2 border-muted">
+                            <div className="mt-2 space-y-3 pl-3 border-l-2 border-muted">
                                 {/* Frente */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="frente" className="flex items-center gap-2 text-sm">
-                                        <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="frente" className="flex items-center gap-1.5 text-xs">
+                                        <FolderOpen className="h-3 w-3 text-muted-foreground" />
                                         Frente
                                     </Label>
                                     <Select
@@ -238,11 +227,11 @@ export function ContextSelector({
                                         onValueChange={onFrenteChange}
                                         disabled={!disciplinaId || loadingFrentes}
                                     >
-                                        <SelectTrigger className="h-10">
+                                        <SelectTrigger className="h-8">
                                             <SelectValue placeholder={
                                                 loadingFrentes ? 'Carregando...' :
-                                                frentes.length === 0 ? 'Nenhuma frente disponível' :
-                                                'Selecione a frente'
+                                                frentes.length === 0 ? 'Nenhuma frente' :
+                                                'Selecione'
                                             } />
                                         </SelectTrigger>
                                         <SelectContent>

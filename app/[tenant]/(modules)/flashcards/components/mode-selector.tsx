@@ -4,14 +4,12 @@ import * as React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/app/shared/components/forms/checkbox'
 import { Label } from '@/app/shared/components/forms/label'
-import { Badge } from '@/components/ui/badge'
 import {
     Flame,
     BookOpen,
     Brain,
     HeartPulse,
     Target,
-    Sparkles,
     Info,
     type LucideIcon,
 } from 'lucide-react'
@@ -84,33 +82,33 @@ function ModeCard({
                         )}
                     />
 
-                    <CardHeader className="relative pb-2">
+                    <CardHeader className="relative py-3 pb-1">
                         <div className={cn(
-                            'flex items-center gap-3',
+                            'flex items-center gap-2.5',
                             isHighlighted ? 'justify-center' : 'justify-start'
                         )}>
                             {/* Icon Container */}
                             <div
                                 className={cn(
-                                    'flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110',
+                                    'flex h-8 w-8 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
                                     mode.iconBg
                                 )}
                             >
-                                <Icon className="h-5 w-5" strokeWidth={2} />
+                                <Icon className="h-4 w-4" strokeWidth={2} />
                             </div>
 
                             <div className={cn(isHighlighted && 'text-center')}>
-                                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                <CardTitle className="flex items-center gap-2 text-sm font-semibold">
                                     {mode.title}
-                                    <Info className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                                    <Info className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                                 </CardTitle>
                             </div>
                         </div>
                     </CardHeader>
 
-                    <CardContent className="relative pt-0">
+                    <CardContent className="relative pt-0 pb-3">
                         <CardDescription className={cn(
-                            'text-sm leading-relaxed',
+                            'text-xs leading-relaxed',
                             isHighlighted && 'text-center'
                         )}>
                             {mode.desc}
@@ -119,9 +117,9 @@ function ModeCard({
 
                     {/* Selection Indicator */}
                     {isSelected && (
-                        <div className="absolute right-3 top-3">
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                                <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <div className="absolute right-2.5 top-2.5">
+                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary">
+                                <svg className="h-2.5 w-2.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
@@ -218,13 +216,13 @@ export function ModeSelector({
             </Card>
 
             {/* Mode Selection Grid */}
-            <div className="space-y-4">
-                <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="space-y-3">
+                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Escolha seu modo de estudo
                 </h2>
 
                 <TooltipProvider delayDuration={300}>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-3 md:grid-cols-2">
                         {/* UTI Mode - Highlighted */}
                         {utiMode && (
                             <ModeCard

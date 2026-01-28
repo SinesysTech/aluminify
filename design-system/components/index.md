@@ -159,32 +159,87 @@ Quick reference for all landing page components with copy-paste examples.
 
 ## Badges
 
+Use the `Badge` component from `@/components/ui/badge` for all badge implementations.
+
+### Available Variants
+
+| Variant | Use Case | Example |
+|---------|----------|---------|
+| `default` | Primary actions, main status | `<Badge>Ativo</Badge>` |
+| `secondary` | Secondary information | `<Badge variant="secondary">Info</Badge>` |
+| `success` | Positive status, completed | `<Badge variant="success">Concluído</Badge>` |
+| `warning` | Attention required | `<Badge variant="warning">Pendente</Badge>` |
+| `info` | Informational | `<Badge variant="info">Novo</Badge>` |
+| `destructive` | Errors, danger | `<Badge variant="destructive">Erro</Badge>` |
+| `outline` | Minimal, subtle | `<Badge variant="outline">Tag</Badge>` |
+
+### Importance Level Badges (Solid)
+
+Use these for importance/priority levels with high contrast (solid background + white text):
+
+| Variant | Color | Use Case |
+|---------|-------|----------|
+| `importance-base` | Blue | Base/foundational items |
+| `importance-high` | Red | High priority/importance |
+| `importance-medium` | Amber | Medium priority |
+| `importance-low` | Emerald | Low priority |
+
+```tsx
+import { Badge } from '@/components/ui/badge'
+
+// Importance levels
+<Badge variant="importance-base">Base</Badge>
+<Badge variant="importance-high">Alta</Badge>
+<Badge variant="importance-medium">Média</Badge>
+<Badge variant="importance-low">Baixa</Badge>
+```
+
 ### Status Badge with Dot
 
-```tsx
-<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-  <span className="text-xs font-medium">Online</span>
-</div>
-```
-
-### License Badge
+For real-time status indicators (online/offline, live):
 
 ```tsx
-<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-  <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
-    LICENSE: APACHE 2.0
+<Badge variant="outline" className="flex items-center gap-2">
+  <span className="relative flex h-2 w-2">
+    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
   </span>
-</div>
+  Online
+</Badge>
 ```
 
-### Feature Tag
+### ⚠️ Anti-Patterns to Avoid
+
+**NEVER** use inline color styles like this:
 
 ```tsx
-<span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium">
-  Novo
-</span>
+// ❌ DON'T DO THIS - deprecated pattern
+<Badge className="bg-blue-500/10 text-blue-500">Base</Badge>
+<Badge className="bg-red-500/10 text-red-500">Alta</Badge>
+
+// ✅ DO THIS INSTEAD - use semantic variants
+<Badge variant="importance-base">Base</Badge>
+<Badge variant="importance-high">Alta</Badge>
 ```
+
+**Why?**
+- Inconsistent visual identity across the app
+- Hard to maintain and update colors
+- Poor contrast ratio (especially in light mode)
+- Breno has expressed strong preference against this pattern
+
+### Migration Guide
+
+Replace old inline color patterns with semantic variants:
+
+| Old Pattern | New Pattern |
+|-------------|-------------|
+| `bg-blue-500/10 text-blue-500` | `variant="importance-base"` |
+| `bg-red-500/10 text-red-500` | `variant="importance-high"` |
+| `bg-yellow-500/10 text-yellow-500` | `variant="importance-medium"` |
+| `bg-green-500/10 text-green-500` | `variant="importance-low"` |
+| `bg-green-500/10 text-green-700` | `variant="success"` |
+| `bg-orange-500/10 text-orange-700` | `variant="warning"` |
 
 ---
 

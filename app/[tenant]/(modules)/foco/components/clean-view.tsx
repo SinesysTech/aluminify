@@ -165,9 +165,10 @@ export function CleanView({
             role="dialog"
             aria-modal="true"
             aria-label="Modo Foco - Sessão ativa"
+            onMouseMove={() => setShowControls(true)}
         >
-            {/* Animated Aurora Background */}
-            <div className="absolute inset-0 bg-slate-950">
+            {/* Animated Aurora Background - pointer-events-none to allow clicks through */}
+            <div className="absolute inset-0 bg-slate-950 pointer-events-none">
                 {!reducedMotion && (
                     <>
                         {/* Aurora layers */}
@@ -247,8 +248,8 @@ export function CleanView({
             {/* Top controls bar - auto-hide */}
             <div
                 className={cn(
-                    'absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 z-10 transition-all duration-500',
-                    showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+                    'absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 z-20 transition-all duration-500',
+                    showControls ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
                 )}
             >
                 {/* Phase indicator (Pomodoro) */}
@@ -422,7 +423,7 @@ export function CleanView({
 
             {/* Bottom hint */}
             <div className={cn(
-                'absolute bottom-6 left-0 right-0 text-center z-10 transition-all duration-500',
+                'absolute bottom-6 left-0 right-0 text-center z-20 transition-all duration-500 pointer-events-none',
                 showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}>
                 <p className="text-xs text-slate-500">
@@ -432,7 +433,7 @@ export function CleanView({
 
             {/* Fullscreen error toast */}
             {fullscreenError && (
-                <div className="absolute bottom-6 left-6 max-w-sm rounded-lg border border-red-500/40 bg-red-500/10 backdrop-blur-sm px-4 py-3 z-20">
+                <div className="absolute bottom-6 left-6 max-w-sm rounded-lg border border-red-500/40 bg-red-500/10 backdrop-blur-sm px-4 py-3 z-30 pointer-events-auto">
                     <p className="text-sm text-red-400">{fullscreenError}</p>
                 </div>
             )}

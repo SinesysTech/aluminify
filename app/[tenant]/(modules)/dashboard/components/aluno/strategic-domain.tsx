@@ -18,19 +18,18 @@ import {
 } from '@/app/shared/components/overlay/tooltip'
 import { Info, Brain, Target, CheckCircle2 } from 'lucide-react'
 import type { StrategicDomain, StrategicDomainRecommendation, ModuloImportancia } from '../../types'
-import { cn } from '@/app/shared/library/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface StrategicDomainProps {
   data: StrategicDomain
 }
 
-// Configuração visual das importâncias
-const importanciaConfig: Record<ModuloImportancia, { color: string; bg: string; label: string }> = {
-  Base: { color: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Base' },
-  Alta: { color: 'text-red-500', bg: 'bg-red-500/10', label: 'Alta' },
-  Media: { color: 'text-yellow-500', bg: 'bg-yellow-500/10', label: 'Média' },
-  Baixa: { color: 'text-green-500', bg: 'bg-green-500/10', label: 'Baixa' },
+// Configuração visual das importâncias - usando variantes de badge sólidas
+const importanciaConfig: Record<ModuloImportancia, { variant: 'importance-base' | 'importance-high' | 'importance-medium' | 'importance-low'; label: string }> = {
+  Base: { variant: 'importance-base', label: 'Base' },
+  Alta: { variant: 'importance-high', label: 'Alta' },
+  Media: { variant: 'importance-medium', label: 'Média' },
+  Baixa: { variant: 'importance-low', label: 'Baixa' },
 }
 
 // Componente para exibir uma recomendação
@@ -43,9 +42,9 @@ function RecommendationCard({ rec }: { rec: StrategicDomainRecommendation }) {
         <span className="font-medium text-sm line-clamp-2" title={rec.moduloNome}>
           {rec.moduloNome}
         </span>
-        <Badge 
-          variant="outline" 
-          className={cn('shrink-0 text-[10px] px-1.5 py-0', config.color, config.bg, 'border-current/20')}
+        <Badge
+          variant={config.variant}
+          className="shrink-0 text-[10px] px-1.5 py-0"
         >
           {config.label}
         </Badge>
@@ -163,7 +162,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
             <h4 className="text-sm font-medium">Foco Recomendado</h4>
           </div>
           
-          <ScrollArea className="h-[250px] pr-4">
+          <ScrollArea className="flex-1 min-h-[200px] pr-4">
             <div className="space-y-3">
               {data.recommendations.length > 0 ? (
                 data.recommendations.map((rec) => (

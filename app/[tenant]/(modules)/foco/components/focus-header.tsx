@@ -12,15 +12,12 @@ export function FocusHeader({ presenceCount }: FocusHeaderProps) {
     return (
         <header className="flex items-center justify-between gap-4">
             <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                    Modo Foco
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1">
+                <h1 className="page-title">Modo Foco</h1>
+                <p className="page-subtitle mt-0.5">
                     Estudo imersivo para máxima concentração
                 </p>
             </div>
 
-            {/* Presence indicator */}
             <Badge
                 variant="outline"
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-normal shrink-0"
