@@ -93,7 +93,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(npm info:*)",
       "Bash(pnpm why:*)",
-      "WebFetch(domain:registry.npmjs.org)"
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(npm outdated:*)"
     ],
     "deny": [],
     "ask": []
