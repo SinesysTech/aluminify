@@ -528,5 +528,40 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  return supabaseResponse;
+  // --- 6. FINALIZE RESPONSE ---
+  // We must create a new response that includes the request headers we want to pass to Server Components.
+  // The original 'supabaseResponse' has the cookies set by createServerClient, so we must copy them.
+
+  const requestHeaders = new Headers(request.headers);
+  if (tenantContext.empresaId) {
+    requestHeaders.set("x-tenant-id", tenantContext.empresaId);
+    requestHeaders.set("x-tenant-slug", tenantContext.empresaSlug!);
+    if (tenantContext.empresaNome) {
+      requestHeaders.set(
+        "x-tenant-name",
+        encodeURIComponent(tenantContext.empresaNome),
+      );
+    }
+    if (tenantContext.resolutionType) {
+      requestHeaders.set("x-tenant-resolution", tenantContext.resolutionType);
+    }
+  }
+
+  const finalResponse = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // Copy cookies from supabaseResponse (which has auth updates) to finalResponse
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    finalResponse.cookies.set(cookie.name, cookie.value, cookie);
+  });
+
+  // Copy output headers (like x-tenant-id for client) from supabaseResponse
+  supabaseResponse.headers.forEach((value, key) => {
+    finalResponse.headers.set(key, value);
+  });
+
+  return finalResponse;
 }

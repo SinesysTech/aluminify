@@ -76,9 +76,6 @@ export function TenantBrandingProvider({ children, user, overrideEmpresaId }: Te
   // Keep track of current empresa ID to detect changes
   const currentEmpresaId = useRef<string | null | undefined>(undefined);
 
-  // Keep track of polling interval for real-time updates
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-
   // Sync manager for cross-tab communication
   const syncManager = getBrandingSyncManager();
 
@@ -210,11 +207,6 @@ export function TenantBrandingProvider({ children, user, overrideEmpresaId }: Te
 
   // Setup smart updates (polling only when necessary + visibility revalidation)
   const setupRealTimeUpdates = useCallback(() => {
-    // Clear existing interval if any
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-    }
-
     // Re-validate when tab becomes visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -230,9 +222,6 @@ export function TenantBrandingProvider({ children, user, overrideEmpresaId }: Te
     // Cleanup function returning clearing logic
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-      }
     };
   }, [refreshBranding]);
 
@@ -262,11 +251,6 @@ export function TenantBrandingProvider({ children, user, overrideEmpresaId }: Te
       if (cleanupUpdatesRef.current) {
         cleanupUpdatesRef.current();
         cleanupUpdatesRef.current = null;
-      }
-      // Also clear interval just in case (redundant but safe)
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-        pollingInterval.current = null;
       }
 
       if (empresaId) {
