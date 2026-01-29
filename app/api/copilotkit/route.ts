@@ -147,8 +147,8 @@ export const POST = async (req: NextRequest) => {
 
     copilotRuntime = new CopilotRuntime({
       // Use MastraAgent.getLocalAgents to register Mastra agents with CopilotKit
-      // Type assertion needed: duplicate @ag-ui/client packages cause nominal type mismatch
-      agents: mastraAgents as Parameters<typeof CopilotRuntime>[0] extends { agents?: infer A } ? A : never,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- duplicate @ag-ui/client packages cause nominal type mismatch
+      agents: mastraAgents as any,
     });
 
     // Use empty adapter since Mastra agent handles LLM calls
