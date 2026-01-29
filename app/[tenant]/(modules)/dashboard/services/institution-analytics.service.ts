@@ -547,7 +547,7 @@ export class InstitutionAnalyticsService {
       // Contar alunos únicos atendidos
       const { data: agendamentos } = await client
         .from("agendamentos")
-        .select("usuario_id")
+        .select("aluno_id")
         .eq("professor_id", professor.id)
         .gte("created_at", thirtyDaysAgo.toISOString());
 
