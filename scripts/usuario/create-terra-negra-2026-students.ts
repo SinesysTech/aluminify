@@ -10,7 +10,7 @@
  *
  * Observações:
  * - Script idempotente: pode ser executado mais de uma vez com segurança.
- * - Faz vínculo em `alunos_cursos` e também garante matrícula em `matriculas` (fluxos mais novos).
+ * - Usa modelo unificado: usuarios + usuarios_empresas + alunos_cursos (usuario_id).
  */
 
 import * as dotenv from "dotenv";
@@ -58,6 +58,36 @@ const students: StudentInput[] = [
     cpf: "05680314150",
     phone: "5562985338626",
   },
+  {
+    fullName: "Ana Clara de Paula Carvalho",
+    email: "anaclara.depaulacarvalho2909@gmail.com",
+    cpf: "16982522909",
+    phone: "43664710860",
+  },
+  {
+    fullName: "Sarah Gabriele Silva de Novais",
+    email: "sarahgabriele025@gmail.com",
+    cpf: "13401601458",
+    phone: "82999192233",
+  },
+  {
+    fullName: "Bernardo Antônio Rogério Pessoa",
+    email: "bepessoa20@gmail.com",
+    cpf: "113.572.136-03",
+    phone: "31992824677",
+  },
+  {
+    fullName: "Gabriela Tavares",
+    email: "gabrielatavaresjf410@gmail.com",
+    cpf: "020.653.356-02",
+    phone: "32999678415",
+  },
+  {
+    fullName: "IGOR CARLOS DE BARROS",
+    email: "igorcontapessoal@outlook.com",
+    cpf: "44074639882",
+    phone: "16991703993",
+  },
 ];
 
 function normalizeEmail(email: string): string {
@@ -83,22 +113,7 @@ async function getAuthUserIdByEmail(
 ): Promise<string | null> {
   const normalized = normalizeEmail(email);
 
-  // Preferencial (no contexto deste projeto):
-  // `alunos.id` costuma ser o mesmo `auth.users.id` (FK), então dá para resolver o user_id sem usar APIs do Auth.
-  try {
-    const { data, error } = await client
-      .from("alunos")
-      .select("id")
-      .eq("email", normalized)
-      .maybeSingle();
-    if (!error && data?.id) {
-      return data.id as string;
-    }
-  } catch {
-    // ignorar e seguir
-  }
-
-  // Outras fontes comuns onde o `id` também é o auth.users.id
+  // Modelo unificado: usuarios (id = auth.users.id)
   for (const table of ["usuarios", "professores"] as const) {
     try {
       const { data, error } = await client
@@ -217,33 +232,9 @@ async function findCursoByEmpresaAndNameOrThrow(params: {
   };
 }
 
-function addMonthsISO(dateISO: string, months: number): string {
-  const [y, m, d] = dateISO.split("-").map((p) => Number(p));
-  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1));
-  dt.setUTCMonth(dt.getUTCMonth() + months);
-  return dt.toISOString().split("T")[0];
-}
-
-function computeAccessEndDate(params: {
-  todayISO: string;
-  curso: {
-    data_termino: string | null;
-    meses_acesso: number | null;
-    ano_vigencia: number;
-  };
-}): string {
-  if (params.curso.data_termino) return params.curso.data_termino;
-  if (params.curso.meses_acesso && params.curso.meses_acesso > 0) {
-    return addMonthsISO(params.todayISO, params.curso.meses_acesso);
-  }
-  // Fallback conservador: até o fim do ano de vigência do curso
-  return `${params.curso.ano_vigencia}-12-31`;
-}
-
 async function ensureStudentAuthAndProfile(params: {
   empresaId: string;
   cursoId: string;
-  cursoAccessEndDateISO: string;
   student: StudentInput;
 }): Promise<{ userId: string }> {
   const email = normalizeEmail(params.student.email);
@@ -307,71 +298,54 @@ async function ensureStudentAuthAndProfile(params: {
     throw new Error(`Falha inesperada: userId vazio para ${email}`);
   }
 
-  // 2) Upsert em alunos (fonte de verdade do aluno no app)
-  const { error: alunoUpsertError } = await supabase.from("alunos").upsert({
-    id: userId,
-    empresa_id: params.empresaId,
-    nome_completo: fullName,
-    email,
-    cpf,
-    telefone: phone,
-    must_change_password: true,
-    senha_temporaria: DEFAULT_PASSWORD,
-  });
+  // 2) Upsert em usuarios (modelo unificado)
+  const { error: usuarioUpsertError } = await supabase.from("usuarios").upsert(
+    {
+      id: userId,
+      empresa_id: params.empresaId,
+      nome_completo: fullName,
+      email,
+      cpf: cpf || null,
+      telefone: phone || null,
+      must_change_password: true,
+      senha_temporaria: DEFAULT_PASSWORD,
+    },
+    { onConflict: "id" },
+  );
 
-  if (alunoUpsertError) {
-    throw new Error(`Erro ao upsert em alunos (${email}): ${alunoUpsertError.message}`);
+  if (usuarioUpsertError) {
+    throw new Error(`Erro ao upsert em usuarios (${email}): ${usuarioUpsertError.message}`);
   }
 
-  // 3) Garantir vínculo em alunos_cursos
+  // 3) Garantir vínculo usuarios_empresas (papel aluno)
+  const { error: ueError } = await supabase
+    .from("usuarios_empresas")
+    .upsert(
+      {
+        usuario_id: userId,
+        empresa_id: params.empresaId,
+        papel_base: "aluno",
+        ativo: true,
+      },
+      { onConflict: "usuario_id,empresa_id,papel_base", ignoreDuplicates: true },
+    );
+
+  if (ueError) {
+    throw new Error(
+      `Erro ao vincular usuarios_empresas (${email}): ${ueError.message}`,
+    );
+  }
+
+  // 4) Garantir vínculo em alunos_cursos (usuario_id)
   const { error: linkError } = await supabase
     .from("alunos_cursos")
     .upsert(
-      { aluno_id: userId, curso_id: params.cursoId },
-      { onConflict: "aluno_id,curso_id", ignoreDuplicates: true },
+      { usuario_id: userId, curso_id: params.cursoId },
+      { onConflict: "usuario_id,curso_id", ignoreDuplicates: true },
     );
 
   if (linkError) {
     throw new Error(`Erro ao vincular aluno_curso (${email}): ${linkError.message}`);
-  }
-
-  // 4) Garantir matrícula (matriculas) para compatibilidade com telas novas
-  const { data: existingMat, error: matFetchError } = await supabase
-    .from("matriculas")
-    .select("id, ativo, data_inicio_acesso, data_fim_acesso")
-    .eq("aluno_id", userId)
-    .eq("curso_id", params.cursoId)
-    .maybeSingle();
-
-  if (matFetchError) {
-    throw new Error(`Erro ao buscar matrícula (${email}): ${matFetchError.message}`);
-  }
-
-  const today = new Date().toISOString().split("T")[0];
-  if (existingMat?.id) {
-    const { error: matUpdateError } = await supabase
-      .from("matriculas")
-      .update({
-        ativo: true,
-        data_inicio_acesso: existingMat.data_inicio_acesso ?? today,
-        data_fim_acesso: existingMat.data_fim_acesso ?? params.cursoAccessEndDateISO,
-      })
-      .eq("id", existingMat.id);
-    if (matUpdateError) {
-      throw new Error(`Erro ao atualizar matrícula (${email}): ${matUpdateError.message}`);
-    }
-  } else {
-    const { error: matInsertError } = await supabase.from("matriculas").insert({
-      empresa_id: params.empresaId,
-      aluno_id: userId,
-      curso_id: params.cursoId,
-      data_inicio_acesso: today,
-      data_fim_acesso: params.cursoAccessEndDateISO,
-      ativo: true,
-    });
-    if (matInsertError) {
-      throw new Error(`Erro ao criar matrícula (${email}): ${matInsertError.message}`);
-    }
   }
 
   return { userId };
@@ -390,9 +364,6 @@ async function main() {
   });
   console.log(`📚 Curso: ${curso.nome} (id: ${curso.id})`);
 
-  const todayISO = new Date().toISOString().split("T")[0];
-  const cursoAccessEndDateISO = computeAccessEndDate({ todayISO, curso });
-
   const results: Array<{ email: string; userId?: string; ok: boolean; error?: string }> =
     [];
 
@@ -402,7 +373,6 @@ async function main() {
       const { userId } = await ensureStudentAuthAndProfile({
         empresaId: empresa.id,
         cursoId: curso.id,
-        cursoAccessEndDateISO,
         student,
       });
       console.log(`✅ ${email} (user_id: ${userId})`);
