@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react"
 import { useParams, usePathname, useRouter } from "next/navigation"
 import { Check, ChevronsUpDown } from "lucide-react"
+import Image from "next/image"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -161,9 +162,11 @@ export function WorkspaceSwitcher() {
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border overflow-hidden">
                   {org.logoUrl ? (
-                    <img
+                    <Image
                       src={org.logoUrl}
-                      alt=""
+                      alt={org.nome}
+                      width={16}
+                      height={16}
                       className="size-4 object-contain shrink-0"
                     />
                   ) : (
@@ -175,8 +178,8 @@ export function WorkspaceSwitcher() {
                 <span className="truncate">{org.nome}</span>
                 {(activeOrganization?.id === org.id ||
                   (!activeOrganization && org.slug === tenantSlug)) && (
-                  <Check className="ml-auto size-4 shrink-0" />
-                )}
+                    <Check className="ml-auto size-4 shrink-0" />
+                  )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

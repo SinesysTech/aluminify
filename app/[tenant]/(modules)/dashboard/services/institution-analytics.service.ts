@@ -13,6 +13,45 @@ type DashboardPeriod = "semanal" | "mensal" | "anual";
 
 export class InstitutionAnalyticsService {
   /**
+   * Busca IDs de usuários de uma empresa filtrados por papel_base.
+   * Usa a tabela usuarios_empresas que possui enum_papel_base (aluno | professor | usuario).
+   */
+  private async getUserIdsByRole(
+    empresaId: string,
+    papelBase: "aluno" | "professor" | "usuario",
+    client: ReturnType<typeof getDatabaseClient>,
+  ): Promise<string[]> {
+    const { data } = await client
+      .from("usuarios_empresas")
+      .select("usuario_id")
+      .eq("empresa_id", empresaId)
+      .eq("papel_base", papelBase)
+      .eq("ativo", true)
+      .is("deleted_at", null);
+
+    return (data ?? []).map((r) => r.usuario_id);
+  }
+
+  /**
+   * Conta usuários de uma empresa filtrados por papel_base.
+   */
+  private async countUsersByRole(
+    empresaId: string,
+    papelBase: "aluno" | "professor" | "usuario",
+    client: ReturnType<typeof getDatabaseClient>,
+  ): Promise<number> {
+    const { count } = await client
+      .from("usuarios_empresas")
+      .select("id", { count: "exact", head: true })
+      .eq("empresa_id", empresaId)
+      .eq("papel_base", papelBase)
+      .eq("ativo", true)
+      .is("deleted_at", null);
+
+    return count ?? 0;
+  }
+
+  /**
    * Busca dados agregados do dashboard da instituição
    */
   async getInstitutionDashboard(
@@ -82,52 +121,42 @@ export class InstitutionAnalyticsService {
     empresaId: string,
     client: ReturnType<typeof getDatabaseClient>,
   ): Promise<InstitutionSummary> {
-    // Buscar total de alunos da empresa
-    const { count: totalAlunos } = await client
-      .from("usuarios")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId);
-
-    // Buscar total de professores da empresa
-    const { count: totalProfessores } = await client
-      .from("usuarios")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId);
-
-    // Buscar total de cursos da empresa
-    const { count: totalCursos } = await client
-      .from("cursos")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId);
+    // Buscar totais filtrados por papel_base (aluno vs professor)
+    const [totalAlunos, totalProfessores, { count: totalCursos }] =
+      await Promise.all([
+        this.countUsersByRole(empresaId, "aluno", client),
+        this.countUsersByRole(empresaId, "professor", client),
+        client
+          .from("cursos")
+          .select("id", { count: "exact", head: true })
+          .eq("empresa_id", empresaId),
+      ]);
 
     // Alunos ativos (com alguma atividade nos últimos 30 dias)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data: alunosSessoes } = await client
-      .from("sessoes_estudo")
-      .select("usuario_id")
-      .gte("created_at", thirtyDaysAgo.toISOString());
+    const alunoIds = await this.getUserIdsByRole(empresaId, "aluno", client);
 
-    const alunosComAtividade = new Set(
-      (alunosSessoes ?? [])
-        .filter((s): s is { usuario_id: string } => s.usuario_id !== null)
-        .map((s) => s.usuario_id),
-    );
+    let alunosAtivos = 0;
+    if (alunoIds.length > 0) {
+      const { data: alunosSessoes } = await client
+        .from("sessoes_estudo")
+        .select("usuario_id")
+        .in("usuario_id", alunoIds)
+        .gte("created_at", thirtyDaysAgo.toISOString());
 
-    // Filtrar apenas alunos da empresa
-    const { data: alunosEmpresa } = await client
-      .from("usuarios")
-      .select("id")
-      .eq("empresa_id", empresaId);
-
-    const alunosAtivos = (alunosEmpresa ?? []).filter((a: { id: string }) =>
-      alunosComAtividade.has(a.id),
-    ).length;
+      const alunosComAtividade = new Set(
+        (alunosSessoes ?? [])
+          .filter((s): s is { usuario_id: string } => s.usuario_id !== null)
+          .map((s) => s.usuario_id),
+      );
+      alunosAtivos = alunosComAtividade.size;
+    }
 
     return {
-      totalAlunos: totalAlunos ?? 0,
-      totalProfessores: totalProfessores ?? 0,
+      totalAlunos,
+      totalProfessores,
       totalCursos: totalCursos ?? 0,
       alunosAtivos,
     };
@@ -144,13 +173,8 @@ export class InstitutionAnalyticsService {
     const { startDate, previousStartDate, previousEndDate } =
       this.getPeriodDates(period);
 
-    // Buscar alunos da empresa
-    const { data: alunos } = await client
-      .from("usuarios")
-      .select("id")
-      .eq("empresa_id", empresaId);
-
-    const alunoIds = (alunos ?? []).map((a: { id: string }) => a.id);
+    // Buscar apenas alunos da empresa (papel_base = 'aluno')
+    const alunoIds = await this.getUserIdsByRole(empresaId, "aluno", client);
 
     if (alunoIds.length === 0) {
       return {
@@ -252,13 +276,8 @@ export class InstitutionAnalyticsService {
   ): Promise<HeatmapDay[]> {
     const { startDate } = this.getPeriodDates(period);
 
-    // Buscar alunos da empresa
-    const { data: alunos } = await client
-      .from("usuarios")
-      .select("id")
-      .eq("empresa_id", empresaId);
-
-    const alunoIds = (alunos ?? []).map((a: { id: string }) => a.id);
+    // Buscar apenas alunos da empresa (papel_base = 'aluno')
+    const alunoIds = await this.getUserIdsByRole(empresaId, "aluno", client);
 
     if (alunoIds.length === 0) {
       return this.generateEmptyHeatmap(startDate);
@@ -331,16 +350,19 @@ export class InstitutionAnalyticsService {
     client: ReturnType<typeof getDatabaseClient>,
     limit = 10,
   ): Promise<StudentRankingItem[]> {
-    // Buscar alunos da empresa
+    // Buscar apenas alunos da empresa (papel_base = 'aluno')
+    const alunoIds = await this.getUserIdsByRole(empresaId, "aluno", client);
+
+    if (alunoIds.length === 0) return [];
+
+    // Buscar dados dos alunos (limitado aos IDs de alunos reais)
     const { data: alunos } = await client
       .from("usuarios")
       .select("id, nome_completo")
-      .eq("empresa_id", empresaId)
+      .in("id", alunoIds)
       .limit(100);
 
     if (!alunos || alunos.length === 0) return [];
-
-    const alunoIds = alunos.map((a) => a.id);
 
     // Buscar tempo de estudo de cada aluno (últimos 30 dias)
     const thirtyDaysAgo = new Date();
@@ -493,11 +515,16 @@ export class InstitutionAnalyticsService {
     client: ReturnType<typeof getDatabaseClient>,
     limit = 10,
   ): Promise<ProfessorRankingItem[]> {
-    // Buscar professores da empresa
+    // Buscar apenas professores da empresa (papel_base = 'professor')
+    const profIds = await this.getUserIdsByRole(empresaId, "professor", client);
+
+    if (profIds.length === 0) return [];
+
+    // Buscar dados dos professores (limitado aos IDs de professores reais)
     const { data: professores } = await client
       .from("usuarios")
       .select("id, nome_completo, foto_url")
-      .eq("empresa_id", empresaId)
+      .in("id", profIds)
       .limit(100);
 
     if (!professores || professores.length === 0) return [];
@@ -520,7 +547,7 @@ export class InstitutionAnalyticsService {
       // Contar alunos únicos atendidos
       const { data: agendamentos } = await client
         .from("agendamentos")
-        .select("usuario_id")
+        .select("aluno_id")
         .eq("professor_id", professor.id)
         .gte("created_at", thirtyDaysAgo.toISOString());
 
@@ -557,13 +584,8 @@ export class InstitutionAnalyticsService {
 
     if (!disciplinas || disciplinas.length === 0) return [];
 
-    // Buscar alunos da empresa
-    const { data: alunos } = await client
-      .from("usuarios")
-      .select("id")
-      .eq("empresa_id", empresaId);
-
-    const alunoIds = (alunos ?? []).map((a) => a.id);
+    // Buscar apenas alunos da empresa (papel_base = 'aluno')
+    const alunoIds = await this.getUserIdsByRole(empresaId, "aluno", client);
     if (alunoIds.length === 0) return [];
 
     const performance: DisciplinaPerformance[] = [];
