@@ -3,7 +3,7 @@ import {
   createStudentImportService,
   StudentValidationError,
 } from "@/app/[tenant]/(modules)/usuario/services";
-import { createClient } from "@/app/shared/core/server";
+import { getServiceRoleClient } from "@/app/shared/core/database/database-auth";
 import {
   requireAuth,
   AuthenticatedRequest,
@@ -363,9 +363,10 @@ async function postHandler(request: AuthenticatedRequest) {
       courses: row.courses,
     }));
 
-    const supabase = await createClient();
-    const importService = createStudentImportService(supabase);
-    // Executar importação
+    // Service role: findByEmail/list veem todos os alunos (inclusive de outras empresas).
+    // Assim conseguimos encontrar existentes, vincular aos cursos da empresa e evitar PK duplicada.
+    const db = getServiceRoleClient();
+    const importService = createStudentImportService(db);
     const result = await importService.import(importData, {
       empresaId: request.user.empresaId,
     });

@@ -170,52 +170,36 @@ export class StudentImportService {
         };
       } catch (error) {
         if (error instanceof StudentConflictError) {
-          // Se for conflito, tentar buscar o aluno e vincular cursos
           try {
-            const studentAfter = await this.studentService.list({
-              query: row.email,
-              perPage: 1,
-            });
-            const found = studentAfter.data.find(
-              (s) => s.email.toLowerCase() === row.email.toLowerCase(),
-            );
+            const found =
+              await this.studentService.findByEmailIncludingDeleted(row.email);
 
-            if (found && courseIds.length > 0) {
-              // Tentar vincular cursos ao aluno existente
-              try {
-                await this.studentService.addCourses(
-                  found.id,
-                  courseIds,
-                );
-
-                // Verificar se os cursos foram vinculados
-                const updated = await this.studentService.findById(
-                  found.id,
-                );
-                if (updated) {
-                  const hasCourses = courseIds.some((courseId) =>
-                    updated.courses?.some((c) => c.id === courseId),
-                  );
-
-                  if (hasCourses) {
-                    return {
-                      rowNumber: row.rowNumber,
-                      email: row.email,
-                      status: "linked",
-                      message: "Aluno já existente, vinculado aos cursos da empresa",
-                    };
-                  }
-                }
-              } catch (linkError) {
-                // Se falhar ao vincular, continuar para marcar como skipped
-                console.warn(
-                  `Failed to link courses to existing student ${found.id}:`,
-                  linkError,
-                );
+            if (found) {
+              if (found.deletedAt != null) {
+                await this.studentService.restoreSoftDeleted(found.id);
               }
+              if (courseIds.length > 0) {
+                try {
+                  await this.studentService.addCourses(found.id, courseIds);
+                } catch (linkError) {
+                  console.warn(
+                    `Failed to link courses to existing student ${found.id}:`,
+                    linkError,
+                  );
+                }
+              }
+              return {
+                rowNumber: row.rowNumber,
+                email: row.email,
+                status: "linked",
+                message:
+                  courseIds.length > 0
+                    ? "Aluno já existente, vinculado aos cursos da empresa"
+                    : "Aluno já existente",
+              };
             }
           } catch {
-            // Se não conseguir verificar, tratar como skipped
+            // Se não conseguir buscar/vincular, tratar como skipped
           }
 
           return {
@@ -226,72 +210,56 @@ export class StudentImportService {
           };
         }
 
-        // Se for erro de primary key (alunos_pkey), tentar buscar e vincular
+        // Erro de primary key / duplicate: aluno existe (talvez soft-deleted). Buscar incluindo
+        // deletados, restaurar se for o caso, vincular cursos e retornar linked.
         const err = error as Error;
         const errorMessage = err.message?.toLowerCase() || "";
-        const isPrimaryKeyError = 
+        const isPrimaryKeyError =
           errorMessage.includes("alunos_pkey") ||
           errorMessage.includes("chave primária") ||
           errorMessage.includes("primary key");
-        
+
         if (
           isPrimaryKeyError ||
           errorMessage.includes("duplicate key") ||
           errorMessage.includes("unique constraint")
         ) {
           try {
-            // Tentar buscar o aluno por email
-            const existingByEmail = await this.studentService.findByEmail(
-              row.email.toLowerCase(),
-            );
+            const existingByEmail =
+              await this.studentService.findByEmailIncludingDeleted(row.email);
 
-            if (existingByEmail && courseIds.length > 0) {
-              // Tentar vincular cursos ao aluno existente
-              try {
-                await this.studentService.addCourses(
-                  existingByEmail.id,
-                  courseIds,
-                );
-
-                // Verificar se os cursos foram vinculados
-                const updated = await this.studentService.findById(
-                  existingByEmail.id,
-                );
-                
-                if (updated) {
-                  const hasCourses = courseIds.some((courseId) =>
-                    updated.courses?.some((c) => c.id === courseId),
-                  );
-
-                  if (hasCourses) {
-                    return {
-                      rowNumber: row.rowNumber,
-                      email: row.email,
-                      status: "linked",
-                      message: "Aluno já existente, vinculado aos cursos da empresa",
-                    };
-                  }
-                }
-              } catch (linkError) {
-                // Se falhar ao vincular, continuar para marcar como skipped
-                console.warn(
-                  `Failed to link courses to existing student ${existingByEmail.id}:`,
-                  linkError,
-                );
+            if (existingByEmail) {
+              if (existingByEmail.deletedAt != null) {
+                await this.studentService.restoreSoftDeleted(existingByEmail.id);
               }
-            } else if (existingByEmail) {
-              // Aluno existe mas não há cursos para vincular
+
+              if (courseIds.length > 0) {
+                try {
+                  await this.studentService.addCourses(
+                    existingByEmail.id,
+                    courseIds,
+                  );
+                } catch (linkError) {
+                  console.warn(
+                    `Failed to link courses to existing student ${existingByEmail.id}:`,
+                    linkError,
+                  );
+                }
+              }
+
               return {
                 rowNumber: row.rowNumber,
                 email: row.email,
                 status: "linked",
-                message: "Aluno já existente",
+                message:
+                  courseIds.length > 0
+                    ? "Aluno já existente, vinculado aos cursos da empresa"
+                    : "Aluno já existente",
               };
             }
           } catch (searchError) {
-            // Se não conseguir buscar, tratar como skipped
             console.warn(
-              `Failed to search for existing student with email ${row.email}:`,
+              `Failed to find/restore existing student with email ${row.email}:`,
               searchError,
             );
           }

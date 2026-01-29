@@ -460,6 +460,14 @@ export class StudentService extends UserBaseService {
     return this.repository.addCourses(studentId, courseIds);
   }
 
+  async findByEmailIncludingDeleted(email: string): Promise<Student | null> {
+    return this.repository.findByEmailIncludingDeleted(email);
+  }
+
+  async restoreSoftDeleted(id: string): Promise<void> {
+    return this.repository.restoreSoftDeleted(id);
+  }
+
   private validateFullName(fullName?: string): string {
     const trimmed = fullName?.trim();
     if (!trimmed) {

@@ -84,36 +84,36 @@ const MODALIDADES = [
     nivel: 1,
     label: 'Super Extensivo',
     descricao: 'Aprofundamento Total',
-    texto: 'Domine a física de ponta a ponta. Do zero ao nível mais avançado, com todos os aprofundamentos possíveis. Perfeito para cursos de alta concorrência e provas específicas que exigem o máximo de detalhe.',
-    tempo: '⏱️ Recomendado para: +12 meses de estudo.'
+    texto: 'Domine o conteúdo de ponta a ponta. Do zero ao nível mais avançado, com todos os aprofundamentos possíveis. Perfeito para cursos de alta concorrência e provas específicas que exigem o máximo de detalhe.',
+    tempo: '⏱️ Recomendado para: 10 ou mais meses de estudo.'
   },
   {
     nivel: 2,
     label: 'Extensivo',
     descricao: 'O Mais Popular',
     texto: 'A preparação completa para 99% dos vestibulares. Cobre todo o edital do ENEM, FUVEST, UNICAMP e UERJ, filtrando apenas excessos desnecessários. É a rota segura para a aprovação.',
-    tempo: '⏱️ Recomendado para: 9 a 12 meses de estudo.'
+    tempo: '⏱️ Recomendado para: entre 10 e 8 meses de estudo.'
   },
   {
     nivel: 3,
     label: 'Semi Extensivo',
     descricao: 'Otimizado',
     texto: 'Todo o conteúdo, sem enrolação. Mantemos a jornada do básico ao avançado, mas focamos nos aprofundamentos e exercícios que realmente fazem a diferença na nota. Eficiência máxima.',
-    tempo: '⏱️ Recomendado para: 6 a 9 meses de estudo.'
+    tempo: '⏱️ Recomendado para: entre 8 e 6 meses de estudo.'
   },
   {
     nivel: 4,
     label: 'Intensivo',
     descricao: 'Foco no que Cai',
     texto: 'Não perca tempo. Priorizamos os assuntos com maior recorrência histórica nas provas. Você verá do básico ao avançado apenas no que tem alta probabilidade de cair.',
-    tempo: '⏱️ Recomendado para: 3 a 6 meses de estudo.'
+    tempo: '⏱️ Recomendado para: entre 6 e 3 meses de estudo.'
   },
   {
     nivel: 5,
     label: 'Superintensivo',
     descricao: 'Reta Final',
     texto: 'A base sólida para salvar seu ano. O mínimo conteúdo viável (MCV) e essencial condensado para dar segurança nas questões fáceis e médias. É o "kit de sobrevivência" para quem tem pouco tempo.',
-    tempo: '⏱️ Recomendado para: 1 a 3 meses de estudo.'
+    tempo: '⏱️ Tiro rápido é o conteúdo mínimo viável para a prova.'
   },
 ]
 

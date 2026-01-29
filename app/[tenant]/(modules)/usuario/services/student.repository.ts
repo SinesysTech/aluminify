@@ -21,6 +21,8 @@ export interface StudentRepository {
   list(params?: PaginationParams): Promise<PaginatedResult<Student>>;
   findById(id: string): Promise<Student | null>;
   findByEmail(email: string): Promise<Student | null>;
+  findByEmailIncludingDeleted(email: string): Promise<Student | null>;
+  restoreSoftDeleted(id: string): Promise<void>;
   findByCpf(cpf: string): Promise<Student | null>;
   findByEnrollmentNumber(
     enrollmentNumber: string,
@@ -416,6 +418,34 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     const [student] = await this.attachCourses([data]);
     return student ?? null;
+  }
+
+  async findByEmailIncludingDeleted(email: string): Promise<Student | null> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("email", email.trim().toLowerCase())
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch student by email: ${error.message}`);
+    }
+
+    if (!data) return null;
+
+    const [student] = await this.attachCourses([data]);
+    return student ?? null;
+  }
+
+  async restoreSoftDeleted(id: string): Promise<void> {
+    const { error } = await this.client
+      .from(TABLE)
+      .update({ deleted_at: null })
+      .eq("id", id);
+
+    if (error) {
+      throw new Error(`Failed to restore soft-deleted student: ${error.message}`);
+    }
   }
 
   async findByCpf(cpf: string): Promise<Student | null> {
