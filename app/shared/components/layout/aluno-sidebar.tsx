@@ -20,7 +20,6 @@ import { usePathname, useParams } from "next/navigation"
 import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
-import { useCurrentUser } from "@/components/providers/user-provider"
 import { useModuleVisibility } from "@/app/shared/hooks/use-module-visibility"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"
 import {
@@ -146,7 +145,6 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
 
 export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const user = useCurrentUser()
   const params = useParams()
   const tenantSlug = params?.tenant as string
 

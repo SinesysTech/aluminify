@@ -61,13 +61,14 @@ serve(async (req) => {
     }
 
     // Verify user belongs to empresa
-    const { data: professor } = await supabaseClient
-      .from('professores')
+    const { data: userEmpresa } = await supabaseClient
+      .from('usuarios')
       .select('empresa_id')
       .eq('id', user.id)
+      .eq('empresa_id', empresa_id)
       .single()
 
-    if (!professor || professor.empresa_id !== empresa_id) {
+    if (!userEmpresa) {
       return new Response(
         JSON.stringify({ error: 'Forbidden' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' } }
@@ -76,11 +77,14 @@ serve(async (req) => {
 
     // Get professor IDs for the company
     const { data: professores } = await supabaseClient
-      .from('professores')
-      .select('id')
+      .from('usuarios_empresas')
+      .select('usuario_id')
       .eq('empresa_id', empresa_id)
+      .eq('papel_base', 'professor')
+      .eq('ativo', true)
+      .is('deleted_at', null)
 
-    const professorIds = professores?.map(p => p.id) || []
+    const professorIds = professores?.map(p => p.usuario_id) || []
 
     if (professorIds.length === 0) {
       return new Response(
@@ -98,7 +102,7 @@ serve(async (req) => {
         professor_id,
         data_inicio,
         data_fim,
-        professor:professores!agendamentos_professor_id_fkey(nome_completo)
+        professor:usuarios!agendamentos_professor_id_fkey(nome_completo)
       `)
       .gte('data_inicio', data_inicio)
       .lte('data_fim', data_fim)
