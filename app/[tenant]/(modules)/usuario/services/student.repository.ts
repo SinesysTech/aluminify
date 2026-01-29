@@ -81,6 +81,15 @@ function formatSupabaseError(error: unknown): string {
   return String(error);
 }
 
+/** Escapa string para uso seguro em ilike (%, _, ', \). */
+function escapeIlikePattern(s: string): string {
+  return s
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_")
+    .replace(/'/g, "''");
+}
+
 // Use generated Database types instead of manual definitions
 type StudentRow = Database["public"]["Tables"]["alunos"]["Row"];
 type StudentInsert = Database["public"]["Tables"]["alunos"]["Insert"];
@@ -189,62 +198,10 @@ export class StudentRepositoryImpl implements StudentRepository {
 
       studentIdsToFilter = (courseLinks ?? []).map((link) => link.aluno_id);
     } else {
-      // Quando não há filtro específico, buscar alunos matriculados em cursos da empresa
-      // Isso garante que alunos de outras empresas que estão matriculados em cursos desta empresa apareçam
-      try {
-        // Tentar obter empresa_id do usuário via RPC
-        const { data: empresaId, error: empresaError } = await this.client.rpc(
-          "get_user_empresa_id",
-        );
-
-        if (!empresaError && empresaId) {
-          // Usar a função RPC para buscar alunos matriculados em cursos da empresa
-          const { data: alunoIds, error: rpcError } = await this.client.rpc(
-            "get_student_ids_by_empresa_courses",
-            { empresa_id_param: empresaId },
-          );
-
-          if (!rpcError && alunoIds && Array.isArray(alunoIds)) {
-            studentIdsToFilter = alunoIds
-              .map((item: { aluno_id: string }) => item.aluno_id)
-              .filter((id): id is string => Boolean(id));
-          } else {
-            // Fallback: buscar manualmente se a RPC não funcionar
-            const { data: cursos, error: cursosError } = await this.client
-              .from(COURSES_TABLE)
-              .select("id")
-              .eq("empresa_id", empresaId);
-
-            if (!cursosError && cursos && cursos.length > 0) {
-              const cursoIds = cursos.map((c: { id: string }) => c.id);
-
-              // Buscar alunos matriculados nesses cursos
-              const { data: alunosCursos, error: alunosCursosError } =
-                await this.client
-                  .from(COURSE_LINK_TABLE)
-                  .select("aluno_id")
-                  .in("curso_id", cursoIds);
-
-              if (!alunosCursosError && alunosCursos) {
-                studentIdsToFilter = Array.from(
-                  new Set(
-                    (alunosCursos ?? []).map(
-                      (ac: { aluno_id: string }) => ac.aluno_id,
-                    ),
-                  ),
-                );
-              }
-            }
-          }
-        }
-      } catch (error) {
-        // Se falhar ao obter empresa_id ou buscar alunos, continuar sem filtro
-        // O RLS deve filtrar automaticamente
-        console.warn(
-          "Failed to filter students by empresa courses, relying on RLS:",
-          error,
-        );
-      }
+      // Sem turma/course: não aplicar filtro por IDs. O RLS em alunos já restringe
+      // (admins veem apenas alunos matriculados em cursos da empresa; superadmin vê todos).
+      // Evita .in("id", [...]) com milhares de UUIDs, que causa 400 Bad Request por limite de URL.
+      studentIdsToFilter = null;
     }
 
     // If filtering by course/turma and no students found, return empty result
@@ -279,8 +236,9 @@ export class StudentRepositoryImpl implements StudentRepository {
       queryBuilder = queryBuilder.in("id", studentIdsToFilter);
     }
 
-    if (params?.query) {
-      const q = params.query;
+    const searchTerm = params?.query?.trim();
+    if (searchTerm) {
+      const q = escapeIlikePattern(searchTerm);
       queryBuilder = queryBuilder.or(
         `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
       );
@@ -299,46 +257,21 @@ export class StudentRepositoryImpl implements StudentRepository {
     }
 
     if (countError) {
-      // Verificar se é um erro "vazio" (objeto sem propriedades úteis ou mensagem vazia)
-      const isEmptyError = 
-        (typeof countError === "object" && countError !== null) &&
-        (
-          Object.keys(countError).length === 0 ||
-          (Object.keys(countError).length === 1 && 
-           typeof (countError as Record<string, unknown>).message === "string" &&
-           (countError as Record<string, unknown>).message === "")
-        );
-
-      // Log detalhes do erro para debug
-      console.error("Count error details:", {
-        error: countError,
-        errorType: typeof countError,
-        errorKeys: typeof countError === "object" && countError !== null 
-          ? Object.keys(countError) 
-          : [],
-        isEmptyError,
-        studentIdsToFilterLength: studentIdsToFilter?.length ?? null,
-        hasQuery: !!params?.query,
-      });
-      
-      // Se o erro for vazio ou não tiver mensagem clara, usar fallback
       const errorMessage = formatSupabaseError(countError);
-      const shouldUseFallback = 
-        isEmptyError ||
-        !errorMessage || 
+      const isEmptyError =
+        !errorMessage ||
         errorMessage.trim() === "" ||
-        errorMessage.includes("vazio") || 
-        errorMessage.includes("sem mensagem") ||
-        errorMessage.includes('"message": ""');
+        errorMessage.includes("vazio") ||
+        errorMessage.includes("sem mensagem");
 
-      if (shouldUseFallback) {
+      if (isEmptyError) {
         console.warn(
-          "Count query failed with empty/unclear error, will use fallback count from data. " +
-          `Error: ${JSON.stringify(countError)}`
+          "Count query failed (unclear error), using fallback count from data.",
+          { studentIdsToFilterLength: studentIdsToFilter?.length ?? null, hasQuery: !!searchTerm }
         );
-        // Continuar para buscar dados e contar depois como fallback
-        total = -1; // Marcador para indicar que precisamos contar depois
+        total = -1;
       } else {
+        console.error("Count error:", errorMessage);
         throw new Error(`Failed to count students: ${errorMessage}`);
       }
     }
@@ -355,8 +288,8 @@ export class StudentRepositoryImpl implements StudentRepository {
       dataQuery = dataQuery.in("id", studentIdsToFilter);
     }
 
-    if (params?.query) {
-      const q = params.query;
+    if (searchTerm) {
+      const q = escapeIlikePattern(searchTerm);
       dataQuery = dataQuery.or(
         `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
       );
@@ -384,8 +317,8 @@ export class StudentRepositoryImpl implements StudentRepository {
           fallbackCountQuery = fallbackCountQuery.in("id", studentIdsToFilter);
         }
 
-        if (params?.query) {
-          const q = params.query;
+        if (searchTerm) {
+          const q = escapeIlikePattern(searchTerm);
           fallbackCountQuery = fallbackCountQuery.or(
             `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
           );
