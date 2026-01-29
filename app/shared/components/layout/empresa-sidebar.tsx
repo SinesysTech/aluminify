@@ -6,7 +6,7 @@ import {
   Calendar,
   FolderOpen,
   DollarSign,
-  Building2,
+  Settings,
   GraduationCap,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -66,18 +66,6 @@ const empresaNavItems: NavItem[] = [
     ],
   },
   {
-    title: "Financeiro",
-    url: "/financeiro",
-    icon: DollarSign,
-    items: [
-      { title: "Dashboard", url: "/financeiro" },
-      { title: "Transações", url: "/financeiro/transacoes" },
-      { title: "Produtos", url: "/financeiro/produtos" },
-      { title: "Cupons", url: "/financeiro/cupons" },
-      { title: "Integrações", url: "/financeiro/integracoes" },
-    ],
-  },
-  {
     title: "Agendamentos",
     url: "/agendamentos",
     icon: Calendar,
@@ -91,9 +79,21 @@ const empresaNavItems: NavItem[] = [
     ],
   },
   {
-    title: "Empresa",
+    title: "Financeiro",
+    url: "/financeiro",
+    icon: DollarSign,
+    items: [
+      { title: "Dashboard", url: "/financeiro" },
+      { title: "Transações", url: "/financeiro/transacoes" },
+      { title: "Produtos", url: "/financeiro/produtos" },
+      { title: "Cupons", url: "/financeiro/cupons" },
+      { title: "Integrações", url: "/financeiro/integracoes" },
+    ],
+  },
+  {
+    title: "Configurações",
     url: "/empresa/detalhes",
-    icon: Building2,
+    icon: Settings,
     items: [
       { title: "Detalhes", url: "/empresa/detalhes" },
       { title: "Usuários", url: "/usuario/equipe" },
