@@ -95,16 +95,17 @@ O sistema possui **3 niveis de usuario** na aplicacao e **5 tipos de papel** par
 Definido em [user.ts](app/shared/types/entities/user.ts):
 
 ```
-AppUserRole = 'aluno' | 'usuario' | 'superadmin' | 'professor' | 'empresa'
+AppUserRole = 'aluno' | 'usuario' | 'professor' | 'empresa'
 ```
 
-| Role         | Descricao                                     | Vinculo ao Tenant                         |
-| ------------ | --------------------------------------------- | ----------------------------------------- |
-| `aluno`      | Estudante                                     | Via `alunos.empresa_id` + `alunos_cursos` |
-| `usuario`    | Staff da instituicao (professor, admin, etc.) | Via `usuarios.empresa_id`                 |
-| `superadmin` | Administrador global do sistema               | Sem vinculo (acessa todas as empresas)    |
-| `professor`  | (legado, normalizado para `usuario`)          | Via `professores.empresa_id`              |
-| `empresa`    | (legado, normalizado para `usuario`)          | Via contexto                              |
+| Role        | Descricao                                     | Vinculo ao Tenant                         |
+| ----------- | --------------------------------------------- | ----------------------------------------- |
+| `aluno`     | Estudante                                     | Via `alunos.empresa_id` + `alunos_cursos` |
+| `usuario`   | Staff da instituicao (professor, admin, etc.) | Via `usuarios.empresa_id`                 |
+| `professor` | (legado, normalizado para `usuario`)          | Via `professores.empresa_id`              |
+| `empresa`   | (legado, normalizado para `usuario`)          | Via contexto                              |
+
+> **Nota**: O role `superadmin` foi removido em 2026-01-29. A gestao cross-tenant sera feita por um app admin separado. O service role key do Supabase ja faz bypass de RLS para operacoes server-side.
 
 ### 3.2 Tabela: `alunos` (25 colunas)
 
@@ -872,24 +873,14 @@ Todas as tabelas tem RLS habilitado. O modelo usa **funcoes auxiliares** no Post
 
 ### 13.2 Padrao de RLS por Operacao
 
-| Operacao   | Quem pode                                           | Logica                                             |
-| ---------- | --------------------------------------------------- | -------------------------------------------------- |
-| **SELECT** | Usuarios da mesma empresa + Superadmin              | `empresa_id = get_user_empresa_id()` OU superadmin |
-| **INSERT** | Admin da empresa + Superadmin                       | `is_empresa_admin()` OU superadmin                 |
-| **UPDATE** | Criador do recurso OU admin da empresa + Superadmin | `created_by = auth.uid()` OU admin OU superadmin   |
-| **DELETE** | Admin da empresa + Superadmin                       | `is_empresa_admin()` OU superadmin                 |
+| Operacao   | Quem pode                                   | Logica                                           |
+| ---------- | ------------------------------------------- | ------------------------------------------------ |
+| **SELECT** | Usuarios da mesma empresa                   | `empresa_id = get_user_empresa_id()`             |
+| **INSERT** | Admin da empresa                            | `is_empresa_admin()`                             |
+| **UPDATE** | Criador do recurso OU admin da empresa      | `created_by = auth.uid()` OU `is_empresa_admin()`|
+| **DELETE** | Admin da empresa                            | `is_empresa_admin()`                             |
 
-### 13.3 Verificacao de Superadmin
-
-Em todas as policies:
-
-```sql
-exists (
-  select 1 from auth.users
-  where id = auth.uid()
-  and raw_user_meta_data->>'role' = 'superadmin'
-)
-```
+> **Nota**: Operacoes administrativas cross-tenant sao feitas server-side via service role key (bypass de RLS). Nao ha clausula de superadmin nas policies.
 
 ---
 
@@ -915,7 +906,6 @@ exists (
 6. Carrega contexto por role:
    - usuario: tabela usuarios + papel + empresa
    - aluno: tabela alunos + empresa via enrollment
-   - superadmin: sem lookup adicional
 7. Retorna AppUser com contexto completo
 ```
 
@@ -925,7 +915,7 @@ exists (
 interface AppUser {
   id: string;
   email: string;
-  role: AppUserRole; // aluno | usuario | superadmin
+  role: AppUserRole; // aluno | usuario
   roleType?: RoleTipo; // professor | professor_admin | staff | admin | monitor
   permissions?: RolePermissions;
   fullName?: string;
@@ -948,9 +938,9 @@ interface AppUser {
 
 ### 14.5 Impersonacao
 
-Superadmins podem visualizar a plataforma como outro usuario (aluno ou professor) sem perder o contexto real.
+Admins da empresa podem visualizar a plataforma como um aluno da propria empresa, sem perder o contexto real. O contexto de impersonacao e armazenado em cookie HTTP-only com duracao de 8 horas.
 
-**Codigo-fonte**: [auth.ts:40-135](app/shared/core/auth.ts#L40-L135), [auth-impersonate.ts](app/shared/core/auth-impersonate.ts)
+**Codigo-fonte**: [auth.ts](app/shared/core/auth.ts), [auth-impersonate.ts](app/shared/core/auth-impersonate.ts)
 
 ---
 
@@ -1077,181 +1067,32 @@ O roteamento no Next.js usa o padrao `app/[tenant]/` para capturar o slug ou res
 
 ---
 
-# Plano de refatoração
+---
 
-## 1º Plano
+# Changelog
 
-Codigo-fonte: 118 arquivos com referências
-Camada Core (precisa mudar primeiro)
-Arquivo O que tem Impacto
-user.ts:14 "superadmin" no tipo AppUserRole Tipo base usado em todo o app
-auth.ts:141,321 Lógica de contexto e redirect para superadmin Fluxo principal de auth
-roles.ts:12,105 Rota default /superadmin/dashboard + bypass de permissões Guards e routing
-route-guards.ts:36-75 requireSuperAdmin() guard + includes em outros guards Proteção de rotas
-auth-actions.ts:51-52 Redirect para /superadmin/dashboard Pós-login
-auth-impersonate.ts:76 Impersonation só para superadmin Feature inteira
-middleware.logic.ts:129 Rota /superadmin no middleware Middleware global
-empresa-context.ts isSuperAdmin em toda a interface + lógica de bypass Contexto de tenant em todas as APIs
-permission-provider.tsx isSuperAdmin bypass em TODOS os checks de permissão (6 métodos) Provider React global
-APIs (~40 routes)
-Padrão recorrente em praticamente todas as rotas:
+## 2026-01-29: Remocao completa do role superadmin
 
-// Bypass: se é superadmin, passa direto
-if (!user.isSuperAdmin && !isAdmin) { return 403 }
+O role `superadmin` foi removido inteiramente do sistema. Nunca foi utilizado em producao. A gestao cross-tenant sera feita futuramente por um app admin separado.
 
-// Includes: superadmin nas roles permitidas  
-requireUser({ allowedRoles: ['superadmin', 'usuario'] })
+### O que foi feito
 
-// Acesso cross-tenant: superadmin ignora empresa_id
-if (x.empresaId !== user.empresaId && !user.isSuperAdmin) { return 403 }
-Existe ainda: api/auth/superadmin/login/route.ts — rota dedicada de login superadmin que precisa ser removida.
+| Camada | Escopo | Detalhes |
+|---|---|---|
+| **Banco de dados** | ~109 RLS policies em ~35 tabelas | Removido `OR is_superadmin()` de todas as policies. Dropadas 10 policies exclusivas de superadmin. |
+| **Funcoes PostgreSQL** | 3 funcoes dropadas | `is_superadmin()`, `is_current_user_superadmin()`, `check_and_set_first_professor_superadmin()` |
+| **Funcoes atualizadas** | 2 funcoes | `user_belongs_to_empresa()` (removido bypass), `handle_new_user()` (removida logica de primeiro professor superadmin) |
+| **Tipos TypeScript** | 2 arquivos base | `AppUserRole` e `AuthUser` sem superadmin/isSuperAdmin |
+| **Core auth/middleware** | 8 arquivos | auth.ts, roles.ts, route-guards.ts, auth-actions.ts, auth-impersonate.ts, middleware.logic.ts, empresa-context.ts, brand-customization-access.ts |
+| **Tenant auth** | 2 arquivos | middleware.ts, auth.service.ts |
+| **UI components** | ~15 arquivos | permission-provider, sidebar, nav, breadcrumb, pages |
+| **API routes** | ~58 arquivos | Removidos bypasses isSuperAdmin, allowedRoles, checks cross-tenant |
+| **Services** | ~10 arquivos | user-role-identifier, auth, dashboard-analytics, copilotkit, mastra tools |
+| **Arquivos deletados** | 3 | `api/auth/superadmin/login/route.ts`, `api/cache/stats/route.ts`, `api/empresa/route.ts` |
+| **Env vars** | 2 removidas | `SUPERADMIN_USERNAME`, `SUPERADMIN_PASSWORD` |
 
-UI Components (~15 arquivos)
-app-sidebar.tsx:3,25 — Importa SuperAdminSidebar (que já não existe mais)
-nav-user.tsx:87 — Routing condicional
-bottom-navigation.tsx:69 — Case no switch
-impersonation-banner.tsx — Feature de impersonação inteira
-Services (~15 arquivos)
-user-role-identifier.service.ts — Prioridade superadmin > usuario > aluno
-auth.service.ts — 4 métodos com check isSuperAdmin
-dashboard-analytics.service.ts — Fallback de escopo
-sala-estudos.service.ts — Check de role
-Banco de dados: 3 camadas de superadmin
+**Migration**: [20260129000000_remove_superadmin.sql](supabase/migrations/20260129000000_remove_superadmin.sql)
 
-1. Funções PostgreSQL
-   Função Uso
-   is_superadmin() Usada em ~100 RLS policies
-   is_current_user_superadmin() Variante usada em policies de papeis e usuarios
-   check_and_set_first_professor_superadmin() Trigger que faz o primeiro professor virar superadmin
-2. RLS Policies (~100 policies em ~35 tabelas)
-   Padrão universal em quase toda policy:
+### Decisao tecnica
 
-... OR is_superadmin()
-Tabelas afetadas: empresas, alunos, professores, usuarios, cursos, disciplinas, frentes, modulos, aulas, atividades, flashcards, materiais_curso, cronogramas, agendamentos, sessoes_estudo, progresso_atividades, progresso_flashcards, empresa_admins, papeis, api_keys, turmas, alunos_cursos, alunos_turmas, regras_atividades, segmentos, chat_conversations, chat_conversation_history, tenant_module_visibility, tenant_submodule_visibility, professores_disciplinas, usuarios_disciplinas, matriculas, cronograma_itens, cronograma_semanas_dias, cronograma_tempo_estudos, aulas_concluidas, agendamento_configuracoes, agendamento_disponibilidade, agendamento_notificacoes, ai_agents.
-
-3. Policies exclusivas de superadmin (precisam ser removidas ou re-atribuídas)
-   Tabela Policy Efeito
-   empresas "Apenas superadmin pode criar empresas" Bloqueia criação sem superadmin
-   empresas "Apenas superadmin pode deletar empresas" Bloqueia deleção
-   cursos "Superadmin gerencia cursos" Full access bypass
-   disciplinas "Superadmin gerencia disciplinas" Full access bypass
-   segmentos "Superadmin gerencia segmentos" Full access bypass
-   professores "Superadmin gerencia professores" Full access bypass
-   Decisão necessária antes de prosseguir
-   A remoção do superadmin tem uma implicação importante nas RLS policies: o OR is_superadmin() nas policies é o que permite que o service role key funcione em cenários administrativos. Sem ele, preciso saber:
-
-As operações cross-tenant (criar empresa, deletar empresa) vão existir neste app ou só no app admin separado?
-Impersonação — remover completamente? (faz sentido se o admin da empresa nunca precisa "ver como aluno")
-O OR is_superadmin() nas RLS policies — posso simplesmente remover de todas, já que o service role key do Supabase já faz bypass de RLS automaticamente? Isso simplificaria todas as 100 policies de uma vez.
-A opção 3 é o caminho mais limpo: o service role key (usado server-side) já ignora RLS. O is_superadmin() nas policies é redundante para operações server-side. Posso dropar tudo.
-
-Plano: Remover Superadmin do Aluminify
-Decisao
-O superadmin nunca foi utilizado em producao. Sera removido deste app e, futuramente, a gestao cross-tenant sera feita por um app admin separado. A impersonacao permanece como funcao do admin da empresa (impersona alunos da propria empresa). O Secret key (service role) do Supabase ja faz bypass de RLS, tornando is_superadmin() redundante.
-
-Escopo
-118 arquivos no codigo-fonte
-~100 RLS policies em ~35 tabelas
-3 funcoes PostgreSQL a dropar
-1 trigger a atualizar
-1 rota de API a deletar (/api/auth/superadmin/login)
-Ordem de Execucao
-FASE 1: Banco de Dados (Primeiro)
-Criar migration 20260129_remove_superadmin.sql que:
-
-Dropa policies exclusivas de superadmin (full-access bypass):
-
-empresas: "Apenas superadmin pode criar empresas", "Apenas superadmin pode deletar empresas"
-cursos: "Superadmin gerencia cursos"
-disciplinas: "Superadmin gerencia disciplinas"
-segmentos: "Superadmin gerencia segmentos"
-professores: "Superadmin gerencia professores"
-chat_conversations: "chat_conversations_superadmin_all"
-chat_conversation_history: "chat_conversation_history_superadmin_all"
-professores_disciplinas: "professores_disciplinas_superadmin_all"
-alunos_turmas: "alunos_turmas_superadmin_all"
-turmas: "turmas_superadmin_all"
-Reescreve ~90 policies removendo OR is_superadmin() de cada uma. Para cada tabela afetada: DROP policy antiga, CREATE policy nova sem a clausula superadmin.
-
-Atualiza user_belongs_to_empresa() removendo o bypass de superadmin.
-
-Atualiza handle_new_user() trigger removendo logica de superadmin no primeiro professor.
-
-Dropa funcoes:
-
-is_superadmin()
-is_current_user_superadmin()
-check_and_set_first_professor_superadmin()
-Limpa metadata de usuarios com role superadmin (se existirem).
-
-FASE 2: Regenerar Types
-Executar npx supabase gen types typescript para atualizar database.types.ts sem as funcoes dropadas.
-FASE 3: Types (Cascata de Compilacao)
-Alterar tipos base para que o TypeScript flagge todos os consumidores:
-
-Arquivo Mudanca
-app/shared/types/entities/user.ts Remover "superadmin" de AppUserRole
-app/[tenant]/auth/types/auth.types.ts Remover "superadmin" de UserRole, remover isSuperAdmin de AuthUser
-FASE 4: Core Auth/Roles/Middleware
-Arquivo Mudanca
-app/shared/core/auth.ts Remover role === "superadmin" nos checks de contexto e redirect
-app/shared/core/roles.ts Remover rota /superadmin/dashboard e bypass if (role === "superadmin") return true no canImpersonate()
-app/shared/core/route-guards.ts Deletar requireSuperAdminRoute(), remover 'superadmin' dos allowedRoles em outros guards
-app/shared/core/actions/auth-actions.ts Remover case "superadmin" no redirect
-app/shared/core/auth-impersonate.ts Remover bypass if (realUserRole === "superadmin") — a logica de admin da empresa ja cobre
-app/shared/core/middleware.logic.ts Remover "/superadmin" do array knownRoutes
-app/shared/core/middleware/empresa-context.ts Remover isSuperAdmin da interface EmpresaContext e toda a logica associada
-app/shared/core/middleware/brand-customization-access.ts Remover bypasses isSuperAdmin
-FASE 5: Tenant Auth Middleware
-Arquivo Mudanca
-app/[tenant]/auth/middleware.ts Remover bloco de deteccao superadmin em mapSupabaseUserToAuthUser(), deletar funcao isSuperAdmin() exportada, deletar requireSuperAdmin(), remover isSuperAdmin: false/true de todos os returns
-app/[tenant]/auth/services/auth.service.ts Remover isSuperAdmin de todos os 4 metodos (signUp, signIn, getCurrentUser, refreshSession)
-FASE 6: Components UI
-Arquivo Mudanca
-app/shared/components/providers/permission-provider.tsx Remover prop isSuperAdmin e todos os bypasses if (isSuperAdmin) return true
-app/shared/components/layout/app-sidebar.tsx Remover import SuperAdminSidebar (dead) e case 'superadmin'
-app/shared/components/layout/bottom-navigation.tsx Remover case 'superadmin'
-app/shared/components/layout/nav-user.tsx Mudar 'superadmin' para 'usuario' no check de role
-app/shared/components/layout/impersonation-banner.tsx Remover condicao /superadmin no redirect
-app/shared/components/layout/dynamic-breadcrumb.tsx Remover "superadmin": "Super Admin" do mapa
-app/[tenant]/(modules)/empresa/(gestao)/detalhes/admins/page.tsx Remover isSuperAdmin check, usar isOwner ou isAdmin
-Pages de financeiro, cursos, alunos, etc. Remover 'superadmin' dos allowedRoles
-FASE 7: API Routes (~63 arquivos)
-Aplicar mecanicamente estes padroes em todas as rotas:
-
-Padrao De Para
-A allowedRoles: ['superadmin', 'usuario'] allowedRoles: ['usuario']
-B !user.isSuperAdmin && !isAdmin !isAdmin
-C x.empresaId !== user.empresaId && !user.isSuperAdmin x.empresaId !== user.empresaId
-D context.isSuperAdmin checks Remover, usar apenas validateEmpresaAccess()
-E request.user.role !== "superadmin" Remover a condicao
-F ["usuario", "superadmin"].includes(role) role === "usuario"
-Deletar arquivo: app/api/auth/superadmin/login/route.ts (e diretorio vazio)
-
-FASE 8: Services
-Arquivo Mudanca
-user-role-identifier.service.ts Remover prioridade superadmin na resolucao de role, deletar checkSuperadminFromUserData()
-auth.service.ts Remover isSuperAdmin dos 4 metodos
-dashboard-analytics.service.ts Remover fallback superadmin
-foco.service.ts Remover check isSuperAdmin
-sala-estudos.service.ts Substituir "superadmin" por "usuario" nos checks
-biblioteca.service.ts Mesmo padrao
-user-base.service.ts Remover "superadmin" do union type
-alunos/actions.ts Remover `user.role === "superadmin"
-mastra/tools/index.ts Remover "superadmin" do tipo e bypasses
-copilotkit/actions.ts Mesmo padrao
-FASE 9: Cleanup
-Remover SUPERADMIN_USERNAME e SUPERADMIN_PASSWORD do .env / configs
-Remover app/api/cache/stats/route.ts (era exclusivo para superadmin) ou ajustar para admin
-Limpar comentarios residuais mencionando superadmin
-Atualizar docs/DATA_MODEL_SAAS.md e docs/architecture/authentication.md
-Verificacao
-TypeScript: npx tsc --noEmit deve passar sem erros
-Build: npm run build deve completar
-Grep final: grep -ri "superadmin" app/ --include="_.ts" --include="_.tsx" deve retornar 0 resultados
-DB: Verificar que nenhuma policy referencia is_superadmin():
-
-SELECT tablename, policyname FROM pg_policies
-WHERE qual::text LIKE '%superadmin%' OR with_check::text LIKE '%superadmin%';
-Deve retornar 0 rows.
-Funcional: Login como admin da empresa deve funcionar normalmente. Impersonacao de aluno deve funcionar para admin da empresa.
+O service role key (Secret) do Supabase ja faz bypass de RLS automaticamente para operacoes server-side, tornando `is_superadmin()` nas policies redundante. A impersonacao permanece como funcao do **admin da empresa** (pode impersonar alunos da propria empresa).
