@@ -36,3 +36,31 @@ export const ROLE_TIPO_OPTIONS = [
   { value: 'staff', label: 'Equipe' },
   { value: 'monitor', label: 'Monitores' },
 ] as const
+
+// Filtro da Equipe baseado em papel_base + flags
+export const EQUIPE_FILTER_OPTIONS = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'professor', label: 'Professores' },
+  { value: 'usuario', label: 'Usuarios' },
+  { value: 'admin', label: 'Administradores' },
+] as const
+
+export const PAPEL_BASE_LABELS: Record<string, string> = {
+  professor: 'Professor',
+  usuario: 'Usuario',
+  aluno: 'Aluno',
+}
+
+export const PAPEL_BASE_COLORS: Record<string, string> = {
+  professor: 'bg-blue-50 text-blue-700 border-blue-200',
+  usuario: 'bg-gray-50 text-gray-700 border-gray-200',
+  aluno: 'bg-green-50 text-green-700 border-green-200',
+}
+
+export function getPapelBaseLabel(papelBase: string): string {
+  return PAPEL_BASE_LABELS[papelBase] || papelBase
+}
+
+export function getPapelBaseColor(papelBase: string): string {
+  return PAPEL_BASE_COLORS[papelBase] || 'bg-gray-50 text-gray-700 border-gray-200'
+}

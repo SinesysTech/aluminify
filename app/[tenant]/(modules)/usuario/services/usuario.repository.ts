@@ -267,9 +267,12 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
     let query = this.client
       .from(TABLE)
       .select(
-        "id, nome_completo, email, foto_url, ativo, papeis!inner(nome, tipo)",
+        "id, nome_completo, email, foto_url, ativo, papeis!inner(nome, tipo), usuarios_empresas!inner(papel_base, is_admin)",
       )
       .eq("empresa_id", empresaId)
+      .eq("usuarios_empresas.empresa_id", empresaId)
+      .eq("usuarios_empresas.ativo", true)
+      .is("usuarios_empresas.deleted_at", null)
       .is("deleted_at", null)
       .order("nome_completo", { ascending: true });
 
@@ -283,16 +286,25 @@ export class UsuarioRepositoryImpl implements UsuarioRepository {
       throw new Error(`Failed to list usuario summaries: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => ({
-      id: row.id,
-      nomeCompleto: row.nome_completo,
-      email: row.email,
-      fotoUrl: row.foto_url,
-      papelNome: (row.papeis as { nome: string; tipo: string }).nome,
-      papelTipo: (row.papeis as { nome: string; tipo: string })
-        .tipo as RoleTipo,
-      ativo: row.ativo,
-    }));
+    type UeRow = { papel_base: string; is_admin: boolean };
+
+    return (data ?? []).map((row) => {
+      const ueData = row.usuarios_empresas as unknown as UeRow | UeRow[];
+      const ue = Array.isArray(ueData) ? ueData[0] : ueData;
+
+      return {
+        id: row.id,
+        nomeCompleto: row.nome_completo,
+        email: row.email,
+        fotoUrl: row.foto_url,
+        papelNome: (row.papeis as { nome: string; tipo: string }).nome,
+        papelTipo: (row.papeis as { nome: string; tipo: string })
+          .tipo as RoleTipo,
+        papelBase: ue?.papel_base ?? "professor",
+        isAdmin: ue?.is_admin ?? false,
+        ativo: row.ativo,
+      };
+    });
   }
 
   async listByPapelTipo(empresaId: string, tipo: RoleTipo): Promise<Usuario[]> {

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/shared/components/forms/select"
-import { ROLE_TIPO_OPTIONS } from '@/app/shared/utils/papel-display'
+import { EQUIPE_FILTER_OPTIONS } from '@/app/shared/utils/papel-display'
 
 interface UserFiltersProps {
   papelTipoFilter: string
@@ -45,7 +45,7 @@ export function UserFilters({
           <SelectValue placeholder="Filtrar por papel" />
         </SelectTrigger>
         <SelectContent>
-          {ROLE_TIPO_OPTIONS.map((option) => {
+          {EQUIPE_FILTER_OPTIONS.map((option) => {
             const count = countByTipo[option.value] || 0
             return (
               <SelectItem key={option.value} value={option.value}>

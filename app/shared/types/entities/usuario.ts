@@ -83,6 +83,8 @@ export interface UsuarioSummary {
   fotoUrl: string | null;
   papelNome: string;
   papelTipo: RoleTipo;
+  papelBase: string;
+  isAdmin: boolean;
   ativo: boolean;
 }
 

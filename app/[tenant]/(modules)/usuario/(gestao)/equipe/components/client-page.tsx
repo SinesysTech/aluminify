@@ -18,9 +18,13 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
   const filteredUsuarios = useMemo(() => {
     let result = usuarios
 
-    // Filtrar por tipo de papel
+    // Filtrar por papel_base ou flag admin
     if (papelTipoFilter && papelTipoFilter !== 'todos') {
-      result = result.filter(u => u.papelTipo === papelTipoFilter)
+      if (papelTipoFilter === 'admin') {
+        result = result.filter(u => u.isAdmin)
+      } else {
+        result = result.filter(u => u.papelBase === papelTipoFilter)
+      }
     }
 
     // Filtrar por busca (nome ou email)
@@ -35,11 +39,14 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
     return result
   }, [usuarios, papelTipoFilter, searchQuery])
 
-  // Contagem por tipo de papel
+  // Contagem por papel_base + admin flag
   const countByTipo = useMemo(() => {
     const counts: Record<string, number> = { todos: usuarios.length }
     usuarios.forEach(u => {
-      counts[u.papelTipo] = (counts[u.papelTipo] || 0) + 1
+      counts[u.papelBase] = (counts[u.papelBase] || 0) + 1
+      if (u.isAdmin) {
+        counts['admin'] = (counts['admin'] || 0) + 1
+      }
     })
     return counts
   }, [usuarios])

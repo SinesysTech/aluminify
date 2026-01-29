@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/app/shared/components/overlay/tooltip"
 import { Button } from "@/components/ui/button"
-import { getRoleTipoLabel, getRoleTipoColor } from '@/app/shared/utils/papel-display'
+import { getPapelBaseLabel, getPapelBaseColor } from '@/app/shared/utils/papel-display'
 
 interface UserTableProps {
   usuarios: UsuarioSummary[]
@@ -61,9 +61,16 @@ export function UserTable({ usuarios }: UserTableProps) {
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getRoleTipoColor(usuario.papelTipo)}`}>
-                        {usuario.papelNome || getRoleTipoLabel(usuario.papelTipo)}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getPapelBaseColor(usuario.papelBase)}`}>
+                          {usuario.papelNome || getPapelBaseLabel(usuario.papelBase)}
+                        </span>
+                        {usuario.isAdmin && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200">
+                            Admin
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
