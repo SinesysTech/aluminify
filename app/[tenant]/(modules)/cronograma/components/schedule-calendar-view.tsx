@@ -738,18 +738,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           .from('aulas_concluidas')
           .upsert(
             {
-              aluno_id: alunoAtual,
+              usuario_id: alunoAtual,
               aula_id: itemAlvo.aula_id,
               curso_id: cursoDaAula,
             },
-            { onConflict: 'aluno_id,aula_id' },
+            { onConflict: 'usuario_id,aula_id' },
           )
       } else {
         // Type assertion needed because database types are currently out of sync with actual schema
         await supabase
           .from('aulas_concluidas')
           .delete()
-          .eq('aluno_id', alunoAtual)
+          .eq('usuario_id', alunoAtual)
           .eq('aula_id', itemAlvo.aula_id)
       }
     }
@@ -909,18 +909,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
               .from('aulas_concluidas')
               .upsert(
                 {
-                  aluno_id: alunoAtual,
+                  usuario_id: alunoAtual,
                   aula_id: itemAlvo.aula_id,
                   curso_id: cursoDaAula,
                 },
-                { onConflict: 'aluno_id,aula_id' },
+                { onConflict: 'usuario_id,aula_id' },
               )
           } else {
             // Type assertion needed because database types are currently out of sync with actual schema
             await supabase
               .from('aulas_concluidas')
               .delete()
-              .eq('aluno_id', alunoAtual)
+              .eq('usuario_id', alunoAtual)
               .eq('aula_id', itemAlvo.aula_id)
           }
         }
@@ -1080,18 +1080,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
               .from('aulas_concluidas')
               .upsert(
                 {
-                  aluno_id: alunoAtual,
+                  usuario_id: alunoAtual,
                   aula_id: itemAlvo.aula_id,
                   curso_id: cursoDaAula,
                 },
-                { onConflict: 'aluno_id,aula_id' },
+                { onConflict: 'usuario_id,aula_id' },
               )
           } else {
             // Type assertion needed because database types are currently out of sync with actual schema
             await supabase
               .from('aulas_concluidas')
               .delete()
-              .eq('aluno_id', alunoAtual)
+              .eq('usuario_id', alunoAtual)
               .eq('aula_id', itemAlvo.aula_id)
           }
         }

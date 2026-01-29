@@ -89,14 +89,14 @@ async function putHandler(
     const client = getDatabaseClient();
     const { data: cronograma, error: cronogramaError } = await client
       .from("cronogramas")
-      .select("id, aluno_id")
+      .select("id, usuario_id")
       .eq("id", cronogramaId)
       .single();
 
     // Type assertion: Query result properly typed from Database schema
     type CronogramaBasic = Pick<
       Database["public"]["Tables"]["cronogramas"]["Row"],
-      "id" | "aluno_id"
+      "id" | "usuario_id"
     >;
     const typedCronograma = cronograma as CronogramaBasic | null;
 
@@ -107,7 +107,7 @@ async function putHandler(
       );
     }
 
-    if (typedCronograma.aluno_id !== request.user.id) {
+    if (typedCronograma.usuario_id !== request.user.id) {
       return NextResponse.json(
         { error: "Você só pode atualizar seus próprios cronogramas" },
         { status: 403 },
@@ -253,14 +253,14 @@ async function getHandler(
     const client = getDatabaseClient();
     const { data: cronograma, error: cronogramaError } = await client
       .from("cronogramas")
-      .select("id, aluno_id")
+      .select("id, usuario_id")
       .eq("id", cronogramaId)
       .single();
 
     // Type assertion: Query result properly typed from Database schema
     type CronogramaBasic = Pick<
       Database["public"]["Tables"]["cronogramas"]["Row"],
-      "id" | "aluno_id"
+      "id" | "usuario_id"
     >;
     const typedCronogramaGet = cronograma as CronogramaBasic | null;
 
@@ -271,7 +271,7 @@ async function getHandler(
       );
     }
 
-    if (typedCronogramaGet.aluno_id !== request.user.id) {
+    if (typedCronogramaGet.usuario_id !== request.user.id) {
       return NextResponse.json(
         { error: "Você só pode acessar seus próprios cronogramas" },
         { status: 403 },

@@ -40,7 +40,7 @@ type ProgressoUpdate =
 function mapRow(row: ProgressoRow): ProgressoAtividade {
   return {
     id: row.id,
-    alunoId: row.aluno_id ?? "",
+    alunoId: row.usuario_id ?? "",
     atividadeId: row.atividade_id ?? "",
     empresaId: row.empresa_id ?? null,
     status: (row.status as StatusAtividade) ?? "Pendente",
@@ -80,7 +80,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .eq("atividade_id", atividadeId)
       .maybeSingle();
 
@@ -95,7 +95,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -107,7 +107,7 @@ export class ProgressoAtividadeRepositoryImpl implements ProgressoAtividadeRepos
 
   async create(payload: CreateProgressoInput): Promise<ProgressoAtividade> {
     const insertData = {
-      aluno_id: payload.alunoId,
+      usuario_id: payload.alunoId,
       atividade_id: payload.atividadeId,
       empresa_id: payload.empresaId ?? null,
       status: payload.status ?? "Pendente",

@@ -51,6 +51,27 @@ function mapRow(row: UsuarioRow): Usuario {
     biografia: row.biografia,
     especialidade: row.especialidade,
     ativo: row.ativo,
+    // Campos de endereço
+    dataNascimento: row.data_nascimento ? new Date(row.data_nascimento) : null,
+    endereco: row.endereco,
+    cep: row.cep,
+    numeroEndereco: row.numero_endereco,
+    complemento: row.complemento,
+    cidade: row.cidade,
+    estado: row.estado,
+    bairro: row.bairro,
+    pais: row.pais,
+    // Redes sociais
+    instagram: row.instagram,
+    twitter: row.twitter,
+    // Matrícula / integração
+    numeroMatricula: row.numero_matricula,
+    hotmartId: row.hotmart_id,
+    origemCadastro: row.origem_cadastro,
+    // Auth
+    mustChangePassword: row.must_change_password,
+    senhaTemporaria: row.senha_temporaria,
+    // Timestamps
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,

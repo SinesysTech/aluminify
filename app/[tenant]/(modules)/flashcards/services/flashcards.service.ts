@@ -438,7 +438,7 @@ export class FlashcardsService {
     const { data, error } = await this.client
       .from("progresso_flashcards")
       .select("*")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .in("flashcard_id", flashcardIds);
     if (error) {
       console.warn("[flashcards] erro ao buscar progresso", error);
@@ -462,7 +462,7 @@ export class FlashcardsService {
     const { data, error } = await this.client
       .from("progresso_atividades")
       .select("atividade_id, atividades(modulo_id)")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .eq("status", "Concluido");
 
     if (error) {
@@ -494,7 +494,7 @@ export class FlashcardsService {
     const { data, error } = await this.client
       .from("alunos_cursos")
       .select("curso:cursos(id, nome, empresa_id)")
-      .eq("aluno_id", userId);
+      .eq("usuario_id", userId);
 
     if (error) throw new Error(error.message);
 
@@ -635,7 +635,7 @@ export class FlashcardsService {
           await this.client
             .from("alunos_cursos")
             .select("curso_id")
-            .eq("aluno_id", alunoId);
+            .eq("usuario_id", alunoId);
 
         if (alunosCursosError) {
           throw new Error(
@@ -788,7 +788,7 @@ export class FlashcardsService {
       const { data: alunosCursos, error: alunosCursosError } = await this.client
         .from("alunos_cursos")
         .select("curso_id")
-        .eq("aluno_id", alunoId);
+        .eq("usuario_id", alunoId);
 
       if (alunosCursosError) {
         throw new Error(
@@ -1033,7 +1033,7 @@ export class FlashcardsService {
           await this.client
             .from("progresso_flashcards")
             .select("flashcard_id, ultimo_feedback")
-            .eq("aluno_id", alunoId)
+            .eq("usuario_id", alunoId)
             .in("ultimo_feedback", [1, 2, 3]); // 1=Errei, 2=Parcial, 3=Dificil
 
         if (progFlashError) {
@@ -1121,7 +1121,7 @@ export class FlashcardsService {
         const { data: progFlash, error: progFlashError } = await this.client
           .from("progresso_flashcards")
           .select("flashcard_id")
-          .eq("aluno_id", alunoId);
+          .eq("usuario_id", alunoId);
         if (progFlashError) {
           console.warn(
             "[flashcards] erro ao buscar progresso para revisao_geral",
@@ -1147,7 +1147,7 @@ export class FlashcardsService {
           await this.client
             .from("progresso_atividades")
             .select("atividade_id, atividades(modulo_id)")
-            .eq("aluno_id", alunoId)
+            .eq("usuario_id", alunoId)
             .eq("status", "Concluido");
 
         if (atividadesError) {
@@ -1476,7 +1476,7 @@ export class FlashcardsService {
     const { data: existing, error } = await this.client
       .from("progresso_flashcards")
       .select("*")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .eq("flashcard_id", cardId)
       .maybeSingle();
 
@@ -1497,7 +1497,7 @@ export class FlashcardsService {
     const now = new Date();
 
     const payload = {
-      aluno_id: alunoId,
+      usuario_id: alunoId,
       flashcard_id: cardId,
       empresa_id: empresaId,
       nivel_facilidade: srsResult.newEaseFactor,
@@ -1510,7 +1510,7 @@ export class FlashcardsService {
 
     const { data: upserted, error: upsertError } = await this.client
       .from("progresso_flashcards")
-      .upsert(payload, { onConflict: "aluno_id,flashcard_id" })
+      .upsert(payload, { onConflict: "usuario_id,flashcard_id" })
       .select("*")
       .maybeSingle();
 

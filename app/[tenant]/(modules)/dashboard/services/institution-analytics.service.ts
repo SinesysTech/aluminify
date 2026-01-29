@@ -106,13 +106,13 @@ export class InstitutionAnalyticsService {
 
     const { data: alunosSessoes } = await client
       .from("sessoes_estudo")
-      .select("aluno_id")
+      .select("usuario_id")
       .gte("created_at", thirtyDaysAgo.toISOString());
 
     const alunosComAtividade = new Set(
       (alunosSessoes ?? [])
-        .filter((s): s is { aluno_id: string } => s.aluno_id !== null)
-        .map((s) => s.aluno_id),
+        .filter((s): s is { usuario_id: string } => s.usuario_id !== null)
+        .map((s) => s.usuario_id),
     );
 
     // Filtrar apenas alunos da empresa
@@ -165,7 +165,7 @@ export class InstitutionAnalyticsService {
     const { data: sessoesAtuais } = await client
       .from("sessoes_estudo")
       .select("tempo_total_liquido_segundos")
-      .in("aluno_id", alunoIds)
+      .in("usuario_id", alunoIds)
       .gte("created_at", startDate.toISOString());
 
     const segundosAtuais = (sessoesAtuais ?? []).reduce(
@@ -178,7 +178,7 @@ export class InstitutionAnalyticsService {
     const { data: sessoesAnteriores } = await client
       .from("sessoes_estudo")
       .select("tempo_total_liquido_segundos")
-      .in("aluno_id", alunoIds)
+      .in("usuario_id", alunoIds)
       .gte("created_at", previousStartDate.toISOString())
       .lt("created_at", previousEndDate.toISOString());
 
@@ -237,7 +237,7 @@ export class InstitutionAnalyticsService {
     const { data: cronogramas } = await client
       .from("cronogramas")
       .select("id")
-      .in("aluno_id", alunoIds);
+      .in("usuario_id", alunoIds);
 
     return (cronogramas ?? []).map((c: { id: string }) => c.id);
   }
@@ -268,7 +268,7 @@ export class InstitutionAnalyticsService {
     const { data: sessoes } = await client
       .from("sessoes_estudo")
       .select("created_at, tempo_total_liquido_segundos")
-      .in("aluno_id", alunoIds)
+      .in("usuario_id", alunoIds)
       .gte("created_at", startDate.toISOString());
 
     // Agrupar por dia
@@ -348,16 +348,16 @@ export class InstitutionAnalyticsService {
 
     const { data: sessoes } = await client
       .from("sessoes_estudo")
-      .select("aluno_id, tempo_total_liquido_segundos")
-      .in("aluno_id", alunoIds)
+      .select("usuario_id, tempo_total_liquido_segundos")
+      .in("usuario_id", alunoIds)
       .gte("created_at", thirtyDaysAgo.toISOString());
 
     // Agrupar tempo por aluno
     const tempoMap = new Map<string, number>();
     for (const sessao of sessoes ?? []) {
-      const current = tempoMap.get(sessao.aluno_id!) ?? 0;
+      const current = tempoMap.get(sessao.usuario_id!) ?? 0;
       tempoMap.set(
-        sessao.aluno_id!,
+        sessao.usuario_id!,
         current + (sessao.tempo_total_liquido_segundos ?? 0),
       );
     }
@@ -412,7 +412,7 @@ export class InstitutionAnalyticsService {
     const { data: sessoes } = await client
       .from("sessoes_estudo")
       .select("created_at")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .order("created_at", { ascending: false })
       .limit(365);
 
@@ -470,7 +470,7 @@ export class InstitutionAnalyticsService {
     const { data: progressos } = await client
       .from("progresso_atividades")
       .select("questoes_totais, questoes_acertos")
-      .eq("aluno_id", alunoId);
+      .eq("usuario_id", alunoId);
 
     if (!progressos || progressos.length === 0) return 0;
 
@@ -520,7 +520,7 @@ export class InstitutionAnalyticsService {
       // Contar alunos únicos atendidos
       const { data: agendamentos } = await client
         .from("agendamentos")
-        .select("aluno_id")
+        .select("usuario_id")
         .eq("professor_id", professor.id)
         .gte("created_at", thirtyDaysAgo.toISOString());
 
@@ -572,8 +572,8 @@ export class InstitutionAnalyticsService {
       // Buscar sessões de estudo da disciplina pelos alunos da empresa
       const { data: sessoes } = await client
         .from("sessoes_estudo")
-        .select("aluno_id")
-        .in("aluno_id", alunoIds)
+        .select("usuario_id")
+        .in("usuario_id", alunoIds)
         .eq("disciplina_id", disciplina.id);
 
       if (!sessoes || sessoes.length === 0) {
@@ -583,15 +583,15 @@ export class InstitutionAnalyticsService {
       // Buscar aproveitamento agregado dos alunos nesta disciplina (usando progresso_atividades)
       const { data: progressos } = await client
         .from("progresso_atividades")
-        .select("aluno_id, questoes_totais, questoes_acertos")
-        .in("aluno_id", alunoIds);
+        .select("usuario_id, questoes_totais, questoes_acertos")
+        .in("usuario_id", alunoIds);
 
       let totalQuestoes = 0;
       let totalAcertos = 0;
       const alunosSet = new Set<string>();
 
       for (const p of progressos ?? []) {
-        if (p.aluno_id) alunosSet.add(p.aluno_id);
+        if (p.usuario_id) alunosSet.add(p.usuario_id);
         totalQuestoes += p.questoes_totais ?? 0;
         totalAcertos += p.questoes_acertos ?? 0;
       }

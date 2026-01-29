@@ -4,9 +4,11 @@
 
 import type { RoleTipo, RolePermissions } from "./papel";
 
-// Roles principais do app
-// - aluno: estudante
-// - usuario: staff da instituição (professor, admin, staff, monitor)
+// Papel base no modelo unificado (enum_papel_base no banco)
+export type PapelBase = "aluno" | "professor" | "usuario";
+
+// Legacy: roles do app (mantido para compatibilidade durante migração)
+// Será removido em favor de PapelBase quando migração estiver completa
 export type AppUserRole =
   | "aluno"
   | "usuario"
@@ -17,10 +19,15 @@ export interface AppUser {
   id: string;
   email: string;
   role: AppUserRole;
-  // Tipo específico do papel (apenas para role="usuario")
+  // Papel base no modelo unificado
+  papelBase?: PapelBase;
+  // Tipo específico do papel (apenas para staff com papel customizado)
   roleType?: RoleTipo;
   // Permissões do papel
   permissions?: RolePermissions;
+  // Flags administrativos do vínculo
+  isAdmin?: boolean;
+  isOwner?: boolean;
   fullName?: string;
   avatarUrl?: string;
   mustChangePassword?: boolean;

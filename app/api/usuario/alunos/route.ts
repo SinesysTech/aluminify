@@ -278,13 +278,13 @@ async function postHandler(request: AuthenticatedRequest) {
 
       if (courseIds.length > 0) {
         const rows = courseIds.map((cursoId) => ({
-          aluno_id: resolvedExistingAluno.id,
+          usuario_id: resolvedExistingAluno.id,
           curso_id: cursoId,
         }));
 
         const { error: linkError } = await db
           .from("alunos_cursos")
-          .upsert(rows, { onConflict: "aluno_id,curso_id", ignoreDuplicates: true });
+          .upsert(rows, { onConflict: "usuario_id,curso_id", ignoreDuplicates: true });
 
         if (linkError) {
           console.error("[Student POST] Error linking existing aluno to courses:", linkError);

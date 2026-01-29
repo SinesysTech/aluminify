@@ -164,7 +164,7 @@ export class ProfessorAnalyticsService {
           )
         `,
         )
-        .eq("aluno_id", alunoId)
+        .eq("usuario_id", alunoId)
         .limit(1)
         .maybeSingle();
 
@@ -175,7 +175,7 @@ export class ProfessorAnalyticsService {
       const { data: ultimaSessao } = await client
         .from("sessoes_estudo")
         .select("created_at")
-        .eq("aluno_id", alunoId)
+        .eq("usuario_id", alunoId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -223,7 +223,7 @@ export class ProfessorAnalyticsService {
     const { data: cronograma } = await client
       .from("cronogramas")
       .select("id")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -256,7 +256,7 @@ export class ProfessorAnalyticsService {
     const { data: progressos } = await client
       .from("progresso_atividades")
       .select("questoes_totais, questoes_acertos")
-      .eq("aluno_id", alunoId);
+      .eq("usuario_id", alunoId);
 
     if (!progressos || progressos.length === 0) return 0;
 
@@ -362,8 +362,8 @@ export class ProfessorAnalyticsService {
       // Buscar sessões de estudo para esta disciplina
       const { data: sessoes } = await client
         .from("sessoes_estudo")
-        .select("aluno_id")
-        .in("aluno_id", alunoIds)
+        .select("usuario_id")
+        .in("usuario_id", alunoIds)
         .eq("disciplina_id", disciplina.id);
 
       if (!sessoes || sessoes.length === 0) continue;
@@ -371,15 +371,15 @@ export class ProfessorAnalyticsService {
       // Buscar aproveitamento agregado dos alunos (usando progresso_atividades)
       const { data: progressos } = await client
         .from("progresso_atividades")
-        .select("aluno_id, questoes_totais, questoes_acertos")
-        .in("aluno_id", alunoIds);
+        .select("usuario_id, questoes_totais, questoes_acertos")
+        .in("usuario_id", alunoIds);
 
       let totalQuestoes = 0;
       let totalAcertos = 0;
       const alunosSet = new Set<string>();
 
       for (const p of progressos ?? []) {
-        if (p.aluno_id) alunosSet.add(p.aluno_id);
+        if (p.usuario_id) alunosSet.add(p.usuario_id);
         totalQuestoes += p.questoes_totais ?? 0;
         totalAcertos += p.questoes_acertos ?? 0;
       }

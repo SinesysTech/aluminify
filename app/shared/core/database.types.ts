@@ -498,28 +498,21 @@ export type Database = {
       }
       alunos_cursos: {
         Row: {
-          aluno_id: string
           created_at: string | null
           curso_id: string
+          usuario_id: string
         }
         Insert: {
-          aluno_id: string
           created_at?: string | null
           curso_id: string
+          usuario_id: string
         }
         Update: {
-          aluno_id?: string
           created_at?: string | null
           curso_id?: string
+          usuario_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "alunos_cursos_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "alunos_cursos_curso_id_fkey"
             columns: ["curso_id"]
@@ -527,46 +520,53 @@ export type Database = {
             referencedRelation: "cursos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "alunos_cursos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
         ]
       }
       alunos_turmas: {
         Row: {
-          aluno_id: string
           created_at: string | null
           data_entrada: string | null
           data_saida: string | null
           status: Database["public"]["Enums"]["enum_status_aluno_turma"] | null
           turma_id: string
+          usuario_id: string
         }
         Insert: {
-          aluno_id: string
           created_at?: string | null
           data_entrada?: string | null
           data_saida?: string | null
           status?: Database["public"]["Enums"]["enum_status_aluno_turma"] | null
           turma_id: string
+          usuario_id: string
         }
         Update: {
-          aluno_id?: string
           created_at?: string | null
           data_entrada?: string | null
           data_saida?: string | null
           status?: Database["public"]["Enums"]["enum_status_aluno_turma"] | null
           turma_id?: string
+          usuario_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "alunos_turmas_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "alunos_turmas_turma_id_fkey"
             columns: ["turma_id"]
             isOneToOne: false
             referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alunos_turmas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -736,37 +736,30 @@ export type Database = {
       }
       aulas_concluidas: {
         Row: {
-          aluno_id: string
           aula_id: string
           created_at: string | null
           curso_id: string | null
           empresa_id: string | null
           updated_at: string | null
+          usuario_id: string
         }
         Insert: {
-          aluno_id: string
           aula_id: string
           created_at?: string | null
           curso_id?: string | null
           empresa_id?: string | null
           updated_at?: string | null
+          usuario_id: string
         }
         Update: {
-          aluno_id?: string
           aula_id?: string
           created_at?: string | null
           curso_id?: string | null
           empresa_id?: string | null
           updated_at?: string | null
+          usuario_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "aulas_concluidas_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "aulas_concluidas_aula_id_fkey"
             columns: ["aula_id"]
@@ -786,6 +779,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aulas_concluidas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1170,7 +1170,6 @@ export type Database = {
       }
       cronogramas: {
         Row: {
-          aluno_id: string
           created_at: string | null
           curso_alvo_id: string | null
           data_fim: string
@@ -1188,10 +1187,10 @@ export type Database = {
           periodos_ferias: Json | null
           prioridade_minima: number
           updated_at: string | null
+          usuario_id: string
           velocidade_reproducao: number | null
         }
         Insert: {
-          aluno_id: string
           created_at?: string | null
           curso_alvo_id?: string | null
           data_fim: string
@@ -1209,10 +1208,10 @@ export type Database = {
           periodos_ferias?: Json | null
           prioridade_minima?: number
           updated_at?: string | null
+          usuario_id: string
           velocidade_reproducao?: number | null
         }
         Update: {
-          aluno_id?: string
           created_at?: string | null
           curso_alvo_id?: string | null
           data_fim?: string
@@ -1230,16 +1229,10 @@ export type Database = {
           periodos_ferias?: Json | null
           prioridade_minima?: number
           updated_at?: string | null
+          usuario_id?: string
           velocidade_reproducao?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "cronogramas_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "cronogramas_curso_alvo_id_fkey"
             columns: ["curso_alvo_id"]
@@ -1252,6 +1245,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronogramas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1780,7 +1780,6 @@ export type Database = {
       }
       matriculas: {
         Row: {
-          aluno_id: string | null
           ativo: boolean
           created_at: string
           curso_id: string | null
@@ -1790,9 +1789,9 @@ export type Database = {
           empresa_id: string | null
           id: string
           updated_at: string
+          usuario_id: string | null
         }
         Insert: {
-          aluno_id?: string | null
           ativo?: boolean
           created_at?: string
           curso_id?: string | null
@@ -1802,9 +1801,9 @@ export type Database = {
           empresa_id?: string | null
           id?: string
           updated_at?: string
+          usuario_id?: string | null
         }
         Update: {
-          aluno_id?: string | null
           ativo?: boolean
           created_at?: string
           curso_id?: string | null
@@ -1814,15 +1813,9 @@ export type Database = {
           empresa_id?: string | null
           id?: string
           updated_at?: string
+          usuario_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "matriculas_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "matriculas_curso_id_fkey"
             columns: ["curso_id"]
@@ -1835,6 +1828,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matriculas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -2246,7 +2246,6 @@ export type Database = {
       }
       progresso_atividades: {
         Row: {
-          aluno_id: string | null
           anotacoes_pessoais: string | null
           atividade_id: string | null
           created_at: string | null
@@ -2261,9 +2260,9 @@ export type Database = {
           questoes_totais: number | null
           status: Database["public"]["Enums"]["enum_status_atividade"] | null
           updated_at: string | null
+          usuario_id: string | null
         }
         Insert: {
-          aluno_id?: string | null
           anotacoes_pessoais?: string | null
           atividade_id?: string | null
           created_at?: string | null
@@ -2278,9 +2277,9 @@ export type Database = {
           questoes_totais?: number | null
           status?: Database["public"]["Enums"]["enum_status_atividade"] | null
           updated_at?: string | null
+          usuario_id?: string | null
         }
         Update: {
-          aluno_id?: string | null
           anotacoes_pessoais?: string | null
           atividade_id?: string | null
           created_at?: string | null
@@ -2295,15 +2294,9 @@ export type Database = {
           questoes_totais?: number | null
           status?: Database["public"]["Enums"]["enum_status_atividade"] | null
           updated_at?: string | null
+          usuario_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "progresso_atividades_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "progresso_atividades_atividade_id_fkey"
             columns: ["atividade_id"]
@@ -2318,11 +2311,17 @@ export type Database = {
             referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "progresso_atividades_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
         ]
       }
       progresso_flashcards: {
         Row: {
-          aluno_id: string | null
           created_at: string | null
           data_proxima_revisao: string | null
           dias_intervalo: number | null
@@ -2333,9 +2332,9 @@ export type Database = {
           numero_revisoes: number | null
           ultimo_feedback: number | null
           updated_at: string | null
+          usuario_id: string | null
         }
         Insert: {
-          aluno_id?: string | null
           created_at?: string | null
           data_proxima_revisao?: string | null
           dias_intervalo?: number | null
@@ -2346,9 +2345,9 @@ export type Database = {
           numero_revisoes?: number | null
           ultimo_feedback?: number | null
           updated_at?: string | null
+          usuario_id?: string | null
         }
         Update: {
-          aluno_id?: string | null
           created_at?: string | null
           data_proxima_revisao?: string | null
           dias_intervalo?: number | null
@@ -2359,15 +2358,9 @@ export type Database = {
           numero_revisoes?: number | null
           ultimo_feedback?: number | null
           updated_at?: string | null
+          usuario_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "progresso_flashcards_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "progresso_flashcards_empresa_id_fkey"
             columns: ["empresa_id"]
@@ -2380,6 +2373,13 @@ export type Database = {
             columns: ["flashcard_id"]
             isOneToOne: false
             referencedRelation: "flashcards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_flashcards_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -2484,7 +2484,6 @@ export type Database = {
       }
       sessoes_estudo: {
         Row: {
-          aluno_id: string | null
           atividade_relacionada_id: string | null
           created_at: string | null
           disciplina_id: string | null
@@ -2500,9 +2499,9 @@ export type Database = {
           tempo_total_bruto_segundos: number | null
           tempo_total_liquido_segundos: number | null
           updated_at: string | null
+          usuario_id: string | null
         }
         Insert: {
-          aluno_id?: string | null
           atividade_relacionada_id?: string | null
           created_at?: string | null
           disciplina_id?: string | null
@@ -2518,9 +2517,9 @@ export type Database = {
           tempo_total_bruto_segundos?: number | null
           tempo_total_liquido_segundos?: number | null
           updated_at?: string | null
+          usuario_id?: string | null
         }
         Update: {
-          aluno_id?: string | null
           atividade_relacionada_id?: string | null
           created_at?: string | null
           disciplina_id?: string | null
@@ -2536,6 +2535,7 @@ export type Database = {
           tempo_total_bruto_segundos?: number | null
           tempo_total_liquido_segundos?: number | null
           updated_at?: string | null
+          usuario_id?: string | null
         }
         Relationships: [
           {
@@ -2543,13 +2543,6 @@ export type Database = {
             columns: ["frente_id"]
             isOneToOne: false
             referencedRelation: "frentes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sessoes_estudo_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
             referencedColumns: ["id"]
           },
           {
@@ -2571,6 +2564,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessoes_estudo_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -2834,7 +2834,6 @@ export type Database = {
       }
       transactions: {
         Row: {
-          aluno_id: string | null
           amount_cents: number
           buyer_document: string | null
           buyer_email: string
@@ -2856,9 +2855,9 @@ export type Database = {
           sale_date: string
           status: Database["public"]["Enums"]["transaction_status"]
           updated_at: string
+          usuario_id: string | null
         }
         Insert: {
-          aluno_id?: string | null
           amount_cents: number
           buyer_document?: string | null
           buyer_email: string
@@ -2880,9 +2879,9 @@ export type Database = {
           sale_date?: string
           status?: Database["public"]["Enums"]["transaction_status"]
           updated_at?: string
+          usuario_id?: string | null
         }
         Update: {
-          aluno_id?: string | null
           amount_cents?: number
           buyer_document?: string | null
           buyer_email?: string
@@ -2904,15 +2903,9 @@ export type Database = {
           sale_date?: string
           status?: Database["public"]["Enums"]["transaction_status"]
           updated_at?: string
+          usuario_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "transactions_aluno_id_fkey"
-            columns: ["aluno_id"]
-            isOneToOne: false
-            referencedRelation: "alunos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "transactions_coupon_id_fkey"
             columns: ["coupon_id"]
@@ -2932,6 +2925,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -2996,53 +2996,101 @@ export type Database = {
       usuarios: {
         Row: {
           ativo: boolean
+          bairro: string | null
           biografia: string | null
+          cep: string | null
           chave_pix: string | null
+          cidade: string | null
+          complemento: string | null
           cpf: string | null
           created_at: string
+          data_nascimento: string | null
           deleted_at: string | null
           email: string
           empresa_id: string
+          endereco: string | null
           especialidade: string | null
+          estado: string | null
           foto_url: string | null
+          hotmart_id: string | null
           id: string
+          instagram: string | null
+          must_change_password: boolean
           nome_completo: string
-          papel_id: string
+          numero_endereco: string | null
+          numero_matricula: string | null
+          origem_cadastro: string | null
+          pais: string | null
+          papel_id: string | null
+          senha_temporaria: string | null
           telefone: string | null
+          twitter: string | null
           updated_at: string
         }
         Insert: {
           ativo?: boolean
+          bairro?: string | null
           biografia?: string | null
+          cep?: string | null
           chave_pix?: string | null
+          cidade?: string | null
+          complemento?: string | null
           cpf?: string | null
           created_at?: string
+          data_nascimento?: string | null
           deleted_at?: string | null
           email: string
           empresa_id: string
+          endereco?: string | null
           especialidade?: string | null
+          estado?: string | null
           foto_url?: string | null
+          hotmart_id?: string | null
           id: string
+          instagram?: string | null
+          must_change_password?: boolean
           nome_completo: string
-          papel_id: string
+          numero_endereco?: string | null
+          numero_matricula?: string | null
+          origem_cadastro?: string | null
+          pais?: string | null
+          papel_id?: string | null
+          senha_temporaria?: string | null
           telefone?: string | null
+          twitter?: string | null
           updated_at?: string
         }
         Update: {
           ativo?: boolean
+          bairro?: string | null
           biografia?: string | null
+          cep?: string | null
           chave_pix?: string | null
+          cidade?: string | null
+          complemento?: string | null
           cpf?: string | null
           created_at?: string
+          data_nascimento?: string | null
           deleted_at?: string | null
           email?: string
           empresa_id?: string
+          endereco?: string | null
           especialidade?: string | null
+          estado?: string | null
           foto_url?: string | null
+          hotmart_id?: string | null
           id?: string
+          instagram?: string | null
+          must_change_password?: boolean
           nome_completo?: string
-          papel_id?: string
+          numero_endereco?: string | null
+          numero_matricula?: string | null
+          origem_cadastro?: string | null
+          pais?: string | null
+          papel_id?: string | null
+          senha_temporaria?: string | null
           telefone?: string | null
+          twitter?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3154,6 +3202,70 @@ export type Database = {
           },
         ]
       }
+      usuarios_empresas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          deleted_at: string | null
+          empresa_id: string
+          id: string
+          is_admin: boolean
+          is_owner: boolean
+          papel_base: Database["public"]["Enums"]["enum_papel_base"]
+          papel_id: string | null
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          empresa_id: string
+          id?: string
+          is_admin?: boolean
+          is_owner?: boolean
+          papel_base: Database["public"]["Enums"]["enum_papel_base"]
+          papel_id?: string | null
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          empresa_id?: string
+          id?: string
+          is_admin?: boolean
+          is_owner?: boolean
+          papel_base?: Database["public"]["Enums"]["enum_papel_base"]
+          papel_id?: string | null
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_empresas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_empresas_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_empresas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3184,6 +3296,12 @@ export type Database = {
         }[]
       }
       get_professor_disciplinas: { Args: never; Returns: string[] }
+      get_student_ids_by_empresa_courses: {
+        Args: { empresa_id_param: string }
+        Returns: {
+          aluno_id: string
+        }[]
+      }
       get_user_empresa_id: { Args: never; Returns: string }
       importar_cronograma_aulas: {
         Args: {
@@ -3234,6 +3352,7 @@ export type Database = {
       enum_importancia_modulo: "Alta" | "Media" | "Baixa" | "Base"
       enum_logo_type: "login" | "sidebar" | "favicon"
       enum_modalidade: "EAD" | "LIVE"
+      enum_papel_base: "aluno" | "professor" | "usuario"
       enum_plano_empresa: "basico" | "profissional" | "enterprise"
       enum_status_aluno_turma: "ativo" | "concluido" | "cancelado" | "trancado"
       enum_status_atividade: "Pendente" | "Iniciado" | "Concluido"
@@ -3416,6 +3535,7 @@ export const Constants = {
       enum_importancia_modulo: ["Alta", "Media", "Baixa", "Base"],
       enum_logo_type: ["login", "sidebar", "favicon"],
       enum_modalidade: ["EAD", "LIVE"],
+      enum_papel_base: ["aluno", "professor", "usuario"],
       enum_plano_empresa: ["basico", "profissional", "enterprise"],
       enum_status_aluno_turma: ["ativo", "concluido", "cancelado", "trancado"],
       enum_status_atividade: ["Pendente", "Iniciado", "Concluido"],

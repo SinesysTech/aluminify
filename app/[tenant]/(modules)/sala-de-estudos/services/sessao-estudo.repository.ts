@@ -40,7 +40,7 @@ function mapRowToModel(row: SessaoEstudoRow): SessaoEstudo {
 
   return {
     id: row.id,
-    alunoId: row.aluno_id ?? "",
+    alunoId: row.usuario_id ?? "",
     disciplinaId: row.disciplina_id ?? null,
     frenteId: row.frente_id ?? null,
     moduloId: null, // modulo_id does not exist in sessoes_estudo table
@@ -87,7 +87,7 @@ export class SessaoEstudoRepository {
     }
 
     const baseInsert = {
-      aluno_id: input.alunoId,
+      usuario_id: input.alunoId,
       disciplina_id: input.disciplinaId ?? null,
       frente_id: input.frenteId ?? null,
       atividade_relacionada_id: input.atividadeRelacionadaId ?? null,
@@ -173,7 +173,7 @@ export class SessaoEstudoRepository {
       .from(this.table)
       .update(updateData)
       .eq("id", id)
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .select()
       .single();
 
@@ -190,7 +190,7 @@ export class SessaoEstudoRepository {
       .from(this.table)
       .update({ updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("aluno_id", alunoId);
+      .eq("usuario_id", alunoId);
 
     // Fallback para ambientes sem coluna updated_at (migration não aplicada)
     if (

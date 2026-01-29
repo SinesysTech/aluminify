@@ -223,7 +223,7 @@ export class TurmaRepositoryImpl implements TurmaRepository {
   async getAlunosDaTurma(turmaId: string): Promise<AlunoNaTurma[]> {
     const { data: links, error: linksError } = await this.client
       .from(ALUNOS_TURMAS_TABLE)
-      .select("aluno_id, status, data_entrada")
+      .select("usuario_id, status, data_entrada")
       .eq("turma_id", turmaId)
       .eq("status", "ativo");
 
@@ -235,8 +235,8 @@ export class TurmaRepositoryImpl implements TurmaRepository {
       return [];
     }
 
-    const alunoIds = links.map((l) => l.aluno_id);
-    const linksMap = new Map(links.map((l) => [l.aluno_id, l]));
+    const alunoIds = links.map((l) => l.usuario_id);
+    const linksMap = new Map(links.map((l) => [l.usuario_id, l]));
 
     const { data: alunos, error: alunosError } = await this.client
       .from(ALUNOS_TABLE)
@@ -265,7 +265,7 @@ export class TurmaRepositoryImpl implements TurmaRepository {
     const { error } = await this.client
       .from(ALUNOS_TURMAS_TABLE)
       .insert({
-        aluno_id: alunoId,
+        usuario_id: alunoId,
         turma_id: turmaId,
         status: "ativo",
         data_entrada: dataEntrada ?? new Date().toISOString().split("T")[0],
@@ -288,7 +288,7 @@ export class TurmaRepositoryImpl implements TurmaRepository {
         data_saida: new Date().toISOString().split("T")[0],
       })
       .eq("turma_id", turmaId)
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .eq("status", "ativo");
 
     if (error) {

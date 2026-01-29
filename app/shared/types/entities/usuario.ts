@@ -1,28 +1,72 @@
 /**
- * Tipos para Usuários da Instituição (Staff)
- * Substitui a antiga estrutura de Teacher/Professor
+ * Tipos para Usuários (modelo unificado)
+ * Uma única tabela `usuarios` contém dados pessoais de todas as pessoas.
+ * O vínculo com empresas e papel base está em `usuarios_empresas`.
  */
 
 import type { Papel, RoleTipo, RolePermissions } from './papel';
+import type { PapelBase } from './user';
 
-// Usuário da instituição (professor, admin, staff, monitor)
+// Usuário unificado — 1 registro por pessoa
 export interface Usuario {
   id: string;
-  empresaId: string;
-  papelId: string;
-  papel?: Papel;
   nomeCompleto: string;
   email: string;
   cpf: string | null;
   telefone: string | null;
-  chavePix: string | null;
   fotoUrl: string | null;
   biografia: string | null;
   especialidade: string | null;
-  ativo: boolean;
+  chavePix: string | null;
+  // Campos de endereço (originalmente de alunos)
+  dataNascimento: Date | null;
+  endereco: string | null;
+  cep: string | null;
+  numeroEndereco: string | null;
+  complemento: string | null;
+  cidade: string | null;
+  estado: string | null;
+  bairro: string | null;
+  pais: string | null;
+  // Redes sociais
+  instagram: string | null;
+  twitter: string | null;
+  // Matrícula / integração
+  numeroMatricula: string | null;
+  hotmartId: string | null;
+  origemCadastro: string | null;
+  // Auth
+  mustChangePassword: boolean;
+  senhaTemporaria: string | null;
+  // Timestamps
   createdAt: Date;
   updatedAt: Date;
+  // Legacy: empresa_id e papel_id serão removidos em FASE 10
+  empresaId?: string;
+  papelId?: string | null;
+  papel?: Papel;
+  ativo?: boolean;
+  deletedAt?: Date | null;
+}
+
+// Vínculo N:N entre usuario e empresa com papel base
+export interface UsuarioEmpresa {
+  id: string;
+  usuarioId: string;
+  empresaId: string;
+  papelBase: PapelBase;
+  papelId: string | null;
+  isAdmin: boolean;
+  isOwner: boolean;
+  ativo: boolean;
   deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Usuario com seus vínculos de empresa
+export interface UsuarioWithEmpresas extends Usuario {
+  vinculos: UsuarioEmpresa[];
 }
 
 // Usuário com informações expandidas de papel

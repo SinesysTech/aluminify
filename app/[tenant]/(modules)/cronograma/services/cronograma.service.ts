@@ -60,7 +60,7 @@ function mapToCronogramaDetalhado(
 ): CronogramaDetalhado {
   return {
     id: row.id,
-    aluno_id: row.aluno_id,
+    aluno_id: row.usuario_id,
     curso_alvo_id: row.curso_alvo_id,
     nome: row.nome ?? "Meu Cronograma",
     data_inicio: row.data_inicio,
@@ -454,7 +454,7 @@ export class CronogramaService {
     const { data: cronogramaExistente, error: selectError } = await client
       .from("cronogramas")
       .select("id")
-      .eq("aluno_id", userId)
+      .eq("usuario_id", userId)
       .maybeSingle();
 
     if (selectError) {
@@ -2178,7 +2178,7 @@ export class CronogramaService {
     const { data, error } = await client
       .from("aulas_concluidas")
       .select("aula_id")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .eq("curso_id", cursoId);
 
     if (error) {
@@ -2192,9 +2192,9 @@ export class CronogramaService {
 
     const { data: historicoData, error: historicoError } = await client
       .from("cronograma_itens")
-      .select("aula_id, cronogramas!inner(aluno_id, curso_alvo_id)")
+      .select("aula_id, cronogramas!inner(usuario_id, curso_alvo_id)")
       .eq("concluido", true)
-      .eq("cronogramas.aluno_id", alunoId)
+      .eq("cronogramas.usuario_id", alunoId)
       .eq("cronogramas.curso_alvo_id", cursoId);
 
     if (historicoError) {
@@ -2221,7 +2221,7 @@ export class CronogramaService {
       .from("cronogramas")
       .insert({
         empresa_id: empresaId,
-        aluno_id: input.aluno_id,
+        usuario_id: input.aluno_id,
         curso_alvo_id: input.curso_alvo_id || null,
         nome: input.nome || "Meu Cronograma",
         data_inicio: input.data_inicio,
@@ -2281,7 +2281,7 @@ export class CronogramaService {
           .from("cronogramas")
           .insert({
             empresa_id: empresaId,
-            aluno_id: input.aluno_id,
+            usuario_id: input.aluno_id,
             curso_alvo_id: input.curso_alvo_id || null,
             nome: input.nome || "Meu Cronograma",
             data_inicio: input.data_inicio,
@@ -2485,7 +2485,7 @@ export class CronogramaService {
     // Verificar se o cronograma pertence ao usuário
     const { data: cronograma, error: cronogramaError } = await client
       .from("cronogramas")
-      .select("id, aluno_id")
+      .select("id, usuario_id")
       .eq("id", cronogramaId)
       .single();
 
@@ -2493,7 +2493,7 @@ export class CronogramaService {
       throw new CronogramaValidationError("Cronograma não encontrado");
     }
 
-    if (cronograma.aluno_id !== userId) {
+    if (cronograma.usuario_id !== userId) {
       throw new CronogramaValidationError(
         "Você só pode acessar seus próprios cronogramas",
       );
@@ -2547,7 +2547,7 @@ export class CronogramaService {
     // Verificar se o cronograma pertence ao usuário
     const { data: cronograma, error: cronogramaError } = await client
       .from("cronogramas")
-      .select("id, aluno_id, data_inicio")
+      .select("id, usuario_id, data_inicio")
       .eq("id", input.cronograma_id)
       .single();
 
@@ -2555,7 +2555,7 @@ export class CronogramaService {
       throw new CronogramaValidationError("Cronograma não encontrado");
     }
 
-    if (cronograma.aluno_id !== userId) {
+    if (cronograma.usuario_id !== userId) {
       throw new CronogramaValidationError(
         "Você só pode atualizar seus próprios cronogramas",
       );
@@ -2638,7 +2638,7 @@ export class CronogramaService {
     // Verificar se o cronograma pertence ao usuário
     const { data: cronograma, error: cronogramaError } = await client
       .from("cronogramas")
-      .select("id, aluno_id, data_inicio")
+      .select("id, usuario_id, data_inicio")
       .eq("id", cronogramaId)
       .single();
 
@@ -2646,7 +2646,7 @@ export class CronogramaService {
       throw new CronogramaValidationError("Cronograma não encontrado");
     }
 
-    if (cronograma.aluno_id !== userId) {
+    if (cronograma.usuario_id !== userId) {
       throw new CronogramaValidationError(
         "Você só pode recalcular datas dos seus próprios cronogramas",
       );
@@ -3166,7 +3166,7 @@ export class CronogramaService {
     const { data: cronogramaRaw, error: cronogramaError } = await client
       .from("cronogramas")
       .select(
-        "id, aluno_id, data_inicio, data_fim, horas_estudo_dia, dias_estudo_semana, periodos_ferias, velocidade_reproducao",
+        "id, usuario_id, data_inicio, data_fim, horas_estudo_dia, dias_estudo_semana, periodos_ferias, velocidade_reproducao",
       )
       .eq("id", cronogramaId)
       .single();
@@ -3177,7 +3177,7 @@ export class CronogramaService {
 
     const cronograma = cronogramaRaw as unknown as {
       id: string;
-      aluno_id: string;
+      usuario_id: string;
       data_inicio: string;
       data_fim: string;
       horas_estudo_dia: number;
@@ -3186,7 +3186,7 @@ export class CronogramaService {
       velocidade_reproducao: number | null;
     };
 
-    if (cronograma.aluno_id !== userId) {
+    if (cronograma.usuario_id !== userId) {
       throw new CronogramaValidationError(
         "Você só pode acessar seus próprios cronogramas",
       );

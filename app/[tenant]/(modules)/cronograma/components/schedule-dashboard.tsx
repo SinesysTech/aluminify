@@ -610,11 +610,11 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           .from('aulas_concluidas')
           .upsert(
             {
-              aluno_id: alunoAtual,
+              usuario_id: alunoAtual,
               aula_id: itemAlvo.aula_id,
               curso_id: cursoDaAula,
             },
-            { onConflict: 'aluno_id,aula_id' },
+            { onConflict: 'usuario_id,aula_id' },
           )
         if (aulaError) {
           console.error('Erro ao registrar aula concluída:', {
@@ -637,7 +637,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
         const { error: deleteError } = await supabase
           .from('aulas_concluidas')
           .delete()
-          .eq('aluno_id', alunoAtual)
+          .eq('usuario_id', alunoAtual)
           .eq('aula_id', itemAlvo.aula_id)
         if (deleteError) {
           console.error('Erro ao remover aula concluída:', {

@@ -28,7 +28,7 @@ type EnrollmentUpdate = Database['public']['Tables']['matriculas']['Update'];
 function mapRow(row: EnrollmentRow): Enrollment {
   return {
     id: row.id,
-    studentId: row.aluno_id ?? '',
+    studentId: row.usuario_id ?? '',
     courseId: row.curso_id ?? '',
     enrollmentDate: new Date(row.data_matricula),
     accessStartDate: new Date(row.data_inicio_acesso),
@@ -69,7 +69,7 @@ export class EnrollmentRepositoryImpl implements EnrollmentRepository {
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .eq('aluno_id', studentId)
+      .eq('usuario_id', studentId)
       .order('data_matricula', { ascending: false });
 
     if (error) {
@@ -97,7 +97,7 @@ export class EnrollmentRepositoryImpl implements EnrollmentRepository {
     const { data, error } = await this.client
       .from(TABLE)
       .select('*')
-      .eq('aluno_id', studentId)
+      .eq('usuario_id', studentId)
       .eq('curso_id', courseId)
       .eq('ativo', true)
       .maybeSingle();
@@ -111,7 +111,7 @@ export class EnrollmentRepositoryImpl implements EnrollmentRepository {
 
   async create(payload: CreateEnrollmentInput): Promise<Enrollment> {
     const insertData: EnrollmentInsert = {
-      aluno_id: payload.studentId,
+      usuario_id: payload.studentId,
       curso_id: payload.courseId,
       data_inicio_acesso: payload.accessStartDate || new Date().toISOString().split('T')[0],
       data_fim_acesso: payload.accessEndDate,

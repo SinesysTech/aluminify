@@ -75,7 +75,7 @@ function mapRow(row: TransactionRow): Transaction {
   return {
     id: row.id,
     empresaId: row.empresa_id,
-    alunoId: row.aluno_id,
+    alunoId: row.usuario_id,
     productId: row.product_id,
     couponId: row.coupon_id,
     provider: row.provider as Provider,
@@ -104,7 +104,7 @@ function mapRow(row: TransactionRow): Transaction {
 function mapToInsert(input: CreateTransactionInput): TransactionInsert {
   return {
     empresa_id: input.empresaId,
-    aluno_id: input.alunoId ?? null,
+    usuario_id: input.alunoId ?? null,
     product_id: input.productId ?? null,
     coupon_id: input.couponId ?? null,
     provider: input.provider ?? "manual",
@@ -129,7 +129,7 @@ function mapToInsert(input: CreateTransactionInput): TransactionInsert {
 function mapToUpdate(input: UpdateTransactionInput): TransactionUpdate {
   const update: TransactionUpdate = {};
 
-  if (input.alunoId !== undefined) update.aluno_id = input.alunoId;
+  if (input.alunoId !== undefined) update.usuario_id = input.alunoId;
   if (input.productId !== undefined) update.product_id = input.productId;
   if (input.couponId !== undefined) update.coupon_id = input.couponId;
   if (input.status !== undefined) update.status = input.status;
@@ -174,7 +174,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
     if (params.status) countQuery = countQuery.eq("status", params.status);
     if (params.provider) countQuery = countQuery.eq("provider", params.provider);
     if (params.productId) countQuery = countQuery.eq("product_id", params.productId);
-    if (params.alunoId) countQuery = countQuery.eq("aluno_id", params.alunoId);
+    if (params.alunoId) countQuery = countQuery.eq("usuario_id", params.alunoId);
     if (params.buyerEmail) countQuery = countQuery.ilike("buyer_email", `%${params.buyerEmail}%`);
     if (params.dateFrom) countQuery = countQuery.gte("sale_date", params.dateFrom.toISOString());
     if (params.dateTo) countQuery = countQuery.lte("sale_date", params.dateTo.toISOString());
@@ -197,7 +197,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
     if (params.status) dataQuery = dataQuery.eq("status", params.status);
     if (params.provider) dataQuery = dataQuery.eq("provider", params.provider);
     if (params.productId) dataQuery = dataQuery.eq("product_id", params.productId);
-    if (params.alunoId) dataQuery = dataQuery.eq("aluno_id", params.alunoId);
+    if (params.alunoId) dataQuery = dataQuery.eq("usuario_id", params.alunoId);
     if (params.buyerEmail) dataQuery = dataQuery.ilike("buyer_email", `%${params.buyerEmail}%`);
     if (params.dateFrom) dataQuery = dataQuery.gte("sale_date", params.dateFrom.toISOString());
     if (params.dateTo) dataQuery = dataQuery.lte("sale_date", params.dateTo.toISOString());
