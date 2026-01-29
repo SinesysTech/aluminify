@@ -251,15 +251,15 @@ export async function getAgendamentoById(
     .select(
       `
       *,
-      aluno:alunos!agendamentos_aluno_id_fkey(
-        id, 
+      aluno:usuarios!agendamentos_aluno_id_fkey(
+        id,
         nome_completo,
         email
       ),
-      professor:professores!agendamentos_professor_id_fkey(
-        id, 
+      professor:usuarios!agendamentos_professor_id_fkey(
+        id,
         nome_completo,
-        email, 
+        email,
         foto_url
       )
     `,

@@ -19,12 +19,9 @@ import { usePathname, useParams } from "next/navigation"
 
 import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
-import { useCurrentUser } from "@/components/providers/user-provider"
-import { TenantLogo } from "@/components/ui/tenant-logo"
+import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
 import { useModuleVisibility } from "@/app/shared/hooks/use-module-visibility"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"
-import { OrganizationSwitcher } from "@/app/[tenant]/(modules)/dashboard/components/organization-switcher"
-import { useOptionalTenantContext } from "@/app/[tenant]/tenant-context"
 import {
   Sidebar,
   SidebarContent,
@@ -36,7 +33,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
-import { getDefaultRouteForRole } from "@/app/shared/core/roles"
 
 type NavItem = {
   title: string
@@ -149,8 +145,6 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
 
 export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const user = useCurrentUser()
-  const tenantContext = useOptionalTenantContext()
   const params = useParams()
   const tenantSlug = params?.tenant as string
 
@@ -202,47 +196,10 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
   })) ?? null
 
-  const homeLink = tenantSlug
-    ? `/${tenantSlug}${getDefaultRouteForRole(user.role)}`
-    : getDefaultRouteForRole(user.role)
-
-  // Get organization name and first letter for fallback
-  const organizationName =
-    tenantContext?.empresaNome || user.empresaNome || 'Área do Aluno'
-  const fallbackLetter = organizationName.charAt(0).toUpperCase()
-  const empresaIdForUi = tenantContext?.empresaId || user.empresaId
-
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href={homeLink}>
-                <div className="flex items-center gap-3">
-                  <TenantLogo
-                    logoType="sidebar"
-                    empresaId={empresaIdForUi}
-                    width={32}
-                    height={32}
-                    fallbackText={fallbackLetter}
-                  />
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{organizationName}</span>
-                  </div>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        {/* Multi-org switcher (aparece somente para alunos com 2+ organizações) */}
-        <div className="mt-2 px-2">
-          <OrganizationSwitcher
-            variant="compact"
-            align="start"
-            className="w-full max-w-none justify-between"
-          />
-        </div>
+        <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
         {navMainWithActive ? (

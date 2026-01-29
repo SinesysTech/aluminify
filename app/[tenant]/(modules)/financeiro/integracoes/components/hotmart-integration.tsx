@@ -84,9 +84,9 @@ export function HotmartIntegration({ empresaId }: HotmartIntegrationProps) {
         .select("*")
         .eq("empresa_id", empresaId)
         .eq("provider", "hotmart")
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         throw error;
       }
 

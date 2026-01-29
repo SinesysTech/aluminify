@@ -77,7 +77,7 @@ async function validateMigration(_stats: MigrationStats): Promise<boolean> {
 
   // Verificar integridade referencial
   const { data: professores, error: profError } = await supabase
-    .from('professores')
+    .from('usuarios')
     .select('id, empresa_id')
 
   if (profError) {
@@ -162,7 +162,7 @@ async function migrate(dryRun: boolean = false): Promise<MigrationStats> {
       .from('agendamento_disponibilidade')
       .select(`
         *,
-        professor:professores!agendamento_disponibilidade_professor_id_fkey(id, empresa_id)
+        professor:usuarios!agendamento_disponibilidade_professor_id_fkey(id, empresa_id)
       `)
       .eq('ativo', true)
 

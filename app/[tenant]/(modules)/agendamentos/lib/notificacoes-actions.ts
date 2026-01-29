@@ -20,10 +20,10 @@ export type NotificacaoAgendamento = {
     data_fim: string
     status: string
     professor?: {
-      nome: string
+      nome_completo: string
     }
     aluno?: {
-      nome: string
+      nome_completo: string
     }
   }
 }
@@ -42,8 +42,8 @@ export async function getNotificacoesUsuario(userId: string): Promise<Notificaca
         data_inicio,
         data_fim,
         status,
-        professor:professores!agendamentos_professor_id_fkey(nome),
-        aluno:alunos!agendamentos_aluno_id_fkey(nome)
+        professor:usuarios!agendamentos_professor_id_fkey(nome_completo),
+        aluno:usuarios!agendamentos_aluno_id_fkey(nome_completo)
       )
     `)
     .eq('destinatario_id', userId)
@@ -89,11 +89,11 @@ export async function getNotificacoesUsuario(userId: string): Promise<Notificaca
 
     const professor =
       professorRaw && typeof professorRaw === 'object' && !('code' in (professorRaw as Record<string, unknown>))
-        ? (professorRaw as { nome: string })
+        ? (professorRaw as { nome_completo: string })
         : undefined
     const aluno =
       alunoRaw && typeof alunoRaw === 'object' && !('code' in (alunoRaw as Record<string, unknown>))
-        ? (alunoRaw as { nome: string })
+        ? (alunoRaw as { nome_completo: string })
         : undefined
 
     return {
@@ -165,8 +165,8 @@ export async function marcarTodasComoLidas(userId: string) {
 export function getNotificacaoMessage(notificacao: NotificacaoAgendamento, userId: string): string {
   const isProfessor = notificacao.agendamento?.professor_id === userId
   const outraParteNome = isProfessor
-    ? notificacao.agendamento?.aluno?.nome || 'Aluno'
-    : notificacao.agendamento?.professor?.nome || 'Professor'
+    ? notificacao.agendamento?.aluno?.nome_completo || 'Aluno'
+    : notificacao.agendamento?.professor?.nome_completo || 'Professor'
 
   const messages: Record<string, string> = {
     criacao: `Novo pedido de agendamento de ${outraParteNome}`,

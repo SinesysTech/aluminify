@@ -41,16 +41,16 @@ async function getHandler(
     .from('agendamentos')
     .select(`
       *,
-      professor:professores!agendamentos_professor_id_fkey(nome, email),
-      aluno:alunos!agendamentos_aluno_id_fkey(nome, email)
+      professor:usuarios!agendamentos_professor_id_fkey(nome_completo, email),
+      aluno:usuarios!agendamentos_aluno_id_fkey(nome_completo, email)
     `)
     .eq('id', agendamentoId)
     .single()
 
   // Type assertion for joined query result
   type AgendamentoWithDetails = Database['public']['Tables']['agendamentos']['Row'] & {
-    professor: { nome: string; email: string } | null;
-    aluno: { nome: string; email: string } | null;
+    professor: { nome_completo: string; email: string } | null;
+    aluno: { nome_completo: string; email: string } | null;
   };
   const typedAgendamento = agendamento as AgendamentoWithDetails | null;
 
@@ -79,8 +79,8 @@ async function getHandler(
     // Determine the other party's name
     const isAluno = request.user.id === typedAgendamento.aluno_id
     const outraParte = isAluno
-      ? typedAgendamento.professor?.nome || 'Professor'
-      : typedAgendamento.aluno?.nome || 'Aluno'
+      ? typedAgendamento.professor?.nome_completo || 'Professor'
+      : typedAgendamento.aluno?.nome_completo || 'Aluno'
 
     // Build event summary
     const summary = isAluno
