@@ -15,6 +15,7 @@
  * For detailed TypeScript patterns, see: docs/TYPESCRIPT_SUPABASE_GUIDE.md
  */
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/app/shared/core/server";
@@ -26,7 +27,7 @@ import { getDefaultRouteForRole } from "@/app/shared/core/roles";
 
 type LegacyAppUserRole = "professor" | "empresa";
 
-export async function getAuthenticatedUser(): Promise<AppUser | null> {
+async function _getAuthenticatedUser(): Promise<AppUser | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -290,6 +291,8 @@ export async function getAuthenticatedUser(): Promise<AppUser | null> {
       : {}),
   } as AppUser & { _impersonationContext?: typeof impersonationContext };
 }
+
+export const getAuthenticatedUser = cache(_getAuthenticatedUser);
 
 type RequireUserOptions = {
   /**

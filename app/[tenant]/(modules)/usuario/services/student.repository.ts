@@ -556,7 +556,7 @@ export class StudentRepositoryImpl implements StudentRepository {
       );
       if (existingByEnrollment && existingByEnrollment.id !== payload.id) {
         throw new Error(
-          `Failed to create student: duplicate key value violates unique constraint "alunos_empresa_matricula_unique"`,
+          `Failed to create student: duplicate key value violates unique constraint "usuarios_empresa_matricula_unique"`,
         );
       }
     }
@@ -595,7 +595,7 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     // Create usuarios_empresas binding for this student
     if (data && insertData.empresa_id) {
-      await this.client
+      const { error: vinculoError } = await this.client
         .from("usuarios_empresas")
         .upsert(
           {
@@ -604,16 +604,14 @@ export class StudentRepositoryImpl implements StudentRepository {
             papel_base: "aluno",
             ativo: true,
           },
-          { onConflict: "usuario_id,empresa_id" },
-        )
-        .then(({ error: vinculoError }) => {
-          if (vinculoError) {
-            console.error(
-              "[StudentRepo] Failed to create usuarios_empresas binding:",
-              vinculoError,
-            );
-          }
-        });
+          { onConflict: "usuario_id,empresa_id,papel_base" },
+        );
+
+      if (vinculoError) {
+        throw new Error(
+          `Failed to create tenant binding (usuarios_empresas): ${formatSupabaseError(vinculoError)}`,
+        );
+      }
     }
 
     if (error) {
@@ -622,9 +620,9 @@ export class StudentRepositoryImpl implements StudentRepository {
       const errorCode = error.code || "";
       
       // PostgreSQL error codes: 23505 = unique_violation, 23503 = foreign_key_violation
-      const isPrimaryKeyError = 
-        errorCode === "23505" && 
-        (errorMessage.includes("usuarios_pkey") || errorMessage.includes("alunos_pkey") ||
+      const isPrimaryKeyError =
+        errorCode === "23505" &&
+        (errorMessage.includes("usuarios_pkey") ||
          errorMessage.includes("primary key") ||
          errorMessage.includes("chave primária"));
 
@@ -632,7 +630,7 @@ export class StudentRepositoryImpl implements StudentRepository {
         isPrimaryKeyError ||
         errorMessage.includes("duplicate key") ||
         errorMessage.includes("unique constraint") ||
-        errorMessage.includes("usuarios_pkey") || errorMessage.includes("alunos_pkey") ||
+        errorMessage.includes("usuarios_pkey") ||
         errorMessage.includes("chave primária")
       ) {
         // Se for erro de primary key, pode ser race condition - tentar buscar o aluno existente
@@ -676,10 +674,10 @@ export class StudentRepositoryImpl implements StudentRepository {
         throw new Error(`Failed to create student: valor duplicado viola restrição única "chave primária de usuarios"`);
       }
       if (
-        errorMessage.includes("alunos_numero_matricula_key") ||
-        errorMessage.includes("alunos_empresa_matricula_unique") ||
-        errorMessage.includes("alunos_email_key") ||
-        errorMessage.includes("alunos_cpf_key")
+        errorMessage.includes("usuarios_numero_matricula_key") ||
+        errorMessage.includes("usuarios_empresa_matricula_unique") ||
+        errorMessage.includes("usuarios_email_key") ||
+        errorMessage.includes("usuarios_cpf_key")
       ) {
         throw new Error(`Failed to create student: ${error.message}`);
       }

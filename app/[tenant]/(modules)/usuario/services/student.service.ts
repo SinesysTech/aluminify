@@ -218,19 +218,19 @@ export class StudentService extends UserBaseService {
       
       // Verificar se é erro de constraint única (duplicate key)
       // Incluindo erro de primary key (alunos_pkey ou "chave primária")
-      const isPrimaryKeyError = 
-        errorMessage.includes("alunos_pkey") ||
+      const isPrimaryKeyError =
+        errorMessage.includes("usuarios_pkey") ||
         errorMessage.includes("chave primária") ||
         errorMessage.includes("primary key");
-      
+
       if (
         isPrimaryKeyError ||
         errorMessage.includes("duplicate key") ||
         errorMessage.includes("unique constraint") ||
-        errorMessage.includes("alunos_numero_matricula_key") ||
-        errorMessage.includes("alunos_empresa_matricula_unique") ||
-        errorMessage.includes("alunos_email_key") ||
-        errorMessage.includes("alunos_cpf_key")
+        errorMessage.includes("usuarios_numero_matricula_key") ||
+        errorMessage.includes("usuarios_empresa_matricula_unique") ||
+        errorMessage.includes("usuarios_email_key") ||
+        errorMessage.includes("usuarios_cpf_key")
       ) {
         // Se for erro de primary key, tentar buscar o aluno existente e vincular cursos
         if (isPrimaryKeyError) {
@@ -263,7 +263,7 @@ export class StudentService extends UserBaseService {
         
         // Para outros erros de constraint, verificar se é por email (aluno já existe)
         if (
-          errorMessage.includes("alunos_email_key") ||
+          errorMessage.includes("usuarios_email_key") ||
           errorMessage.includes("duplicate key")
         ) {
           const existingByEmail = await this.repository.findByEmail(email);
