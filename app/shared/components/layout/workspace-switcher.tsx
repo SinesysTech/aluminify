@@ -1,0 +1,187 @@
+"use client"
+
+import { useCallback, useMemo } from "react"
+import { useParams, usePathname, useRouter } from "next/navigation"
+import { Check, ChevronsUpDown } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/app/shared/components/overlay/dropdown-menu"
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import { TenantLogo } from "@/components/ui/tenant-logo"
+import { useStudentOrganizations } from "@/components/providers/student-organizations-provider"
+import { useCurrentUser } from "@/components/providers/user-provider"
+import { useOptionalTenantContext } from "@/app/[tenant]/tenant-context"
+
+/**
+ * WorkspaceSwitcher — sidebar header component that allows users
+ * enrolled in multiple tenants to switch between workspaces.
+ *
+ * For students: uses the StudentOrganizationsProvider data.
+ * For staff: shows the current tenant (single workspace, future-proof
+ * for when the unified user model enables multi-tenant staff).
+ */
+export function WorkspaceSwitcher() {
+  const { isMobile } = useSidebar()
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useParams()
+  const tenantSlug = params?.tenant as string
+
+  const user = useCurrentUser()
+  const tenantContext = useOptionalTenantContext()
+  const {
+    organizations,
+    activeOrganization,
+    setActiveOrganization,
+    isMultiOrg,
+    loading,
+  } = useStudentOrganizations()
+
+  // Current workspace info (from tenant context or user)
+  const currentWorkspace = useMemo(() => ({
+    id: tenantContext?.empresaId || user.empresaId || "",
+    nome: tenantContext?.empresaNome || user.empresaNome || "Workspace",
+    slug: tenantSlug || "",
+  }), [tenantContext, user, tenantSlug])
+
+  const fallbackLetter = currentWorkspace.nome.charAt(0).toUpperCase()
+  const empresaIdForLogo = currentWorkspace.id
+
+  // Determine if the switcher should be interactive (multiple workspaces)
+  const isInteractive = user.role === "aluno" && isMultiOrg && !loading
+
+  const handleSelectWorkspace = useCallback((org: typeof organizations[0]) => {
+    if (org.slug === tenantSlug) return
+
+    setActiveOrganization(org)
+
+    // Navigate to the same path under the new tenant slug
+    const currentPrefix = `/${tenantSlug}`
+    const nextPrefix = `/${org.slug}`
+    const nextPath =
+      pathname && pathname.startsWith(currentPrefix)
+        ? `${nextPrefix}${pathname.slice(currentPrefix.length)}`
+        : `${nextPrefix}/dashboard`
+
+    router.push(nextPath)
+    router.refresh()
+  }, [tenantSlug, pathname, router, setActiveOrganization])
+
+  // Active workspace display name (from selected org or tenant context)
+  const activeDisplayName = useMemo(() => {
+    if (user.role === "aluno" && activeOrganization) {
+      return activeOrganization.nome
+    }
+    return currentWorkspace.nome
+  }, [user.role, activeOrganization, currentWorkspace.nome])
+
+  const activeEmpresaId = useMemo(() => {
+    if (user.role === "aluno" && activeOrganization) {
+      return activeOrganization.id
+    }
+    return empresaIdForLogo
+  }, [user.role, activeOrganization, empresaIdForLogo])
+
+  // Non-interactive: just show the current workspace (link to home)
+  if (!isInteractive) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" asChild>
+            <a href={tenantSlug ? `/${tenantSlug}/dashboard` : "/dashboard"}>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                <TenantLogo
+                  logoType="sidebar"
+                  empresaId={empresaIdForLogo}
+                  width={32}
+                  height={32}
+                  fallbackText={fallbackLetter}
+                />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{activeDisplayName}</span>
+              </div>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
+  // Interactive: dropdown with workspace list
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                <TenantLogo
+                  logoType="sidebar"
+                  empresaId={activeEmpresaId}
+                  width={32}
+                  height={32}
+                  fallbackText={activeDisplayName.charAt(0).toUpperCase()}
+                />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{activeDisplayName}</span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            align="start"
+            side={isMobile ? "bottom" : "right"}
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Workspaces
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {organizations.map((org) => (
+              <DropdownMenuItem
+                key={org.id}
+                onClick={() => handleSelectWorkspace(org)}
+                className="gap-2 p-2 cursor-pointer"
+              >
+                <div className="flex size-6 items-center justify-center rounded-sm border overflow-hidden">
+                  {org.logoUrl ? (
+                    <img
+                      src={org.logoUrl}
+                      alt=""
+                      className="size-4 object-contain shrink-0"
+                    />
+                  ) : (
+                    <span className="text-xs font-medium">
+                      {org.nome.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <span className="truncate">{org.nome}</span>
+                {(activeOrganization?.id === org.id ||
+                  (!activeOrganization && org.slug === tenantSlug)) && (
+                  <Check className="ml-auto size-4 shrink-0" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}

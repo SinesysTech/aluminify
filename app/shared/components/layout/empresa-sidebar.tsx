@@ -14,18 +14,13 @@ import { usePathname, useParams } from "next/navigation"
 
 import { NavMain } from "@/components/layout/nav-main"
 import { NavUser } from "@/components/layout/nav-user"
-import { useCurrentUser } from "@/components/providers/user-provider"
-import { TenantLogo } from "@/components/ui/tenant-logo"
+import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { getDefaultRouteForRole } from "@/app/shared/core/roles"
 
 type NavItem = {
   title: string
@@ -113,7 +108,6 @@ const empresaNavItems: NavItem[] = [
 
 export function EmpresaSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const user = useCurrentUser()
   const params = useParams()
   const tenantSlug = params?.tenant as string
 
@@ -132,37 +126,10 @@ export function EmpresaSidebar({ ...props }: React.ComponentProps<typeof Sidebar
     isActive: pathname === item.url || pathname?.startsWith(item.url + "/"),
   }))
 
-  const homeLink = tenantSlug
-    ? `/${tenantSlug}${getDefaultRouteForRole(user.role)}`
-    : getDefaultRouteForRole(user.role)
-
-  // Get organization name and first letter for fallback
-  const organizationName = user.empresaNome || 'Organização'
-  const fallbackLetter = organizationName.charAt(0).toUpperCase()
-
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href={homeLink}>
-                <div className="flex items-center gap-3">
-                  <TenantLogo
-                    logoType="sidebar"
-                    empresaId={user.empresaId}
-                    width={32}
-                    height={32}
-                    fallbackText={fallbackLetter}
-                  />
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{organizationName}</span>
-                  </div>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMainWithActive} label="Menu" />

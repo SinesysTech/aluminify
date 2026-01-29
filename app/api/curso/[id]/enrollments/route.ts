@@ -24,7 +24,7 @@ async function getEnrollmentsHandler(request: AuthenticatedRequest, courseId: st
         data_inicio_acesso,
         data_fim_acesso,
         ativo,
-        aluno:alunos (
+        aluno:usuarios!matriculas_usuario_id_fkey (
           id,
           nome_completo,
           email,
