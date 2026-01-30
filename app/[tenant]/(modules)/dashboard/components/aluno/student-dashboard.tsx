@@ -217,7 +217,7 @@ export default function StudentDashboardClientPage() {
     // Carregamento inicial
     useEffect(() => {
         loadData()
-    }, [activeOrgId]) // Reload on tenant switch
+    }, [activeOrgId, loadData]) // Reload on tenant switch
 
     // Handler para mudança de período do heatmap
     const handleHeatmapPeriodChange = useCallback(
