@@ -37,7 +37,7 @@ export class SimpleCache<T> {
           this.cache.set(key, storedEntry); // Hydrate memory
           return storedEntry.data;
         }
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -61,7 +61,7 @@ export class SimpleCache<T> {
           `${this.storageKey}:${key}`,
           JSON.stringify(entry),
         );
-      } catch (e) {}
+      } catch {}
     }
   }
 
@@ -73,7 +73,7 @@ export class SimpleCache<T> {
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(`${this.storageKey}:${key}`);
-      } catch (e) {}
+      } catch {}
     }
   }
 
@@ -91,7 +91,9 @@ export class SimpleCache<T> {
             localStorage.removeItem(k);
           }
         }
-      } catch (e) {}
+      } catch {
+        // LocalStorage might not be accessible
+      }
     }
   }
 }

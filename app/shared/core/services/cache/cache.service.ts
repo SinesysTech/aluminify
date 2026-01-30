@@ -18,7 +18,7 @@ class CacheService {
   private readonly storagePrefix = "aluminify:v1:cache:";
 
   // In-memory fallback
-  private memoryCache: Map<string, { value: any; expiresAt: number }> =
+  private memoryCache: Map<string, { value: unknown; expiresAt: number }> =
     new Map();
 
   constructor() {
@@ -118,7 +118,7 @@ class CacheService {
   /**
    * Helper to set in memory or localStorage
    */
-  private setInLocal(key: string, value: any, ttlSeconds: number) {
+  private setInLocal(key: string, value: unknown, ttlSeconds: number) {
     const expiresAt = Date.now() + ttlSeconds * 1000;
     const cacheEntry = { value, expiresAt };
 
@@ -132,7 +132,7 @@ class CacheService {
           `${this.storagePrefix}${key}`,
           JSON.stringify(cacheEntry),
         );
-      } catch (e) {
+      } catch {
         // LocalStorage might be full or private mode
       }
     }
@@ -155,7 +155,7 @@ class CacheService {
             this.memoryCache.set(key, entry); // Hydrate memory
           }
         }
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -175,7 +175,7 @@ class CacheService {
     if (this.isBrowser()) {
       try {
         localStorage.removeItem(`${this.storagePrefix}${key}`);
-      } catch (e) {}
+      } catch {}
     }
   }
 
@@ -299,6 +299,28 @@ class CacheService {
     return value;
   }
 
+  /**
+   * Limpa todo o cache local (Memory e LocalStorage)
+   */
+  clearAll(): void {
+    this.memoryCache.clear();
+    if (this.isBrowser()) {
+      try {
+        // Remover todas as chaves com nosso prefixo
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith(this.storagePrefix)) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch {
+        // LocalStorage might not be accessible
+      }
+    }
+  }
+
   private async recordMetric(type: "hit" | "miss" | "set" | "del" | "error") {
     if (!this.isBrowser()) {
       try {
@@ -320,7 +342,7 @@ class CacheService {
             cacheMonitorService.recordError();
             break;
         }
-      } catch (e) {
+      } catch {
         // Ignore import errors or monitor errors
       }
     }
