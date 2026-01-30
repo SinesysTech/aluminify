@@ -60,7 +60,7 @@ export function Filters({
                     <div className="space-y-2">
                         <Label>Curso *</Label>
                         <Select
-                            value={cursoSelecionado || undefined}
+                            value={cursoSelecionado}
                             onValueChange={onCursoChange}
                             disabled={isLoadingFiltros || isLoadingCursos}
                         >
@@ -99,7 +99,7 @@ export function Filters({
                     <div className="space-y-2">
                         <Label>Disciplina *</Label>
                         <Select
-                            value={disciplinaSelecionada || undefined}
+                            value={disciplinaSelecionada}
                             onValueChange={onDisciplinaChange}
                             disabled={!cursoSelecionado || isLoadingFiltros}
                         >
@@ -134,7 +134,7 @@ export function Filters({
                     <div className="space-y-2">
                         <Label>Frente *</Label>
                         <Select
-                            value={frenteSelecionada || undefined}
+                            value={frenteSelecionada}
                             onValueChange={onFrenteChange}
                             disabled={!disciplinaSelecionada || !cursoSelecionado || isLoadingFiltros}
                         >
@@ -169,7 +169,7 @@ export function Filters({
                     <div className="space-y-2">
                         <Label>Módulo *</Label>
                         <Select
-                            value={moduloSelecionado || undefined}
+                            value={moduloSelecionado}
                             onValueChange={onModuloChange}
                             disabled={!frenteSelecionada || !cursoSelecionado || isLoadingFiltros}
                         >
