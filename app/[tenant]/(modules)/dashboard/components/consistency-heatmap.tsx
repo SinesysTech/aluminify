@@ -170,7 +170,7 @@ export function ConsistencyHeatmap({
                   <div
                     key={i}
                     className="text-[10px] text-muted-foreground leading-none flex items-center justify-end"
-                    style={{ height: period === 'semanal' ? 16 : 11, width: '1.5rem' }}
+                    style={{ height: 11, width: '1.5rem' }}
                   >
                     {label}
                   </div>
