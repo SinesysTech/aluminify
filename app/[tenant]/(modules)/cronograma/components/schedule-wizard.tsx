@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { createClient } from '@/app/shared/core/client'
+import { useOptionalTenantContext } from '@/app/[tenant]/tenant-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/app/shared/components/forms/input'
@@ -294,7 +295,10 @@ export function ScheduleWizard() {
     [cursos, cursoSelecionado],
   )
 
-  // Carregar cursos e disciplinas
+  const tenantContext = useOptionalTenantContext()
+  const empresaId = tenantContext?.empresaId ?? null
+
+  // Carregar cursos e disciplinas (filtrados pelo tenant ativo)
   React.useEffect(() => {
     async function loadData() {
       const supabase = createClient()
@@ -328,20 +332,23 @@ export function ScheduleWizard() {
       let cursosData: CursoData[] = []
 
       if (isProfessor) {
-        // Professor vê todos os cursos disponíveis (os que ele criou + cursos sem created_by para testes)
-        // Buscar cursos em duas queries para evitar problemas com RLS
-        // Type assertions needed because database types are currently out of sync with actual schema
+        // Professor vê cursos da empresa ativa (multi-tenant)
+        let cursosDoProfessorQ = supabase
+          .from('cursos')
+          .select('*')
+          .eq('created_by', user.id)
+          .order('nome', { ascending: true })
+        if (empresaId) cursosDoProfessorQ = cursosDoProfessorQ.eq('empresa_id', empresaId)
+        let cursosSemCriadorQ = supabase
+          .from('cursos')
+          .select('*')
+          .is('created_by', null)
+          .order('nome', { ascending: true })
+        if (empresaId) cursosSemCriadorQ = cursosSemCriadorQ.eq('empresa_id', empresaId)
+
         const [cursosDoProfessor, cursosSemCriador] = await Promise.all([
-          supabase
-            .from('cursos')
-            .select('*')
-            .eq('created_by', user.id)
-            .order('nome', { ascending: true }) as unknown as Promise<{ data: CursoData[] | null; error: unknown }>,
-          supabase
-            .from('cursos')
-            .select('*')
-            .is('created_by', null)
-            .order('nome', { ascending: true }) as unknown as Promise<{ data: CursoData[] | null; error: unknown }>,
+          cursosDoProfessorQ as unknown as Promise<{ data: CursoData[] | null; error: unknown }>,
+          cursosSemCriadorQ as unknown as Promise<{ data: CursoData[] | null; error: unknown }>,
         ])
 
         if (cursosDoProfessor.error) {
@@ -365,36 +372,38 @@ export function ScheduleWizard() {
         cursosData = cursosUnicos
         console.log(`Professor ${user.id} encontrou ${cursosUnicos.length} curso(s):`, cursosUnicos.map((c) => c.nome))
       } else {
-        // Aluno vê cursos através da tabela alunos_cursos
-        // Type assertion needed because database types are currently out of sync with actual schema
+        // Aluno vê cursos através da tabela alunos_cursos (filtrado pelo tenant)
         const { data: alunosCursos, error: alunosCursosError } = (await supabase
           .from('alunos_cursos')
           .select('curso_id, cursos(*)')
-          .eq('usuario_id', user.id)) as { data: Array<{ curso_id: string; cursos: CursoData }> | null; error: unknown }
+          .eq('usuario_id', user.id)) as { data: Array<{ curso_id: string; cursos: CursoData & { empresa_id?: string } }> | null; error: unknown }
 
         if (alunosCursosError) {
           console.error('Erro ao carregar cursos do aluno:', alunosCursosError)
         }
 
         if (alunosCursos) {
-          cursosData = alunosCursos
-            .map((ac: { cursos: CursoData[] | CursoData | null }) => {
-              const cursos = ac.cursos
-              if (Array.isArray(cursos)) return cursos[0] ?? null
-              return cursos
+          let list = alunosCursos
+            .map((ac) => {
+              const c = ac.cursos
+              if (Array.isArray(c)) return c[0] ?? null
+              return c
             })
-            .filter((c): c is CursoData => Boolean(c)) as CursoData[]
+            .filter((c): c is CursoData & { empresa_id?: string } => Boolean(c))
+          if (empresaId) {
+            list = list.filter((c) => (c as { empresa_id?: string }).empresa_id === empresaId)
+          }
+          cursosData = list as CursoData[]
           console.log(`Aluno ${user.id} encontrou ${cursosData.length} curso(s):`, cursosData.map((c) => c?.nome))
         }
       }
 
       setCursos(cursosData)
 
-      // Buscar todas as disciplinas
-      const { data: disciplinasData } = await supabase
-        .from('disciplinas')
-        .select('*')
-        .order('nome')
+      // Buscar disciplinas (filtradas pelo tenant)
+      let discQuery = supabase.from('disciplinas').select('*').order('nome')
+      if (empresaId) discQuery = discQuery.eq('empresa_id', empresaId)
+      const { data: disciplinasData } = await discQuery
 
       if (disciplinasData) {
         setDisciplinasDoCurso(disciplinasData)
@@ -404,7 +413,7 @@ export function ScheduleWizard() {
     }
 
     loadData()
-  }, [router, tenant])
+  }, [router, tenant, empresaId])
 
   // Carregar disciplinas do curso selecionado
   React.useEffect(() => {
@@ -437,14 +446,18 @@ export function ScheduleWizard() {
           return
         }
 
-        // Buscar detalhes das disciplinas
+        // Buscar detalhes das disciplinas (filtrado por tenant quando aplicável)
         const disciplinaIds = cursosDisciplinas.map((cd) => cd.disciplina_id)
-        // Type assertion needed because database types are currently out of sync with actual schema
-        const { data: disciplinasData, error: discError } = (await supabase
+        let discQuery = supabase
           .from('disciplinas')
           .select('id, nome')
           .in('id', disciplinaIds)
-          .order('nome', { ascending: true })) as { data: DisciplinaData[] | null; error: unknown }
+          .order('nome', { ascending: true })
+        if (empresaId) discQuery = discQuery.eq('empresa_id', empresaId)
+        const { data: disciplinasData, error: discError } = (await discQuery) as {
+          data: DisciplinaData[] | null
+          error: unknown
+        }
 
         if (discError) {
           console.error('Erro ao carregar detalhes das disciplinas:', discError)
@@ -470,7 +483,7 @@ export function ScheduleWizard() {
     }
 
     loadDisciplinasDoCurso()
-  }, [cursoSelecionado, form])
+  }, [cursoSelecionado, form, empresaId])
 
   // Carregar frentes quando disciplinas são selecionadas (filtradas pelo curso também)
   const disciplinasIds = form.watch('disciplinas_ids');

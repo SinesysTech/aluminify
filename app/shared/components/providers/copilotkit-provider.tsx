@@ -9,6 +9,8 @@ type AgentMode = 'copilotkit' | 'mastra';
 
 interface CopilotKitProviderProps {
   user: AppUser
+  /** Tenant empresa ID from URL - overrides user.empresaId for multi-org isolation */
+  tenantEmpresaId?: string | null
   children: React.ReactNode
   /**
    * Agent mode determines which backend integration to use:
@@ -32,7 +34,12 @@ interface CopilotKitProviderProps {
  *
  * Both modes use the same /api/copilotkit endpoint, with mode determined by headers.
  */
-export function CopilotKitProvider({ user, children, agentMode = 'copilotkit' }: CopilotKitProviderProps) {
+export function CopilotKitProvider({
+  user,
+  tenantEmpresaId,
+  children,
+  agentMode = 'copilotkit',
+}: CopilotKitProviderProps) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -72,15 +79,18 @@ export function CopilotKitProvider({ user, children, agentMode = 'copilotkit' }:
     return <>{children}</>
   }
 
-  // Build headers based on agent mode
+  // Build headers - x-tenant-id para backend usar tenant correto
   const headers: Record<string, string> = {
     Authorization: `Bearer ${accessToken}`,
   };
-
-  // Add agent mode header for Mastra integration
+  if (tenantEmpresaId) {
+    headers['x-tenant-id'] = tenantEmpresaId;
+  }
   if (agentMode === 'mastra') {
     headers['X-CopilotKit-Agent'] = 'mastra';
   }
+
+  const effectiveEmpresaId = tenantEmpresaId ?? user.empresaId ?? null;
 
   return (
     <CopilotKit
@@ -88,7 +98,7 @@ export function CopilotKitProvider({ user, children, agentMode = 'copilotkit' }:
       headers={headers}
       properties={{
         userId: user.id,
-        empresaId: user.empresaId ?? null,
+        empresaId: effectiveEmpresaId,
         userRole: user.role,
         userName: user.fullName ?? user.email,
         agentMode,

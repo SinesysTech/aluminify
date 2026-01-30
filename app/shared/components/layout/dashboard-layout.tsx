@@ -43,7 +43,7 @@ export async function DashboardLayout({
 
     return (
         <UserProvider user={user}>
-            <CopilotKitProvider user={user}>
+            <CopilotKitProvider user={user} tenantEmpresaId={tenantEmpresaId || null}>
                 <BrandingProvider empresaId={tenantEmpresaId}>
                     <StudentOrganizationsProvider user={user}>
                         <ModuleVisibilityProvider
