@@ -53,7 +53,9 @@ function getDatabaseUserCredentials() {
    * entirely and must NEVER be used here.
    */
   const DATABASE_API_KEY =
-    env.SUPABASE_ANON_KEY ?? env.SUPABASE_PUBLISHABLE_KEY;
+    env.SUPABASE_ANON_KEY ??
+    env.SUPABASE_PUBLISHABLE_KEY ??
+    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY;
 
   if (!DATABASE_API_KEY) {
     throw new Error(
