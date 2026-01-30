@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
+import { getOAuthCredentials } from "@/app/shared/core/services/oauth-credentials";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -28,21 +29,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Parse state to get professorId
-    const { professorId } = JSON.parse(decodeURIComponent(state));
+    // Parse state to get professorId, empresaId, and tenantSlug
+    const { professorId, empresaId, tenantSlug } = JSON.parse(
+      decodeURIComponent(state),
+    );
 
-    if (!professorId) {
-      throw new Error("Missing professorId in state");
+    if (!professorId || !empresaId) {
+      throw new Error("Missing professorId or empresaId in state");
     }
 
-    // Exchange code for tokens
-    const clientId = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID;
-    const clientSecret = process.env.ZOOM_CLIENT_SECRET;
+    // Fetch tenant-specific OAuth credentials from the database
+    const credentials = await getOAuthCredentials(empresaId, "zoom");
+    if (!credentials) {
+      throw new Error("Zoom OAuth credentials not configured for this tenant");
+    }
+
+    const { clientId, clientSecret } = credentials;
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/empresa/integracoes/zoom/callback`;
-
-    if (!clientId || !clientSecret) {
-      throw new Error("Zoom OAuth credentials not configured");
-    }
 
     // Zoom uses Basic auth with client credentials
     const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString(
@@ -75,15 +78,16 @@ export async function GET(request: NextRequest) {
       Date.now() + (tokens.expires_in || 3600) * 1000,
     ).toISOString();
 
-    // Save tokens to database
+    // Save tokens to database with tenant scope
     const supabase = await createClient();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: upsertError } = await (supabase as any)
-      .from("agendamento_integracoes")
+      .from("professor_integracoes")
       .upsert(
         {
           professor_id: professorId,
+          empresa_id: empresaId,
           provider: "zoom",
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
@@ -91,7 +95,7 @@ export async function GET(request: NextRequest) {
           updated_at: new Date().toISOString(),
         },
         {
-          onConflict: "professor_id",
+          onConflict: "professor_id,empresa_id,provider",
         },
       );
 
@@ -100,8 +104,12 @@ export async function GET(request: NextRequest) {
       throw new Error("Failed to save integration");
     }
 
+    const redirectPath = tenantSlug
+      ? `/${tenantSlug}/empresa/integracoes?success=zoom`
+      : `/empresa/integracoes?success=zoom`;
+
     return NextResponse.redirect(
-      new URL("/empresa/integracoes?success=zoom", request.url),
+      new URL(redirectPath, request.url),
     );
   } catch (error) {
     console.error("Zoom OAuth callback error:", error);

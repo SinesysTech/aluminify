@@ -302,7 +302,7 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
 
   const { data: agendamento, error: fetchError } = await supabase
     .from("agendamentos")
-    .select("id, professor_id, data_inicio, data_fim, aluno_id")
+    .select("id, professor_id, data_inicio, data_fim, aluno_id, empresa_id")
     .eq("id", id)
     .single();
 
@@ -327,12 +327,17 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
         .eq("id", agendamento.aluno_id)
         .single();
 
-      const { data: integration } = await supabase
-        // @ts-expect-error - Table not in types
+      // @ts-expect-error - Table not in types
+      let integrationQuery = supabase
         .from("professor_integracoes")
         .select("*")
-        .eq("professor_id", user.id)
-        .single();
+        .eq("professor_id", user.id);
+
+      if (agendamento.empresa_id) {
+        integrationQuery = integrationQuery.eq("empresa_id", agendamento.empresa_id);
+      }
+
+      const { data: integration } = await integrationQuery.single();
 
       const validIntegration =
         integration && !("code" in integration)

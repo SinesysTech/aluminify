@@ -94,15 +94,21 @@ export async function updateConfiguracoesProfessor(
 
 export async function getIntegracaoProfessor(
   professorId: string,
+  empresaId?: string,
 ): Promise<ProfessorIntegracao | null> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    // @ts-expect-error - Table not in types
+  // @ts-expect-error - Table not in types
+  let query = supabase
     .from("professor_integracoes")
     .select("*")
-    .eq("professor_id", professorId)
-    .single();
+    .eq("professor_id", professorId);
+
+  if (empresaId) {
+    query = query.eq("empresa_id", empresaId);
+  }
+
+  const { data, error } = await query.single();
 
   if (error && error.code !== "PGRST116" && error.code !== "PGRST205") {
     console.error("Error fetching professor integration:", error);
@@ -114,6 +120,7 @@ export async function getIntegracaoProfessor(
     return {
       id: "",
       professor_id: professorId,
+      empresa_id: empresaId || "",
       provider: "default",
       access_token: null,
       refresh_token: null,
@@ -128,6 +135,7 @@ export async function getIntegracaoProfessor(
   return {
     id: row.id,
     professor_id: row.professor_id,
+    empresa_id: row.empresa_id,
     provider: row.provider,
     access_token: row.access_token,
     refresh_token: row.refresh_token,
@@ -139,6 +147,7 @@ export async function getIntegracaoProfessor(
 
 export async function updateIntegracaoProfessor(
   professorId: string,
+  empresaId: string,
   integration: Partial<ProfessorIntegracao>,
 ) {
   const supabase = await createClient();
@@ -154,20 +163,28 @@ export async function updateIntegracaoProfessor(
     id: _id,
     created_at: _created_at,
     updated_at: _updated_at,
+    empresa_id: _empresa_id,
     ...integrationData
   } = integration;
   void _id;
   void _created_at;
   void _updated_at;
+  void _empresa_id;
 
   const { data, error } = await supabase
     // @ts-expect-error - Table not in types
     .from("professor_integracoes")
-    .upsert({
-      ...integrationData,
-      professor_id: professorId,
-      provider: integrationData.provider || "default",
-    } as Record<string, unknown>)
+    .upsert(
+      {
+        ...integrationData,
+        professor_id: professorId,
+        empresa_id: empresaId,
+        provider: integrationData.provider || "default",
+      } as Record<string, unknown>,
+      {
+        onConflict: "professor_id,empresa_id,provider",
+      },
+    )
     .select()
     .single();
 
