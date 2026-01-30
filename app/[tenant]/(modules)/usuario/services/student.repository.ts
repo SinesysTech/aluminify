@@ -685,9 +685,16 @@ export class StudentRepositoryImpl implements StudentRepository {
       throw new Error(`Failed to create student: ${error.message}`);
     }
 
-    await this.setCourses(payload.id, payload.courseIds ?? []);
+    if (!data) {
+      throw new Error("Insert succeeded but no data returned");
+    }
+
+    await this.setCourses(data.id, payload.courseIds ?? []);
 
     const [student] = await this.attachCourses([data]);
+    if (!student) {
+      throw new Error("Failed to attach courses to created student");
+    }
     return student;
   }
 
@@ -695,7 +702,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     const updateData: StudentUpdate = {};
 
     if (payload.fullName !== undefined) {
-      updateData.nome_completo = payload.fullName;
+      updateData.nome_completo = payload.fullName ?? undefined;
     }
 
     if (payload.email !== undefined) {

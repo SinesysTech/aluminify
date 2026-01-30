@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
       .insert({
         empresa_id: empresa.id,
         usuario_id: user.id,
+        papel_base: "usuario",
         is_owner: true,
         is_admin: true,
         ativo: true,

@@ -447,7 +447,7 @@ export class FlashcardsService {
     return new Map(
       (data ?? []).map((p) => [
         p.flashcard_id as string,
-        p as ProgressoFlashcard,
+        { ...p, aluno_id: p.usuario_id ?? "" } as ProgressoFlashcard,
       ]),
     );
   }

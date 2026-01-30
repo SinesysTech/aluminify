@@ -67,7 +67,7 @@ async function main() {
   const usuarioMap = new Map(usuarios.map((u) => [u.id, u]));
   const cursoMap = new Map(cursos.map((c) => [c.id, c]));
 
-  let problemas: string[] = [];
+  const problemas: string[] = [];
   const alunosSemEmpresa: string[] = [];
   const alunosSemNomeOuEmail: string[] = [];
   const matriculasEmpresaDiferente: string[] = [];

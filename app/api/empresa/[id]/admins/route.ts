@@ -116,6 +116,7 @@ async function postHandler(
       .upsert({
         empresa_id: id,
         usuario_id: professorId,
+        papel_base: "usuario",
         is_owner: false,
         is_admin: true,
         ativo: true,

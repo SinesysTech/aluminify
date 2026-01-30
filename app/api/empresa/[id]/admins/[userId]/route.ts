@@ -25,16 +25,16 @@ async function deleteHandler(
     const supabase = await createClient();
 
     const context = await getEmpresaContext(supabase, user.id, request, user);
-    
-    // Verificar se é owner
-    const { data: isOwner } = await supabase
-      .from('empresa_admins')
+
+    // Verificar se é owner em usuarios_empresas
+    const { data: currentUserVinculo } = await supabase
+      .from('usuarios_empresas')
       .select('is_owner')
       .eq('empresa_id', id)
-      .eq('user_id', user.id)
+      .eq('usuario_id', user.id)
       .maybeSingle();
 
-    if (!validateEmpresaAccess(context, id) || !isOwner?.is_owner) {
+    if (!validateEmpresaAccess(context, id) || !currentUserVinculo?.is_owner) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas owner pode remover admins.' },
         { status: 403 }
@@ -44,12 +44,12 @@ async function deleteHandler(
     // Não permitir remover a si mesmo se for o único owner
     if (userId === user.id) {
       const { data: owners } = await supabase
-        .from('empresa_admins')
-        .select('user_id')
+        .from('usuarios_empresas')
+        .select('usuario_id')
         .eq('empresa_id', id)
         .eq('is_owner', true);
 
-      if (owners && owners.length === 1 && owners[0].user_id === user.id) {
+      if (owners && owners.length === 1 && owners[0].usuario_id === user.id) {
         return NextResponse.json(
           { error: 'Não é possível remover o único owner da empresa' },
           { status: 400 }
@@ -57,23 +57,16 @@ async function deleteHandler(
       }
     }
 
-    // Remover de empresa_admins
-    const { error: deleteError } = await supabase
-      .from('empresa_admins')
-      .delete()
-      .eq('empresa_id', id)
-      .eq('user_id', userId);
-
-    if (deleteError) {
-      throw deleteError;
-    }
-
-    // Atualizar is_admin na tabela usuarios_empresas
-    await supabase
+    // Remover admin: atualizar is_admin na tabela usuarios_empresas
+    const { error: updateError } = await supabase
       .from('usuarios_empresas')
       .update({ is_admin: false })
-      .eq('usuario_id', userId)
-      .eq('empresa_id', id);
+      .eq('empresa_id', id)
+      .eq('usuario_id', userId);
+
+    if (updateError) {
+      throw updateError;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -93,4 +86,3 @@ export async function DELETE(
 ) {
   return deleteHandler(request, context);
 }
-
