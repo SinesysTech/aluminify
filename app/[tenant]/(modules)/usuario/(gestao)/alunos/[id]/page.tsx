@@ -95,11 +95,11 @@ export default function StudentDetailPage() {
   }
 
   return (
-    {student && (
+    student ? (
       <StudentDetails
         student={student}
         onUpdate={fetchStudent}
       />
-    )}
+    ) : null
   )
 }
