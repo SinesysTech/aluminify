@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter, useParams } from "next/navigation"
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
   LogOut,
   Settings,
@@ -220,14 +219,10 @@ export function NavUser() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={tenantSlug ? `/${tenantSlug}/empresa/agendamentos/configuracoes` : "/empresa/agendamentos/configuracoes"}>
+                <Link href={tenantSlug ? `/${tenantSlug}/empresa/detalhes` : "/empresa/detalhes"}>
                   <Settings />
                   Configurações
                 </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notificações
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

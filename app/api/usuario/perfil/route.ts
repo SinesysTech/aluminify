@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 
@@ -95,6 +95,80 @@ export async function GET() {
     console.error("Error in /api/usuario/perfil:", e);
     return NextResponse.json(
       { error: "Erro ao buscar perfil" },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * PUT /api/usuario/perfil
+ * Atualiza dados editáveis do perfil do usuário logado.
+ *
+ * Body: { nome_completo?: string, telefone?: string }
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const updates: Record<string, unknown> = {};
+
+    if (typeof body.nome_completo === "string") {
+      const trimmed = body.nome_completo.trim();
+      if (trimmed.length === 0) {
+        return NextResponse.json(
+          { error: "Nome não pode estar vazio" },
+          { status: 400 },
+        );
+      }
+      updates.nome_completo = trimmed;
+    }
+
+    if (body.telefone !== undefined) {
+      updates.telefone = body.telefone ? String(body.telefone).trim() : null;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "Nenhum campo para atualizar" },
+        { status: 400 },
+      );
+    }
+
+    const adminClient = getDatabaseClient();
+    const { error: updateError } = await adminClient
+      .from("usuarios")
+      .update(updates)
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Error updating profile:", updateError);
+      return NextResponse.json(
+        { error: "Erro ao atualizar perfil" },
+        { status: 500 },
+      );
+    }
+
+    // Sync nome_completo to auth metadata
+    if (updates.nome_completo) {
+      await supabase.auth.updateUser({
+        data: { full_name: updates.nome_completo },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    console.error("Error in PUT /api/usuario/perfil:", e);
+    return NextResponse.json(
+      { error: "Erro ao atualizar perfil" },
       { status: 500 },
     );
   }
