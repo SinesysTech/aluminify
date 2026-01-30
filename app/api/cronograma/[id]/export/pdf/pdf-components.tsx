@@ -538,9 +538,10 @@ export function WeekTimeBar({
 export function LogoBlock({ logoUrl }: { logoUrl: string | null }) {
   if (logoUrl) {
     return (
+      // eslint-disable-next-line jsx-a11y/alt-text
       <Image
         src={logoUrl}
-        style={{ width: 140, height: 44, objectFit: 'contain' }}
+        style={{ width: 100, height: 40, objectFit: 'contain' }}
       />
     )
   }

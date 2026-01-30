@@ -17,7 +17,7 @@ export default async function CronogramaPage({
   const empresaId = await resolveEmpresaIdFromTenant(tenant || '')
   if (!empresaId) redirect(`/${tenant}/dashboard`)
 
-  let query = supabase
+  const query = supabase
     .from('cronogramas')
     .select('id')
     .eq('usuario_id', user.id)
