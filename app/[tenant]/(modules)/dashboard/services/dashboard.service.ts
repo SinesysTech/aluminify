@@ -49,6 +49,7 @@ export async function fetchDashboardData(
 
     const response = await apiClient.get<{ data: DashboardData }>(
       `/api/dashboard/analytics?${params.toString()}`,
+      empresaId ? { tenantId: empresaId } : undefined,
     );
 
     if (response && "data" in response && response.data) {
@@ -105,6 +106,7 @@ export async function fetchDashboardCourses(empresaId?: string | null): Promise<
   const qs = params.toString();
   const response = await apiClient.get<{ data: DashboardCourse[] }>(
     `/api/dashboard/courses${qs ? `?${qs}` : ""}`,
+    empresaId ? { tenantId: empresaId } : undefined,
   );
   return response.data ?? [];
 }
@@ -126,6 +128,7 @@ export async function fetchSubjectDistribution(params: {
   });
   const response = await apiClient.get<{ data: SubjectDistributionResponse }>(
     `/api/dashboard/subject-distribution?${qs.toString()}`,
+    params.empresaId ? { tenantId: params.empresaId } : undefined,
   );
   return response.data;
 }
@@ -146,6 +149,7 @@ export async function fetchPerformance(params: {
   });
   const response = await apiClient.get<{ data: PerformanceItem[] }>(
     `/api/dashboard/performance?${qs.toString()}`,
+    params.empresaId ? { tenantId: params.empresaId } : undefined,
   );
   return response.data ?? [];
 }
@@ -164,6 +168,7 @@ export async function fetchStrategicDomain(params: {
   });
   const response = await apiClient.get<{ data: StrategicDomainResponse }>(
     `/api/dashboard/strategic-domain?${qs.toString()}`,
+    params.empresaId ? { tenantId: params.empresaId } : undefined,
   );
   return response.data;
 }

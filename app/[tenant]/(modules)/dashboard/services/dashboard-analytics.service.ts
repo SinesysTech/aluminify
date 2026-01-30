@@ -1696,17 +1696,19 @@ export class DashboardAnalyticsService {
     period: DashboardPeriod,
     empresaId?: string,
   ) {
-    // Progresso do cronograma (simplificado - pode ser melhorado)
-    const scheduleProgress = await this.getScheduleProgress(alunoId, client);
+    const scheduleProgress = await this.getScheduleProgress(
+      alunoId,
+      client,
+      empresaId,
+    );
 
-    // Tempo focado (coordenado com o período selecionado)
     const { focusTime, focusTimeDelta } = await this.getFocusTime(
       alunoId,
       client,
       period,
+      empresaId,
     );
 
-    // Questões feitas (coordenado com o período selecionado)
     const { questionsAnswered, periodLabel } = await this.getQuestionsAnswered(
       alunoId,
       client,
@@ -1714,14 +1716,18 @@ export class DashboardAnalyticsService {
       empresaId,
     );
 
-    // Aproveitamento médio (coordenado com o período selecionado)
-    const accuracy = await this.getAccuracy(alunoId, client, period, empresaId);
+    const accuracy = await this.getAccuracy(
+      alunoId,
+      client,
+      period,
+      empresaId,
+    );
 
-    // Flashcards revisados (coordenado com o período selecionado quando possível)
     const flashcardsReviewed = await this.getFlashcardsReviewed(
       alunoId,
       client,
       period,
+      empresaId,
     );
 
     return {
@@ -1745,16 +1751,16 @@ export class DashboardAnalyticsService {
   private async getScheduleProgress(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
+    empresaId?: string,
   ): Promise<number> {
-    // Buscar cronograma mais recente do aluno (mesma lógica das páginas de calendário e cronograma)
-    // Não filtra por 'ativo' pois esse campo pode não existir ou não estar definido
-    const { data: cronograma } = await client
+    let query = client
       .from("cronogramas")
       .select("id")
       .eq("usuario_id", alunoId)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+    if (empresaId) query = query.eq("empresa_id", empresaId);
+    const { data: cronograma } = await query.maybeSingle();
 
     if (!cronograma) return 0;
 
@@ -1787,21 +1793,17 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
+    empresaId?: string,
   ): Promise<{ focusTime: string; focusTimeDelta: string }> {
     const inicioPeriodo = this.getPeriodStart(period);
     const fimPeriodo = new Date();
 
-    // NOVO: Tempo de estudo = aulas assistidas (cronograma) + listas (sessões vinculadas a atividade)
     const tempoPeriodo = await this.getStudyTimeSecondsForPeriod(
       alunoId,
       client,
-      {
-        start: inicioPeriodo,
-        end: fimPeriodo,
-      },
+      { start: inicioPeriodo, end: fimPeriodo, empresaId },
     );
 
-    // Tempo do período anterior (mesma janela imediatamente anterior)
     const inicioPeriodoAnterior = new Date(inicioPeriodo);
     const fimPeriodoAnterior = new Date(inicioPeriodo);
 
@@ -1814,6 +1816,7 @@ export class DashboardAnalyticsService {
       {
         start: inicioPeriodoAnterior,
         end: fimPeriodoAnterior,
+        empresaId,
       },
     );
 
@@ -1911,16 +1914,16 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
+    empresaId?: string,
   ): Promise<number> {
     const inicioPeriodo = this.getPeriodStart(period);
-    // Buscar flashcards revisados diretamente da tabela progresso_flashcards
-    // Cada registro nesta tabela representa um flashcard que foi revisado pelo aluno
-    // (mesmo que tenha sido revisado múltiplas vezes, cada flashcard_id único conta como 1)
-    const { data: progressosFlashcards, error: queryError } = await client
+    let query = client
       .from("progresso_flashcards")
       .select("flashcard_id")
       .eq("usuario_id", alunoId)
       .gte("updated_at", inicioPeriodo.toISOString());
+    if (empresaId) query = query.eq("empresa_id", empresaId);
+    const { data: progressosFlashcards, error: queryError } = await query;
 
     if (queryError) {
       console.error(
@@ -1950,7 +1953,7 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: "semanal" | "mensal" | "anual" = "anual",
-    _empresaId?: string,
+    empresaId?: string,
   ) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0); // Normalizar para início do dia
@@ -1985,9 +1988,11 @@ export class DashboardAnalyticsService {
     const [sessRows, watchedRows] = await Promise.all([
       this.getListSessionsHeatmapRows(alunoId, client, {
         start: inicioPeriodo,
+        empresaId,
       }),
       this.getWatchedClassesHeatmapRows(alunoId, client, {
         start: inicioPeriodo,
+        empresaId,
       }),
     ]);
 
@@ -2235,11 +2240,11 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
-    _empresaId?: string,
+    empresaId?: string,
   ) {
     const inicioPeriodo = this.getPeriodStart(period);
 
-    const { data: sessoes } = await client
+    let query = client
       .from("sessoes_estudo")
       .select(
         "inicio, tempo_total_bruto_segundos, tempo_total_liquido_segundos",
@@ -2247,6 +2252,8 @@ export class DashboardAnalyticsService {
       .eq("usuario_id", alunoId)
       .eq("status", "concluido")
       .gte("inicio", inicioPeriodo.toISOString());
+    if (empresaId) query = query.eq("empresa_id", empresaId);
+    const { data: sessoes } = await query;
 
     // Agrupar por dia da semana
     const diasMap = new Map<number, { bruto: number; liquido: number }>();
@@ -2829,21 +2836,23 @@ export class DashboardAnalyticsService {
   private async getLatestCronogramaId(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
+    empresaId?: string,
   ): Promise<string | null> {
-    const { data: cronograma } = await client
+    let query = client
       .from("cronogramas")
       .select("id")
       .eq("usuario_id", alunoId)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle<{ id: string }>();
+      .limit(1);
+    if (empresaId) query = query.eq("empresa_id", empresaId);
+    const { data: cronograma } = await query.maybeSingle<{ id: string }>();
     return cronograma?.id ?? null;
   }
 
   private async getListSessionsRows(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
-    opts: { start: Date; end?: Date },
+    opts: { start: Date; end?: Date; empresaId?: string },
   ): Promise<StudyTimeRow[]> {
     // Obs: `sessoes_estudo.modulo_id` pode não existir em alguns bancos (migração pendente).
     // Mantemos fallback e inferimos modulo_id via join com `atividades` quando possível.
@@ -2868,6 +2877,7 @@ export class DashboardAnalyticsService {
         .not("atividade_relacionada_id", "is", null)
         .gte("inicio", opts.start.toISOString());
       if (opts.end) q = q.lt("inicio", opts.end.toISOString());
+      if (opts.empresaId) q = q.eq("empresa_id", opts.empresaId);
       return q.returns<SessaoRow[]>();
     };
 
@@ -2919,9 +2929,13 @@ export class DashboardAnalyticsService {
   private async getWatchedClassesRows(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
-    opts: { start: Date; end?: Date },
+    opts: { start: Date; end?: Date; empresaId?: string },
   ): Promise<StudyTimeRow[]> {
-    const cronogramaId = await this.getLatestCronogramaId(alunoId, client);
+    const cronogramaId = await this.getLatestCronogramaId(
+      alunoId,
+      client,
+      opts.empresaId,
+    );
     if (!cronogramaId) return [];
 
     // tempo_estimado_minutos pode ser null; usamos fallback de 10min para não “zerar” o tempo.
@@ -3022,16 +3036,18 @@ export class DashboardAnalyticsService {
   private async getStudyTimeSecondsForPeriod(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
-    opts: { start: Date; end: Date },
+    opts: { start: Date; end: Date; empresaId?: string },
   ): Promise<number> {
     const [listRows, watchedRows] = await Promise.all([
       this.getListSessionsRows(alunoId, client, {
         start: opts.start,
         end: opts.end,
+        empresaId: opts.empresaId,
       }),
       this.getWatchedClassesRows(alunoId, client, {
         start: opts.start,
         end: opts.end,
+        empresaId: opts.empresaId,
       }),
     ]);
     return [...listRows, ...watchedRows].reduce(
@@ -3043,18 +3059,19 @@ export class DashboardAnalyticsService {
   private async getListSessionsHeatmapRows(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
-    opts: { start: Date },
+    opts: { start: Date; empresaId?: string },
   ): Promise<Array<{ inicio: string; seconds: number }>> {
-    // Reutiliza lógica de getListSessionsRows, mas precisamos do timestamp de início
-    const buildBaseQuery = (selectCols: string) =>
-      client
+    const buildBaseQuery = (selectCols: string) => {
+      let q = client
         .from("sessoes_estudo")
         .select(selectCols)
         .eq("usuario_id", alunoId)
         .eq("status", "concluido")
         .not("atividade_relacionada_id", "is", null)
-        .gte("inicio", opts.start.toISOString())
-        .returns<SessaoRow[]>();
+        .gte("inicio", opts.start.toISOString());
+      if (opts.empresaId) q = q.eq("empresa_id", opts.empresaId);
+      return q.returns<SessaoRow[]>();
+    };
 
     type SessaoRow = {
       inicio: string;
@@ -3108,9 +3125,13 @@ export class DashboardAnalyticsService {
   private async getWatchedClassesHeatmapRows(
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
-    opts: { start: Date },
+    opts: { start: Date; empresaId?: string },
   ): Promise<Array<{ dataConclusao: string; seconds: number }>> {
-    const cronogramaId = await this.getLatestCronogramaId(alunoId, client);
+    const cronogramaId = await this.getLatestCronogramaId(
+      alunoId,
+      client,
+      opts.empresaId,
+    );
     if (!cronogramaId) return [];
 
     const TEMPO_PADRAO_MINUTOS = 10;

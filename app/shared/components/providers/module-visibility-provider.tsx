@@ -50,9 +50,9 @@ export function ModuleVisibilityProvider({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Tenant da URL (contexto) é a fonte de verdade; evita dados da org errada após switch
+  // Tenant da URL (contexto) SEMPRE prioriza; layout prop pode estar desatualizado após switch
   const tenantContext = useOptionalTenantContext();
-  const empresaId = empresaIdProp ?? tenantContext?.empresaId ?? null;
+  const empresaId = tenantContext?.empresaId ?? empresaIdProp ?? null;
 
   const fetchModules = useCallback(async () => {
     // Only fetch for students
@@ -74,6 +74,9 @@ export function ModuleVisibilityProvider({
       const headers: Record<string, string> = {};
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+      if (empresaId) {
+        headers["x-tenant-id"] = empresaId;
       }
 
       const response = await fetch(

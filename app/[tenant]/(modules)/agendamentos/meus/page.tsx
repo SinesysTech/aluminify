@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from "@/app/shared/core/server"
+import { resolveEmpresaIdFromTenant } from '@/app/shared/core/resolve-empresa-from-tenant'
 import { redirect } from "next/navigation"
 import { getAgendamentosAluno } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 import { Button } from "@/components/ui/button"
@@ -41,7 +42,8 @@ export default async function MeusAgendamentosPage({ params }: MeusAgendamentosP
   }
 
   // If student (no empresa_id or explicitly student context), show student view
-  const agendamentos = await getAgendamentosAluno(user.id)
+  const empresaId = await resolveEmpresaIdFromTenant(tenant || '')
+  const agendamentos = await getAgendamentosAluno(user.id, empresaId)
 
   return (
     <div className="flex flex-col gap-6 p-2 md:p-6">

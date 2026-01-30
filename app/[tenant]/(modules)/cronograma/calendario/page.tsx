@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/app/shared/core/server'
+import { resolveEmpresaIdFromTenant } from '@/app/shared/core/resolve-empresa-from-tenant'
 import { ScheduleCalendarView } from '../components/schedule-calendar-view'
 
 export const metadata: Metadata = {
@@ -21,11 +22,14 @@ export default async function CronogramaCalendarioPage({
 
   if (!user) redirect(`/${tenant}/auth/login`)
 
-  // Buscar cronograma ativo (mais recente)
+  const empresaId = await resolveEmpresaIdFromTenant(tenant || '')
+  if (!empresaId) redirect(`/${tenant}/dashboard`)
+
   const { data: cronograma } = await supabase
     .from('cronogramas')
     .select('id')
     .eq('usuario_id', user.id)
+    .eq('empresa_id', empresaId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()

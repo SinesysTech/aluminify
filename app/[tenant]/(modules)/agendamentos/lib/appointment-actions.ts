@@ -169,6 +169,7 @@ export async function getAgendamentosProfessor(
 
 export async function getAgendamentosAluno(
   alunoId: string,
+  empresaId?: string | null,
 ): Promise<AgendamentoComDetalhes[]> {
   const supabase = await createClient();
 
@@ -189,11 +190,14 @@ export async function getAgendamentosAluno(
     return [];
   }
 
-  const { data: agendamentos, error } = await supabase
+  let query = supabase
     .from("agendamentos")
     .select("*")
-    .eq("aluno_id", alunoId)
-    .order("data_inicio", { ascending: false });
+    .eq("aluno_id", alunoId);
+  if (empresaId) query = query.eq("empresa_id", empresaId);
+  const { data: agendamentos, error } = await query.order("data_inicio", {
+    ascending: false,
+  });
 
   if (error) {
     console.error("Error fetching student appointments:", error);

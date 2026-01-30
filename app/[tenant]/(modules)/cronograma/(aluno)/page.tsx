@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/app/shared/core/server'
+import { resolveEmpresaIdFromTenant } from '@/app/shared/core/resolve-empresa-from-tenant'
 import { ScheduleDashboard } from '../components/schedule-dashboard'
 
 export default async function CronogramaPage({
@@ -13,14 +14,18 @@ export default async function CronogramaPage({
 
   if (!user) redirect(`/${tenant}/auth/login`)
 
-  // Buscar cronograma ativo
-  const { data: cronograma } = await supabase
+  const empresaId = await resolveEmpresaIdFromTenant(tenant || '')
+  if (!empresaId) redirect(`/${tenant}/dashboard`)
+
+  let query = supabase
     .from('cronogramas')
     .select('id')
     .eq('usuario_id', user.id)
+    .eq('empresa_id', empresaId)
     .order('created_at', { ascending: false })
     .limit(1)
-    .maybeSingle()
+
+  const { data: cronograma } = await query.maybeSingle()
 
   if (!cronograma) {
     redirect(`/${tenant}/cronograma/novo`)
