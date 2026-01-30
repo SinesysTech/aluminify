@@ -541,7 +541,6 @@ export function LogoBlock({ logoUrl }: { logoUrl: string | null }) {
       <Image
         src={logoUrl}
         style={{ width: 140, height: 44, objectFit: 'contain' }}
-        alt="Logo"
       />
     )
   }

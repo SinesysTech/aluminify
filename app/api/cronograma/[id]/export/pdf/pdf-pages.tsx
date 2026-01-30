@@ -452,7 +452,7 @@ export function WeekPage({
                               checked={it.concluido}
                               isAlt={idx % 2 === 1}
                               colTempo={COL_TEMPO}
-                              colCheck={0}
+                              _colCheck={0}
                             />
                           )
                         })}
