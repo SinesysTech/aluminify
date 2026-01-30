@@ -60,7 +60,7 @@ function getDatabaseUserCredentials() {
   if (!DATABASE_API_KEY) {
     throw new Error(
       "User-scoped database client requires a public key " +
-        "(SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY). " +
+        "(SUPABASE_ANON_KEY, SUPABASE_PUBLISHABLE_KEY, or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY). " +
         "Service role keys (SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY) " +
         "must NOT be used for user-scoped clients as they bypass RLS and tenant isolation.",
     );
