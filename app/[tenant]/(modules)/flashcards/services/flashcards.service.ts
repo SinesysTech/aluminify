@@ -433,13 +433,17 @@ export class FlashcardsService {
     return copy;
   }
 
-  private async fetchProgressMap(alunoId: string, flashcardIds: string[]) {
+  private async fetchProgressMap(alunoId: string, flashcardIds: string[], empresaId?: string) {
     if (!flashcardIds.length) return new Map<string, ProgressoFlashcard>();
-    const { data, error } = await this.client
+    let progressQuery = this.client
       .from("progresso_flashcards")
       .select("*")
       .eq("usuario_id", alunoId)
       .in("flashcard_id", flashcardIds);
+    if (empresaId) {
+      progressQuery = progressQuery.eq("empresa_id", empresaId);
+    }
+    const { data, error } = await progressQuery;
     if (error) {
       console.warn("[flashcards] erro ao buscar progresso", error);
       return new Map<string, ProgressoFlashcard>();
@@ -489,7 +493,7 @@ export class FlashcardsService {
     return moduloIds;
   }
 
-  async getCursos(userId: string): Promise<CursoRow[]> {
+  async getCursos(userId: string, empresaId?: string): Promise<CursoRow[]> {
     // Buscar apenas cursos em que o aluno está matriculado
     const { data, error } = await this.client
       .from("alunos_cursos")
@@ -499,9 +503,16 @@ export class FlashcardsService {
     if (error) throw new Error(error.message);
 
     // Extrair os cursos do resultado do join
-    return (data || [])
+    let cursos = (data || [])
       .map((row: { curso: CursoRow | null }) => row.curso)
       .filter((curso): curso is CursoRow => curso !== null);
+
+    // Filtrar pela empresa ativa (multi-tenant isolation)
+    if (empresaId) {
+      cursos = cursos.filter((curso) => curso.empresa_id === empresaId);
+    }
+
+    return cursos;
   }
 
   async getDisciplinas(cursoId: string): Promise<{id: string; nome: string}[]> {
@@ -556,6 +567,7 @@ export class FlashcardsService {
     filters?: { cursoId?: string; frenteId?: string; moduloId?: string },
     excludeIds?: string[],
     scope: FlashcardsReviewScope = "all",
+    empresaId?: string,
   ): Promise<FlashcardReviewItem[]> {
     const now = new Date();
 
@@ -659,12 +671,16 @@ export class FlashcardsService {
       }
 
       // Buscar flashcards do módulo
-      const { data: flashcards, error: cardsError } = await this.client
+      let personalQuery = this.client
         .from("flashcards")
         .select(
           "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)",
         )
-        .eq("modulo_id", filters.moduloId)
+        .eq("modulo_id", filters.moduloId);
+      if (empresaId) {
+        personalQuery = personalQuery.eq("empresa_id", empresaId);
+      }
+      const { data: flashcards, error: cardsError } = await personalQuery
         .limit(this.REVIEW_CANDIDATE_POOL);
 
       if (cardsError) {
@@ -690,6 +706,7 @@ export class FlashcardsService {
       const progressMap = await this.fetchProgressMap(
         alunoId,
         cards.map((c) => c.id),
+        empresaId,
       );
 
       const dueCards = cards.filter((card) => {
@@ -783,11 +800,11 @@ export class FlashcardsService {
         `[flashcards] Professor tem acesso a ${cursoIds.length} cursos da empresa`,
       );
     } else {
-      // Alunos: buscar cursos matriculados
+      // Alunos: buscar cursos matriculados (filtrando por empresa quando disponível)
       console.log(`[flashcards] Usuário é aluno, buscando cursos matriculados`);
       const { data: alunosCursos, error: alunosCursosError } = await this.client
         .from("alunos_cursos")
-        .select("curso_id")
+        .select("curso_id, cursos!inner(empresa_id)")
         .eq("usuario_id", alunoId);
 
       if (alunosCursosError) {
@@ -801,9 +818,18 @@ export class FlashcardsService {
         return []; // Aluno sem cursos matriculados
       }
 
-      cursoIds = alunosCursos.map((ac: { curso_id: string }) => ac.curso_id);
+      // Filtrar cursos pela empresa ativa (multi-tenant isolation)
+      let cursosDoAluno = alunosCursos;
+      if (empresaId) {
+        cursosDoAluno = alunosCursos.filter(
+          (ac: { curso_id: string; cursos: { empresa_id: string } }) =>
+            ac.cursos.empresa_id === empresaId,
+        );
+      }
+
+      cursoIds = cursosDoAluno.map((ac: { curso_id: string }) => ac.curso_id);
       console.log(
-        `[flashcards] Aluno matriculado em ${cursoIds.length} cursos`,
+        `[flashcards] Aluno matriculado em ${cursoIds.length} cursos${empresaId ? ` (empresa: ${empresaId})` : ""}`,
       );
     }
 
@@ -1029,12 +1055,16 @@ export class FlashcardsService {
         moduloIds = [];
       } else {
         // Buscar flashcards desses módulos que têm feedback baixo
-        const { data: progressosFlashcards, error: progFlashError } =
-          await this.client
+        let maisErradosQuery = this.client
             .from("progresso_flashcards")
             .select("flashcard_id, ultimo_feedback")
             .eq("usuario_id", alunoId)
             .in("ultimo_feedback", [1, 2, 3]); // 1=Errei, 2=Parcial, 3=Dificil
+        if (empresaId) {
+          maisErradosQuery = maisErradosQuery.eq("empresa_id", empresaId);
+        }
+        const { data: progressosFlashcards, error: progFlashError } =
+          await maisErradosQuery;
 
         if (progFlashError) {
           console.error(
@@ -1118,10 +1148,14 @@ export class FlashcardsService {
       // Modo revisao_geral: buscar módulos de flashcards já vistos OU módulos com atividades concluídas
       if (modo === "revisao_geral") {
         // 1. Buscar flashcards já vistos
-        const { data: progFlash, error: progFlashError } = await this.client
+        let revisaoGeralQuery = this.client
           .from("progresso_flashcards")
           .select("flashcard_id")
           .eq("usuario_id", alunoId);
+        if (empresaId) {
+          revisaoGeralQuery = revisaoGeralQuery.eq("empresa_id", empresaId);
+        }
+        const { data: progFlash, error: progFlashError } = await revisaoGeralQuery;
         if (progFlashError) {
           console.warn(
             "[flashcards] erro ao buscar progresso para revisao_geral",
@@ -1216,12 +1250,16 @@ export class FlashcardsService {
     console.log(
       `[flashcards] Buscando flashcards para ${moduloIds.length} módulos (modo: ${modo})`,
     );
-    const { data: flashcards, error: cardsError } = await this.client
+    let autoModesQuery = this.client
       .from("flashcards")
       .select(
         "id, modulo_id, pergunta, resposta, pergunta_imagem_path, resposta_imagem_path, modulos(importancia)",
       )
-      .in("modulo_id", moduloIds)
+      .in("modulo_id", moduloIds);
+    if (empresaId) {
+      autoModesQuery = autoModesQuery.eq("empresa_id", empresaId);
+    }
+    const { data: flashcards, error: cardsError } = await autoModesQuery
       .limit(this.REVIEW_CANDIDATE_POOL);
 
     if (cardsError) {
@@ -1251,6 +1289,7 @@ export class FlashcardsService {
     const progressMap = await this.fetchProgressMap(
       alunoId,
       cards.map((c) => c.id),
+      empresaId,
     );
 
     // Para modo "mais_errados" (UTI), aplicar distribuição ponderada

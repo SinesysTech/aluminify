@@ -8,9 +8,13 @@ import { ModeSelector } from './components/mode-selector'
 import { Filters } from './components/filters'
 import { StudySession } from './components/study-session'
 import { SessionSummary } from './components/session-summary'
+import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 
 export default function FlashcardsClient() {
     const supabase = createClient()
+    const { activeOrganization } = useStudentOrganizations()
+    const activeOrgId = activeOrganization?.id
+
     const [modo, setModo] = React.useState<string | null>(null)
     const [scope, setScope] = React.useState<'all' | 'completed'>('all')
     const [cards, setCards] = React.useState<Flashcard[]>([])
@@ -38,6 +42,22 @@ export default function FlashcardsClient() {
     const [sessaoCompleta, setSessaoCompleta] = React.useState(false)
 
     const SESSION_SIZE = 10
+
+    // Reset completo ao trocar de organização (multi-tenant)
+    React.useEffect(() => {
+        setModo(null)
+        setCards([])
+        setIdx(0)
+        setCardsVistos(new Set())
+        setFeedbacks([])
+        setSessaoCompleta(false)
+        setCursoSelecionado('')
+        setDisciplinaSelecionada('')
+        setFrenteSelecionada('')
+        setModuloSelecionado('')
+        setShowAnswer(false)
+        setError(null)
+    }, [activeOrgId])
 
     const fetchCards = React.useCallback(
         async (
@@ -67,7 +87,8 @@ export default function FlashcardsClient() {
                     cursoId,
                     frenteId,
                     moduloId,
-                    excludeIds
+                    excludeIds,
+                    activeOrgId,
                 )
 
                 setCards(newCards)
@@ -81,7 +102,7 @@ export default function FlashcardsClient() {
                 setLoading(false)
             }
         },
-        []
+        [activeOrgId]
     )
 
     // Auto-refresh ao trocar escopo
@@ -103,7 +124,7 @@ export default function FlashcardsClient() {
                 const { data: { user } } = await supabase.auth.getUser()
                 if (!user) return
 
-                const cursosData = await flashcardsService.getCursos()
+                const cursosData = await flashcardsService.getCursos(activeOrgId)
                 setCursos(cursosData)
             } catch (err) {
                 console.error('Erro ao carregar cursos:', err)
@@ -114,7 +135,7 @@ export default function FlashcardsClient() {
         }
 
         loadCursos()
-    }, [supabase])
+    }, [supabase, activeOrgId])
 
     // Carregar disciplinas
     React.useEffect(() => {
