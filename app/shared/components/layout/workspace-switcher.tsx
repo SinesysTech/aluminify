@@ -64,7 +64,7 @@ export function WorkspaceSwitcher() {
   const handleSelectWorkspace = useCallback((org: typeof organizations[0]) => {
     if (org.slug === tenantSlug) return
 
-    setActiveOrganization(org)
+    // setActiveOrganization(org) - REMOVED: State is now synced from URL via StudentTenantCoordinator
 
     // Navigate to the same path under the new tenant slug
     const currentPrefix = `/${tenantSlug}`

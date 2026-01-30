@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
+import { useParams } from "next/navigation";
 import { useStudentOrganizations } from "@/components/providers/student-organizations-provider";
 
 /**
@@ -16,8 +16,8 @@ import { useStudentOrganizations } from "@/components/providers/student-organiza
  * - Cross-tenant navigation is explicit and predictable.
  */
 export function StudentTenantCoordinator() {
-  const router = useRouter();
-  const pathname = usePathname();
+  // const router = useRouter(); // Unused
+  // const pathname = usePathname(); // Unused
   const params = useParams<{ tenant?: string | string[] }>();
 
   const tenantSlug = useMemo(() => {
@@ -34,47 +34,30 @@ export function StudentTenantCoordinator() {
     loading,
   } = useStudentOrganizations();
 
-  const lastNavigatedToSlug = useRef<string | null>(null);
+  // const lastNavigatedToSlug = useRef<string | null>(null); // Unused
 
   useEffect(() => {
+    // We only care if we are in a multi-org scenario and not loading
     if (!isMultiOrg || loading) return;
 
-    // Auto-select: default to current tenant organization if nothing chosen yet.
-    if (!activeOrganization && tenantSlug) {
-      const match = organizations.find((o) => o.slug === tenantSlug);
-      if (match) {
-        setActiveOrganization(match);
-      }
-      return;
+    // If there is no tenant slug in the URL, we can't do anything
+    if (!tenantSlug) return;
+
+    // Find the organization that matches the current URL slug
+    const match = organizations.find((o) => o.slug === tenantSlug);
+
+    // If we found a matching organization, and it's different from the active one, update state
+    if (match && activeOrganization?.id !== match.id) {
+      console.log(`[Coordinator] Syncing active org from URL: ${match.slug}`);
+      setActiveOrganization(match);
     }
-
-    if (!activeOrganization?.slug || !tenantSlug) return;
-    if (activeOrganization.slug === tenantSlug) return;
-
-    // Avoid loops if router hasn't updated params yet.
-    if (lastNavigatedToSlug.current === activeOrganization.slug) return;
-    lastNavigatedToSlug.current = activeOrganization.slug;
-
-    // Replace the current tenant segment with the selected org slug.
-    const currentPrefix = `/${tenantSlug}`;
-    const nextPrefix = `/${activeOrganization.slug}`;
-
-    const nextPath =
-      pathname && pathname.startsWith(currentPrefix)
-        ? `${nextPrefix}${pathname.slice(currentPrefix.length)}`
-        : `${nextPrefix}/dashboard`;
-
-    router.push(nextPath);
-    router.refresh();
   }, [
-    activeOrganization,
+    tenantSlug,
     organizations,
+    activeOrganization,
     isMultiOrg,
     loading,
-    pathname,
-    router,
     setActiveOrganization,
-    tenantSlug,
   ]);
 
   return null;

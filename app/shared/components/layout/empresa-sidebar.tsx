@@ -101,7 +101,6 @@ const empresaNavItems: NavItem[] = [
       { title: "Personalização", url: "/empresa/personalizacao" },
       { title: "Módulos do Aluno", url: "/empresa/modulos" },
       { title: "Integrações", url: "/empresa/integracoes" },
-      { title: "Configurações", url: "/empresa/configuracoes" },
     ],
   },
 ]
