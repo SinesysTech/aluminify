@@ -6,16 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { TransactionFilters } from "@/app/[tenant]/(modules)/financeiro/components/transaction-filters";
-import { TransactionStatusBadge } from "@/app/[tenant]/(modules)/financeiro/components/transaction-status-badge";
 import { Skeleton } from "@/app/shared/components/feedback/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/app/shared/components/dataviz/table";
 import {
   Pagination,
   PaginationContent,
@@ -27,21 +18,10 @@ import {
 import { createFinancialService } from "@/app/[tenant]/(modules)/financeiro/services";
 import type { TransactionStatus, Provider } from "@/app/shared/types/entities/financial";
 import { ArrowLeft } from "lucide-react";
+import { TransactionsTable, type TransactionRow } from "./components/transactions-table";
 
 export const metadata: Metadata = {
   title: 'Transações'
-}
-
-interface TransactionRow {
-  id: string;
-  buyerEmail: string;
-  buyerName: string | null;
-  amountCents: number;
-  currency: string;
-  status: TransactionStatus;
-  provider: Provider;
-  saleDate: string;
-  paymentMethod: string | null;
 }
 
 interface PaginationMeta {
@@ -57,39 +37,6 @@ interface SearchParams {
   provider?: Provider;
   buyerEmail?: string;
 }
-
-function formatCurrency(value: number, currency = "BRL"): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency,
-  }).format(value / 100);
-}
-
-function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateString));
-}
-
-const providerLabels: Record<Provider, string> = {
-  hotmart: "Hotmart",
-  stripe: "Stripe",
-  internal: "Interno",
-  manual: "Manual",
-};
-
-const paymentMethodLabels: Record<string, string> = {
-  credit_card: "Cartão de Crédito",
-  debit_card: "Cartão de Débito",
-  pix: "PIX",
-  boleto: "Boleto",
-  bank_transfer: "Transferência",
-  other: "Outro",
-};
 
 export default async function TransacoesPage({
   searchParams,
@@ -184,64 +131,7 @@ export default async function TransacoesPage({
       {/* Transactions Table */}
       <Card>
         <CardContent className="p-0">
-          {transactions.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              Nenhuma transação encontrada
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Comprador</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead>Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((transaction) => (
-                  <TableRow
-                    key={transaction.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {}}
-                  >
-                    <TableCell>
-                      <Link
-                        href={`/${tenant}/financeiro/transacoes/${transaction.id}`}
-                        className="flex flex-col"
-                      >
-                        <span className="font-medium">
-                          {transaction.buyerName || "-"}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {transaction.buyerEmail}
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(transaction.amountCents, transaction.currency)}
-                    </TableCell>
-                    <TableCell>
-                      {transaction.paymentMethod
-                        ? paymentMethodLabels[transaction.paymentMethod] || transaction.paymentMethod
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <TransactionStatusBadge status={transaction.status} />
-                    </TableCell>
-                    <TableCell>
-                      {providerLabels[transaction.provider] || transaction.provider}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(transaction.saleDate)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <TransactionsTable transactions={transactions} tenant={tenant} />
         </CardContent>
       </Card>
 
