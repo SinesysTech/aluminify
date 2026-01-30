@@ -449,8 +449,17 @@ export async function updateSession(request: NextRequest) {
 
   if (!isPublicPath) {
     const result = await supabase.auth.getUser();
-    user = result.data.user;
-    error = result.error;
+    // Se o erro for refresh_token_not_found, trata como usuário não autenticado (não é erro fatal)
+    if (result.error &&
+        (result.error.code === 'refresh_token_not_found' ||
+         result.error.message?.toLowerCase().includes('refresh token not found'))
+    ) {
+      user = null;
+      error = null;
+    } else {
+      user = result.data.user;
+      error = result.error;
+    }
   }
 
   // --- 5. REDIRECTS & REWRITES ---

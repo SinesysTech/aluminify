@@ -37,7 +37,7 @@ function getRankIcon(position: number) {
     case 0:
       return <Trophy className="h-3.5 w-3.5 text-yellow-500" />
     case 1:
-      return <Medal className="h-3.5 w-3.5 text-gray-400" />
+      return <Medal className="h-3.5 w-3.5 text-muted-foreground" />
     case 2:
       return <Award className="h-3.5 w-3.5 text-amber-600" />
     default:
@@ -50,7 +50,7 @@ function getRankBadgeColor(position: number): string {
     case 0:
       return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/30'
     case 1:
-      return 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
+      return 'bg-muted text-muted-foreground border-border'
     case 2:
       return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30'
     default:
@@ -63,7 +63,7 @@ function getRowHighlight(position: number): string {
     case 0:
       return 'bg-yellow-50/50 dark:bg-yellow-500/5'
     case 1:
-      return 'bg-gray-50/50 dark:bg-gray-500/5'
+      return 'bg-muted/50'
     case 2:
       return 'bg-amber-50/50 dark:bg-amber-500/5'
     default:
@@ -85,7 +85,7 @@ export function RankingList({
       </CardHeader>
       <CardContent className="flex-1 pt-0 px-4 md:px-5 pb-4">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[100px]">
+          <div className="flex items-center justify-center min-h-25">
             <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (

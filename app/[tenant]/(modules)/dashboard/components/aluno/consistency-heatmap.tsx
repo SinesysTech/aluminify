@@ -103,7 +103,7 @@ export function ConsistencyHeatmap({
     switch (intensity) {
       case 0:
         // No modo claro: fundo mais escuro e borda para visibilidade; modo escuro usa cores mais claras
-        return 'bg-slate-200/60 border border-slate-300/10 hover:bg-slate-200/80 dark:bg-slate-700/40 dark:border-slate-600/10 hover:dark:bg-slate-700/60'
+        return 'bg-muted/60 border border-border/30 hover:bg-muted/80'
       case 1:
         return 'bg-emerald-500/40 hover:bg-emerald-500/50 dark:bg-emerald-400/40 dark:hover:bg-emerald-400/50'
       case 2:
@@ -113,7 +113,7 @@ export function ConsistencyHeatmap({
       case 4:
         return 'bg-emerald-500 hover:bg-emerald-500/90 dark:bg-emerald-400 dark:hover:bg-emerald-400/90'
       default:
-        return 'bg-slate-200/60 border border-slate-300/10 dark:bg-slate-700/40 dark:border-slate-600/10'
+        return 'bg-muted/60 border border-border/30'
     }
   }
 
@@ -242,7 +242,7 @@ export function ConsistencyHeatmap({
           <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mt-2 relative z-20">
             <span>Menos</span>
             <div className="flex gap-1">
-              <div className="w-3 h-3 rounded-sm bg-slate-200/60 border border-slate-300/10 dark:bg-slate-700/40 dark:border-slate-600/10" />
+              <div className="w-3 h-3 rounded-sm bg-muted/60 border border-border/30" />
               <div className="w-3 h-3 rounded-sm bg-emerald-500/40 dark:bg-emerald-400/40" />
               <div className="w-3 h-3 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
               <div className="w-3 h-3 rounded-sm bg-emerald-500/80 dark:bg-emerald-400/80" />
