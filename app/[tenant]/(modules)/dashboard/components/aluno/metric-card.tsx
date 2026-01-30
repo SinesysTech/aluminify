@@ -115,12 +115,12 @@ export function MetricCard({
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help opacity-0 group-hover:opacity-100 transition-opacity" />
                   </TooltipTrigger>
                   <TooltipContent
                     side="bottom"
                     align="end"
-                    className="max-w-[280px] p-4 text-sm"
+                    className="max-w-70 p-4 text-sm"
                     sideOffset={4}
                   >
                     <div className="space-y-3">
