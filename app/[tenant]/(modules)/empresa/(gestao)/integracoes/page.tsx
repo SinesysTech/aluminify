@@ -4,7 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IntegracaoManager } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/integracao-manager"
 import { ConfiguracoesForm } from "@/app/[tenant]/(modules)/agendamentos/configuracoes/components/configuracoes-form"
 import { HotmartIntegration } from "@/app/[tenant]/(modules)/financeiro/integracoes/components/hotmart-integration"
+import { OAuthCredentialsForm } from "./components/oauth-credentials-form"
 import { getConfiguracoesProfessor } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
+import { getTenantOAuthConfig } from "./lib/oauth-actions"
 import { Video, CreditCard, CalendarCog } from "lucide-react"
 
 export default async function IntegracoesPage() {
@@ -23,7 +25,10 @@ export default async function IntegracoesPage() {
     )
   }
 
-  const configuracoes = await getConfiguracoesProfessor(user.id)
+  const [configuracoes, oauthConfig] = await Promise.all([
+    getConfiguracoesProfessor(user.id),
+    getTenantOAuthConfig(user.empresaId),
+  ])
 
   return (
     <div className="page-container section-container">
@@ -51,8 +56,22 @@ export default async function IntegracoesPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="videoconferencia">
-          <IntegracaoManager professorId={user.id} />
+        <TabsContent value="videoconferencia" className="space-y-8">
+          {user.isAdmin && (
+            <OAuthCredentialsForm
+              empresaId={user.empresaId}
+              initialConfig={oauthConfig}
+            />
+          )}
+          <IntegracaoManager
+            professorId={user.id}
+            empresaId={user.empresaId}
+            tenantSlug={user.empresaSlug || ""}
+            availableProviders={{
+              google: !!oauthConfig.google?.configured && !!oauthConfig.google?.active,
+              zoom: !!oauthConfig.zoom?.configured && !!oauthConfig.zoom?.active,
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="financeiro">
