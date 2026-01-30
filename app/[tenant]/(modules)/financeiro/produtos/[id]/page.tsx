@@ -171,8 +171,8 @@ export default function ProductDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
-            <p className="text-muted-foreground">Detalhes do produto</p>
+            <h1 className="page-title">{product.name}</h1>
+            <p className="page-subtitle">Detalhes do produto</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

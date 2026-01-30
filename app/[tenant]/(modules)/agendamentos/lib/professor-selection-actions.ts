@@ -52,6 +52,8 @@ export async function getProfessoresDisponiveis(
     return [];
   }
 
+  // Query professores usando o padrão correto de join com papeis
+  // Isso garante que apenas usuários com papel "professor" sejam retornados
   const { data: professores, error } = await supabase
     .from("usuarios")
     .select(

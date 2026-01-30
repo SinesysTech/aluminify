@@ -155,10 +155,10 @@ export function ModeSelector({
             <div className="relative">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-bold tracking-tight">
+                        <h1 className="page-title">
                             Flashcards
                         </h1>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="page-subtitle">
                             Estude de forma inteligente com repetição espaçada. Escolha um modo e comece sua sessão de revisão.
                         </p>
                     </div>

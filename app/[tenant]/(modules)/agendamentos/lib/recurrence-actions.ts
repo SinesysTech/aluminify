@@ -289,59 +289,36 @@ export async function createBloqueio(
       ? data.data_fim
       : data.data_fim.toISOString();
 
-  const payload = {
-    professor_id: data.professor_id || null,
-    empresa_id: data.empresa_id,
-    tipo: data.tipo,
-    data_inicio: dataInicio,
-    data_fim: dataFim,
-    motivo: data.motivo || null,
-    criado_por: user.id,
-  };
+  // Use atomic stored procedure to create bloqueio and cancel conflicts
+  // This prevents race condition where appointments could be created during bloqueio creation
+  const { data: bloqueioId, error: rpcError } = await supabase.rpc(
+    "create_bloqueio_and_cancel_conflicts",
+    {
+      p_professor_id: data.professor_id || null,
+      p_empresa_id: data.empresa_id,
+      p_tipo: data.tipo,
+      p_data_inicio: dataInicio,
+      p_data_fim: dataFim,
+      p_motivo: data.motivo || null,
+      p_criado_por: user.id,
+    },
+  );
 
-  const { data: result, error } = await supabase
-    .from("agendamento_bloqueios")
-    .insert(
-      payload as Database["public"]["Tables"]["agendamento_bloqueios"]["Insert"],
-    )
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creating bloqueio:", error);
+  if (rpcError) {
+    console.error("Error creating bloqueio:", rpcError);
     throw new Error("Failed to create bloqueio");
   }
 
-  if (result.professor_id) {
-    await supabase
-      .from("agendamentos")
-      .update({
-        status: "cancelado",
-        motivo_cancelamento: `Bloqueio de agenda: ${data.motivo || "Sem motivo especificado"}`,
-      })
-      .eq("professor_id", result.professor_id)
-      .in("status", ["pendente", "confirmado"])
-      .lt("data_inicio", dataFim)
-      .gt("data_fim", dataInicio);
-  } else {
-    const { data: professores } = await supabase
-      .from("usuarios")
-      .select("id")
-      .eq("empresa_id", data.empresa_id);
+  // Fetch the created bloqueio to return
+  const { data: result, error: fetchError } = await supabase
+    .from("agendamento_bloqueios")
+    .select("*")
+    .eq("id", bloqueioId)
+    .single();
 
-    if (professores && professores.length > 0) {
-      const professorIds = professores.map((p) => p.id);
-      await supabase
-        .from("agendamentos")
-        .update({
-          status: "cancelado",
-          motivo_cancelamento: `Bloqueio de agenda: ${data.motivo || "Sem motivo especificado"}`,
-        })
-        .in("professor_id", professorIds)
-        .in("status", ["pendente", "confirmado"])
-        .lt("data_inicio", dataFim)
-        .gt("data_fim", dataInicio);
-    }
+  if (fetchError || !result) {
+    console.error("Error fetching created bloqueio:", fetchError);
+    throw new Error("Failed to fetch created bloqueio");
   }
 
   revalidatePath("/agendamentos");

@@ -1149,7 +1149,9 @@ export function ScheduleWizard() {
       }
 
       if (result?.success) {
-        router.push(tenant ? `/${tenant}/cronograma` : '/cronograma')
+        const newId = result.cronograma?.id
+        const dest = newId ? `/cronograma/${newId}` : '/cronograma'
+        router.push(tenant ? `/${tenant}${dest}` : dest)
       } else {
         setError('Erro desconhecido ao gerar cronograma')
         setLoading(false)

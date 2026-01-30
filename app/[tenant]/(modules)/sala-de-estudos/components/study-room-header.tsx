@@ -47,10 +47,10 @@ export function StudyRoomHeader({ userName }: StudyRoomHeaderProps) {
       <div className="flex flex-col gap-2 md:hidden">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight truncate">
+            <h1 className="page-title truncate">
               {greeting}, {firstName}!
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="page-subtitle mt-0.5">
               {motivationalPhrase}
             </p>
           </div>
@@ -60,10 +60,10 @@ export function StudyRoomHeader({ userName }: StudyRoomHeaderProps) {
       {/* Desktop Layout */}
       <div className="hidden md:flex md:items-center md:justify-between md:gap-6">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="page-title">
             {greeting}, {userName}!
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="page-subtitle">
             {motivationalPhrase}
           </p>
         </div>

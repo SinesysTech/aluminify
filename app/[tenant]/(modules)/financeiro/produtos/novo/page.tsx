@@ -115,8 +115,8 @@ export default function NewProductPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Novo Produto</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Novo Produto</h1>
+          <p className="page-subtitle">
             Cadastre um novo produto para venda
           </p>
         </div>

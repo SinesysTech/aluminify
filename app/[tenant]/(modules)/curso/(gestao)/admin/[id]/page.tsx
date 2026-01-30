@@ -254,7 +254,7 @@ export default function CourseDetailPage() {
 
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold">{course.name}</h1>
+              <h1 className="page-title">{course.name}</h1>
               <div className="flex flex-wrap gap-2 mt-2">
                 <Badge variant="outline">{course.modality}</Badge>
                 <Badge variant="outline">{course.type}</Badge>

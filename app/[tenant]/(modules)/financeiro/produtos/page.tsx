@@ -185,8 +185,8 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Produtos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Produtos</h1>
+          <p className="page-subtitle">
             Gerencie os produtos disponíveis para venda
           </p>
         </div>

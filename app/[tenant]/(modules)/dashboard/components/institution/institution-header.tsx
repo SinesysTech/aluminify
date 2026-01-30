@@ -39,10 +39,10 @@ export function InstitutionHeader({
                 <Building2 className="h-6 w-6 md:h-7 md:w-7 text-primary" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
+                <h1 className="page-title truncate">
                   {getGreeting()}, {userName}!
                 </h1>
-                <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                <p className="page-subtitle mt-0.5 truncate">
                   {empresaNome}
                 </p>
               </div>

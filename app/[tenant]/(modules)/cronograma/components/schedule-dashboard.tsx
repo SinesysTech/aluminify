@@ -9,18 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/app/shared/components/feedback/skeleton'
 import { ScheduleList } from './schedule-list'
-import { Download, Plus, RefreshCw, Trash2 } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/app/shared/components/ui/alert-dialog'
+import { Download } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 
@@ -133,9 +122,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const tenant = params?.tenant as string
   const [loading, setLoading] = useState(true)
   const [cronograma, setCronograma] = useState<Cronograma | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [curso, setCurso] = useState<{ id: string; nome: string } | null>(null)
   const [disciplinas, setDisciplinas] = useState<Array<{ id: string; nome: string }>>([])
@@ -677,35 +663,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     }
   }
 
-  const handleDeleteCronograma = async () => {
-    if (!cronogramaId) return
-
-    setDeleting(true)
-    try {
-      const supabase = createClient()
-
-      // Deletar o cronograma (os itens serão deletados automaticamente por CASCADE)
-      const { error } = await supabase
-        .from('cronogramas')
-        .delete()
-        .eq('id', cronogramaId)
-
-      if (error) {
-        console.error('Erro ao deletar cronograma:', error)
-        alert('Erro ao deletar cronograma. Tente novamente.')
-        setDeleting(false)
-        return
-      }
-
-      // Redirecionar para a página de criação de novo cronograma
-      router.push(tenant ? `/${tenant}/cronograma/novo` : '/cronograma/novo')
-    } catch (err) {
-      console.error('Erro inesperado ao deletar cronograma:', err)
-      alert('Erro ao deletar cronograma. Tente novamente.')
-      setDeleting(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className="container mx-auto py-6 space-y-4">
@@ -720,12 +677,11 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
       <div className="container mx-auto py-6">
         <Card>
           <CardHeader>
-            <CardTitle>Cronograma não encontrado</CardTitle>
+            <CardTitle>Cronograma nao encontrado</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push(tenant ? `/${tenant}/cronograma/novo` : '/cronograma/novo')}>
-              <Plus className="mr-2 h-4 w-4" />
-              Criar Novo Cronograma
+            <Button onClick={() => router.push(tenant ? `/${tenant}/cronograma` : '/cronograma')}>
+              Voltar para cronogramas
             </Button>
           </CardContent>
         </Card>
@@ -847,37 +803,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               </CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Criar Novo Cronograma</span>
-                    <span className="sm:hidden">Novo</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Criar Novo Cronograma?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Ao criar um novo cronograma, o cronograma atual será <strong>permanentemente excluído</strong> e não poderá ser recuperado.
-                      <br />
-                      <br />
-                      Tem certeza que deseja continuar?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => {
-                        setShowDeleteDialog(false)
-                        router.push(tenant ? `/${tenant}/cronograma/novo` : '/cronograma/novo')
-                      }}
-                    >
-                      Sim, criar novo cronograma
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
               <Button
                 variant="outline"
                 className="w-full sm:w-auto"
@@ -954,50 +879,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                 <span className="hidden sm:inline">Exportar XLSX</span>
                 <span className="sm:hidden">XLSX</span>
               </Button>
-              <AlertDialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="w-full sm:w-auto"
-                    disabled={deleting}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Deletar Cronograma</span>
-                    <span className="sm:hidden">Deletar</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Deletar Cronograma?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta ação não pode ser desfeita. O cronograma e todos os seus dados serão <strong>permanentemente excluídos</strong>, incluindo:
-                      <br />
-                      <br />
-                      • Todas as aulas agendadas no cronograma
-                      <br />
-                      • Progresso e marcações de conclusão específicas deste cronograma
-                      <br />
-                      • Configurações e distribuição das aulas
-                      <br />
-                      <br />
-                      <strong>Importante:</strong> O <strong>histórico de aulas concluídas</strong> será <strong>preservado</strong>. Essas marcações são independentes do cronograma e não serão deletadas. Quando você criar um novo cronograma, poderá escolher excluir automaticamente as aulas já concluídas.
-                      <br />
-                      <br />
-                      Tem certeza que deseja continuar?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteCronograma}
-                      disabled={deleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {deleting ? 'Deletando...' : 'Sim, deletar cronograma'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </div>
         </CardHeader>

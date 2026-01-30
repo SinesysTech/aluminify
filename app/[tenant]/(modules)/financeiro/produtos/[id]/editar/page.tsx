@@ -184,8 +184,8 @@ export default function EditProductPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Editar Produto</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Editar Produto</h1>
+          <p className="page-subtitle">
             Atualize as informações do produto
           </p>
         </div>

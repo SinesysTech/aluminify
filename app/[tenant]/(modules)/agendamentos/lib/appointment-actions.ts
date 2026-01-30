@@ -36,6 +36,27 @@ export async function createAgendamento(
   const data_fim =
     data.data_fim instanceof Date ? data.data_fim.toISOString() : data.data_fim;
 
+  // Validar que professor e aluno são da mesma empresa
+  const { data: professorData } = await supabase
+    .from("usuarios")
+    .select("empresa_id")
+    .eq("id", data.professor_id)
+    .single();
+
+  const { data: alunoData } = await supabase
+    .from("usuarios")
+    .select("empresa_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!professorData || !alunoData) {
+    throw new Error("Usuário não encontrado");
+  }
+
+  if (professorData.empresa_id !== alunoData.empresa_id) {
+    throw new Error("Você só pode agendar com professores da sua instituição");
+  }
+
   // Extra validation on client-provided data
   const validation = await validateAgendamento(
     data.professor_id,
@@ -140,9 +161,7 @@ export async function getAgendamentosProfessor(
     // Continue without aluno data rather than failing entirely
   }
 
-  const alunosMap = new Map(
-    (alunos || []).map((aluno) => [aluno.id, aluno]),
-  );
+  const alunosMap = new Map((alunos || []).map((aluno) => [aluno.id, aluno]));
 
   return agendamentos.map((item) => {
     const aluno = alunosMap.get(item.aluno_id);
@@ -190,10 +209,7 @@ export async function getAgendamentosAluno(
     return [];
   }
 
-  let query = supabase
-    .from("agendamentos")
-    .select("*")
-    .eq("aluno_id", alunoId);
+  let query = supabase.from("agendamentos").select("*").eq("aluno_id", alunoId);
   if (empresaId) query = query.eq("empresa_id", empresaId);
   const { data: agendamentos, error } = await query.order("data_inicio", {
     ascending: false,
@@ -337,7 +353,10 @@ export async function confirmarAgendamento(id: string, linkReuniao?: string) {
         .eq("professor_id", user.id);
 
       if (agendamento.empresa_id) {
-        integrationQuery = integrationQuery.eq("empresa_id", agendamento.empresa_id);
+        integrationQuery = integrationQuery.eq(
+          "empresa_id",
+          agendamento.empresa_id,
+        );
       }
 
       const { data: integration } = await integrationQuery.single();

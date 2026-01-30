@@ -253,12 +253,37 @@ export async function getAvailabilityForMonth(
     .gte("data_inicio", monthStart.toISOString())
     .lte("data_inicio", monthEnd.toISOString());
 
+  // Get bloqueios for the month
+  const { data: bloqueios } = await supabase
+    .from("agendamento_bloqueios")
+    .select("data_inicio, data_fim, professor_id")
+    .eq("empresa_id", professor.empresa_id)
+    .or(`professor_id.is.null,professor_id.eq.${professorId}`)
+    .lte("data_inicio", monthEnd.toISOString())
+    .gte("data_fim", monthStart.toISOString());
+
   // Count appointments per date
   const appointmentCounts: { [date: string]: number } = {};
   for (const apt of appointments || []) {
     const dateKey = new Date(apt.data_inicio).toISOString().split("T")[0];
     appointmentCounts[dateKey] = (appointmentCounts[dateKey] || 0) + 1;
   }
+
+  // Helper function to check if a day is blocked
+  const isDayBlocked = (
+    dateStr: string,
+    bloqueiosList: Array<{
+      data_inicio: string;
+      data_fim: string;
+      professor_id: string | null;
+    }>,
+  ): boolean => {
+    return bloqueiosList.some((b) => {
+      const blockStart = b.data_inicio.split("T")[0];
+      const blockEnd = b.data_fim.split("T")[0];
+      return dateStr >= blockStart && dateStr <= blockEnd;
+    });
+  };
 
   // Build availability map for each day of the month
   const availability: {
@@ -274,6 +299,12 @@ export async function getAvailabilityForMonth(
 
     // Skip past dates
     if (date < today) {
+      continue;
+    }
+
+    // Check if day is blocked
+    if (isDayBlocked(dateKey, bloqueios || [])) {
+      availability[dateKey] = { hasSlots: false, slotCount: 0 };
       continue;
     }
 

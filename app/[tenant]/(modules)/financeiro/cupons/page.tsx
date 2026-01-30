@@ -350,8 +350,8 @@ export default function CouponsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Cupons de Desconto</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Cupons de Desconto</h1>
+          <p className="page-subtitle">
             Gerencie os cupons de desconto disponíveis
           </p>
         </div>
