@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  requireAuth,
+  requireUserAuth,
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
@@ -33,12 +33,21 @@ function handleError(error: unknown) {
  * GET /api/usuario/alunos/organizations
  *
  * Returns all organizations where the current student is enrolled.
- * Only accessible by authenticated students (role: "aluno").
+ * Accessible by authenticated students (role: "aluno") OR admins impersonating a student.
  */
 async function getHandler(request: AuthenticatedRequest) {
   try {
-    // Only students can access this endpoint
-    if (!request.user || request.user.role !== "aluno") {
+    let targetUserId = request.user?.id;
+    let targetUserRole = request.user?.role;
+
+    // Check for impersonation
+    if (request.impersonationContext) {
+      targetUserId = request.impersonationContext.impersonatedUserId;
+      targetUserRole = request.impersonationContext.impersonatedUserRole;
+    }
+
+    // Only students can access this endpoint (either direct or impersonated)
+    if (!targetUserId || targetUserRole !== "aluno") {
       return NextResponse.json(
         { error: "Forbidden: This endpoint is only for students" },
         { status: 403 },
@@ -46,12 +55,13 @@ async function getHandler(request: AuthenticatedRequest) {
     }
 
     // Use service role to allow cross-tenant discovery (student can be enrolled in multiple empresas).
-    // SECURITY: We only ever return data for request.user.id (derived from auth).
+    // SECURITY: We only ever return data for the targetUserId.
     const supabase = getDatabaseClient();
 
     // Create service and fetch organizations
     const service = createStudentOrganizationsService(supabase);
-    const result = await service.getStudentOrganizationsForStudent(request.user.id);
+    const result =
+      await service.getStudentOrganizationsForStudent(targetUserId);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -60,5 +70,5 @@ async function getHandler(request: AuthenticatedRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  return requireAuth(getHandler)(request);
+  return requireUserAuth(getHandler)(request);
 }
