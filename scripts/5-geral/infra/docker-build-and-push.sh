@@ -52,9 +52,7 @@ if [ -f .env.local ]; then
         [[ -z $key ]] && continue
         # Only pass NEXT_PUBLIC_*, UPSTASH_*, SUPABASE_*, SUPERADMIN_*, AI_*, GOOGLE_*, OPENAI_*, and LOG_LEVEL
         if [[ $key =~ ^NEXT_PUBLIC_ ]] || \
-           [[ $key =~ ^UPSTASH_ ]] || \
            [[ $key =~ ^SUPABASE_ ]] || \
-           [[ $key =~ ^SUPERADMIN_ ]] || \
            [[ $key =~ ^AI_ ]] || \
            [[ $key =~ ^GOOGLE_ ]] || \
            [[ $key =~ ^OPENAI_ ]] || \
