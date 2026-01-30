@@ -3,13 +3,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle } from 'lucide-react'
 import type {
-    DashboardData,
     UserInfo,
+    DashboardPeriod,
     Metrics,
     HeatmapDay,
     SubjectPerformance,
     FocusEfficiencyDay,
-    StrategicDomain,
     SubjectDistributionItem
 } from './types'
 import {
@@ -42,6 +41,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/fee
 
 // Intervalo de refresh automático (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
+
+function mapHeatmapPeriod(period: HeatmapPeriod): DashboardPeriod {
+    return period
+}
 
 export default function StudentDashboardClientPage() {
     // Individual states for granular data
@@ -120,7 +123,7 @@ export default function StudentDashboardClientPage() {
                 // 2. Metrics (Dependent on period)
                 setIsLoadingMetrics(true)
                 promises.push(
-                    fetchDashboardMetrics(periodToUse as any, activeOrgId)
+                    fetchDashboardMetrics(mapHeatmapPeriod(periodToUse), activeOrgId)
                         .then(setMetrics)
                         .catch(e => setError(handleError(e, 'métricas')))
                         .finally(() => setIsLoadingMetrics(false))
@@ -135,28 +138,28 @@ export default function StudentDashboardClientPage() {
 
                 // 4. Subjects
                 promises.push(
-                    fetchDashboardSubjects(periodToUse as any, activeOrgId)
+                    fetchDashboardSubjects(mapHeatmapPeriod(periodToUse), activeOrgId)
                         .then(setSubjects)
                         .catch(e => console.warn(handleError(e, 'disciplinas')))
                 )
 
                 // 5. Efficiency
                 promises.push(
-                    fetchDashboardEfficiency(periodToUse as any, activeOrgId)
+                    fetchDashboardEfficiency(mapHeatmapPeriod(periodToUse), activeOrgId)
                         .then(setEfficiency)
                         .catch(e => console.warn(handleError(e, 'eficiência')))
                 )
 
                 // 6. Strategic
                 promises.push(
-                    fetchDashboardStrategic(periodToUse as any, activeOrgId)
+                    fetchDashboardStrategic(mapHeatmapPeriod(periodToUse), activeOrgId)
                         .then(setStrategic)
                         .catch(e => console.warn(handleError(e, 'domínio estratégico')))
                 )
 
                 // 7. Distribution
                 promises.push(
-                    fetchDashboardDistribution(periodToUse as any, activeOrgId)
+                    fetchDashboardDistribution(mapHeatmapPeriod(periodToUse), activeOrgId)
                         .then(setDistribution)
                         .catch(e => console.warn(handleError(e, 'distribuição')))
                 )
@@ -178,7 +181,7 @@ export default function StudentDashboardClientPage() {
     // Carregamento inicial
     useEffect(() => {
         loadData()
-    }, [activeOrgId]) // Dependency on activeOrgId ensures reload on tenant switch
+    }, [activeOrgId, loadData]) // Dependency on activeOrgId ensures reload on tenant switch
 
     // Handler para mudança de período do heatmap
     const handleHeatmapPeriodChange = useCallback(

@@ -3,9 +3,16 @@ import type {
   DashboardGroupBy,
   DashboardPeriod,
   DashboardScopeLevel,
+  FocusEfficiencyDay,
+  HeatmapDay,
+  Metrics,
   PerformanceItem,
+  StrategicDomain,
   StrategicDomainResponse,
+  SubjectDistributionItem,
   SubjectDistributionResponse,
+  SubjectPerformance,
+  UserInfo,
 } from "../../types";
 import { apiClient, ApiClientError } from "@/app/shared/library/api-client";
 import type { HeatmapPeriod } from "../../components/aluno/consistency-heatmap";
@@ -187,6 +194,105 @@ export async function fetchStrategicDomain(params: {
   });
   const response = await apiClient.get<{ data: StrategicDomainResponse }>(
     `/api/dashboard/strategic-domain?${qs.toString()}`,
+  );
+  return response.data;
+}
+
+// New API methods for granular data fetching
+
+export async function fetchDashboardUser(
+  empresaId?: string | null,
+): Promise<UserInfo> {
+  const params = new URLSearchParams();
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: UserInfo }>(
+    `/api/dashboard/user?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchDashboardMetrics(
+  period: DashboardPeriod = "anual",
+  empresaId?: string | null,
+): Promise<Metrics> {
+  const params = new URLSearchParams({ period });
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: Metrics }>(
+    `/api/dashboard/metrics?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchDashboardHeatmap(
+  period: HeatmapPeriod = "anual",
+  empresaId?: string | null,
+): Promise<HeatmapDay[]> {
+  const params = new URLSearchParams({ period });
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: HeatmapDay[] }>(
+    `/api/dashboard/heatmap?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchDashboardSubjects(
+  period: DashboardPeriod = "anual",
+  empresaId?: string | null,
+): Promise<SubjectPerformance[]> {
+  const params = new URLSearchParams({ period });
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: SubjectPerformance[] }>(
+    `/api/dashboard/subjects?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchDashboardEfficiency(
+  period: DashboardPeriod = "anual",
+  empresaId?: string | null,
+): Promise<FocusEfficiencyDay[]> {
+  const params = new URLSearchParams({ period });
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: FocusEfficiencyDay[] }>(
+    `/api/dashboard/efficiency?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchDashboardStrategic(
+  period: DashboardPeriod = "anual",
+  empresaId?: string | null,
+): Promise<StrategicDomain> {
+  const params = new URLSearchParams({ period });
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: StrategicDomain }>(
+    `/api/dashboard/strategic?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchDashboardDistribution(
+  period: DashboardPeriod = "anual",
+  empresaId?: string | null,
+): Promise<SubjectDistributionItem[]> {
+  const params = new URLSearchParams({ period });
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: SubjectDistributionItem[] }>(
+    `/api/dashboard/distribution?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
   );
   return response.data;
 }

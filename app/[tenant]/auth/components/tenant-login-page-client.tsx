@@ -311,43 +311,43 @@ export function TenantLoginPageClient({
         {/* Neutral overlay — fades out once branding loads */}
         <div
           className={cn(
-            'pointer-events-none absolute inset-0 bg-slate-900 transition-opacity duration-700 ease-out',
+            'pointer-events-none absolute inset-0 bg-slate-900 transition-opacity duration-700 ease-out motion-reduce:transition-none',
             brandingReady ? 'opacity-0' : 'opacity-100'
           )}
         />
 
         {/* Gradient overlay for depth */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/0 via-black/[0.03] to-black/15" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-black/0 via-black/3 to-black/15" />
 
         {/* Radial glow behind logo area */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-foreground/[0.04] blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-foreground/4 blur-3xl" />
 
         {/* Decorative circles (staggered entrance) */}
         <div
           className={cn(
             'absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-foreground/[0.07]',
-            'transition-all duration-1000 ease-out',
+            'transition-all duration-1000 ease-out motion-reduce:transition-none',
             brandingReady ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           )}
         />
         <div
           className={cn(
-            'absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-primary-foreground/[0.05]',
-            'transition-all delay-150 duration-1000 ease-out',
+            'absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-primary-foreground/5',
+            'transition-all delay-150 duration-1000 ease-out motion-reduce:transition-none',
             brandingReady ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           )}
         />
         <div
           className={cn(
-            'absolute left-[10%] top-[30%] h-14 w-14 rounded-full bg-primary-foreground/[0.08]',
-            'transition-opacity delay-300 duration-700 ease-out',
+            'absolute left-[10%] top-[30%] h-14 w-14 rounded-full bg-primary-foreground/8',
+            'transition-opacity delay-300 duration-700 ease-out motion-reduce:transition-none',
             brandingReady ? 'opacity-100' : 'opacity-0'
           )}
         />
         <div
           className={cn(
-            'absolute bottom-[28%] right-[14%] h-8 w-8 rounded-full bg-primary-foreground/[0.06]',
-            'transition-opacity delay-500 duration-700 ease-out',
+            'absolute bottom-[28%] right-[14%] h-8 w-8 rounded-full bg-primary-foreground/6',
+            'transition-opacity delay-500 duration-700 ease-out motion-reduce:transition-none',
             brandingReady ? 'opacity-100' : 'opacity-0'
           )}
         />
@@ -364,7 +364,7 @@ export function TenantLoginPageClient({
         {/* Brand content (fades up when ready) */}
         <div
           className={cn(
-            'relative z-10 flex flex-col items-center text-center transition-all duration-500 ease-out',
+            'relative z-10 flex flex-col items-center text-center transition-all duration-500 ease-out motion-reduce:transition-none',
             brandingReady ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
           )}
         >
