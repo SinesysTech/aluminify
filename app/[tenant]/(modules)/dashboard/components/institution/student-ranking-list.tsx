@@ -14,7 +14,7 @@ export function StudentRankingList({ students }: StudentRankingListProps) {
     avatarUrl: student.avatarUrl,
     primaryValue: student.horasEstudo,
     secondaryValue: `${student.aproveitamento}% aproveitamento`,
-    badge: student.streakDays > 0 ? `${student.streakDays}🔥` : undefined,
+    badge: student.streakDays > 0 ? `${student.streakDays}d seguidos` : undefined,
   }))
 
   return (

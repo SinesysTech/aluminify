@@ -168,9 +168,9 @@ export default function InstitutionDashboardClient() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
       {/* Header com filtro de período */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <InstitutionHeader
           userName={data.userName}
           empresaNome={data.empresaNome}
@@ -178,9 +178,9 @@ export default function InstitutionDashboardClient() {
           totalProfessores={data.summary.totalProfessores}
           totalCursos={data.summary.totalCursos}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
-            <SelectTrigger className="w-[110px] h-8 text-sm">
+            <SelectTrigger className="w-[120px] h-9 text-sm">
               <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
@@ -193,7 +193,7 @@ export default function InstitutionDashboardClient() {
             onClick={handleManualRefresh}
             variant="outline"
             size="icon"
-            className="shrink-0 h-8 w-8"
+            className="shrink-0 h-9 w-9"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -222,7 +222,7 @@ export default function InstitutionDashboardClient() {
       />
 
       {/* Rankings lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <StudentRankingList students={data.rankingAlunos} />
         <ProfessorRankingList professors={data.rankingProfessores} />
       </div>

@@ -48,13 +48,26 @@ function getRankIcon(position: number) {
 function getRankBadgeColor(position: number): string {
   switch (position) {
     case 0:
-      return 'bg-yellow-100 text-yellow-700 border-yellow-300'
+      return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/30'
     case 1:
-      return 'bg-gray-100 text-gray-600 border-gray-300'
+      return 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
     case 2:
-      return 'bg-amber-100 text-amber-700 border-amber-300'
+      return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30'
     default:
-      return 'bg-zinc-100 text-zinc-600 border-zinc-200'
+      return 'bg-muted text-muted-foreground border-border'
+  }
+}
+
+function getRowHighlight(position: number): string {
+  switch (position) {
+    case 0:
+      return 'bg-yellow-50/50 dark:bg-yellow-500/5'
+    case 1:
+      return 'bg-gray-50/50 dark:bg-gray-500/5'
+    case 2:
+      return 'bg-amber-50/50 dark:bg-amber-500/5'
+    default:
+      return ''
   }
 }
 
@@ -67,31 +80,34 @@ export function RankingList({
 }: RankingListProps) {
   return (
     <Card className={cn('flex flex-col', className)}>
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-3 pt-4 px-4 md:px-5">
         <CardTitle className="text-sm font-semibold">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 pt-0 px-4 pb-4">
+      <CardContent className="flex-1 pt-0 px-4 md:px-5 pb-4">
         {items.length === 0 ? (
           <div className="flex items-center justify-center min-h-[100px]">
             <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (
           <ScrollArea className="h-52 pr-3">
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 py-2 px-2 rounded-md hover:bg-muted/50 transition-colors"
+                  className={cn(
+                    'flex items-center gap-3 py-2.5 px-2.5 rounded-lg transition-colors cursor-default',
+                    index < 3 ? getRowHighlight(index) : 'hover:bg-muted/50'
+                  )}
                 >
                   <div
                     className={cn(
-                      'flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border',
+                      'flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border shrink-0',
                       getRankBadgeColor(index)
                     )}
                   >
                     {getRankIcon(index) || <span>{index + 1}</span>}
                   </div>
-                  <Avatar className="h-8 w-8 border">
+                  <Avatar className="h-8 w-8 border shrink-0">
                     <AvatarImage src={item.avatarUrl || undefined} alt={item.name} />
                     <AvatarFallback className="text-xs bg-primary/10 text-primary">
                       {getInitials(item.name)}
@@ -103,8 +119,11 @@ export function RankingList({
                       <p className="text-xs text-muted-foreground truncate">{item.secondaryValue}</p>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-primary">{item.primaryValue}</p>
+                    {item.badge && (
+                      <p className="text-xs text-muted-foreground">{item.badge}</p>
+                    )}
                   </div>
                 </div>
               ))}

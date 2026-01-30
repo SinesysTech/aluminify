@@ -126,7 +126,7 @@ export default function ProfessorDashboardClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
       {/* Header com botão de refresh */}
       <div className="flex items-start justify-between gap-4">
         <ProfessorHeader professorNome={data.professorNome} />
@@ -134,7 +134,7 @@ export default function ProfessorDashboardClient() {
           onClick={handleManualRefresh}
           variant="outline"
           size="icon"
-          className="shrink-0"
+          className="shrink-0 h-9 w-9"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -158,7 +158,7 @@ export default function ProfessorDashboardClient() {
       <UpcomingAppointments appointments={data.agendamentos} />
 
       {/* Alunos e Performance lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <StudentsUnderCareList students={data.alunos} />
         <ProfessorDisciplinaPerformanceList disciplinas={data.performanceAlunos} />
       </div>
