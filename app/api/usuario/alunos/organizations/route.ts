@@ -37,8 +37,8 @@ function handleError(error: unknown) {
  */
 async function getHandler(request: AuthenticatedRequest) {
   try {
-    let targetUserId = request.user?.id;
-    let targetUserRole = request.user?.role;
+    let targetUserId: string | undefined = request.user?.id;
+    let targetUserRole: string | undefined = request.user?.role;
 
     // Check for impersonation
     if (request.impersonationContext) {
