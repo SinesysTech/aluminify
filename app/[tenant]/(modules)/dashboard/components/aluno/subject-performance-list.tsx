@@ -316,7 +316,9 @@ export function SubjectPerformanceList({
           {groupBy !== 'curso' && courses.length > 1 && (
             <Select value={selectedCourseId ?? ''} onValueChange={(v) => setSelectedCourseId(v || null)}>
               <SelectTrigger size="sm" className="w-[220px]">
-                <SelectValue placeholder="Filtrar por curso" />
+                  <SelectValue placeholder="Filtrar por curso" />
+                  <SelectTrigger size="sm" className="w-55">
+                  <SelectValue placeholder="Filtrar por curso" />
               </SelectTrigger>
               <SelectContent>
                 {courses.map((c) => (
@@ -329,7 +331,9 @@ export function SubjectPerformanceList({
           {groupBy === 'frente' && (
             <Select value={selectedDisciplineId ?? ''} onValueChange={(v) => setSelectedDisciplineId(v || null)}>
               <SelectTrigger size="sm" className="w-[220px]">
-                <SelectValue placeholder="Disciplina" />
+                  <SelectValue placeholder="Disciplina" />
+                  <SelectTrigger size="sm" className="w-55">
+                  <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
                 {disciplineOptions.map((d) => (
@@ -342,7 +346,9 @@ export function SubjectPerformanceList({
           {groupBy === 'modulo' && (
             <Select value={selectedFrontId ?? ''} onValueChange={(v) => setSelectedFrontId(v || null)}>
               <SelectTrigger size="sm" className="w-[220px]">
-                <SelectValue placeholder="Frente" />
+                  <SelectValue placeholder="Frente" />
+                  <SelectTrigger size="sm" className="w-55">
+                  <SelectValue placeholder="Frente" />
               </SelectTrigger>
               <SelectContent>
                 {frontOptions.map((f) => (

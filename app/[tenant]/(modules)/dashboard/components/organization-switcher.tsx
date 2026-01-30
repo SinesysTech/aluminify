@@ -85,7 +85,7 @@ export function OrganizationSwitcher({
         <Button
           variant="outline"
           size="sm"
-          className={cn("gap-2 max-w-[200px]", className)}
+            className={cn("gap-2 max-w-50", className)}
         >
           {activeOrganization ? (
             <>
@@ -118,10 +118,7 @@ export function OrganizationSwitcher({
       <Button
         variant="outline"
         role="combobox"
-        className={cn(
-          "justify-between gap-2 min-w-[200px] max-w-[300px]",
-          className
-        )}
+            className={cn("justify-between gap-2 min-w-50 max-w-75", className)}
       >
         <div className="flex items-center gap-2 min-w-0">
           {activeOrganization ? (
@@ -177,7 +174,7 @@ export function OrganizationSwitcher({
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
-              {totalCourses} cursos
+                {totalCourses} cursos
             </Badge>
             {activeOrganization === null && (
               <Check className="h-4 w-4 text-primary" />
@@ -210,7 +207,7 @@ export function OrganizationSwitcher({
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                {org.courseCount}
+                  {org.courseCount}
               </Badge>
               {activeOrganization?.id === org.id && (
                 <Check className="h-4 w-4 text-primary" />
