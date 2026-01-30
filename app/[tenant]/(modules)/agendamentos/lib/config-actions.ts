@@ -104,7 +104,7 @@ export async function getIntegracaoProfessor(
     .eq("professor_id", professorId)
     .single();
 
-  if (error && error.code !== "PGRST116") {
+  if (error && error.code !== "PGRST116" && error.code !== "PGRST205") {
     console.error("Error fetching professor integration:", error);
     return null;
   }

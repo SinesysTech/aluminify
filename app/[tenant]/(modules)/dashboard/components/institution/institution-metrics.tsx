@@ -11,12 +11,13 @@ interface InstitutionMetricsProps {
 
 export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
       <MetricCard
         label="Alunos Ativos"
         value={summary.alunosAtivos}
         subtext={`de ${summary.totalAlunos} total`}
         icon={Users}
+        variant="time"
         tooltip={[
           'Alunos que tiveram alguma atividade de estudo nos últimos 30 dias.',
           'Isso inclui assistir aulas, resolver questões ou revisar flashcards.',
@@ -26,6 +27,7 @@ export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsPr
         label="Horas de Estudo"
         value={engagement.totalHorasEstudo}
         icon={Clock}
+        variant="flashcards"
         trend={{
           value: engagement.horasEstudoDelta,
           isPositive: engagement.horasEstudoDelta.startsWith('+'),
@@ -40,6 +42,7 @@ export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsPr
         value={engagement.atividadesConcluidas}
         subtext="no período"
         icon={CheckCircle2}
+        variant="questions"
         tooltip={[
           'Quantidade de aulas marcadas como assistidas no cronograma.',
           'Representa o progresso coletivo dos alunos.',
@@ -48,6 +51,7 @@ export function InstitutionMetrics({ summary, engagement }: InstitutionMetricsPr
       <MetricCard
         label="Taxa de Conclusão"
         value={`${engagement.taxaConclusao}%`}
+        variant="accuracy"
         showProgressCircle={true}
         progressValue={engagement.taxaConclusao}
         tooltip={[

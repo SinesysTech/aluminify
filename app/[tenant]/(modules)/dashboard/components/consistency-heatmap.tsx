@@ -14,6 +14,7 @@ interface ConsistencyHeatmapProps {
   data: HeatmapDay[]
   period?: HeatmapPeriod
   onPeriodChange?: (period: HeatmapPeriod) => void
+  showPeriodButtons?: boolean
 }
 
 const DAY_LABELS = ['Seg', '', 'Qua', '', 'Sex', '', 'Dom']
@@ -50,7 +51,8 @@ function getIntensityLabel(intensity: number) {
 export function ConsistencyHeatmap({
   data,
   period: externalPeriod,
-  onPeriodChange
+  onPeriodChange,
+  showPeriodButtons = true,
 }: ConsistencyHeatmapProps) {
   const [internalPeriod, setInternalPeriod] = useState<HeatmapPeriod>('anual')
   const period = externalPeriod ?? internalPeriod
