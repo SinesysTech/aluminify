@@ -284,16 +284,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
   const getSlotStyle = (dayIndex: number, hour: number) => {
     const recs = getRecorrenciasForSlot(dayIndex, hour)
     if (recs.length === 0) return { bg: "bg-muted/30", text: "" }
-
-    const hasMentoria = recs.some((r) => r.tipo_servico === "mentoria")
-    const hasPlantao = recs.some((r) => r.tipo_servico === "plantao")
-
-    if (hasMentoria && hasPlantao) {
-      return { bg: "bg-gradient-to-r from-primary/40 to-secondary/40", text: "M+P" }
-    }
-    if (hasMentoria) {
-      return { bg: "bg-primary/40", text: "" }
-    }
+    // Todos são plantão agora
     return { bg: "bg-secondary/40", text: "" }
   }
 
@@ -614,8 +605,8 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
                       </TableCell>
                       <TableCell>{rec.duracao_slot_minutos} min</TableCell>
                       <TableCell>
-                        <Badge variant={rec.tipo_servico === "mentoria" ? "default" : "secondary"}>
-                          {rec.tipo_servico === "plantao" ? "Plantão" : "Plantão"}
+                        <Badge variant="secondary">
+                          Plantão
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">

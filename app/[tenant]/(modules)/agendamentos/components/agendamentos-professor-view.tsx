@@ -18,7 +18,7 @@ export async function ProfessorAgendamentosView({ userId }: Props) {
             <div className="flex flex-col gap-2">
                 <h1 className="page-title">Agendamentos</h1>
                 <p className="page-subtitle">
-                    Gerencie os agendamentos de mentoria dos seus alunos.
+                    Gerencie os agendamentos de plantão dos seus alunos.
                 </p>
             </div>
 

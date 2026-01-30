@@ -26,7 +26,7 @@ export default async function ProfessorConfiguracoesPage({
       <div className="flex flex-col gap-2">
         <h1 className="page-title">Configurações de Agendamento</h1>
         <p className="page-subtitle">
-          Configure suas preferências para agendamentos de mentoria.
+          Configure suas preferências para agendamentos de plantão.
         </p>
       </div>
 

@@ -167,7 +167,7 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
             {/* Professor Info */}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">
-                Mentoria com {professor?.nome || "Professor"}
+                Plantão com {professor?.nome || "Professor"}
               </p>
               <p className="text-sm text-muted-foreground">
                 {format(dataInicio, "EEEE, dd 'de' MMMM", { locale: ptBR })}
