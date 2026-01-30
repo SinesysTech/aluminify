@@ -21,15 +21,27 @@ import {
   updateIntegracaoProfessor,
   updateConfiguracoesProfessor,
 } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
+import { getOAuthAuthorizationUrl } from "@/app/[tenant]/(modules)/empresa/(gestao)/integracoes/lib/oauth-actions"
 import type { ProfessorIntegracao, ConfiguracoesProfessor } from "@/app/[tenant]/(modules)/agendamentos/types"
 import { Loader2, Link2, Check, X, ExternalLink, AlertCircle, ChevronDown, Save } from "lucide-react"
 import { toast } from "sonner"
 
 interface IntegracaoManagerProps {
   professorId: string
+  empresaId: string
+  tenantSlug: string
+  availableProviders: {
+    google: boolean
+    zoom: boolean
+  }
 }
 
-export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
+export function IntegracaoManager({
+  professorId,
+  empresaId,
+  tenantSlug,
+  availableProviders,
+}: IntegracaoManagerProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [integracao, setIntegracao] = useState<ProfessorIntegracao | null>(null)
@@ -42,13 +54,13 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
   useEffect(() => {
     loadData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [professorId])
+  }, [professorId, empresaId])
 
   async function loadData() {
     try {
       setLoading(true)
       const [integracaoData, configData] = await Promise.all([
-        getIntegracaoProfessor(professorId),
+        getIntegracaoProfessor(professorId, empresaId),
         getConfiguracoesProfessor(professorId),
       ])
       setIntegracao(integracaoData)
@@ -69,7 +81,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
       await updateConfiguracoesProfessor(professorId, {
         link_reuniao_padrao: defaultLink || null,
       })
-      await updateIntegracaoProfessor(professorId, {
+      await updateIntegracaoProfessor(professorId, empresaId, {
         provider: "default",
       })
       setSelectedProvider("default")
@@ -84,51 +96,57 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
   }
 
   const handleConnectGoogle = async () => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId) {
-      toast.error("Google OAuth não configurado. Configure NEXT_PUBLIC_GOOGLE_CLIENT_ID.")
+    if (!availableProviders.google) {
+      toast.error("Google OAuth não configurado para esta empresa. Solicite ao administrador.")
       return
     }
 
-    const redirectUri = `${window.location.origin}/api/empresa/integracoes/google/callback`
-    const scope = encodeURIComponent("https://www.googleapis.com/auth/calendar.events")
-    const state = encodeURIComponent(JSON.stringify({ professorId }))
-
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${clientId}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&response_type=code` +
-      `&scope=${scope}` +
-      `&access_type=offline` +
-      `&prompt=consent` +
-      `&state=${state}`
-
-    window.location.href = authUrl
+    try {
+      const authUrl = await getOAuthAuthorizationUrl(
+        professorId,
+        empresaId,
+        tenantSlug,
+        "google",
+      )
+      if (!authUrl) {
+        toast.error("Não foi possível gerar a URL de autorização do Google")
+        return
+      }
+      window.location.href = authUrl
+    } catch (err) {
+      console.error("Error getting Google OAuth URL:", err)
+      toast.error("Erro ao iniciar conexão com Google")
+    }
   }
 
   const handleConnectZoom = async () => {
-    const clientId = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID
-    if (!clientId) {
-      toast.error("Zoom OAuth não configurado. Configure NEXT_PUBLIC_ZOOM_CLIENT_ID.")
+    if (!availableProviders.zoom) {
+      toast.error("Zoom OAuth não configurado para esta empresa. Solicite ao administrador.")
       return
     }
 
-    const redirectUri = `${window.location.origin}/api/empresa/integracoes/zoom/callback`
-    const state = encodeURIComponent(JSON.stringify({ professorId }))
-
-    const authUrl = `https://zoom.us/oauth/authorize?` +
-      `client_id=${clientId}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&response_type=code` +
-      `&state=${state}`
-
-    window.location.href = authUrl
+    try {
+      const authUrl = await getOAuthAuthorizationUrl(
+        professorId,
+        empresaId,
+        tenantSlug,
+        "zoom",
+      )
+      if (!authUrl) {
+        toast.error("Não foi possível gerar a URL de autorização do Zoom")
+        return
+      }
+      window.location.href = authUrl
+    } catch (err) {
+      console.error("Error getting Zoom OAuth URL:", err)
+      toast.error("Erro ao iniciar conexão com Zoom")
+    }
   }
 
   const handleDisconnect = async () => {
     setSaving(true)
     try {
-      await updateIntegracaoProfessor(professorId, {
+      await updateIntegracaoProfessor(professorId, empresaId, {
         provider: "default",
         access_token: null,
         refresh_token: null,
@@ -146,8 +164,8 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
 
   const isGoogleConnected = integracao?.provider === "google" && !!integracao?.access_token
   const isZoomConnected = integracao?.provider === "zoom" && !!integracao?.access_token
-  const hasGoogleConfig = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-  const hasZoomConfig = !!process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID
+  const hasGoogleConfig = availableProviders.google
+  const hasZoomConfig = availableProviders.zoom
 
   if (loading) {
     return (
@@ -234,7 +252,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Configuração necessária</AlertTitle>
                   <AlertDescription className="text-xs">
-                    Configure NEXT_PUBLIC_GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET.
+                    O administrador precisa configurar as credenciais Google OAuth para esta empresa.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -318,7 +336,7 @@ export function IntegracaoManager({ professorId }: IntegracaoManagerProps) {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Configuração necessária</AlertTitle>
                   <AlertDescription className="text-xs">
-                    Configure NEXT_PUBLIC_ZOOM_CLIENT_ID e ZOOM_CLIENT_SECRET.
+                    O administrador precisa configurar as credenciais Zoom OAuth para esta empresa.
                   </AlertDescription>
                 </Alert>
               ) : (
