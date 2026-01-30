@@ -42,6 +42,21 @@ async function getHandler(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // Buscar nome do aluno
+  let alunoNome = 'Aluno'
+  try {
+    const { data: userData } = await client
+      .from('usuarios')
+      .select('nome_completo, email')
+      .eq('id', typedOwner.usuario_id)
+      .maybeSingle<{ nome_completo: string | null; email: string }>()
+    if (userData) {
+      alunoNome = userData.nome_completo || userData.email || 'Aluno'
+    }
+  } catch {
+    // Nome do aluno não é crítico
+  }
+
   // Data
   const { cronograma, itens } = await fetchCronogramaCompleto(cronogramaId, client)
 
@@ -140,6 +155,7 @@ async function getHandler(
   const cronogramaExport: CronogramaExport = {
     ...cronograma,
     nome: (cronograma.nome as string) || 'Cronograma',
+    aluno_nome: alunoNome,
     data_inicio: raw.data_inicio,
     data_fim: raw.data_fim,
     dias_estudo_semana: raw.dias_estudo_semana || 5,
@@ -170,12 +186,14 @@ async function getHandler(
           key={week.semanaNumero}
           week={week}
           cronogramaNome={cronogramaExport.nome}
+          alunoNome={alunoNome}
           colorMap={stats.disciplineColorMap}
           velocidade={velocidade}
         />
       ))}
       <SummaryPage
         cronogramaNome={cronogramaExport.nome}
+        alunoNome={alunoNome}
         stats={stats}
       />
     </Document>

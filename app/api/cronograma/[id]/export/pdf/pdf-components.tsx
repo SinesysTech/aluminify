@@ -572,7 +572,7 @@ export function LogoBlock({ logoUrl }: { logoUrl: string | null }) {
 // Footer - rodape com branding, nome e paginacao
 // ---------------------------------------------------------------------------
 
-export function PdfFooter({ cronogramaNome }: { cronogramaNome: string }) {
+export function PdfFooter({ cronogramaNome, alunoNome }: { cronogramaNome: string; alunoNome?: string }) {
   return (
     <View
       style={{
@@ -608,15 +608,38 @@ export function PdfFooter({ cronogramaNome }: { cronogramaNome: string }) {
           Aluminify
         </Text>
       </View>
-      <Text
-        style={{
-          fontFamily: PDF_FONTS.body,
-          fontSize: PDF_FONTS.footerSize,
-          color: PDF_COLORS.textLight,
-        }}
-      >
-        {truncateText(cronogramaNome, 40)}
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {alunoNome && (
+          <Text
+            style={{
+              fontFamily: PDF_FONTS.body,
+              fontSize: PDF_FONTS.footerSize,
+              color: PDF_COLORS.textSecondary,
+              fontWeight: 600,
+            }}
+          >
+            {truncateText(alunoNome, 25)}
+          </Text>
+        )}
+        <Text
+          style={{
+            fontFamily: PDF_FONTS.body,
+            fontSize: PDF_FONTS.footerSize,
+            color: PDF_COLORS.textMuted,
+          }}
+        >
+          •
+        </Text>
+        <Text
+          style={{
+            fontFamily: PDF_FONTS.body,
+            fontSize: PDF_FONTS.footerSize,
+            color: PDF_COLORS.textLight,
+          }}
+        >
+          {truncateText(cronogramaNome, 30)}
+        </Text>
+      </View>
       <Text
         style={{
           fontFamily: PDF_FONTS.body,

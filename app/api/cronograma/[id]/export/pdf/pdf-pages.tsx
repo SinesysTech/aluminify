@@ -90,6 +90,32 @@ export function CoverPage({
         </Text>
       </View>
 
+      {/* Nome do Aluno */}
+      {cronograma.aluno_nome && (
+        <View style={{ marginTop: 16 }}>
+          <Text
+            style={{
+              fontFamily: PDF_FONTS.body,
+              fontSize: PDF_FONTS.bodySize,
+              color: PDF_COLORS.textLight,
+              marginBottom: 2,
+            }}
+          >
+            Aluno
+          </Text>
+          <Text
+            style={{
+              fontFamily: PDF_FONTS.display,
+              fontSize: PDF_FONTS.sectionTitleSize,
+              fontWeight: 600,
+              color: PDF_COLORS.textMain,
+            }}
+          >
+            {cronograma.aluno_nome}
+          </Text>
+        </View>
+      )}
+
       {/* Titulo */}
       <View style={s.mt12}>
         <Text
@@ -269,7 +295,7 @@ export function CoverPage({
         </View>
       )}
 
-      <PdfFooter cronogramaNome={cronograma.nome} />
+      <PdfFooter cronogramaNome={cronograma.nome} alunoNome={cronograma.aluno_nome} />
     </Page>
   )
 }
@@ -281,11 +307,13 @@ export function CoverPage({
 export function WeekPage({
   week,
   cronogramaNome,
+  alunoNome,
   colorMap,
   velocidade,
 }: {
   week: WeekGroup
   cronogramaNome: string
+  alunoNome?: string
   colorMap: Map<string, import('./pdf-theme').DisciplineColor>
   velocidade: number
 }) {
@@ -450,7 +478,7 @@ export function WeekPage({
         </View>
       )}
 
-      <PdfFooter cronogramaNome={cronogramaNome} />
+      <PdfFooter cronogramaNome={cronogramaNome} alunoNome={alunoNome} />
     </Page>
   )
 }
@@ -461,9 +489,11 @@ export function WeekPage({
 
 export function SummaryPage({
   cronogramaNome,
+  alunoNome,
   stats,
 }: {
   cronogramaNome: string
+  alunoNome?: string
   stats: OverallStats
 }) {
   return (
@@ -618,7 +648,7 @@ export function SummaryPage({
       {/* Mensagem motivacional */}
       <MotivationalMessage percent={stats.percent} />
 
-      <PdfFooter cronogramaNome={cronogramaNome} />
+      <PdfFooter cronogramaNome={cronogramaNome} alunoNome={alunoNome} />
     </Page>
   )
 }

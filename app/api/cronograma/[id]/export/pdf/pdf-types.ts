@@ -4,6 +4,7 @@
 
 export interface CronogramaExport {
   nome: string
+  aluno_nome?: string
   data_inicio: string
   data_fim: string
   dias_estudo_semana: number
