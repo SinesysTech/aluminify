@@ -1,8 +1,8 @@
 /**
  * Rate Limiting Service
  *
- * Provides per-tenant rate limiting using an in-memory sliding window counter.
- * Each tenant has configurable request limits based on their plan tier.
+ * Provides per-tenant rate limiting using an in-memory sliding window counter
+ * with optional persistent quota overrides from the database (tenant_quotas table).
  *
  * Usage:
  * ```typescript
@@ -12,6 +12,9 @@
  * if (!allowed) {
  *   return new Response('Too Many Requests', { status: 429 });
  * }
+ *
+ * // With persistent quota override from DB:
+ * rateLimitService.setQuotaOverride(empresaId, { requests: 300, window: 60 });
  * ```
  */
 
@@ -48,14 +51,43 @@ class RateLimitService {
   private lastGlobalCleanup = Date.now();
 
   /**
+   * Per-tenant quota overrides loaded from the tenant_quotas DB table.
+   * These take precedence over plan-based defaults.
+   */
+  private quotaOverrides = new Map<string, RateLimitConfig>();
+
+  /**
+   * Set a persistent quota override for a tenant.
+   * Call this after loading from the tenant_quotas table.
+   */
+  setQuotaOverride(empresaId: string, config: RateLimitConfig): void {
+    this.quotaOverrides.set(empresaId, config);
+  }
+
+  /**
+   * Remove a quota override for a tenant.
+   */
+  clearQuotaOverride(empresaId: string): void {
+    this.quotaOverrides.delete(empresaId);
+  }
+
+  /**
+   * Get the effective rate limit config for a tenant.
+   * Quota overrides take precedence over plan-based defaults.
+   */
+  private getConfig(empresaId: string, plan?: TenantPlan): RateLimitConfig {
+    return this.quotaOverrides.get(empresaId) ?? RATE_LIMITS[plan ?? DEFAULT_PLAN];
+  }
+
+  /**
    * Check if a request is within the tenant's rate limit.
    *
    * @param empresaId - The tenant identifier
-   * @param plan - The tenant's subscription plan
+   * @param plan - The tenant's subscription plan (ignored if quota override exists)
    * @returns true if the request is allowed, false if rate limited
    */
   checkLimit(empresaId: string, plan?: TenantPlan): boolean {
-    const config = RATE_LIMITS[plan ?? DEFAULT_PLAN];
+    const config = this.getConfig(empresaId, plan);
     const now = Date.now();
     const windowStart = now - config.window * 1000;
 
@@ -94,7 +126,7 @@ class RateLimitService {
     empresaId: string,
     plan?: TenantPlan,
   ): { current: number; limit: number; windowSeconds: number } | null {
-    const config = RATE_LIMITS[plan ?? DEFAULT_PLAN];
+    const config = this.getConfig(empresaId, plan);
     const entry = this.store.get(empresaId);
     if (!entry) {
       return { current: 0, limit: config.requests, windowSeconds: config.window };
@@ -134,6 +166,7 @@ class RateLimitService {
    */
   resetAll(): void {
     this.store.clear();
+    this.quotaOverrides.clear();
   }
 }
 

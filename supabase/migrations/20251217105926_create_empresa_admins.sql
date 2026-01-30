@@ -32,10 +32,15 @@ alter table public.empresa_admins enable row level security;
 create or replace function public.is_empresa_admin(user_id_param uuid, empresa_id_param uuid)
 returns boolean
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 begin
+    -- Fast-path: reject null params early to avoid unnecessary queries
+    if user_id_param is null or empresa_id_param is null then
+        return false;
+    end if;
+
     return exists (
         select 1
         from public.empresa_admins
@@ -56,19 +61,26 @@ $$;
 create or replace function public.is_empresa_admin()
 returns boolean
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
     user_empresa_id uuid;
+    current_uid uuid;
 begin
+    -- Fast-path: no authenticated user
+    current_uid := (select auth.uid());
+    if current_uid is null then
+        return false;
+    end if;
+
     user_empresa_id := public.get_user_empresa_id();
-    
+
     if user_empresa_id is null then
         return false;
     end if;
 
-    return public.is_empresa_admin((select auth.uid()), user_empresa_id);
+    return public.is_empresa_admin(current_uid, user_empresa_id);
 end;
 $$;
 
@@ -80,69 +92,37 @@ create policy "Admins veem admins de sua empresa"
     using (
         -- Admin da empresa
         public.is_empresa_admin((select auth.uid()), empresa_id)
-        or
-        -- Superadmin
-        exists (
-            select 1
-            from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
-create policy "Apenas owner ou superadmin pode adicionar admins"
+create policy "Apenas owner pode adicionar admins"
     on public.empresa_admins
     for insert
     to authenticated
     with check (
         -- Owner da empresa
-        (
-            exists (
-                select 1
-                from public.empresa_admins
-                where empresa_id = empresa_admins.empresa_id
-                and user_id = (select auth.uid())
-                and is_owner = true
-            )
-        )
-        or
-        -- Superadmin
-        (
-            exists (
-                select 1
-                from auth.users
-                where id = (select auth.uid())
-                and raw_user_meta_data->>'role' = 'superadmin'
-            )
+        exists (
+            select 1
+            from public.empresa_admins
+            where empresa_id = empresa_admins.empresa_id
+            and user_id = (select auth.uid())
+            and is_owner = true
         )
     );
 
-create policy "Apenas owner ou superadmin pode remover admins"
+create policy "Apenas owner pode remover admins"
     on public.empresa_admins
     for delete
     to authenticated
     using (
         -- Owner da empresa (não pode remover a si mesmo se for o único owner)
-        (
-            exists (
-                select 1
-                from public.empresa_admins
-                where empresa_id = empresa_admins.empresa_id
-                and user_id = (select auth.uid())
-                and is_owner = true
-            )
-            and user_id != (select auth.uid())
+        exists (
+            select 1
+            from public.empresa_admins
+            where empresa_id = empresa_admins.empresa_id
+            and user_id = (select auth.uid())
+            and is_owner = true
         )
-        or
-        -- Superadmin
-        (
-            exists (
-                select 1
-                from auth.users
-                where id = (select auth.uid())
-                and raw_user_meta_data->>'role' = 'superadmin'
-            )
-        )
+        and user_id != (select auth.uid())
     );
 
 -- 9. Adicionar comentários nas funções

@@ -207,12 +207,6 @@ create policy "Users can view their empresa branding"
             join public.cursos c on ac.curso_id = c.id
             where ac.aluno_id = (select auth.uid())
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
 create policy "Empresa admins can manage branding"
@@ -226,12 +220,6 @@ create policy "Empresa admins can manage branding"
             and empresa_id = tenant_branding.empresa_id
             and is_admin = true
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     )
     with check (
         exists (
@@ -239,12 +227,6 @@ create policy "Empresa admins can manage branding"
             where id = (select auth.uid())
             and empresa_id = tenant_branding.empresa_id
             and is_admin = true
-        )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
         )
     );
 
@@ -264,12 +246,6 @@ create policy "Users can view their empresa logos"
                 where ac.aluno_id = (select auth.uid())
             )
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
 create policy "Empresa admins can manage logos"
@@ -286,12 +262,6 @@ create policy "Empresa admins can manage logos"
                 and is_admin = true
             )
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     )
     with check (
         tenant_branding_id in (
@@ -302,12 +272,6 @@ create policy "Empresa admins can manage logos"
                 and empresa_id = tb.empresa_id
                 and is_admin = true
             )
-        )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
         )
     );
 
@@ -324,12 +288,6 @@ create policy "Users can view their empresa color palettes"
             join public.cursos c on ac.curso_id = c.id
             where ac.aluno_id = (select auth.uid())
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
 create policy "Empresa admins can manage color palettes"
@@ -343,12 +301,6 @@ create policy "Empresa admins can manage color palettes"
             and empresa_id = color_palettes.empresa_id
             and is_admin = true
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     )
     with check (
         exists (
@@ -356,12 +308,6 @@ create policy "Empresa admins can manage color palettes"
             where id = (select auth.uid())
             and empresa_id = color_palettes.empresa_id
             and is_admin = true
-        )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
         )
     );
 
@@ -378,12 +324,6 @@ create policy "Users can view their empresa font schemes"
             join public.cursos c on ac.curso_id = c.id
             where ac.aluno_id = (select auth.uid())
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
 create policy "Empresa admins can manage font schemes"
@@ -397,12 +337,6 @@ create policy "Empresa admins can manage font schemes"
             and empresa_id = font_schemes.empresa_id
             and is_admin = true
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     )
     with check (
         exists (
@@ -410,12 +344,6 @@ create policy "Empresa admins can manage font schemes"
             where id = (select auth.uid())
             and empresa_id = font_schemes.empresa_id
             and is_admin = true
-        )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
         )
     );
 
@@ -432,12 +360,6 @@ create policy "Users can view their empresa theme presets"
             join public.cursos c on ac.curso_id = c.id
             where ac.aluno_id = (select auth.uid())
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
 create policy "Empresa admins can manage theme presets"
@@ -451,12 +373,6 @@ create policy "Empresa admins can manage theme presets"
             and empresa_id = custom_theme_presets.empresa_id
             and is_admin = true
         )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
-        )
     )
     with check (
         exists (
@@ -464,12 +380,6 @@ create policy "Empresa admins can manage theme presets"
             where id = (select auth.uid())
             and empresa_id = custom_theme_presets.empresa_id
             and is_admin = true
-        )
-        or
-        exists (
-            select 1 from auth.users
-            where id = (select auth.uid())
-            and raw_user_meta_data->>'role' = 'superadmin'
         )
     );
 

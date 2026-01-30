@@ -15,10 +15,17 @@ This document provides a comprehensive inventory of all tables, their tenant iso
 - Composite indexes added for all major tenant-scoped query patterns
 - `validate_empresa_id()` trigger protects INSERT on critical tables
 - `tenant_access_log` table created for audit logging
+- `is_empresa_admin()` upgraded to SECURITY DEFINER with fast-path null checks
+- All `auth.users` direct queries removed from RLS policies (branding, storage, disciplinas)
+- Superadmin role entirely removed (migration 20260129)
+- `getDatabaseClientAsUser()` restricted to public keys only (no service role fallback)
+- `tenant_quotas` table created for persistent per-tenant quota management
+- `check_tenant_quota()` SECURITY DEFINER function for atomic quota checks
+- Rate-limit service supports persistent DB quota overrides
 
 ## 1. Table Inventory
 
-### Tables WITH `empresa_id` (42 tables)
+### Tables WITH `empresa_id` (43 tables)
 
 | Table | RLS Enabled | Policy Count | Composite Indexes | Notes |
 |---|---|---|---|---|
@@ -56,6 +63,7 @@ This document provides a comprehensive inventory of all tables, their tenant iso
 | segmentos | Yes | 4 | nome_empresa_unique | |
 | sessoes_estudo | Yes | 3 | empresa_usuario | |
 | tenant_access_log | Yes | 1 | empresa_created, usuario | **NEW** audit log |
+| tenant_quotas | Yes | 2 | empresa_type | **NEW** persistent quotas |
 | tenant_branding | Yes | 1 | empresa_unique | |
 | tenant_logos | Yes | 1 | empresa_id | **NEW** empresa_id added |
 | tenant_module_visibility | Yes | 2 | empresa_module_unique | |
@@ -91,8 +99,8 @@ All functions now use `SECURITY DEFINER` and `SET search_path = ''`:
 | `get_aluno_empresa_id` | — | DEFINER | STABLE | OK |
 | `get_aluno_empresas` | — | DEFINER | STABLE | **FIXED** |
 | `get_user_empresa_ids` | — | DEFINER | STABLE | **NEW** |
-| `is_empresa_admin` | — | DEFINER | N/A | OK |
-| `is_empresa_admin` | user_id, empresa_id | DEFINER | N/A | OK |
+| `is_empresa_admin` | — | DEFINER | N/A | **FIXED** — fast-path + SECURITY DEFINER |
+| `is_empresa_admin` | user_id, empresa_id | DEFINER | N/A | **FIXED** — fast-path + SECURITY DEFINER |
 | `is_empresa_owner` | empresa_id | DEFINER | STABLE | OK |
 | `user_belongs_to_empresa` | empresa_id | DEFINER | STABLE | OK |
 | `aluno_matriculado_empresa` | empresa_id | DEFINER | N/A | OK |
@@ -102,6 +110,7 @@ All functions now use `SECURITY DEFINER` and `SET search_path = ''`:
 | `validate_empresa_id` | — (trigger) | DEFINER | N/A | **NEW** |
 | `log_tenant_access` | table, op, count, meta | DEFINER | N/A | **NEW** |
 | `cleanup_tenant_access_log` | days | DEFINER | N/A | **NEW** |
+| `check_tenant_quota` | empresa_id, type, increment | DEFINER | N/A | **NEW** |
 
 ## 3. Data Dependency Tree
 
@@ -155,8 +164,20 @@ alunos_turmas (junction via turmas + usuarios)
 
 7. **add_tenant_audit_log** — Created audit log table with RLS, logging function, and auto-cleanup function.
 
+8. **remove_superadmin** (2026-01-29) — Removed all superadmin references from RLS policies, functions, and triggers. Dropped `is_superadmin()` function. Cleaned up auth.users metadata.
+
+9. **tenant_hardening_audit_quotas** (2026-01-30) — Fixed `is_empresa_admin()` to SECURITY DEFINER with fast-path null checks. Removed all remaining `auth.users` references from branding and disciplinas RLS policies. Created `tenant_access_log` table, `log_tenant_access()` and `cleanup_tenant_access_log()` functions. Created `tenant_quotas` table with `check_tenant_quota()` atomic function. Fixed empresa_admins policies to remove superadmin references.
+
+### Application-Level Hardening
+
+1. **getDatabaseClientAsUser()** — Restricted to public keys only (`SUPABASE_ANON_KEY` or `SUPABASE_PUBLISHABLE_KEY`). Service role keys (`SUPABASE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are never used for user-scoped clients, ensuring RLS is always enforced.
+
+2. **Rate-limit service** — Enhanced with persistent quota override support. The `RateLimitService` now accepts per-tenant quota overrides loaded from the `tenant_quotas` database table, allowing dynamic rate limiting without code changes.
+
 ## 5. Remaining Considerations
 
 - **Junction tables**: `alunos_cursos`, `alunos_turmas`, `cursos_disciplinas` rely on parent table RLS for isolation. This is an acceptable design for junction tables.
 - **Cronograma child tables**: Use EXISTS subqueries to validate access via parent cronograma. Performance is acceptable with current indexes.
 - **Global config tables**: `module_definitions` and `submodule_definitions` use `USING(true)` which is correct for system-wide configuration data.
+- **Superadmin removed**: The superadmin role was entirely removed (migration 20260129). Cross-tenant admin will be handled by a separate application using the service role key.
+- **Quota enforcement**: The `tenant_quotas` table supports both hard limits (e.g. max users, max storage) and windowed rate limits (e.g. API requests per minute). Use `check_tenant_quota()` for atomic DB-level enforcement, or `rateLimitService.setQuotaOverride()` for in-memory rate limiting with DB-sourced configs.
