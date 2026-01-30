@@ -3,7 +3,10 @@ import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { AuthUser, UserRole, ApiKeyAuth } from "./types";
 import { apiKeyService } from "@/app/shared/core/services/api-key";
 import { getImpersonationContext } from "@/app/shared/core/auth-impersonate";
-import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/papel";
+import type {
+  RoleTipo,
+  RolePermissions,
+} from "@/app/shared/types/entities/papel";
 
 import { createClient } from "@/app/shared/core/server";
 import { User } from "@supabase/supabase-js";
@@ -59,7 +62,13 @@ export async function mapSupabaseUserToAuthUser(
       }
 
       const isAdmin =
-        activeVinculo.is_admin || (roleType ? isAdminRoleTipo(roleType) : false);
+        activeVinculo.is_admin ||
+        (roleType ? isAdminRoleTipo(roleType) : false);
+
+      const name =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0];
 
       return {
         id: user.id,
@@ -69,16 +78,22 @@ export async function mapSupabaseUserToAuthUser(
         permissions,
         isAdmin,
         empresaId: activeVinculo.empresa_id,
+        name,
       };
     }
 
     // Aluno role
+    const name =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0];
     return {
       id: user.id,
       email: user.email!,
       role: "aluno",
       isAdmin: false,
       empresaId: activeVinculo.empresa_id ?? undefined,
+      name,
     };
   }
 
@@ -86,6 +101,10 @@ export async function mapSupabaseUserToAuthUser(
   const empresaId = user.user_metadata?.empresa_id as string | undefined;
   const metadataRole = user.user_metadata?.role as UserRole | undefined;
   const role: UserRole = metadataRole || "aluno";
+  const name =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0];
 
   return {
     id: user.id,
@@ -93,6 +112,7 @@ export async function mapSupabaseUserToAuthUser(
     role,
     isAdmin: false,
     empresaId,
+    name,
   };
 }
 

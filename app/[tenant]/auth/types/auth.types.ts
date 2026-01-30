@@ -1,4 +1,7 @@
-import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/papel";
+import type {
+  RoleTipo,
+  RolePermissions,
+} from "@/app/shared/types/entities/papel";
 
 // Main app roles (simplified)
 // - aluno: student
@@ -15,6 +18,7 @@ export interface AuthUser {
   permissions?: RolePermissions;
   isAdmin?: boolean;
   empresaId?: string;
+  name?: string;
 }
 
 export interface ApiKeyAuth {

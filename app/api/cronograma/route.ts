@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { cronogramaService } from "@/app/[tenant]/(modules)/cronograma/services";
 import {
-  cronogramaService,
-} from "@/app/[tenant]/(modules)/cronograma/services";
-import { CronogramaConflictError, CronogramaValidationError, CronogramaTempoInsuficienteError } from "@/app/[tenant]/(modules)/cronograma/services/errors";
+  CronogramaConflictError,
+  CronogramaValidationError,
+  CronogramaTempoInsuficienteError,
+} from "@/app/[tenant]/(modules)/cronograma/services/errors";
 import {
   requireUserAuth,
   AuthenticatedRequest,
@@ -16,7 +18,10 @@ function handleError(error: unknown) {
   }
 
   if (error instanceof CronogramaTempoInsuficienteError) {
-    console.log("[Cronograma] Tempo insuficiente:", JSON.stringify(error.detalhes));
+    console.log(
+      "[Cronograma] Tempo insuficiente:",
+      JSON.stringify(error.detalhes),
+    );
     return NextResponse.json(
       {
         error: error.message,
@@ -37,11 +42,12 @@ function handleError(error: unknown) {
     console.error("[Cronograma] Stack:", error.stack);
   }
 
-  const errorMessage = error instanceof Error
-    ? error.message
-    : typeof error === "string"
-      ? error
-      : "Internal server error";
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : "Internal server error";
 
   return NextResponse.json(
     {
@@ -112,6 +118,7 @@ async function postHandler(request: AuthenticatedRequest) {
       request.user.id,
       request.user.email,
       request.user.empresaId,
+      request.user.name,
     );
     console.log(
       "[Cronograma API] Cronograma gerado com sucesso:",

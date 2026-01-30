@@ -88,8 +88,9 @@ export class CronogramaService {
   async gerarCronograma(
     input: GerarCronogramaInput,
     userId: string,
-    userEmail?: string,
+    userEmail: string,
     empresaId?: string,
+    userName?: string,
   ): Promise<GerarCronogramaResult> {
     logDebug("[CronogramaService] Iniciando geração de cronograma:", {
       aluno_id: input.aluno_id,
@@ -143,7 +144,13 @@ export class CronogramaService {
     }
 
     // Verificar se aluno_id corresponde ao usuário autenticado, se não existir, criar
-    await this.ensureAlunoExists(client, userId, userEmail, resolvedEmpresaId);
+    await this.ensureAlunoExists(
+      client,
+      userId,
+      userEmail,
+      resolvedEmpresaId,
+      userName,
+    );
 
     // Deletar cronograma anterior do aluno (se existir)
     await this.deletarCronogramaAnterior(client, userId);
@@ -406,7 +413,9 @@ export class CronogramaService {
         throw new CronogramaTempoInsuficienteError(
           "Tempo insuficiente para garantir todas as frentes em todas as semanas",
           {
-            minimo_semanal_necessario_minutos: Math.ceil(minimoSemanalNecessario),
+            minimo_semanal_necessario_minutos: Math.ceil(
+              minimoSemanalNecessario,
+            ),
             capacidade_semanal_minutos: Math.floor(capacidadeSemanalMin),
             total_frentes: minPorFrente.size,
             regra: "paralelo: 1 item por frente por semana",
@@ -424,10 +433,9 @@ export class CronogramaService {
         minPorDisciplina.set(a.disciplina_id, a.custo);
       }
     });
-    const minimoSemanalNecessario = Array.from(minPorDisciplina.values()).reduce(
-      (acc, v) => acc + v,
-      0,
-    );
+    const minimoSemanalNecessario = Array.from(
+      minPorDisciplina.values(),
+    ).reduce((acc, v) => acc + v, 0);
 
     if (minimoSemanalNecessario > capacidadeSemanalMin) {
       throw new CronogramaTempoInsuficienteError(
@@ -501,6 +509,7 @@ export class CronogramaService {
     userId: string,
     userEmail?: string,
     empresaId?: string,
+    userName?: string,
   ): Promise<void> {
     // Verificar se o aluno já existe
     const { data: alunoExistente, error: selectError } = await client
@@ -539,6 +548,8 @@ export class CronogramaService {
         id: userId,
         email: userEmail,
         empresa_id: empresaId,
+        nome_completo: userName || userEmail.split("@")[0] || "Aluno sem nome",
+        ativo: true,
       });
 
       if (insertError) {
@@ -1887,7 +1898,7 @@ export class CronogramaService {
       for (const f of frentes) {
         const nextAula = f.idx < f.aulas.length ? f.aulas[f.idx] : null;
 
-        let chosen: AulaCompleta & { custo: number } | null = null;
+        let chosen: (AulaCompleta & { custo: number }) | null = null;
         let isTeaching = false;
 
         if (nextAula && nextAula.custo <= remaining) {
@@ -2036,7 +2047,9 @@ export class CronogramaService {
       d.quota = d.totalCusto / N;
       // Pool de revisão por frente (para manter “1 frente por disciplina por semana”)
       d.frentes.forEach((f) => {
-        f.reviewPool = f.aulas.slice(-Math.min(REVIEW_POOL_SIZE, f.aulas.length));
+        f.reviewPool = f.aulas.slice(
+          -Math.min(REVIEW_POOL_SIZE, f.aulas.length),
+        );
         f.reviewIdx = 0;
       });
 
@@ -2065,19 +2078,22 @@ export class CronogramaService {
         // avançar frentes concluídas (para a próxima semana)
         while (
           d.currentFrontIdx < d.frentes.length &&
-          d.frentes[d.currentFrontIdx].idx >= d.frentes[d.currentFrontIdx].aulas.length
+          d.frentes[d.currentFrontIdx].idx >=
+            d.frentes[d.currentFrontIdx].aulas.length
         ) {
           d.currentFrontIdx++;
         }
 
         const currentFront =
-          d.currentFrontIdx < d.frentes.length ? d.frentes[d.currentFrontIdx] : null;
+          d.currentFrontIdx < d.frentes.length
+            ? d.frentes[d.currentFrontIdx]
+            : null;
         const nextAula =
           currentFront && currentFront.idx < currentFront.aulas.length
             ? currentFront.aulas[currentFront.idx]
             : null;
 
-        let chosen: AulaCompleta & { custo: number } | null = null;
+        let chosen: (AulaCompleta & { custo: number }) | null = null;
         let isTeaching = false;
 
         if (nextAula && nextAula.custo <= remaining) {
