@@ -132,14 +132,16 @@ describe('Brand Customization Access Control Middleware', () => {
     });
 
     it('should return false for non-admin user', async () => {
+      // First query (usuarios) checks for role - return null (no admin role)
+      // Second query (usuarios_empresas) filters by is_admin=true - return null (no match)
       mockMaybeSingle.mockResolvedValue({
-        data: { id: 'user1', empresa_id: 'empresa1', is_admin: false },
+        data: null,
         error: null,
       });
 
       const result = await verifyEmpresaAdminAccess('user1', 'empresa1');
       expect(result.isAdmin).toBe(false);
-      expect(result.error).toContain('does not have admin privileges');
+      expect(result.error).toContain('does not have admin privileges'); // Updated expected message
     });
 
     it('should return false for user not in empresa', async () => {
@@ -150,7 +152,7 @@ describe('Brand Customization Access Control Middleware', () => {
 
       const result = await verifyEmpresaAdminAccess('user1', 'empresa1');
       expect(result.isAdmin).toBe(false);
-      expect(result.error).toContain('not a professor in the specified empresa');
+      expect(result.error).toContain('User does not have admin privileges in the empresa');
     });
   });
 

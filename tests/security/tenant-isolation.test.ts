@@ -22,7 +22,11 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPA
 const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const hasEnv = SUPABASE_URL && SUPABASE_SERVICE_KEY && SUPABASE_ANON_KEY;
+const hasEnv =
+  SUPABASE_URL &&
+  SUPABASE_SERVICE_KEY &&
+  SUPABASE_ANON_KEY &&
+  !SUPABASE_URL.includes("example.supabase.co");
 
 const describeIfEnv = hasEnv ? describe : describe.skip;
 
