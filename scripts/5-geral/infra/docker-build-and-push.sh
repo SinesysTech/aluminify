@@ -50,8 +50,15 @@ if [ -f .env.local ]; then
         # Skip comments and empty lines
         [[ $key =~ ^#.*$ ]] && continue
         [[ -z $key ]] && continue
-        # Only pass NEXT_PUBLIC_* and UPSTASH_* variables
-        if [[ $key =~ ^NEXT_PUBLIC_ ]] || [[ $key =~ ^UPSTASH_ ]]; then
+        # Only pass NEXT_PUBLIC_*, UPSTASH_*, SUPABASE_*, SUPERADMIN_*, AI_*, GOOGLE_*, OPENAI_*, and LOG_LEVEL
+        if [[ $key =~ ^NEXT_PUBLIC_ ]] || \
+           [[ $key =~ ^UPSTASH_ ]] || \
+           [[ $key =~ ^SUPABASE_ ]] || \
+           [[ $key =~ ^SUPERADMIN_ ]] || \
+           [[ $key =~ ^AI_ ]] || \
+           [[ $key =~ ^GOOGLE_ ]] || \
+           [[ $key =~ ^OPENAI_ ]] || \
+           [[ $key == "LOG_LEVEL" ]]; then
             BUILD_ARGS="$BUILD_ARGS --build-arg $key=$value"
             echo "  ✓ Loaded: $key"
         fi
@@ -63,6 +70,7 @@ echo -e "${GREEN}Building image with loaded environment variables...${NC}"
 
 # Build image
 docker build \
+    --platform linux/amd64 \
     $BUILD_ARGS \
     -t "${IMAGE_NAME}:${VERSION}" \
     -t "${IMAGE_NAME}:latest" \
