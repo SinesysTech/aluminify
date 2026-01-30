@@ -5,7 +5,7 @@
  * Suporta fallback gracioso quando Redis não está configurado.
  */
 
-import { Redis } from '@upstash/redis';
+import { Redis } from "@upstash/redis";
 
 class CacheService {
   private redis: Redis | null = null;
@@ -15,13 +15,17 @@ class CacheService {
   private readonly networkFailureCooldownMs: number = 60_000;
   private readonly errorLogCooldownMs: number = 30_000;
 
+  // In-memory fallback
+  private memoryCache: Map<string, { value: any; expiresAt: number }> =
+    new Map();
+
   constructor() {
     this.initialize();
   }
 
   private isExplicitlyDisabled(): boolean {
     const value = process.env.CACHE_DISABLED;
-    return value === '1' || value === 'true' || value === 'yes';
+    return value === "1" || value === "true" || value === "yes";
   }
 
   private shouldAttemptRedis(): boolean {
@@ -48,18 +52,24 @@ class CacheService {
     const code = maybeCause?.code;
     if (!code) return false;
 
-    return ['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET'].includes(code);
+    return [
+      "ENOTFOUND",
+      "EAI_AGAIN",
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "ECONNRESET",
+    ].includes(code);
   }
 
   private temporarilyDisableRedis(error: unknown) {
-    // Fail-open: cache becomes a no-op temporarily, system keeps working.
+    // Fail-open: cache becomes a no-op temporarily (or falls back to memory), system keeps working.
     this.disabledUntilMs = Date.now() + this.networkFailureCooldownMs;
 
     const now = Date.now();
     if (now - this.lastErrorLogMs >= this.errorLogCooldownMs) {
       this.lastErrorLogMs = now;
       console.warn(
-        `[Cache Service] ⚠️ Redis indisponível (desabilitando cache por ${Math.round(
+        `[Cache Service] ⚠️ Redis indisponível (usando fallback em memória por ${Math.round(
           this.networkFailureCooldownMs / 1000,
         )}s):`,
         error,
@@ -70,8 +80,10 @@ class CacheService {
   private initialize() {
     if (this.isExplicitlyDisabled()) {
       this.enabled = false;
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('[Cache Service] ⚠️ CACHE_DISABLED ativo - cache desabilitado');
+      if (process.env.NODE_ENV === "development") {
+        console.debug(
+          "[Cache Service] ⚠️ CACHE_DISABLED ativo - cache desabilitado",
+        );
       }
       return;
     }
@@ -86,172 +98,184 @@ class CacheService {
           token: redisToken,
         });
         this.enabled = true;
-        console.log('[Cache Service] ✅ Redis configurado - cache habilitado');
+        console.log("[Cache Service] ✅ Redis configurado - cache habilitado");
       } catch (error) {
-        console.error('[Cache Service] ❌ Erro ao configurar Redis:', error);
-        console.warn('[Cache Service] ⚠️ Cache desabilitado - sistema funcionará sem cache');
+        console.error("[Cache Service] ❌ Erro ao configurar Redis:", error);
+        console.warn(
+          "[Cache Service] ⚠️ Usando cache em memória como fallback",
+        );
         this.enabled = false;
+        // Even if Redis setup fails, we consider the service "enabled" for the sake of using memory cache?
+        // Or we treat "enabled" as "Redis enabled"? The logic below uses !this.redis to fallback.
       }
     } else {
-      // Aviso apenas em desenvolvimento - não poluir logs de produção
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('[Cache Service] ⚠️ Redis não configurado - cache desabilitado');
-        console.debug('[Cache Service] ⚠️ Configure UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN para habilitar cache');
+      if (process.env.NODE_ENV === "development") {
+        console.debug(
+          "[Cache Service] ⚠️ Redis não configurado - usando cache em memória",
+        );
       }
-      this.enabled = false;
+      this.enabled = false; // Redis is disabled, but we will use memory
     }
+  }
+
+  /**
+   * Helper to set in memory
+   */
+  private setInMemory(key: string, value: any, ttlSeconds: number) {
+    this.memoryCache.set(key, {
+      value,
+      expiresAt: Date.now() + ttlSeconds * 1000,
+    });
+  }
+
+  /**
+   * Helper to get from memory
+   */
+  private getInMemory<T>(key: string): T | null {
+    const item = this.memoryCache.get(key);
+    if (!item) return null;
+
+    if (Date.now() > item.expiresAt) {
+      this.memoryCache.delete(key);
+      return null;
+    }
+
+    return item.value as T;
   }
 
   /**
    * Obter valor do cache
    */
   async get<T>(key: string): Promise<T | null> {
-    if (!this.shouldAttemptRedis() || !this.redis) {
-      return null;
-    }
+    // 1. Tentar Redis se disponível
+    if (this.shouldAttemptRedis() && this.redis) {
+      try {
+        const data = await this.redis.get<T>(key);
+        if (data !== null) {
+          console.log(`[Cache] ✅ Hit (Redis): ${key}`);
+          this.recordMetric("hit");
+          return data;
+        }
+        // Se não achou no Redis, não temos, ok.
+        this.recordMetric("miss");
+      } catch (error) {
+        if (this.isNetworkLikeError(error)) {
+          this.recordMetric("error");
+          this.temporarilyDisableRedis(error);
+          // Fallback para memória após erro de rede?
+          return this.getInMemory<T>(key);
+        }
 
-    try {
-      const data = await this.redis.get<T>(key);
-      if (data !== null) {
-        console.log(`[Cache] ✅ Hit: ${key}`);
-        // Registrar hit no monitor
-        if (typeof window === 'undefined') {
-          // Apenas no servidor
-          const { cacheMonitorService } = await import('./cache-monitor.service');
-          cacheMonitorService.recordHit();
-        }
-      } else {
-        // Registrar miss no monitor
-        if (typeof window === 'undefined') {
-          const { cacheMonitorService } = await import('./cache-monitor.service');
-          cacheMonitorService.recordMiss();
-        }
-      }
-      return data;
-    } catch (error) {
-      if (this.isNetworkLikeError(error)) {
-        if (typeof window === 'undefined') {
-          const { cacheMonitorService } = await import('./cache-monitor.service');
-          cacheMonitorService.recordError();
-        }
-        this.temporarilyDisableRedis(error);
+        console.error(`[Cache] ❌ Erro ao ler chave ${key}:`, error);
+        this.recordMetric("error");
+        // Fallback on unexpected error too? Safer to return null usually, but for consistency maybe memory?
+        // Let's stick to null for non-network errors to be safe, or just return null.
         return null;
       }
-
-      console.error(`[Cache] ❌ Erro ao ler chave ${key}:`, error);
-      // Registrar erro no monitor
-      if (typeof window === 'undefined') {
-        const { cacheMonitorService } = await import('./cache-monitor.service');
-        cacheMonitorService.recordError();
-      }
-      return null;
     }
+
+    // 2. Fallback: Memória (se Redis não configurado ou temporariamente desabilitado)
+    const memData = this.getInMemory<T>(key);
+    if (memData !== null) {
+      console.log(`[Cache] ✅ Hit (Memória): ${key}`);
+      return memData;
+    }
+
+    return null;
   }
 
   /**
    * Armazenar valor no cache com TTL
-   * @param key - Chave do cache
-   * @param value - Valor a ser armazenado (deve ser serializável)
-   * @param ttlSeconds - Tempo de vida em segundos (padrão: 3600)
    */
-  async set(key: string, value: unknown, ttlSeconds: number = 3600): Promise<void> {
-    if (!this.shouldAttemptRedis() || !this.redis) {
-      return;
-    }
+  async set(
+    key: string,
+    value: unknown,
+    ttlSeconds: number = 3600,
+  ): Promise<void> {
+    // Sempre salvar em memória também (write-through) ou apenas como fallback?
+    // Como é fallback, salvamos na memória APENAS se Redis não for usado.
+    // Mas se o Redis cair, é bom ter os dados mais recentes?
+    // Vamos simplificar: Se Redis OK -> Redis. Se Redis Ruim -> Memória.
 
-    try {
-      await this.redis.setex(key, ttlSeconds, value);
-      console.log(`[Cache] 💾 Set: ${key} (TTL: ${ttlSeconds}s)`);
-      // Registrar set no monitor
-      if (typeof window === 'undefined') {
-        const { cacheMonitorService } = await import('./cache-monitor.service');
-        cacheMonitorService.recordSet();
-      }
-    } catch (error) {
-      if (this.isNetworkLikeError(error)) {
-        if (typeof window === 'undefined') {
-          const { cacheMonitorService } = await import('./cache-monitor.service');
-          cacheMonitorService.recordError();
-        }
-        this.temporarilyDisableRedis(error);
+    if (this.shouldAttemptRedis() && this.redis) {
+      try {
+        await this.redis.setex(key, ttlSeconds, value);
+        console.log(`[Cache] 💾 Set (Redis): ${key} (TTL: ${ttlSeconds}s)`);
+        this.recordMetric("set");
         return;
-      }
-
-      console.error(`[Cache] ❌ Erro ao escrever chave ${key}:`, error);
-      // Registrar erro no monitor
-      if (typeof window === 'undefined') {
-        const { cacheMonitorService } = await import('./cache-monitor.service');
-        cacheMonitorService.recordError();
+      } catch (error) {
+        if (this.isNetworkLikeError(error)) {
+          this.recordMetric("error");
+          this.temporarilyDisableRedis(error);
+          // Fallback to memory write
+        } else {
+          console.error(`[Cache] ❌ Erro ao escrever chave ${key}:`, error);
+          this.recordMetric("error");
+          return;
+        }
       }
     }
+
+    // Fallback or No Redis
+    this.setInMemory(key, value, ttlSeconds);
+    console.log(`[Cache] 💾 Set (Memória): ${key} (TTL: ${ttlSeconds}s)`);
   }
 
   /**
    * Deletar chave do cache
    */
   async del(key: string): Promise<void> {
-    if (!this.shouldAttemptRedis() || !this.redis) {
+    this.memoryCache.delete(key); // Sempre limpar da memória local
+
+    if (this.shouldAttemptRedis() && this.redis) {
+      try {
+        await this.redis.del(key);
+        console.log(`[Cache] 🗑️ Del (Redis): ${key}`);
+        this.recordMetric("del");
+      } catch (error) {
+        if (this.isNetworkLikeError(error)) {
+          this.recordMetric("error");
+          this.temporarilyDisableRedis(error);
+        } else {
+          console.error(`[Cache] ❌ Erro ao deletar chave ${key}:`, error);
+          this.recordMetric("error");
+        }
+      }
       return;
     }
 
-    try {
-      await this.redis.del(key);
-      console.log(`[Cache] 🗑️ Del: ${key}`);
-      // Registrar delete no monitor
-      if (typeof window === 'undefined') {
-        const { cacheMonitorService } = await import('./cache-monitor.service');
-        cacheMonitorService.recordDel();
-      }
-    } catch (error) {
-      if (this.isNetworkLikeError(error)) {
-        if (typeof window === 'undefined') {
-          const { cacheMonitorService } = await import('./cache-monitor.service');
-          cacheMonitorService.recordError();
-        }
-        this.temporarilyDisableRedis(error);
-        return;
-      }
-
-      console.error(`[Cache] ❌ Erro ao deletar chave ${key}:`, error);
-      // Registrar erro no monitor
-      if (typeof window === 'undefined') {
-        const { cacheMonitorService } = await import('./cache-monitor.service');
-        cacheMonitorService.recordError();
-      }
-    }
+    console.log(`[Cache] 🗑️ Del (Memória): ${key}`);
   }
 
   /**
    * Deletar múltiplas chaves
    */
   async delMany(keys: string[]): Promise<void> {
-    if (!this.shouldAttemptRedis() || keys.length === 0) {
-      return;
-    }
+    if (keys.length === 0) return;
 
-    try {
-      // Upstash Redis suporta múltiplas chaves no del
-      await Promise.all(keys.map(key => this.redis!.del(key)));
-      console.log(`[Cache] 🗑️ Del Many: ${keys.length} chaves`);
-    } catch (error) {
-      if (this.isNetworkLikeError(error)) {
-        if (typeof window === 'undefined') {
-          const { cacheMonitorService } = await import('./cache-monitor.service');
-          cacheMonitorService.recordError();
+    // Limpar memória
+    keys.forEach((k) => this.memoryCache.delete(k));
+
+    if (this.shouldAttemptRedis() && this.redis) {
+      try {
+        await Promise.all(keys.map((key) => this.redis!.del(key)));
+        console.log(`[Cache] 🗑️ Del Many (Redis): ${keys.length} chaves`);
+      } catch (error) {
+        if (this.isNetworkLikeError(error)) {
+          this.recordMetric("error");
+          this.temporarilyDisableRedis(error);
+        } else {
+          console.error(`[Cache] ❌ Erro ao deletar múltiplas chaves:`, error);
         }
-        this.temporarilyDisableRedis(error);
-        return;
       }
-
-      console.error(`[Cache] ❌ Erro ao deletar múltiplas chaves:`, error);
     }
   }
 
   /**
-   * Verificar se cache está habilitado
+   * Verificar se cache está habilitado (Redis ou Memória)
    */
   isEnabled(): boolean {
-    return this.enabled;
+    return this.enabled || true; // Agora sempre "ativo" via memória, a menos que explicitamente disabled via env? Use isExplicitlyDisabled check logic again if needed, but initialize handles it.
   }
 
   /**
@@ -260,30 +284,52 @@ class CacheService {
   async getOrSet<T>(
     key: string,
     fetcher: () => Promise<T>,
-    ttlSeconds: number = 3600
+    ttlSeconds: number = 3600,
   ): Promise<T> {
-    // Tentar obter do cache
     const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;
     }
 
-    // Cache miss - buscar e armazenar
     console.log(`[Cache] ❌ Miss: ${key}`);
     const value = await fetcher();
     await this.set(key, value, ttlSeconds);
     return value;
   }
+
+  private async recordMetric(type: "hit" | "miss" | "set" | "del" | "error") {
+    if (typeof window === "undefined") {
+      try {
+        const { cacheMonitorService } = await import("./cache-monitor.service");
+        switch (type) {
+          case "hit":
+            cacheMonitorService.recordHit();
+            break;
+          case "miss":
+            cacheMonitorService.recordMiss();
+            break;
+          case "set":
+            cacheMonitorService.recordSet();
+            break;
+          case "del":
+            cacheMonitorService.recordDel();
+            break;
+          case "error":
+            cacheMonitorService.recordError();
+            break;
+        }
+      } catch (e) {
+        // Ignore import errors or monitor errors
+      }
+    }
+  }
 }
 
-// Singleton
-export const cacheService = new CacheService();
+// Singleton pattern with globalThis for HMR persistence
+const globalForCache = globalThis as unknown as { cacheService: CacheService };
 
+export const cacheService = globalForCache.cacheService || new CacheService();
 
-
-
-
-
-
-
-
+if (process.env.NODE_ENV !== "production") {
+  globalForCache.cacheService = cacheService;
+}

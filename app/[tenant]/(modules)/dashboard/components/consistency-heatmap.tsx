@@ -69,9 +69,9 @@ export function ConsistencyHeatmap({
       case 'mensal':
         return 'grid-cols-[repeat(31,minmax(0,1fr))]'
       case 'anual':
-        return 'grid-cols-[repeat(53,minmax(0,1fr))]'
+        return 'grid-cols-53'
       default:
-        return 'grid-cols-[repeat(53,minmax(0,1fr))]'
+        return 'grid-cols-53'
     }
   }
 
@@ -146,7 +146,7 @@ export function ConsistencyHeatmap({
         {period === 'anual' && monthPositions.length > 0 && (
           <div className="overflow-x-auto mb-1">
             <div className="relative min-w-max" style={{ paddingLeft: showDayLabels ? '2rem' : 0 }}>
-              <div className="grid grid-cols-[repeat(53,minmax(0,1fr))] gap-1">
+              <div className="grid grid-cols-53 gap-1">
                 {Array.from({ length: 53 }).map((_, colIdx) => {
                   const match = monthPositions.find((m) => m.col === colIdx)
                   return (

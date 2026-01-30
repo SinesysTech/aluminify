@@ -75,7 +75,6 @@ const empresaNavItems: NavItem[] = [
       { title: "Disponibilidade", url: "/agendamentos/disponibilidade" },
       { title: "Bloqueios", url: "/agendamentos/bloqueios" },
       { title: "Estatísticas", url: "/agendamentos/stats" },
-      { title: "Configurações", url: "/agendamentos/configuracoes" },
     ],
   },
   {
@@ -87,7 +86,6 @@ const empresaNavItems: NavItem[] = [
       { title: "Transações", url: "/financeiro/transacoes" },
       { title: "Produtos", url: "/financeiro/produtos" },
       { title: "Cupons", url: "/financeiro/cupons" },
-      { title: "Integrações", url: "/financeiro/integracoes" },
     ],
   },
   {

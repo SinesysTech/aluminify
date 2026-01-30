@@ -408,7 +408,7 @@ export function BrandCustomizationPanel({
 
             <TabsContent value="overview" className="mt-8 space-y-8">
               {/* Brand Completion Progress */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 border border-primary/10 p-6">
+              <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/5 via-primary/10 to-accent/5 border border-primary/10 p-6">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="relative">
                   <div className="flex items-center justify-between mb-4">
@@ -557,7 +557,7 @@ export function BrandCustomizationPanel({
                           `}
                         >
                           <div className={`
-                            w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                            w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0
                             transition-colors
                             ${item.done
                               ? 'bg-green-500 border-green-500 text-white'
@@ -581,7 +581,7 @@ export function BrandCustomizationPanel({
                       onClick={() => setActiveTab('logos')}
                       className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
                           <Upload className="h-5 w-5" />
@@ -598,7 +598,7 @@ export function BrandCustomizationPanel({
                       onClick={() => setActiveTab('colors')}
                       className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-linear-to-r from-pink-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-600">
                           <Palette className="h-5 w-5" />
@@ -630,7 +630,7 @@ export function BrandCustomizationPanel({
                       onClick={() => setActiveTab('fonts')}
                       className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-linear-to-r from-green-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600">
                           <Type className="h-5 w-5" />
