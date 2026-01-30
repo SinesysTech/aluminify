@@ -3,7 +3,7 @@
  * These tests verify that users can only access/modify their own appointments
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from '@jest/globals'
 
 // Mock types for testing
 interface MockUser {

@@ -4,7 +4,7 @@ jest.mock('@/app/shared/core/database/database', () => ({
   getDatabaseClient: () => fakeClient,
 }));
 
-import { FlashcardsService } from '@/app/shared/core/services/flashcards/flashcards.service';
+import { FlashcardsService } from '@/app/[tenant]/(modules)/flashcards/services/flashcards.service';
 
 type QueryResult = { data: any; error: any; count?: number | null };
 

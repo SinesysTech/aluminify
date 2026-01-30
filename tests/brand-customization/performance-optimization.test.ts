@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { CSSPropertiesManager, getCSSPropertiesManager } from '@/lib/services/css-properties-manager';
+import { CSSPropertiesManager, getCSSPropertiesManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/css-properties-manager';
 import { BrandingCacheManager, getBrandingCacheManager } from '@/lib/services/branding-cache-manager';
 import { BrandingPerformanceMonitor, getBrandingPerformanceMonitor } from '@/lib/services/branding-performance-monitor';
 import type { 
