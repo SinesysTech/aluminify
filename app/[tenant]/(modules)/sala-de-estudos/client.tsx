@@ -5,6 +5,7 @@ import { AlertCircle, School } from 'lucide-react'
 import { Skeleton } from '@/app/shared/components/feedback/skeleton'
 import { useCurrentUser } from '@/components/providers/user-provider'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
+import { useOptionalTenantContext } from '@/app/[tenant]/tenant-context'
 import {
   AtividadeComProgresso,
   CursoComDisciplinas,
@@ -22,8 +23,9 @@ import { FrenteCardGrid } from './components/frente-card-grid'
 
 export default function SalaEstudosClientPage() {
   const currentUser = useCurrentUser()
+  const tenantContext = useOptionalTenantContext()
   const { activeOrganization } = useStudentOrganizations()
-  const activeOrgId = activeOrganization?.id
+  const activeOrgId = tenantContext?.empresaId ?? activeOrganization?.id
 
   // Data state
   const [atividades, setAtividades] = React.useState<AtividadeComProgresso[]>([])

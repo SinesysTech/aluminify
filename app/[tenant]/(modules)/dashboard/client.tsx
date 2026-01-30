@@ -9,6 +9,7 @@ import {
 } from './services/dashboard.service'
 import { DashboardHeader } from '@/app/[tenant]/(modules)/dashboard/components/dashboard-header'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
+import { useOptionalTenantContext } from '@/app/[tenant]/tenant-context'
 import { ScheduleProgress } from './components/schedule-progress'
 import { MetricCard } from './components/metric-card'
 import {
@@ -35,9 +36,11 @@ export default function StudentDashboardClientPage() {
     const [heatmapPeriod, setHeatmapPeriod] = useState<HeatmapPeriod>('anual')
     const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-    // Get active organization for filtering (multi-org students)
+    // Tenant da URL é a fonte de verdade; activeOrganization pode estar desatualizado (localStorage)
+    const tenantContext = useOptionalTenantContext()
     const { activeOrganization } = useStudentOrganizations()
-    const activeOrgId = activeOrganization?.id ?? undefined
+    const activeOrgId =
+      tenantContext?.empresaId ?? activeOrganization?.id ?? undefined
 
     const loadDashboardData = useCallback(
         async (showRefreshing = false, period?: HeatmapPeriod) => {

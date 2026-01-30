@@ -12,6 +12,7 @@ import {
 } from '@/app/shared/components/ui/empty'
 import { useCurrentUser } from '@/components/providers/user-provider'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
+import { useOptionalTenantContext } from '@/app/[tenant]/tenant-context'
 import { AtividadeComProgresso, CursoComDisciplinas, DisciplinaComFrentes, FrenteComModulos } from '../types'
 import { StatusAtividade } from '@/app/shared/types/enums'
 import { fetchBibliotecaData } from '../services/biblioteca.service'
@@ -30,8 +31,9 @@ export default function StudentLibrary({
     description = 'Acesse todo o conteúdo didático e materiais de estudo',
 }: StudentLibraryProps) {
     const currentUser = useCurrentUser()
+    const tenantContext = useOptionalTenantContext()
     const { activeOrganization } = useStudentOrganizations()
-    const activeOrgId = activeOrganization?.id
+    const activeOrgId = tenantContext?.empresaId ?? activeOrganization?.id
 
     const [atividades, setAtividades] = React.useState<AtividadeComProgresso[]>([])
     const [cursos, setCursos] = React.useState<Array<{ id: string; nome: string }>>([])

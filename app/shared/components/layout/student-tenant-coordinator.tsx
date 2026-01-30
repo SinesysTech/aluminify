@@ -43,12 +43,22 @@ export function StudentTenantCoordinator() {
     // If there is no tenant slug in the URL, we can't do anything
     if (!tenantSlug) return;
 
+    // Se a org ativa não bate com a URL (ex: localStorage tinha CDF, usuário está em /terra-negra), limpar
+    if (activeOrganization && activeOrganization.slug !== tenantSlug) {
+      const match = organizations.find((o) => o.slug === tenantSlug);
+      if (match) {
+        setActiveOrganization(match);
+      } else {
+        setActiveOrganization(null);
+      }
+      return;
+    }
+
     // Find the organization that matches the current URL slug
     const match = organizations.find((o) => o.slug === tenantSlug);
 
     // If we found a matching organization, and it's different from the active one, update state
     if (match && activeOrganization?.id !== match.id) {
-      console.log(`[Coordinator] Syncing active org from URL: ${match.slug}`);
       setActiveOrganization(match);
     }
   }, [

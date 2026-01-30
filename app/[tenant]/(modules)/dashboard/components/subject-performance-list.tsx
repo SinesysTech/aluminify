@@ -40,7 +40,7 @@ export function SubjectPerformanceList({
   const [groupBy, setGroupBy] = useState<DashboardGroupBy>('frente')
   const { isMultiOrg, activeOrganization } = useStudentOrganizations()
   const { empresaId: tenantEmpresaId } = useTenantContext()
-  const effectiveEmpresaId = activeOrganization?.id ?? tenantEmpresaId
+  const effectiveEmpresaId = tenantEmpresaId ?? activeOrganization?.id
 
   const [courses, setCourses] = useState<DashboardCourse[]>([])
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)

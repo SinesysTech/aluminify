@@ -62,7 +62,7 @@ function ProgressBar({
 export function StrategicDomain({ data }: StrategicDomainProps) {
   const { empresaId: tenantEmpresaId } = useTenantContext()
   const { activeOrganization } = useStudentOrganizations()
-  const effectiveEmpresaId = activeOrganization?.id ?? tenantEmpresaId
+  const effectiveEmpresaId = tenantEmpresaId ?? activeOrganization?.id
 
   // Domínio Estratégico não tem escopo por módulo (evita redundância com "Performance por Módulo")
   const [scope, setScope] = useState<Extract<DashboardScopeLevel, 'curso' | 'disciplina' | 'frente'>>('curso')

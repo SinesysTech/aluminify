@@ -25,7 +25,7 @@ export function SubjectDistribution({
 }: SubjectDistributionProps) {
   const { empresaId: tenantEmpresaId } = useTenantContext()
   const { activeOrganization } = useStudentOrganizations()
-  const effectiveEmpresaId = activeOrganization?.id ?? tenantEmpresaId
+  const effectiveEmpresaId = tenantEmpresaId ?? activeOrganization?.id
 
   const [groupBy, setGroupBy] = useState<DashboardGroupBy>('disciplina')
 

@@ -9,6 +9,7 @@ import React, {
   useMemo,
 } from "react";
 import { createClient } from "@/app/shared/core/client";
+import { useOptionalTenantContext } from "@/app/[tenant]/tenant-context";
 import type { VisibleModule } from "@/app/[tenant]/(modules)/empresa/services/module-visibility.types";
 
 /**
@@ -42,12 +43,16 @@ interface ModuleVisibilityProviderProps {
 
 export function ModuleVisibilityProvider({
   children,
-  empresaId,
+  empresaId: empresaIdProp,
   userRole,
 }: ModuleVisibilityProviderProps) {
   const [modules, setModules] = useState<VisibleModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Tenant da URL (contexto) é a fonte de verdade; evita dados da org errada após switch
+  const tenantContext = useOptionalTenantContext();
+  const empresaId = empresaIdProp ?? tenantContext?.empresaId ?? null;
 
   const fetchModules = useCallback(async () => {
     // Only fetch for students

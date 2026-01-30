@@ -14,8 +14,9 @@ import { SessionSummary } from './components/session-summary'
 export default function FlashcardsClient() {
     const tenantContext = useOptionalTenantContext()
     const { activeOrganization } = useStudentOrganizations()
-    // Empresa ativa: para alunos multi-org usa activeOrganization, senão tenant da URL
-    const empresaId = activeOrganization?.id ?? tenantContext?.empresaId ?? undefined
+    // Tenant da URL é a fonte de verdade; activeOrganization pode estar desatualizado após switch
+    const empresaId =
+      tenantContext?.empresaId ?? activeOrganization?.id ?? undefined
     const supabase = createClient()
 
     const [modo, setModo] = React.useState<string | null>(null)
