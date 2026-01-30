@@ -365,7 +365,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                         </Button>
                     </div>
 
-                    <ScrollArea className="h-[420px] rounded-md border">
+                    <ScrollArea className="h-105 rounded-md border">
                         <div className="p-2">
                             <Table>
                                 <TableHeader>
@@ -408,7 +408,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
 
             {/* SECTION 1: HEADER & LIST (sempre que a empresa tem alunos) */}
             {!isDatabaseEmpty && (
-                <section id="populated-state" className="flex flex-col gap-4 h-full min-h-[600px]">
+                <section id="populated-state" className="flex flex-col gap-4 h-full min-h-150">
                     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
                         <div>
                             <h1 className="page-title">Alunos</h1>
@@ -463,7 +463,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
 
             {/* SECTION 2: EMPTY STATE (Only if truly empty) */}
             {isDatabaseEmpty && (
-                <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+                <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-100">
 
                     <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border">
                         <UserPlus className="w-8 h-8 text-muted-foreground" strokeWidth={1} />

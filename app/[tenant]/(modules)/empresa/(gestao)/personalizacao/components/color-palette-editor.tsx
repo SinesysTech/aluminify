@@ -160,7 +160,7 @@ function ColorPreview({ colors, className = "" }: ColorPreviewProps) {
 
       {/* Mini App Preview */}
       <div
-        className="min-h-[280px]"
+        className="min-h-70"
         style={{
           backgroundColor: colors.backgroundColor,
           color: colors.foregroundColor
@@ -179,7 +179,7 @@ function ColorPreview({ colors, className = "" }: ColorPreviewProps) {
         <div className="flex">
           {/* Mini Sidebar */}
           <div
-            className="w-12 min-h-[200px] py-3 px-1.5 space-y-1.5"
+            className="w-12 min-h-50 py-3 px-1.5 space-y-1.5"
             style={{
               backgroundColor: colors.sidebarBackground,
               color: colors.sidebarForeground

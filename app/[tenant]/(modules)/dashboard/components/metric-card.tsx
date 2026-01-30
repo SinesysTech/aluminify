@@ -113,7 +113,7 @@ export function MetricCard({
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        className="text-muted-foreground/60 hover:text-foreground transition-colors shrink-0"
+                        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
                       >
                         <Info className="h-3.5 w-3.5" />
                       </button>

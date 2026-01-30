@@ -34,13 +34,6 @@ create policy "Empresa admins can upload tenant logos"
     with check (
         bucket_id = 'tenant-logos'
         and (
-            -- Superadmins can upload any logo
-            exists (
-                select 1 from auth.users
-                where id = auth.uid()
-                and raw_user_meta_data->>'role' = 'superadmin'
-            )
-            or
             -- Empresa admins can upload logos for their empresa
             -- The file path should start with the empresa_id
             exists (
@@ -61,12 +54,6 @@ create policy "Empresa admins can update tenant logos"
         bucket_id = 'tenant-logos'
         and (
             exists (
-                select 1 from auth.users
-                where id = auth.uid()
-                and raw_user_meta_data->>'role' = 'superadmin'
-            )
-            or
-            exists (
                 select 1 from public.professores p
                 where p.id = auth.uid()
                 and p.is_admin = true
@@ -77,12 +64,6 @@ create policy "Empresa admins can update tenant logos"
     with check (
         bucket_id = 'tenant-logos'
         and (
-            exists (
-                select 1 from auth.users
-                where id = auth.uid()
-                and raw_user_meta_data->>'role' = 'superadmin'
-            )
-            or
             exists (
                 select 1 from public.professores p
                 where p.id = auth.uid()
@@ -100,12 +81,6 @@ create policy "Empresa admins can delete tenant logos"
     using (
         bucket_id = 'tenant-logos'
         and (
-            exists (
-                select 1 from auth.users
-                where id = auth.uid()
-                and raw_user_meta_data->>'role' = 'superadmin'
-            )
-            or
             exists (
                 select 1 from public.professores p
                 where p.id = auth.uid()

@@ -5,7 +5,6 @@
 
 import type { CronogramaExport, ItemExport } from './pdf-types'
 import {
-  formatTempo,
   formatDateBR,
   formatDayOfWeek,
   formatDateShort,

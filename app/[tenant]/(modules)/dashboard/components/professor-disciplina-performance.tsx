@@ -38,7 +38,7 @@ export function ProfessorDisciplinaPerformanceList({
       <CardContent className="pt-0">
         {disciplinas.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <BookOpen className="h-12 w-12 text-muted-foreground/30 mb-3" />
+            <BookOpen className="h-12 w-12 text-muted-foreground/70 mb-3" />
             <p className="text-sm text-muted-foreground">
               Sem dados de performance
             </p>

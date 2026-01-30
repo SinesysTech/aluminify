@@ -27,7 +27,7 @@ interface N8nChatSectionProps {
 }
 
 export function N8nChatSection({ agentConfig }: N8nChatSectionProps) {
-  const user = useCurrentUser()
+  const _user = useCurrentUser()
 
   // Chat state
   const [userId, setUserId] = useState<string | null>(null)

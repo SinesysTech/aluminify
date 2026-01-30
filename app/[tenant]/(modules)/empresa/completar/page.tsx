@@ -318,7 +318,7 @@ export default function CompletarCadastroEmpresaPage() {
             inputMode="numeric"
             maxLength={18}
             placeholder="00.000.000/0000-00"
-            pattern="^[0-9./-]*$"
+            pattern="^[0-9./\-]*$"
             disabled={loading}
           />
           <p className="text-xs text-muted-foreground">
@@ -347,7 +347,7 @@ export default function CompletarCadastroEmpresaPage() {
             inputMode="numeric"
             maxLength={15}
             placeholder="(11) 99999-9999"
-            pattern="^[0-9()\\s+-]*$"
+            pattern="^[0-9()\\s+\-]*$"
             disabled={loading}
           />
         </div>

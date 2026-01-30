@@ -51,13 +51,6 @@ CREATE POLICY "Professores criam disciplinas em sua empresa"
         AND (
             -- Insert for own empresa
             empresa_id = public.get_user_empresa_id()
-            OR
-            -- Superadmin can insert for any empresa
-            EXISTS (
-                SELECT 1 FROM auth.users
-                WHERE id = (SELECT auth.uid())
-                AND raw_user_meta_data->>'role' = 'superadmin'
-            )
         )
     );
 
@@ -72,13 +65,6 @@ CREATE POLICY "Professores editam disciplinas de sua empresa"
         OR
         -- Admin of the empresa can edit any discipline in their empresa
         (empresa_id = public.get_user_empresa_id() AND public.is_empresa_admin())
-        OR
-        -- Superadmin can edit any discipline
-        EXISTS (
-            SELECT 1 FROM auth.users
-            WHERE id = (SELECT auth.uid())
-            AND raw_user_meta_data->>'role' = 'superadmin'
-        )
     )
     WITH CHECK (
         -- Same conditions for the new values
@@ -104,13 +90,6 @@ CREATE POLICY "Professores deletam disciplinas de sua empresa"
         OR
         -- Admin of the empresa can delete any discipline in their empresa
         (empresa_id = public.get_user_empresa_id() AND public.is_empresa_admin())
-        OR
-        -- Superadmin can delete any discipline
-        EXISTS (
-            SELECT 1 FROM auth.users
-            WHERE id = (SELECT auth.uid())
-            AND raw_user_meta_data->>'role' = 'superadmin'
-        )
     );
 
 -- Step 5: Update SELECT policy to filter by tenant
@@ -124,11 +103,4 @@ CREATE POLICY "Disciplinas visíveis para usuários da mesma empresa"
     USING (
         -- Users can see disciplines from their empresa
         empresa_id = public.get_user_empresa_id()
-        OR
-        -- Superadmin can see all
-        EXISTS (
-            SELECT 1 FROM auth.users
-            WHERE id = (SELECT auth.uid())
-            AND raw_user_meta_data->>'role' = 'superadmin'
-        )
     );

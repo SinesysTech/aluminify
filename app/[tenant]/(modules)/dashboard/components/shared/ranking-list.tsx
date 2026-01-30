@@ -85,7 +85,7 @@ export function RankingList({
       </CardHeader>
       <CardContent className="flex-1 pt-0 px-4 md:px-5 pb-4">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[100px]">
+          <div className="flex items-center justify-center min-h-25">
             <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           </div>
         ) : (

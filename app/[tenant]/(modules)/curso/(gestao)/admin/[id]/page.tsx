@@ -227,7 +227,7 @@ export default function CourseDetailPage() {
 
   if (error || !course) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-100 gap-4">
         <p className="text-destructive">{error || 'Curso não encontrado'}</p>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -348,7 +348,7 @@ export default function CourseDetailPage() {
 
         {/* Students Table */}
         {filteredEnrollments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[300px] border rounded-lg bg-zinc-50">
+          <div className="flex flex-col items-center justify-center min-h-75 border rounded-lg bg-zinc-50">
             <Users className="w-12 h-12 text-zinc-300 mb-4" />
             <h3 className="text-lg font-medium text-zinc-600">
               {searchTerm ? 'Nenhum aluno encontrado' : 'Nenhum aluno matriculado'}
@@ -427,7 +427,7 @@ export default function CourseDetailPage() {
               <Table>
                 <TableHeader className="bg-zinc-50">
                   <TableRow>
-                    <TableHead className="w-[50px]">
+                    <TableHead className="w-12.5">
                       <Checkbox
                         checked={isAllSelected || (isSomeSelected && 'indeterminate')}
                         onCheckedChange={toggleSelectAll}
@@ -441,7 +441,7 @@ export default function CourseDetailPage() {
                     <TableHead className="font-medium">Data Matrícula</TableHead>
                     <TableHead className="font-medium">Acesso até</TableHead>
                     <TableHead className="font-medium">Status</TableHead>
-                    <TableHead className="w-[70px]">Ações</TableHead>
+                    <TableHead className="w-17.5">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

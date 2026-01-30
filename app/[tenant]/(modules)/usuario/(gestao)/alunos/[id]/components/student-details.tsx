@@ -134,7 +134,7 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string; i
         {Icon && <Icon className="h-4 w-4" />}
         <span className="text-sm">{label}</span>
       </div>
-      <span className="text-sm font-medium text-right max-w-[60%] break-words">{value}</span>
+      <span className="text-sm font-medium text-right max-w-[60%] wrap-break-words">{value}</span>
     </div>
   )
 }

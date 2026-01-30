@@ -15,11 +15,6 @@ export function createClient() {
   }
 
   const { url, anonKey } = getPublicSupabaseConfig()
-  console.log('[DEBUG] createClient() - Supabase config:', {
-    url,
-    anonKeyPrefix: anonKey.substring(0, 20) + '...',
-    anonKeyLength: anonKey.length
-  })
 
   const wrappedFetch: typeof fetch = async (...args) => {
     try {

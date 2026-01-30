@@ -91,7 +91,7 @@ export function BottomNavigation() {
               href={fullHref}
               className={cn(
                 // Base styles - garantir touch target mínimo de 44px
-                'flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[64px] min-h-[44px]',
+                'flex flex-col items-center justify-center gap-0.5 flex-1 min-w-16 min-h-11',
                 // Transições e interações
                 'transition-colors duration-150',
                 'active:bg-accent/80 hover:bg-accent/50',

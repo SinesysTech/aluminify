@@ -108,7 +108,8 @@
       "Bash(powershell -Command \"cd E:\\\\Development\\\\aluminify; Get-Content node_modules/@mastra/core/dist/action/types.d.ts | Select-Object -First 50\")",
       "Bash(powershell -Command:*)",
       "Bash(findstr:*)",
-      "Bash(npx next lint)"
+      "Bash(npx next lint)",
+      "mcp__supabase__search_docs"
     ],
     "deny": [],
     "ask": []

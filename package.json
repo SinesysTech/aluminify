@@ -21,7 +21,8 @@
     "check:colors": "node scripts/5-geral/design/check-status-colors.mjs",
     "check:quick": "npm run lint && npm run typecheck && npm run check:colors",
     "check": "npm run check:quick && npm test",
-    "check:ci": "npm run lint:ci && npm run typecheck:ci && npm run check:colors && npm test"
+    "check:ci": "npm run lint:ci && npm run typecheck:ci && npm run check:colors && npm test",
+    "docker:push": "./scripts/5-geral/infra/docker-build-and-push.sh"
   },
   "engines": {
     "node": ">=20 <25"
@@ -99,7 +100,6 @@
     "@tiptap/react": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
     "@types/papaparse": "^5.5.0",
-    "@upstash/redis": "^1.35.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -110,7 +110,6 @@
     "harden-react-markdown": "^1.1.5",
     "ical-generator": "^10.0.0",
     "input-otp": "^1.4.2",
-    "ioredis": "^5.9.2",
     "katex": "^0.16.25",
     "libphonenumber-js": "^1.12.31",
     "lowlight": "^3.3.0",

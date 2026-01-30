@@ -6,8 +6,8 @@
 import React from 'react'
 import { Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import { PDF_COLORS, PDF_FONTS, PDF_SPACING } from './pdf-theme'
-import type { CronogramaExport, ItemExport } from './pdf-types'
-import { formatTempo, formatDateBR, asNumberSafe } from './pdf-types'
+import type { CronogramaExport } from './pdf-types'
+import { formatTempo, formatDateBR } from './pdf-types'
 import {
   ProgressBar,
   LogoBlock,

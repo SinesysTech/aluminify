@@ -282,14 +282,14 @@ export function AulaRow({
   checked,
   isAlt,
   colTempo,
-  colCheck,
+  _colCheck,
 }: {
   nome: string
   tempo: number
   checked: boolean
   isAlt: boolean
   colTempo: number
-  colCheck: number
+  _colCheck: number
 }) {
   return (
     <View
@@ -541,6 +541,7 @@ export function LogoBlock({ logoUrl }: { logoUrl: string | null }) {
       <Image
         src={logoUrl}
         style={{ width: 140, height: 44, objectFit: 'contain' }}
+        alt="Logo"
       />
     )
   }

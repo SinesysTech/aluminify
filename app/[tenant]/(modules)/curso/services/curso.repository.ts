@@ -17,7 +17,7 @@ export interface PaginatedResult<T> {
 }
 
 export interface CursoRepository {
-  list(params?: PaginationParams): Promise<PaginatedResult<Curso>>;
+  list(params?: PaginationParams, empresaId?: string): Promise<PaginatedResult<Curso>>;
   findById(id: string): Promise<Curso | null>;
   create(payload: CreateCursoInput): Promise<Curso>;
   update(id: string, payload: UpdateCursoInput): Promise<Curso>;
@@ -127,7 +127,10 @@ export class CursoRepositoryImpl implements CursoRepository {
     return columnMap[sortBy] || sortBy;
   }
 
-  async list(params?: PaginationParams): Promise<PaginatedResult<Curso>> {
+  async list(
+    params?: PaginationParams,
+    empresaId?: string,
+  ): Promise<PaginatedResult<Curso>> {
     const page = params?.page ?? 1;
     const perPage = params?.perPage ?? 50;
     const sortByParam = params?.sortBy ?? "nome";
@@ -138,9 +141,13 @@ export class CursoRepositoryImpl implements CursoRepository {
     const to = from + perPage - 1;
 
     // Get total count
-    const { count, error: countError } = await this.client
+    let countQuery = this.client
       .from(TABLE)
       .select("*", { count: "exact", head: true });
+    if (empresaId) {
+      countQuery = countQuery.eq("empresa_id", empresaId);
+    }
+    const { count, error: countError } = await countQuery;
 
     if (countError) {
       throw new Error(`Failed to count courses: ${countError.message}`);
@@ -150,11 +157,15 @@ export class CursoRepositoryImpl implements CursoRepository {
     const totalPages = Math.ceil(total / perPage);
 
     // Get paginated data
-    const { data, error } = await this.client
+    let dataQuery = this.client
       .from(TABLE)
       .select("*")
       .order(sortBy, { ascending: sortOrder })
       .range(from, to);
+    if (empresaId) {
+      dataQuery = dataQuery.eq("empresa_id", empresaId);
+    }
+    const { data, error } = await dataQuery;
 
     if (error) {
       throw new Error(`Failed to list courses: ${error.message}`);

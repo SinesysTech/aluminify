@@ -48,18 +48,20 @@ function getDatabaseCredentials() {
 function getDatabaseUserCredentials() {
   const DATABASE_URL = env.SUPABASE_URL;
   /**
-   * Preferimos anon/publishable para manter o modelo “user-scoped” alinhado com RLS.
-   * Porém, em alguns ambientes o projeto roda apenas com SUPABASE_SECRET_KEY / SERVICE_ROLE_KEY.
-   * Nesse caso, fazemos fallback para a chave disponível, mantendo o JWT do usuário no header.
+   * User-scoped clients MUST use public keys (anon/publishable) so that
+   * Row Level Security (RLS) is enforced. Service role keys bypass RLS
+   * entirely and must NEVER be used here.
    */
   const DATABASE_API_KEY =
-    env.SUPABASE_ANON_KEY ??
-    env.SUPABASE_PUBLISHABLE_KEY ??
-    env.SUPABASE_SECRET_KEY ??
-    env.SUPABASE_SERVICE_ROLE_KEY;
+    env.SUPABASE_ANON_KEY ?? env.SUPABASE_PUBLISHABLE_KEY;
 
   if (!DATABASE_API_KEY) {
-    throw new Error("Database user credentials are not configured properly.");
+    throw new Error(
+      "User-scoped database client requires a public key " +
+        "(SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY). " +
+        "Service role keys (SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY) " +
+        "must NOT be used for user-scoped clients as they bypass RLS and tenant isolation.",
+    );
   }
 
   return { DATABASE_URL, DATABASE_API_KEY };

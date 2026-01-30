@@ -68,7 +68,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
       <CardContent className="pt-0">
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Calendar className="h-12 w-12 text-muted-foreground/30 mb-3" />
+            <Calendar className="h-12 w-12 text-muted-foreground/70 mb-3" />
             <p className="text-sm text-muted-foreground">
               Nenhum agendamento pendente
             </p>

@@ -148,7 +148,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
       </CardHeader>
       <CardContent className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
         {/* Gráfico Radar */}
-        <div className="w-full md:w-1/2 h-[250px] md:h-auto relative">
+          <div className="w-full md:w-1/2 h-62.5 relative">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
               <PolarGrid 
@@ -195,8 +195,8 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
             <h4 className="text-sm font-medium">Foco Recomendado</h4>
           </div>
           
-          <ScrollArea className="flex-1 min-h-[200px] pr-4">
-            <div className="space-y-3">
+          <ScrollArea className="flex-1 min-h-50 pr-4">
+              <div className="space-y-3 min-h-50">
               {data.recommendations.length > 0 ? (
                 data.recommendations.map((rec) => (
                   <RecommendationCard key={rec.moduloId} rec={rec} />

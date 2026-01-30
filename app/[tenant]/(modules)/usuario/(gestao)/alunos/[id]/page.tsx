@@ -75,7 +75,7 @@ export default function StudentDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 h-full pb-10">
-        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center justify-center min-h-100">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function StudentDetailPage() {
 
   if (error || !student) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-100 gap-4">
         <p className="text-destructive">{error || 'Aluno não encontrado'}</p>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -95,9 +95,11 @@ export default function StudentDetailPage() {
   }
 
   return (
-    <StudentDetails
-      student={student}
-      onUpdate={fetchStudent}
-    />
+    student ? (
+      <StudentDetails
+        student={student}
+        onUpdate={fetchStudent}
+      />
+    ) : null
   )
 }

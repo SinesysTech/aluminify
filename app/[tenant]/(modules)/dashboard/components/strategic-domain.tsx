@@ -224,7 +224,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                 <TooltipContent
                   side="right"
                   align="start"
-                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                  className="max-w-xs bg-popover text-popover-foreground border-border p-3 z-50"
                   sideOffset={8}
                 >
                   <div className="space-y-2 text-sm">
@@ -268,7 +268,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
           <div className="flex flex-wrap gap-2">
             {scope !== 'curso' && courses.length > 1 && (
               <Select value={selectedCourseId ?? ''} onValueChange={(v) => setSelectedCourseId(v || null)}>
-                <SelectTrigger size="sm" className="w-[220px]">
+                <SelectTrigger size="sm" className="w-55">
                   <SelectValue placeholder="Filtrar por curso" />
                 </SelectTrigger>
                 <SelectContent>
@@ -281,7 +281,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
 
             {scope !== 'curso' && (
               <Select value={selectedDisciplineId ?? ''} onValueChange={(v) => setSelectedDisciplineId(v || null)}>
-                <SelectTrigger size="sm" className="w-[220px]">
+                <SelectTrigger size="sm" className="w-55">
                   <SelectValue placeholder="Disciplina" />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,7 +294,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
 
             {scope === 'frente' && (
               <Select value={selectedFrontId ?? ''} onValueChange={(v) => setSelectedFrontId(v || null)}>
-                <SelectTrigger size="sm" className="w-[220px]">
+                <SelectTrigger size="sm" className="w-55">
                   <SelectValue placeholder="Frente" />
                 </SelectTrigger>
                 <SelectContent>

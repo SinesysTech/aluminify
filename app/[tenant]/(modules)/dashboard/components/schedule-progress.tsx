@@ -54,7 +54,7 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
                 <TooltipContent
                   side="right"
                   align="start"
-                  className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                  className="max-w-xs bg-popover text-popover-foreground border-border p-3 z-50"
                   sideOffset={8}
                 >
                   <div className="space-y-2 text-sm">
