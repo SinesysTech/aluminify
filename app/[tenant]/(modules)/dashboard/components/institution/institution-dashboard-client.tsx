@@ -45,11 +45,15 @@ export default function InstitutionDashboardClient() {
   // Use a ref to track the latest abort controller to cancel pending requests
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  // Stable reference for searchParams to avoid unnecessary re-renders/fetches if only params change
+  // Stable refs to avoid recreating the callback on every render
+  const periodRef = useRef(period)
+  periodRef.current = period
+  const pathnameRef = useRef(pathname)
+  pathnameRef.current = pathname
+  const routerRef = useRef(router)
+  routerRef.current = router
   const searchParamsRef = useRef(searchParams)
-  useEffect(() => {
-    searchParamsRef.current = searchParams
-  }, [searchParams])
+  searchParamsRef.current = searchParams
 
   const loadDashboardData = useCallback(
     async (showRefreshing = false, newPeriod?: DashboardPeriod) => {
@@ -61,7 +65,7 @@ export default function InstitutionDashboardClient() {
       const controller = new AbortController()
       abortControllerRef.current = controller
 
-      const periodToUse = newPeriod ?? period
+      const periodToUse = newPeriod ?? periodRef.current
       try {
         if (showRefreshing) {
           setIsRefreshing(true)
@@ -69,11 +73,6 @@ export default function InstitutionDashboardClient() {
           setIsLoading(true)
         }
         setError(null)
-
-        // Passar o signal para o service (precisa ser atualizado no service também, se possível, 
-        // mas por enquanto controlamos o estado local)
-        // Nota: O fetch real não está sendo cancelado a nível de rede aqui porque o client.ts 
-        // precisaria aceitar o abort signal, mas impedimos a atualização de estado.
 
         const dashboardData = await fetchInstitutionDashboardData(periodToUse)
 
@@ -108,13 +107,14 @@ export default function InstitutionDashboardClient() {
 
         if ((err as InstitutionDashboardServiceError).isAuthError) {
           setData(null)
+          const currentPathname = pathnameRef.current
           const currentSearchParams = searchParamsRef.current
           const qs = currentSearchParams?.toString()
-          const returnUrl = `${pathname}${qs ? `?${qs}` : ''}`
-          const firstSegment = pathname.split('/').filter(Boolean)[0]
+          const returnUrl = `${currentPathname}${qs ? `?${qs}` : ''}`
+          const firstSegment = currentPathname.split('/').filter(Boolean)[0]
           const loginBase =
             firstSegment && firstSegment !== 'auth' ? `/${firstSegment}/auth/login` : '/auth/login'
-          router.replace(`${loginBase}?next=${encodeURIComponent(returnUrl)}`)
+          routerRef.current.replace(`${loginBase}?next=${encodeURIComponent(returnUrl)}`)
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -124,10 +124,10 @@ export default function InstitutionDashboardClient() {
         }
       }
     },
-    [period, pathname, router] // searchParams removed from dependency array, using ref
+    [] // Stable: no deps, uses refs for mutable values
   )
 
-  // Carregamento inicial
+  // Carregamento inicial (runs once on mount)
   useEffect(() => {
     loadDashboardData()
 
@@ -149,10 +149,6 @@ export default function InstitutionDashboardClient() {
 
   // Refresh automático
   useEffect(() => {
-    if (refreshIntervalRef.current) {
-      clearInterval(refreshIntervalRef.current)
-    }
-
     refreshIntervalRef.current = setInterval(() => {
       loadDashboardData(true)
     }, AUTO_REFRESH_INTERVAL)
