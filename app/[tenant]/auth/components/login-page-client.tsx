@@ -23,7 +23,7 @@ function safeNextPath(next: string | null | undefined) {
 }
 
 export function LoginPageClient() {
-  const params = useParams()
+  const params = useParams();
   const tenant = params?.tenant as string
   const searchParams = useSearchParams()
 
@@ -137,6 +137,8 @@ export function LoginPageClient() {
       try {
         const token = data.session?.access_token
         if (token) {
+          // Chamada silenciosa: não logamos erro se falhar, pois é um cleanup preventivo
+          // para garantir que o usuário não herde cookies de impersonação de sessões anteriores
           await fetch('/api/auth/stop-impersonate', {
             method: 'POST',
             headers: {
@@ -164,8 +166,6 @@ export function LoginPageClient() {
       }
 
       console.log('[DEBUG] Redirecionando para:', targetUrl)
-      // Usar window.location.href para garantir que os cookies sejam enviados corretamente
-      // e o middleware reconheça a sessão
       window.location.href = targetUrl
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error)

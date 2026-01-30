@@ -64,7 +64,6 @@ const professorNavItems: NavItem[] = [
     url: "/biblioteca",
     icon: FolderOpen,
     items: [
-      { title: "Visão Geral", url: "/biblioteca" },
       { title: "Materiais", url: "/biblioteca/materiais" },
       { title: "Flashcards", url: "/flashcards" },
     ],
@@ -74,7 +73,6 @@ const professorNavItems: NavItem[] = [
     url: "/agendamentos",
     icon: Calendar,
     items: [
-      { title: "Visão Geral", url: "/agendamentos" },
       { title: "Meus Agendamentos", url: "/agendamentos/meus" },
       { title: "Disponibilidade", url: "/agendamentos/disponibilidade" },
       { title: "Bloqueios", url: "/agendamentos/bloqueios" },

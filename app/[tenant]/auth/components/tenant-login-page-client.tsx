@@ -4,7 +4,7 @@ import React from 'react';
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 
 import { AuthPageLayout } from './auth-page-layout';
@@ -36,7 +36,6 @@ export function TenantLoginPageClient({
   empresaNome,
   logoUrl,
 }: TenantLoginPageClientProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const next = useMemo(() => {
@@ -242,6 +241,7 @@ export function TenantLoginPageClient({
       try {
         const token = data.session?.access_token;
         if (token) {
+          // Chamada silenciosa: não logamos erro 400/401 se falhar, pois é um cleanup preventivo
           await fetch('/api/auth/stop-impersonate', {
             method: 'POST',
             headers: {
@@ -297,8 +297,8 @@ export function TenantLoginPageClient({
         }
       }
 
-      router.push(finalNext);
-      router.refresh();
+      console.log('[DEBUG] Redirecionamento final:', finalNext);
+      window.location.href = finalNext;
     } catch (error) {
       console.error('[DEBUG] Erro inesperado no login:', error);
       toast.error('Erro inesperado', {
