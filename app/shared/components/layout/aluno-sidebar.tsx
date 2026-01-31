@@ -13,6 +13,7 @@ import {
   Library,
   Layers,
   CalendarPlus,
+  Bot,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -56,6 +57,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Clock,
   Library,
   Layers,
+  Bot,
 }
 
 /**
@@ -176,11 +178,11 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         icon: getIconComponent(module.iconName),
         items: module.submodules.length > 0
           ? module.submodules
-              .sort((a, b) => a.displayOrder - b.displayOrder)
-              .map(sub => ({
-                title: sub.name,
-                url: tenantSlug ? `/${tenantSlug}${sub.url}` : sub.url,
-              }))
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map(sub => ({
+              title: sub.name,
+              url: tenantSlug ? `/${tenantSlug}${sub.url}` : sub.url,
+            }))
           : undefined,
       }))
   }, [modules, loading, tenantSlug])
