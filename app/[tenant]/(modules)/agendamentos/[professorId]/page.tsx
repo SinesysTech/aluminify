@@ -74,7 +74,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
     .toUpperCase()
 
   return (
-    <main className="flex min-h-screen flex-col py-8 px-4 md:py-16 md:px-5 gap-6 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       {/* Back button */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
@@ -110,7 +110,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
       </div>
 
       {/* Scheduler */}
-      <div className="my-4">
+      <div>
         {professor.tem_disponibilidade ? (
           <Suspense fallback={<SchedulerSkeleton />}>
             <AgendamentoScheduler professorId={professorId} />
@@ -133,17 +133,17 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
           </div>
         )}
       </div>
-    </main>
+    </div>
   )
 }
 
 function SchedulerSkeleton() {
   return (
-    <div className="w-full bg-background px-8 py-6 rounded-md border">
-      <div className="flex gap-6">
-        <Skeleton className="h-[320px] w-[280px]" />
-        <Skeleton className="h-[320px] w-[320px]" />
-        <Skeleton className="h-[320px] w-[280px]" />
+    <div className="w-full bg-background px-4 py-4 md:px-8 md:py-6 rounded-md border">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <Skeleton className="h-[280px] w-full lg:w-[280px]" />
+        <Skeleton className="h-[280px] w-full lg:w-[320px]" />
+        <Skeleton className="hidden lg:block h-[280px] w-[280px]" />
       </div>
     </div>
   )

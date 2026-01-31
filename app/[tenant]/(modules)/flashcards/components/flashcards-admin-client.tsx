@@ -1035,7 +1035,7 @@ export default function FlashcardsAdminClient() {
 
       {/* Modal Criar */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Criar Flashcard</DialogTitle>
             <DialogDescription>
@@ -1187,7 +1187,7 @@ export default function FlashcardsAdminClient() {
 
       {/* Modal Editar */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Editar Flashcard</DialogTitle>
             <DialogDescription>

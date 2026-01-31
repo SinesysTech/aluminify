@@ -23,7 +23,7 @@ export default async function AgendamentosPage() {
   const professors = await getProfessoresDisponiveis()
 
   return (
-    <main className="flex min-h-screen flex-col py-8 px-4 md:py-16 md:px-5 gap-6 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col gap-2 items-center lg:px-10">
         <h1 className="page-title">Agendar Plantão</h1>
         <p className="page-subtitle text-center px-4 md:px-10">
@@ -31,12 +31,12 @@ export default async function AgendamentosPage() {
         </p>
       </div>
 
-      <div className="my-4">
+      <div>
         <Suspense fallback={<ProfessorSelectorSkeleton />}>
           <ProfessorSelector professores={professors} />
         </Suspense>
       </div>
-    </main>
+    </div>
   )
 }
 

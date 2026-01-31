@@ -75,7 +75,7 @@ export function RightPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-[280px] border-l pl-6">
+    <div className="flex flex-col gap-4 w-full lg:w-[280px] border-t lg:border-t-0 lg:border-l pt-4 lg:pt-0 lg:pl-6">
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-center">
           <p

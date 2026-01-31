@@ -81,8 +81,8 @@ export function AgendamentoScheduler({ professorId }: AgendamentoSchedulerProps)
   const showForm = !!dateParam && !!slotParam
 
   return (
-    <div className="w-full bg-background px-8 py-6 rounded-md max-w-max mx-auto border">
-      <div className="flex gap-6">
+    <div className="w-full bg-background px-4 py-4 md:px-8 md:py-6 rounded-md md:max-w-max mx-auto border">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         <LeftPanel
           showForm={showForm}
           timeZone={timeZone}

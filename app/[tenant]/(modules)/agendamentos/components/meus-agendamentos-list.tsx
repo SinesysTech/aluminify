@@ -230,7 +230,7 @@ function AgendamentoAlunoCard({ agendamento, showActions }: AgendamentoAlunoCard
 
       {/* Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent fullScreenMobile className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Detalhes do Agendamento</DialogTitle>
           </DialogHeader>

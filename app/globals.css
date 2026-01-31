@@ -318,6 +318,16 @@
       linear-gradient(to bottom, hsl(var(--deco-line) / var(--deco-alpha)) 1px, transparent 1px);
     background-size: 4rem 4rem;
     background-position: center top;
+    /* Prevent accidental pull-to-refresh on mobile */
+    overscroll-behavior-y: contain;
+    /* Ensure text is legible on mobile */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Eliminate 300ms tap delay on touch devices */
+  a, button, [role="button"], input, select, textarea, label, summary {
+    touch-action: manipulation;
   }
   
   .grid-bg {

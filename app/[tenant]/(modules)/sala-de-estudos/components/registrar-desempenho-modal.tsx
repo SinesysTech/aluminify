@@ -129,7 +129,7 @@ export function RegistrarDesempenhoModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent fullScreenMobile className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Registrar Desempenho</DialogTitle>
           <DialogDescription>

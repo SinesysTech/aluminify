@@ -569,7 +569,7 @@ export function CursoTable() {
                   Novo Curso
                 </button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="pb-4 border-b">
                   <DialogTitle className="text-xl">Criar Curso</DialogTitle>
                   <DialogDescription>
@@ -1100,7 +1100,7 @@ export function CursoTable() {
       {/* Edit Dialog */}
       {mounted && editingCurso && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader className="pb-4 border-b">
               <DialogTitle className="text-xl">Editar Curso</DialogTitle>
               <DialogDescription>

@@ -79,6 +79,8 @@ export function BottomNavigation() {
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
+      role="navigation"
+      aria-label="Navegação principal"
     >
       <div className="flex h-16 items-stretch justify-around">
         {navigationItems.map((item) => {
@@ -89,12 +91,13 @@ export function BottomNavigation() {
             <Link
               key={item.name}
               href={fullHref}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                // Base styles - garantir touch target mínimo de 44px
-                'flex flex-col items-center justify-center gap-0.5 flex-1 min-w-16 min-h-11',
-                // Transições e interações
-                'transition-colors duration-150',
-                'active:bg-accent/80 hover:bg-accent/50',
+                // Touch target >= 44px (parent h-16 = 64px, flex-1 distributes width)
+                'flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[44px] min-h-[44px]',
+                // Touch-optimized interactions (eliminates 300ms tap delay)
+                'transition-colors duration-150 touch-manipulation',
+                'active:bg-accent/80',
                 // Estado ativo
                 isActive && 'text-primary'
               )}
@@ -108,7 +111,7 @@ export function BottomNavigation() {
               />
               <span
                 className={cn(
-                  'text-xs font-medium leading-tight truncate max-w-full px-1',
+                  'text-[11px] font-medium leading-tight truncate max-w-full px-1',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >

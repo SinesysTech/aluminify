@@ -11,8 +11,8 @@ interface PageShellProps {
 export function PageShell({ title, subtitle, actions, children, className }: PageShellProps) {
   return (
     <div className={cn("space-y-4 md:space-y-6", className)}>
-      <header className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           {typeof title === "string" ? (
             <h1 className="page-title">{title}</h1>
           ) : (
@@ -26,7 +26,7 @@ export function PageShell({ title, subtitle, actions, children, className }: Pag
             )
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>}
       </header>
       {children}
     </div>

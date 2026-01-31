@@ -135,17 +135,40 @@ export function DynamicBreadcrumb() {
   // Filter out dashboard from breadcrumb items if it appears
   const filteredItems = breadcrumbItems.filter(item => item.label !== "Dashboard")
 
+  // Filter out tenant slug and UUID-like segments
+  const meaningfulItems = filteredItems.filter(item => {
+    const seg = item.path.split("/").pop() || ""
+    if (seg === tenantSlug) return false
+    // Filter UUID-like segments (common in dynamic routes)
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}/.test(seg)) return false
+    return true
+  })
+
+  const lastItem = meaningfulItems[meaningfulItems.length - 1]
+  const parentItem = meaningfulItems.length >= 2 ? meaningfulItems[meaningfulItems.length - 2] : null
+
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {filteredItems.length > 0 ? (
+        {meaningfulItems.length > 0 ? (
           <>
+            {/* Desktop: show Dashboard link */}
             <BreadcrumbItem className="hidden md:block">
               <BreadcrumbLink href={tenantSlug ? `/${tenantSlug}/dashboard` : "/dashboard"}>Dashboard</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
+            {/* Mobile + Desktop: show parent as link when deep navigation */}
+            {parentItem && (
+              <>
+                <BreadcrumbItem className="hidden sm:block">
+                  <BreadcrumbLink href={parentItem.path}>{parentItem.label}</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden sm:block" />
+              </>
+            )}
+            {/* Current page */}
             <BreadcrumbItem>
-              <BreadcrumbPage>{filteredItems[filteredItems.length - 1].label}</BreadcrumbPage>
+              <BreadcrumbPage className="truncate max-w-[200px]">{lastItem.label}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         ) : (

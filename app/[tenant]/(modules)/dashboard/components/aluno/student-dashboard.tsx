@@ -66,12 +66,18 @@ const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
 export default function StudentDashboardClientPage() {
     // Individual states for granular data
     const [user, setUser] = useState<UserInfo | null>(null)
+    const userRef = useRef<UserInfo | null>(null)
     const [metrics, setMetrics] = useState<Metrics | null>(null)
     const [heatmap, setHeatmap] = useState<HeatmapDay[]>([])
     const [subjects, setSubjects] = useState<SubjectPerformance[]>([])
     const [efficiency, setEfficiency] = useState<FocusEfficiencyDay[]>([])
     const [strategic, setStrategic] = useState<StrategicDomain | null>(null)
     const [distribution, setDistribution] = useState<SubjectDistributionItem[]>([])
+
+    // Sincroniza o ref com o estado para uso em callbacks sem causar loops de dependência
+    useEffect(() => {
+        userRef.current = user
+    }, [user])
 
     const [isLoadingUser, setIsLoadingUser] = useState(true)
     const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
@@ -142,7 +148,8 @@ export default function StudentDashboardClientPage() {
                 const promises = []
 
                 // 1. User Info (only on initial load or full refresh)
-                if (!user || showRefreshing) {
+                // Usamos userRef para evitar loop de dependência no useCallback
+                if (!userRef.current || showRefreshing) {
                     setIsLoadingUser(true)
                     promises.push(
                         fetchDashboardUser(activeOrgId)
@@ -153,8 +160,6 @@ export default function StudentDashboardClientPage() {
                             })
                             .finally(() => setIsLoadingUser(false))
                     )
-                } else {
-                    setIsLoadingUser(false)
                 }
 
                 // 2. Metrics
@@ -211,21 +216,22 @@ export default function StudentDashboardClientPage() {
                 setIsRefreshing(false)
             }
         },
-        [heatmapPeriod, activeOrgId, user]
+        [heatmapPeriod, activeOrgId]
     )
 
-    // Carregamento inicial
+    // Efeito para carregar dados - centraliza o gatilho de carregamento inicial e mudanças de período/org
     useEffect(() => {
         loadData()
-    }, [activeOrgId, loadData]) // Reload on tenant switch
+    }, [loadData])
 
     // Handler para mudança de período do heatmap
     const handleHeatmapPeriodChange = useCallback(
         (period: HeatmapPeriod) => {
             setHeatmapPeriod(period)
-            loadData(true, period)
+            // Não chamamos loadData aqui diretamente para evitar chamadas duplicadas, 
+            // já que a mudança no heatmapPeriod recriará o loadData e disparará o useEffect
         },
-        [loadData]
+        []
     )
 
     // Refresh automático
@@ -334,7 +340,7 @@ export default function StudentDashboardClientPage() {
     }
 
     return (
-        <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
+        <div className="mx-auto max-w-7xl space-y-4 md:space-y-8">
             {/* Topo: Header */}
             <DashboardHeader user={user} />
 

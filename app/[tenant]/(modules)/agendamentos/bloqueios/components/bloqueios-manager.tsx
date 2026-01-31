@@ -327,7 +327,7 @@ export function BloqueiosManager({ professorId, empresaId, isAdmin = false }: Bl
 
         {/* Dialog de Criação/Edição */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent fullScreenMobile className="md:max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingBloqueio ? "Editar Bloqueio" : "Novo Bloqueio"}

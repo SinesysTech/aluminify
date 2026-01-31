@@ -106,11 +106,11 @@ export function MetricCard({
         config.gradient
       )} />
 
-      <CardContent className="relative p-4 md:p-6">
+      <CardContent className="relative p-3 md:p-6">
         {/* Header: Label + Icon */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between mb-2 md:mb-3">
+          <span className="text-xs md:text-sm font-medium leading-tight text-muted-foreground">{label}</span>
+          <div className="flex items-center gap-1 md:gap-2 shrink-0">
             {tooltip && (
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
@@ -136,18 +136,18 @@ export function MetricCard({
               </TooltipProvider>
             )}
             <div className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
+              'flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
               config.iconBg
             )}>
-              <Icon className={cn('h-4 w-4', config.iconColor)} />
+              <Icon className={cn('h-3.5 w-3.5 md:h-4 md:w-4', config.iconColor)} />
             </div>
           </div>
         </div>
 
         {/* Value Area */}
-        <div className="flex items-end justify-between">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-2xl md:text-3xl font-bold tracking-tight">{value}</span>
+        <div className="flex items-end justify-between min-w-0">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="text-xl md:text-3xl font-bold tracking-tight truncate">{value}</span>
             {subtext && (
               <span className="text-xs text-muted-foreground">{subtext}</span>
             )}
