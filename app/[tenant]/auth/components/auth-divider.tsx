@@ -11,11 +11,11 @@ export function AuthDivider({
 }: AuthDividerProps) {
   return (
     <div className={cn('relative flex items-center py-2', className)}>
-      <div className="flex-grow border-t border-gray-200" />
-      <span className="mx-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+      <div className="flex-grow border-t border-border" />
+      <span className="mx-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
         {text}
       </span>
-      <div className="flex-grow border-t border-gray-200" />
+      <div className="flex-grow border-t border-border" />
     </div>
   )
 }

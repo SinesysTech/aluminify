@@ -1,0 +1,74 @@
+import { createClient } from "@/app/shared/core/server"
+import { redirect } from "next/navigation"
+import { getConfiguracoesProfessor } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
+import { ConfiguracoesForm } from "./components/configuracoes-form"
+import { AdminProfessorSelector } from "@/app/[tenant]/(modules)/agendamentos/components/admin-professor-selector"
+import { TeacherRepositoryImpl } from "@/app/[tenant]/(modules)/usuario/services/teacher.repository"
+import { requireUser } from "@/app/shared/core/auth"
+import { isAdminRoleTipo } from "@/app/shared/core/roles"
+
+export default async function ProfessorConfiguracoesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ tenant: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const { tenant } = await params
+  const { professorId: searchProfessorId } = await searchParams
+  
+  const user = await requireUser({ allowedRoles: ["usuario", "professor"] })
+
+  if (!user.empresaId) {
+    return (
+       <div className="flex flex-col gap-6 p-6">
+         <div className="flex flex-col gap-2">
+           <h1 className="page-title">Configurações</h1>
+           <p className="page-subtitle">
+             Você precisa estar vinculado a uma empresa para acessar esta página.
+           </p>
+         </div>
+       </div>
+     )
+  }
+
+  const isAdmin = user.roleType ? isAdminRoleTipo(user.roleType) : false
+  let professorId = user.id
+  let professorsList: any[] = []
+
+  if (isAdmin) {
+    const supabase = await createClient()
+    const teacherRepo = new TeacherRepositoryImpl(supabase)
+    professorsList = await teacherRepo.findByEmpresa(user.empresaId)
+    
+    if (searchProfessorId && typeof searchProfessorId === 'string') {
+        professorId = searchProfessorId
+    }
+  }
+
+  const configuracoes = await getConfiguracoesProfessor(professorId)
+
+  return (
+    <div className="flex flex-col gap-6 p-2 md:p-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="page-title">Configurações de Agendamento</h1>
+        <p className="page-subtitle">
+          Configure suas preferências para agendamentos de plantão.
+        </p>
+      </div>
+
+      {isAdmin && (
+          <AdminProfessorSelector 
+            professors={professorsList} 
+            selectedProfessorId={professorId}
+            currentProfessorId={user.id} 
+          />
+      )}
+
+      <ConfiguracoesForm
+        professorId={professorId}
+        initialData={configuracoes}
+      />
+    </div>
+  )
+}

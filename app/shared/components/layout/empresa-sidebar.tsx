@@ -72,6 +72,7 @@ const empresaNavItems: NavItem[] = [
       { title: "Meus Agendamentos", url: "/agendamentos/meus" },
       { title: "Disponibilidade", url: "/agendamentos/disponibilidade" },
       { title: "Bloqueios", url: "/agendamentos/bloqueios" },
+      { title: "Configurações", url: "/agendamentos/configuracoes" },
       { title: "Estatísticas", url: "/agendamentos/stats" },
     ],
   },

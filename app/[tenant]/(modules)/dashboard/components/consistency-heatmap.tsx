@@ -23,17 +23,17 @@ const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'S
 function getIntensityClass(intensity: number) {
   switch (intensity) {
     case 0:
-      return 'bg-muted'
+      return 'bg-muted/40 hover:bg-muted/60'
     case 1:
-      return 'bg-green-200 dark:bg-green-900/40'
+      return 'bg-emerald-500/40 hover:bg-emerald-500/50 dark:bg-emerald-400/40 dark:hover:bg-emerald-400/50'
     case 2:
-      return 'bg-green-300 dark:bg-green-800/60'
+      return 'bg-emerald-500/60 hover:bg-emerald-500/70 dark:bg-emerald-400/60 dark:hover:bg-emerald-400/70'
     case 3:
-      return 'bg-green-400 dark:bg-green-700'
+      return 'bg-emerald-500/80 hover:bg-emerald-500/90 dark:bg-emerald-400/80 dark:hover:bg-emerald-400/90'
     case 4:
-      return 'bg-green-600 dark:bg-green-500'
+      return 'bg-emerald-500 hover:bg-emerald-500/90 dark:bg-emerald-400 dark:hover:bg-emerald-400/90'
     default:
-      return 'bg-muted'
+      return 'bg-muted/40'
   }
 }
 
@@ -105,7 +105,7 @@ export function ConsistencyHeatmap({
       <CardContent className="p-4 md:p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold">Constância de Estudo</h2>
+            <h2 className="widget-title">Constância de Estudo</h2>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -150,7 +150,7 @@ export function ConsistencyHeatmap({
         {period === 'anual' && monthPositions.length > 0 && (
           <div className="overflow-x-auto overflow-y-hidden mb-1">
             <div className="relative min-w-max" style={{ paddingLeft: showDayLabels ? '2rem' : 0 }}>
-              <div className="grid grid-cols-53 gap-1">
+              <div className="grid grid-cols-53 gap-[3px]">
                 {Array.from({ length: 53 }).map((_, colIdx) => {
                   const match = monthPositions.find((m) => m.col === colIdx)
                   return (
@@ -169,12 +169,12 @@ export function ConsistencyHeatmap({
           <div className="flex min-w-max">
             {/* Day-of-week labels */}
             {showDayLabels && (
-              <div className="flex flex-col gap-1 mr-1.5 pt-0">
+              <div className="flex flex-col gap-[3px] mr-1.5 pt-0">
                 {DAY_LABELS.map((label, i) => (
                   <div
                     key={i}
                     className="text-[10px] text-muted-foreground leading-none flex items-center justify-end"
-                    style={{ height: 11, width: '1.5rem' }}
+                    style={{ height: 14, width: '1.5rem' }}
                   >
                     {label}
                   </div>
@@ -183,14 +183,14 @@ export function ConsistencyHeatmap({
             )}
 
             {/* Grid cells */}
-            <div className={cn('grid gap-1 flex-1', getGridCols())}>
+            <div className={cn('grid gap-[3px] flex-1', getGridCols())}>
               {data.map((day, index) => (
                 <TooltipProvider key={`${day.date}-${index}`} delayDuration={100}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
-                          'aspect-square rounded-[2px] cursor-default transition-colors',
+                          'size-3.5 rounded-sm cursor-default transition-colors',
                           getIntensityClass(day.intensity)
                         )}
                       />
@@ -207,17 +207,15 @@ export function ConsistencyHeatmap({
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-end gap-2 mt-3 text-[10px] text-muted-foreground">
+        <div className="flex items-center justify-end gap-2 mt-3 text-xs text-muted-foreground">
           <span>Menos</span>
-          {[0, 1, 2, 3, 4].map((intensity) => (
-            <div
-              key={intensity}
-              className={cn(
-                'size-3 rounded-[2px]',
-                getIntensityClass(intensity)
-              )}
-            />
-          ))}
+          <div className="flex gap-1">
+            <div className="size-3.5 rounded-sm bg-muted/40" />
+            <div className="size-3.5 rounded-sm bg-emerald-500/40 dark:bg-emerald-400/40" />
+            <div className="size-3.5 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
+            <div className="size-3.5 rounded-sm bg-emerald-500/80 dark:bg-emerald-400/80" />
+            <div className="size-3.5 rounded-sm bg-emerald-500 dark:bg-emerald-400" />
+          </div>
           <span>Mais</span>
         </div>
       </CardContent>

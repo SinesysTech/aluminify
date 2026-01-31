@@ -77,7 +77,7 @@ export default function UserDetailPage() {
 
       if (papeisResponse.ok) {
         const papeisData = await papeisResponse.json()
-        setPapeis(papeisData)
+        setPapeis(papeisData.papeis || [])
       }
     } catch (err) {
       console.error('Error fetching user:', err)

@@ -230,8 +230,8 @@ export function SubjectPerformanceList({
   }
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300 bg-linear-to-r from-primary/5 via-primary/3 to-transparent border-primary/20">
-      <CardContent className="px-4 md:px-6 py-3 md:py-4 h-full flex flex-col min-h-0">
+    <Card className="h-full overflow-hidden transition-all duration-300">
+      <CardContent className="px-6 h-full flex flex-col min-h-0">
         <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h2 className="widget-title">
@@ -312,10 +312,10 @@ export function SubjectPerformanceList({
           </Select>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 mb-2">
           {groupBy !== 'curso' && courses.length > 1 && (
             <Select value={selectedCourseId ?? ''} onValueChange={(v) => setSelectedCourseId(v || null)}>
-              <SelectTrigger size="sm" className="w-55">
+              <SelectTrigger size="sm" className="w-full sm:w-55">
                 <SelectValue placeholder="Filtrar por curso" />
               </SelectTrigger>
               <SelectContent>
@@ -328,7 +328,7 @@ export function SubjectPerformanceList({
 
           {groupBy === 'frente' && (
             <Select value={selectedDisciplineId ?? ''} onValueChange={(v) => setSelectedDisciplineId(v || null)}>
-              <SelectTrigger size="sm" className="w-55">
+              <SelectTrigger size="sm" className="w-full sm:w-55">
                 <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
@@ -341,7 +341,7 @@ export function SubjectPerformanceList({
 
           {groupBy === 'modulo' && (
             <Select value={selectedFrontId ?? ''} onValueChange={(v) => setSelectedFrontId(v || null)}>
-              <SelectTrigger size="sm" className="w-55">
+              <SelectTrigger size="sm" className="w-full sm:w-55">
                 <SelectValue placeholder="Frente" />
               </SelectTrigger>
               <SelectContent>

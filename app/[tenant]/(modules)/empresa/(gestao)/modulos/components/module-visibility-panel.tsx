@@ -15,7 +15,13 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Bot,
+  Clock,
+  Library,
+  Layers,
+  CalendarPlus,
 } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,6 +55,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   CalendarCheck,
   Calendar,
   MessageSquare,
+  Bot,
+  Clock,
+  Library,
+  Layers,
+  CalendarPlus,
 };
 
 function getIconComponent(iconName: string): LucideIcon {
@@ -96,31 +107,46 @@ export function ModuleVisibilityPanel({
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const params = useParams();
+  const tenantSlug = params?.tenant as string;
 
   // Initialize state from config
   useEffect(() => {
     if (initialConfig) {
-      const editState: ModuleEditState[] = initialConfig.map((module) => ({
-        id: module.id,
-        isVisible: module.visibility?.isVisible ?? true,
-        customName: module.visibility?.customName || '',
-        displayOrder: module.visibility?.displayOrder ?? module.displayOrder,
-        isCore: module.isCore,
-        originalName: module.name,
-        iconName: module.iconName,
-        submodules: module.submodules.map((sub) => ({
-          id: sub.id,
-          moduleId: module.id,
-          isVisible: sub.visibility?.isVisible ?? true,
-          customName: sub.visibility?.customName || '',
-          displayOrder: sub.visibility?.displayOrder ?? sub.displayOrder,
-          originalName: sub.name,
-        })),
-      }));
+      const editState: ModuleEditState[] = initialConfig
+        .filter((module) => {
+          // HIDE generic assistant for everyone
+          if (module.id === 'agente') return false;
+
+          // HIDE TobIAs for non-CDF tenants
+          if (module.id === 'tobias') {
+            const isCDF = tenantSlug === 'cdf' || tenantSlug === 'cdf-curso-de-fsica';
+            return isCDF;
+          }
+
+          return true;
+        })
+        .map((module) => ({
+          id: module.id,
+          isVisible: module.visibility?.isVisible ?? true,
+          customName: module.visibility?.customName || '',
+          displayOrder: module.visibility?.displayOrder ?? module.displayOrder,
+          isCore: module.isCore,
+          originalName: module.name,
+          iconName: module.iconName,
+          submodules: module.submodules.map((sub) => ({
+            id: sub.id,
+            moduleId: module.id,
+            isVisible: sub.visibility?.isVisible ?? true,
+            customName: sub.visibility?.customName || '',
+            displayOrder: sub.visibility?.displayOrder ?? sub.displayOrder,
+            originalName: sub.name,
+          })),
+        }));
       setModules(editState);
       setHasChanges(false);
     }
-  }, [initialConfig]);
+  }, [initialConfig, tenantSlug]);
 
   // Toggle module expansion
   const toggleExpanded = (moduleId: string) => {
@@ -161,11 +187,11 @@ export function ModuleVisibilityPanel({
       prev.map(m =>
         m.id === moduleId
           ? {
-              ...m,
-              submodules: m.submodules.map(s =>
-                s.id === submoduleId ? { ...s, isVisible } : s
-              ),
-            }
+            ...m,
+            submodules: m.submodules.map(s =>
+              s.id === submoduleId ? { ...s, isVisible } : s
+            ),
+          }
           : m
       )
     );
@@ -178,11 +204,11 @@ export function ModuleVisibilityPanel({
       prev.map(m =>
         m.id === moduleId
           ? {
-              ...m,
-              submodules: m.submodules.map(s =>
-                s.id === submoduleId ? { ...s, customName } : s
-              ),
-            }
+            ...m,
+            submodules: m.submodules.map(s =>
+              s.id === submoduleId ? { ...s, customName } : s
+            ),
+          }
           : m
       )
     );

@@ -21,29 +21,29 @@ const variantStyles = {
   default: {
     icon: 'text-muted-foreground',
     trend: {
-      positive: 'text-[#34D399]',
-      negative: 'text-[#F87171]',
+      positive: 'text-emerald-600 dark:text-emerald-400',
+      negative: 'text-red-600 dark:text-red-400',
     },
   },
   success: {
     icon: 'text-emerald-500',
     trend: {
-      positive: 'text-[#34D399]',
-      negative: 'text-[#F87171]',
+      positive: 'text-emerald-600 dark:text-emerald-400',
+      negative: 'text-red-600 dark:text-red-400',
     },
   },
   warning: {
     icon: 'text-amber-500',
     trend: {
-      positive: 'text-[#34D399]',
-      negative: 'text-[#F87171]',
+      positive: 'text-emerald-600 dark:text-emerald-400',
+      negative: 'text-red-600 dark:text-red-400',
     },
   },
   info: {
     icon: 'text-blue-500',
     trend: {
-      positive: 'text-[#34D399]',
-      negative: 'text-[#F87171]',
+      positive: 'text-emerald-600 dark:text-emerald-400',
+      negative: 'text-red-600 dark:text-red-400',
     },
   },
 }

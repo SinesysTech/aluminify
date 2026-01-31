@@ -34,10 +34,10 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
   }, [isDark])
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300 bg-linear-to-r from-primary/5 via-primary/3 to-transparent border-primary/20">
+    <Card className="h-full overflow-hidden transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-base font-semibold">
+          <CardTitle className="widget-title">
             Eficiência de Foco
           </CardTitle>
           <TooltipProvider delayDuration={200}>
@@ -123,13 +123,13 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-muted" />
+            <div className="w-3 h-3 rounded-sm bg-muted shrink-0" />
             <span>Tempo Bruto (Sessão total)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-primary" />
+            <div className="w-3 h-3 rounded-sm bg-primary shrink-0" />
             <span>Tempo Líquido (Sem pausas)</span>
           </div>
         </div>

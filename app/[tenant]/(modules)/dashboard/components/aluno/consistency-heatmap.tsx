@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import type { HeatmapDay } from '../../types'
 import { format, subDays, startOfWeek, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 
 export type HeatmapPeriod = 'mensal' | 'semestral' | 'anual'
 
@@ -102,8 +102,7 @@ export function ConsistencyHeatmap({
   const getIntensityColor = (intensity: number) => {
     switch (intensity) {
       case 0:
-        // No modo claro: fundo mais escuro e borda para visibilidade; modo escuro usa cores mais claras
-        return 'bg-muted/60 border border-border/30 hover:bg-muted/80'
+        return 'bg-muted/40 hover:bg-muted/60'
       case 1:
         return 'bg-emerald-500/40 hover:bg-emerald-500/50 dark:bg-emerald-400/40 dark:hover:bg-emerald-400/50'
       case 2:
@@ -113,7 +112,7 @@ export function ConsistencyHeatmap({
       case 4:
         return 'bg-emerald-500 hover:bg-emerald-500/90 dark:bg-emerald-400 dark:hover:bg-emerald-400/90'
       default:
-        return 'bg-muted/60 border border-border/30'
+        return 'bg-muted/40'
     }
   }
 
@@ -129,17 +128,12 @@ export function ConsistencyHeatmap({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 border-primary/20 relative">
-      {/* Gradiente de fundo */}
-      <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-primary/3 to-transparent pointer-events-none z-0" />
-      <CardHeader className="pb-4 relative z-20">
+    <Card className="overflow-hidden transition-all duration-300">
+      <CardHeader className="pb-2">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Title + Info */}
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-              <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <CardTitle className="text-base font-semibold">
+            <CardTitle className="widget-title">
               Consistência de Estudos
             </CardTitle>
             <TooltipProvider delayDuration={200}>
@@ -199,20 +193,20 @@ export function ConsistencyHeatmap({
         </div>
       </CardHeader>
 
-      <CardContent className="relative z-20">
-        <div className="flex flex-col gap-2 relative z-20">
+      <CardContent>
+        <div className="flex flex-col gap-2">
           {/* Heatmap Grid */}
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 relative z-20">
-            <div className="flex gap-1 min-w-fit relative z-20">
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex gap-[3px] min-w-fit">
               {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="flex flex-col gap-1 relative z-20">
+                <div key={weekIndex} className="flex flex-col gap-[3px]">
                   {week.map((day, dayIndex) => (
                     <TooltipProvider key={dayIndex} delayDuration={100}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
                             className={cn(
-                              'w-3 h-3 rounded-sm transition-colors cursor-default relative z-20',
+                              'size-3.5 rounded-sm transition-colors cursor-default',
                               getIntensityColor(day.intensity)
                             )}
                           />
@@ -239,14 +233,14 @@ export function ConsistencyHeatmap({
           </div>
 
           {/* Legenda */}
-          <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mt-2 relative z-20">
+          <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mt-2">
             <span>Menos</span>
             <div className="flex gap-1">
-              <div className="w-3 h-3 rounded-sm bg-muted/60 border border-border/30" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-500/40 dark:bg-emerald-400/40" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-500/80 dark:bg-emerald-400/80" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-500 dark:bg-emerald-400" />
+              <div className="size-3.5 rounded-sm bg-muted/40" />
+              <div className="size-3.5 rounded-sm bg-emerald-500/40 dark:bg-emerald-400/40" />
+              <div className="size-3.5 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
+              <div className="size-3.5 rounded-sm bg-emerald-500/80 dark:bg-emerald-400/80" />
+              <div className="size-3.5 rounded-sm bg-emerald-500 dark:bg-emerald-400" />
             </div>
             <span>Mais</span>
           </div>

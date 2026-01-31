@@ -81,7 +81,7 @@ export function RankingList({
   return (
     <Card className={cn('flex flex-col', className)}>
       <CardHeader className="pb-3 pt-4 px-4 md:px-5">
-        <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+        <CardTitle className="widget-title">{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pt-0 px-4 md:px-5 pb-4">
         {items.length === 0 ? (

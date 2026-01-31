@@ -55,11 +55,13 @@ export function TenantLoginPageClient({
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
+            console.log('[tenant-login] Loaded branding data for empresaId:', empresaId)
             const branding = result.data
 
-            // Set Logo
-            if (branding.logos?.login?.logoUrl) {
-              setBrandingLogo(branding.logos.login.logoUrl)
+            // Set Logo with fallback (login -> sidebar)
+            const resolvedLogo = branding.logos?.login?.logoUrl || branding.logos?.sidebar?.logoUrl
+            if (resolvedLogo) {
+              setBrandingLogo(resolvedLogo)
             }
 
             // Apply Colors
@@ -128,8 +130,9 @@ export function TenantLoginPageClient({
         console.warn('[tenant-login] Failed to load branding:', error)
       } finally {
         setLoadingLogo(false)
-        // Give browser one frame to paint CSS variable changes before animating
-        requestAnimationFrame(() => setBrandingReady(true))
+        console.log('[tenant-login] Branding load complete. Transitioning to ready state.')
+        // Give browser a moment to paint CSS variables
+        setBrandingReady(true)
       }
     }
     loadBranding()
@@ -316,37 +319,37 @@ export function TenantLoginPageClient({
           )}
         />
 
-        {/* Gradient overlay for depth */}
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-black/0 via-black/3 to-black/15" />
+        {/* Gradient overlay for depth — uses white tint instead of gray/black */}
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/0 via-white/3 to-black/10" />
 
         {/* Radial glow behind logo area */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-foreground/4 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5 blur-3xl" />
 
         {/* Decorative circles (staggered entrance) */}
         <div
           className={cn(
-            'absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-foreground/[0.07]',
+            'absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/8',
             'transition-all duration-1000 ease-out motion-reduce:transition-none',
             brandingReady ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           )}
         />
         <div
           className={cn(
-            'absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-primary-foreground/5',
+            'absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-white/6',
             'transition-all delay-150 duration-1000 ease-out motion-reduce:transition-none',
             brandingReady ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           )}
         />
         <div
           className={cn(
-            'absolute left-[10%] top-[30%] h-14 w-14 rounded-full bg-primary-foreground/8',
+            'absolute left-[10%] top-[30%] h-14 w-14 rounded-full bg-white/10',
             'transition-opacity delay-300 duration-700 ease-out motion-reduce:transition-none',
             brandingReady ? 'opacity-100' : 'opacity-0'
           )}
         />
         <div
           className={cn(
-            'absolute bottom-[28%] right-[14%] h-8 w-8 rounded-full bg-primary-foreground/6',
+            'absolute bottom-[28%] right-[14%] h-8 w-8 rounded-full bg-white/8',
             'transition-opacity delay-500 duration-700 ease-out motion-reduce:transition-none',
             brandingReady ? 'opacity-100' : 'opacity-0'
           )}
@@ -354,9 +357,9 @@ export function TenantLoginPageClient({
 
         {/* Subtle dot pattern */}
         <div
-          className="pointer-events-none absolute inset-0 text-primary-foreground opacity-[0.04]"
+          className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)',
             backgroundSize: '24px 24px',
           }}
         />
@@ -370,7 +373,7 @@ export function TenantLoginPageClient({
         >
           {/* Logo */}
           {loadingLogo ? (
-            <div className="h-20 w-56 animate-pulse rounded-xl bg-primary-foreground/10" />
+            <div className="h-20 w-56 animate-pulse rounded-xl bg-white/10" />
           ) : displayLogo ? (
             <div className="relative h-20 w-56 md:h-24 md:w-64">
               <Image
@@ -382,20 +385,20 @@ export function TenantLoginPageClient({
               />
             </div>
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-foreground/15 shadow-lg backdrop-blur-sm">
-              <span className="text-3xl font-bold text-primary-foreground">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/15 shadow-lg backdrop-blur-sm">
+              <span className="text-3xl font-bold text-white">
                 {empresaNome.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
 
           {/* Company name */}
-          <h2 className="mt-6 text-2xl font-bold tracking-tight text-primary-foreground md:text-3xl">
+          <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-3xl">
             {empresaNome}
           </h2>
 
           {/* Tagline */}
-          <p className="mt-3 max-w-xs text-sm text-primary-foreground/60 md:text-base">
+          <p className="mt-3 max-w-xs text-sm text-white/75 md:text-base">
             Sua plataforma de aprendizado
           </p>
         </div>
@@ -471,7 +474,6 @@ export function TenantLoginPageClient({
 
               <Button
                 type="submit"
-                variant="outline"
                 className="w-full cursor-pointer"
                 disabled={isLoading || !password}
                 title={!password ? 'Digite sua senha para habilitar o botão' : undefined}
@@ -493,7 +495,7 @@ export function TenantLoginPageClient({
               Criar conta
             </Link>
           </p>
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/50">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
             <span>Powered by</span>
             <span className="font-semibold tracking-tight">Aluminify</span>
           </div>

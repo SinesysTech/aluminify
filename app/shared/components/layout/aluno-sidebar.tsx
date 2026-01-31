@@ -13,6 +13,7 @@ import {
   Library,
   Layers,
   CalendarPlus,
+  Bot,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
@@ -56,6 +57,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Clock,
   Library,
   Layers,
+  Bot,
 }
 
 /**
@@ -131,11 +133,6 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     url: "/agendamentos",
     icon: CalendarPlus,
   },
-  {
-    title: "Assistente",
-    url: "/agente",
-    icon: MessageSquare,
-  },
 ]
 
 export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -169,6 +166,18 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
     // Build nav items from module visibility config
     return modules
+      .filter(module => {
+        // HIDE generic assistant for everyone
+        if (module.id === 'agente') return false;
+
+        // HIDE TobIAs for non-CDF tenants
+        if (module.id === 'tobias') {
+          const isCDF = tenantSlug === 'cdf' || tenantSlug === 'cdf-curso-de-fsica';
+          return isCDF;
+        }
+
+        return true;
+      })
       .sort((a, b) => a.displayOrder - b.displayOrder)
       .map(module => ({
         title: module.name,
@@ -176,11 +185,11 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         icon: getIconComponent(module.iconName),
         items: module.submodules.length > 0
           ? module.submodules
-              .sort((a, b) => a.displayOrder - b.displayOrder)
-              .map(sub => ({
-                title: sub.name,
-                url: tenantSlug ? `/${tenantSlug}${sub.url}` : sub.url,
-              }))
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map(sub => ({
+              title: sub.name,
+              url: tenantSlug ? `/${tenantSlug}${sub.url}` : sub.url,
+            }))
           : undefined,
       }))
   }, [modules, loading, tenantSlug])

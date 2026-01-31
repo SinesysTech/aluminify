@@ -27,7 +27,7 @@ export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformance
   return (
     <Card>
       <CardHeader className="pb-3 pt-4 px-4 md:px-5">
-        <CardTitle className="text-sm font-semibold">
+        <CardTitle className="widget-title">
           Performance por Disciplina
         </CardTitle>
       </CardHeader>
