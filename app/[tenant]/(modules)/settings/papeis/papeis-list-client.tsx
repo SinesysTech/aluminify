@@ -95,14 +95,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Papéis e Permissões</h1>
-          <p className="text-muted-foreground">
-            Gerencie os papéis e suas permissões de acesso
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Button onClick={() => router.push(tenant ? `/${tenant}/settings/papeis/novo` : '/settings/papeis/novo')}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Papel

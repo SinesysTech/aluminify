@@ -204,13 +204,7 @@ export default function ModulosPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div>
-        <h1 className="page-title">Módulos do Aluno</h1>
-        <p className="page-subtitle">
-          Configure quais módulos estarão visíveis na sidebar dos alunos. Você pode mostrar/esconder, renomear e reordenar os módulos.
-        </p>
-      </div>
+    <div className="space-y-6">
       <ModuleVisibilityPanel
         empresaId={empresaId}
         initialConfig={config}

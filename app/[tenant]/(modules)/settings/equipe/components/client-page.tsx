@@ -58,19 +58,6 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
       {/* SECTION: POPULATED STATE */}
       {!isEmpty && (
         <section id="populated-state" className="flex flex-col gap-4 h-full min-h-[600px]">
-          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-            <div>
-              <h1 className="page-title">Equipe</h1>
-              <p className="page-subtitle">
-                {usuarios.length} membro(s) na equipe
-                {filteredUsuarios.length !== usuarios.length
-                  ? ` - ${filteredUsuarios.length} encontrado(s) com os filtros`
-                  : ''
-                }
-              </p>
-            </div>
-          </header>
-
           <UserFilters
             papelTipoFilter={papelTipoFilter}
             onPapelTipoChange={setPapelTipoFilter}

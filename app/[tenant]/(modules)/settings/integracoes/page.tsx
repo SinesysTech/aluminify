@@ -31,14 +31,7 @@ export default async function IntegracoesPage() {
   ])
 
   return (
-    <div className="page-container section-container">
-      <div className="flex flex-col gap-1">
-        <h1 className="page-title">Integrações e Configurações</h1>
-        <p className="page-subtitle">
-          Conexões externas, pagamentos e preferências de agendamento
-        </p>
-      </div>
-
+    <div className="space-y-6">
       <Tabs defaultValue="videoconferencia" className="space-y-6">
         <TabsList>
           <TabsTrigger value="videoconferencia" className="gap-2">
