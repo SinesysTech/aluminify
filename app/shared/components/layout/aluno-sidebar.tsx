@@ -133,11 +133,6 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     url: "/agendamentos",
     icon: CalendarPlus,
   },
-  {
-    title: "Assistente",
-    url: "/agente",
-    icon: MessageSquare,
-  },
 ]
 
 export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -171,6 +166,18 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
     // Build nav items from module visibility config
     return modules
+      .filter(module => {
+        // HIDE generic assistant for everyone
+        if (module.id === 'agente') return false;
+
+        // HIDE TobIAs for non-CDF tenants
+        if (module.id === 'tobias') {
+          const isCDF = tenantSlug === 'cdf' || tenantSlug === 'cdf-curso-de-fsica';
+          return isCDF;
+        }
+
+        return true;
+      })
       .sort((a, b) => a.displayOrder - b.displayOrder)
       .map(module => ({
         title: module.name,
