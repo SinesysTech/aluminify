@@ -9,18 +9,18 @@ export const metadata: Metadata = {
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-4 max-w-5xl mx-auto lg:space-y-6">
+    <div className="section-container">
       <div className="space-y-0.5">
-        <h2 className="text-2xl font-bold tracking-tight">Configurações</h2>
-        <p className="text-muted-foreground">
+        <h2 className="page-title">Configurações</h2>
+        <p className="page-subtitle">
           Gerencie as configurações da sua empresa.
         </p>
       </div>
-      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-        <aside className="lg:w-64">
+      <div className="flex flex-col gap-(--space-section) lg:flex-row">
+        <aside className="lg:w-64 shrink-0">
           <SidebarNav />
         </aside>
-        <div className="flex-1 lg:max-w-2xl">{children}</div>
+        <div className="flex-1 min-w-0">{children}</div>
       </div>
     </div>
   );
