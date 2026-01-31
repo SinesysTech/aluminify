@@ -123,13 +123,13 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-muted" />
+            <div className="w-3 h-3 rounded-sm bg-muted shrink-0" />
             <span>Tempo Bruto (Sessão total)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-primary" />
+            <div className="w-3 h-3 rounded-sm bg-primary shrink-0" />
             <span>Tempo Líquido (Sem pausas)</span>
           </div>
         </div>

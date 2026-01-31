@@ -312,10 +312,10 @@ export function SubjectPerformanceList({
           </Select>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 mb-2">
           {groupBy !== 'curso' && courses.length > 1 && (
             <Select value={selectedCourseId ?? ''} onValueChange={(v) => setSelectedCourseId(v || null)}>
-              <SelectTrigger size="sm" className="w-55">
+              <SelectTrigger size="sm" className="w-full sm:w-55">
                 <SelectValue placeholder="Filtrar por curso" />
               </SelectTrigger>
               <SelectContent>
@@ -328,7 +328,7 @@ export function SubjectPerformanceList({
 
           {groupBy === 'frente' && (
             <Select value={selectedDisciplineId ?? ''} onValueChange={(v) => setSelectedDisciplineId(v || null)}>
-              <SelectTrigger size="sm" className="w-55">
+              <SelectTrigger size="sm" className="w-full sm:w-55">
                 <SelectValue placeholder="Disciplina" />
               </SelectTrigger>
               <SelectContent>
@@ -341,7 +341,7 @@ export function SubjectPerformanceList({
 
           {groupBy === 'modulo' && (
             <Select value={selectedFrontId ?? ''} onValueChange={(v) => setSelectedFrontId(v || null)}>
-              <SelectTrigger size="sm" className="w-55">
+              <SelectTrigger size="sm" className="w-full sm:w-55">
                 <SelectValue placeholder="Frente" />
               </SelectTrigger>
               <SelectContent>
