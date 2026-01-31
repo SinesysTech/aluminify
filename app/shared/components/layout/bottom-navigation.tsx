@@ -46,7 +46,7 @@ const adminNavItems: NavItem[] = [
   { name: 'Alunos', href: '/usuario/alunos', icon: Users },
   { name: 'Cursos', href: '/curso/admin', icon: School },
   { name: 'Agenda', href: '/agendamentos', icon: CalendarCheck },
-  { name: 'Config', href: '/empresa/detalhes', icon: Settings },
+  { name: 'Config', href: '/settings', icon: Settings },
 ]
 
 export function BottomNavigation() {

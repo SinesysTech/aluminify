@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { createClient } from '@supabase/supabase-js'
 import fc from 'fast-check'
-import { FontSchemeManagerImpl } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/font-scheme-manager'
+import { FontSchemeManagerImpl } from '@/app/[tenant]/(modules)/settings/personalizacao/services/font-scheme-manager'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY

@@ -2,74 +2,81 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import {
-  BellIcon,
-  ContrastIcon,
-  CreditCardIcon,
-  PaletteIcon,
-  ShieldIcon,
-  UserIcon
+  Building2,
+  Users,
+  Shield,
+  Palette,
+  Layers,
+  Plug
 } from "lucide-react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const sidebarNavItems = [
   {
-    title: "Profile",
-    href: "/dashboard/pages/settings",
-    icon: UserIcon
+    title: "Detalhes",
+    href: "/settings/detalhes",
+    icon: Building2
   },
   {
-    title: "Account",
-    href: "/dashboard/pages/settings/account",
-    icon: ShieldIcon
+    title: "Usuários",
+    href: "/settings/equipe",
+    icon: Users
   },
   {
-    title: "Billing",
-    href: "/dashboard/pages/settings/billing",
-    icon: CreditCardIcon
+    title: "Papéis e Permissões",
+    href: "/settings/papeis",
+    icon: Shield
   },
   {
-    title: "Appearance",
-    href: "/dashboard/pages/settings/appearance",
-    icon: PaletteIcon
+    title: "Personalização",
+    href: "/settings/personalizacao",
+    icon: Palette
   },
   {
-    title: "Notifications",
-    href: "/dashboard/pages/settings/notifications",
-    icon: BellIcon
+    title: "Módulos do Aluno",
+    href: "/settings/modulos",
+    icon: Layers
   },
   {
-    title: "Display",
-    href: "/dashboard/pages/settings/display",
-    icon: ContrastIcon
+    title: "Integrações",
+    href: "/settings/integracoes",
+    icon: Plug
   }
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const params = useParams();
+  const tenantSlug = params?.tenant as string;
 
   return (
     <Card className="py-0">
       <CardContent className="p-2">
-        <nav className="flex flex-col space-y-0.5 space-x-2 lg:space-x-0">
-          {sidebarNavItems.map((item) => (
-            <Button
-              key={item.href}
-              variant="ghost"
-              className={cn(
-                "hover:bg-muted justify-start",
-                pathname === item.href ? "bg-muted hover:bg-muted" : ""
-              )}
-              asChild>
-              <Link href={item.href}>
-                {item.icon && <item.icon />}
-                {item.title}
-              </Link>
-            </Button>
-          ))}
+        <nav className="flex flex-col space-y-0.5">
+          {sidebarNavItems.map((item) => {
+            const href = tenantSlug ? `/${tenantSlug}${item.href}` : item.href;
+            const isActive = pathname === href || pathname?.startsWith(href + "/");
+
+            return (
+              <Button
+                key={item.href}
+                variant="ghost"
+                className={cn(
+                  "hover:bg-muted justify-start",
+                  isActive ? "bg-muted hover:bg-muted" : ""
+                )}
+                asChild>
+                <Link href={href}>
+                  {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                  {item.title}
+                </Link>
+              </Button>
+            );
+          })}
         </nav>
       </CardContent>
     </Card>

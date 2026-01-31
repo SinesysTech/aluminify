@@ -486,15 +486,6 @@ export function TenantLoginPageClient({
 
         {/* Footer */}
         <div className="mx-auto mt-8 w-full max-w-md space-y-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            Não tem uma conta?{' '}
-            <Link
-              href={`/${tenantSlug}/auth/sign-up`}
-              className="font-medium text-primary hover:underline"
-            >
-              Criar conta
-            </Link>
-          </p>
           <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
             <span>Powered by</span>
             <span className="font-semibold tracking-tight">Aluminify</span>

@@ -21,7 +21,7 @@ import {
   updateIntegracaoProfessor,
   updateConfiguracoesProfessor,
 } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
-import { getOAuthAuthorizationUrl } from "@/app/[tenant]/(modules)/empresa/(gestao)/integracoes/lib/oauth-actions"
+import { getOAuthAuthorizationUrl } from "@/app/[tenant]/(modules)/settings/integracoes/lib/oauth-actions"
 import type { ProfessorIntegracao, ConfiguracoesProfessor } from "@/app/[tenant]/(modules)/agendamentos/types"
 import { Loader2, Link2, Check, X, ExternalLink, AlertCircle, ChevronDown, Save } from "lucide-react"
 import { toast } from "sonner"

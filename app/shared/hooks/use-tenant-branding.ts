@@ -6,14 +6,14 @@
  */
 
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { useBranding } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/providers/branding-provider";
-import { getCSSPropertiesManager } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/css-properties-manager";
+import { useBranding } from "@/app/[tenant]/(modules)/settings/personalizacao/providers/branding-provider";
+import { getCSSPropertiesManager } from "@/app/[tenant]/(modules)/settings/personalizacao/services/css-properties-manager";
 import type {
   CompleteBrandingConfig,
   ColorPalette,
   FontScheme,
   LogoType,
-} from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types";
+} from "@/app/[tenant]/(modules)/settings/personalizacao/services/brand-customization.types";
 
 // Define legacy context type for compatibility
 export interface TenantBrandingContextType {

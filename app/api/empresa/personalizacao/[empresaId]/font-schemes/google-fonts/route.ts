@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { FontSchemeManagerImpl } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services";
+import { FontSchemeManagerImpl } from "@/app/[tenant]/(modules)/settings/personalizacao/services";
 import {
   requireBrandCustomizationAccess,
   BrandCustomizationRequest,

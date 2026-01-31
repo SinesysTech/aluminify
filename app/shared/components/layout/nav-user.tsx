@@ -219,7 +219,7 @@ export function NavUser() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={tenantSlug ? `/${tenantSlug}/empresa/detalhes` : "/empresa/detalhes"}>
+                <Link href={tenantSlug ? `/${tenantSlug}/settings` : "/settings"}>
                   <Settings />
                   Configurações
                 </Link>

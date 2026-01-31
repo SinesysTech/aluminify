@@ -69,9 +69,9 @@ export function LandingPage() {
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24">
                             <Link
                                 className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-                                href="/auth/sign-up"
+                                href="/contato"
                             >
-                                Criar minha conta grátis
+                                Entre em contato
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
                             <Link
@@ -84,7 +84,7 @@ export function LandingPage() {
 
                         {/* App Screenshot Mockup - Rich Version */}
                         <div className="relative max-w-6xl mx-auto rounded-2xl border border-border/50 bg-card shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)] overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-transparent z-20 pointer-events-none" />
+                            <div className="absolute inset-0 bg-linear-to-t from-gray-50 via-transparent to-transparent z-20 pointer-events-none" />
 
                             {/* Browser Header */}
                             <div className="border-b border-border bg-white p-3 flex items-center gap-4">
@@ -110,7 +110,7 @@ export function LandingPage() {
                                 <div className="w-56 border-r border-border bg-white p-4 hidden md:flex flex-col">
                                     {/* Logo */}
                                     <div className="flex items-center gap-2.5 mb-6 px-2">
-                                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+                                        <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
                                             <span className="text-white text-xs font-bold">E+</span>
                                         </div>
                                         <span className="font-semibold text-sm text-gray-800">ENEM Plus</span>
@@ -136,7 +136,7 @@ export function LandingPage() {
                                     </nav>
 
                                     {/* Streak Card */}
-                                    <div className="p-3 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 mb-3">
+                                    <div className="p-3 rounded-lg bg-linear-to-br from-amber-50 to-orange-50 border border-amber-100 mb-3">
                                         <div className="flex items-center gap-2 mb-1">
                                             <Sparkles className="w-4 h-4 text-amber-500" />
                                             <span className="text-xs font-semibold text-amber-700">7 dias de sequência!</span>
@@ -146,7 +146,7 @@ export function LandingPage() {
 
                                     {/* User */}
                                     <div className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500" />
+                                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-pink-400 to-rose-500" />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-xs font-medium text-gray-800 truncate">Ana Clara</p>
                                             <p className="text-[10px] text-gray-400">3º Ano • Meta: Medicina</p>
@@ -173,7 +173,7 @@ export function LandingPage() {
                                             <div className="h-6 w-px bg-gray-200" />
                                             <div className="flex -space-x-2">
                                                 {['from-pink-400 to-rose-500', 'from-blue-400 to-cyan-500', 'from-amber-400 to-orange-500'].map((color, i) => (
-                                                    <div key={i} className={`w-6 h-6 rounded-full bg-gradient-to-br ${color} border-2 border-white`} />
+                                                    <div key={i} className={`w-6 h-6 rounded-full bg-linear-to-br ${color} border-2 border-white`} />
                                                 ))}
                                                 <div className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[9px] font-medium text-gray-500">+127</div>
                                             </div>
@@ -186,7 +186,7 @@ export function LandingPage() {
                                             {/* Video Player */}
                                             <div className="flex-1 rounded-xl bg-zinc-900 relative overflow-hidden shadow-xl">
                                                 {/* Video Gradient */}
-                                                <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 via-transparent to-rose-600/20" />
+                                                <div className="absolute inset-0 bg-linear-to-br from-amber-600/20 via-transparent to-rose-600/20" />
 
                                                 {/* Whiteboard simulation */}
                                                 <div className="absolute inset-4 top-12 bottom-20 bg-white/5 rounded-lg border border-white/10 p-4">
@@ -212,7 +212,7 @@ export function LandingPage() {
                                                 </div>
 
                                                 {/* Professor avatar */}
-                                                <div className="absolute bottom-20 right-4 w-20 h-20 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 border-2 border-white/20 shadow-lg overflow-hidden">
+                                                <div className="absolute bottom-20 right-4 w-20 h-20 rounded-xl bg-linear-to-br from-rose-500 to-pink-600 border-2 border-white/20 shadow-lg overflow-hidden">
                                                     <div className="absolute inset-0 flex items-center justify-center">
                                                         <div className="w-10 h-10 rounded-full bg-white/20" />
                                                     </div>
@@ -231,11 +231,11 @@ export function LandingPage() {
                                                 </div>
 
                                                 {/* Progress Bar */}
-                                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/90 via-black/50 to-transparent">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <span className="text-[10px] text-white/80 font-mono">23:18</span>
                                                         <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                                                            <div className="h-full w-[58%] bg-gradient-to-r from-amber-500 to-orange-500 rounded-full relative">
+                                                            <div className="h-full w-[58%] bg-linear-to-r from-amber-500 to-orange-500 rounded-full relative">
                                                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg" />
                                                             </div>
                                                         </div>
@@ -243,7 +243,7 @@ export function LandingPage() {
                                                     </div>
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-pink-600" />
+                                                            <div className="w-6 h-6 rounded-full bg-linear-to-br from-rose-500 to-pink-600" />
                                                             <p className="text-xs text-white/90 font-medium">Prof. Marina Costa</p>
                                                         </div>
                                                         <div className="flex gap-2">
@@ -268,7 +268,7 @@ export function LandingPage() {
                                                         <span className="text-xs font-bold text-emerald-500">52%</span>
                                                     </div>
                                                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                        <div className="h-full w-[52%] bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" />
+                                                        <div className="h-full w-[52%] bg-linear-to-r from-emerald-400 to-emerald-500 rounded-full" />
                                                     </div>
                                                     <p className="text-[10px] text-gray-400 mt-2">4 de 8 aulas concluídas</p>
                                                 </div>
@@ -374,7 +374,7 @@ export function LandingPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[320px]">
                             {/* Sala de Estudos - Card Principal */}
-                            <div className="md:col-span-2 rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-gradient-to-br from-violet-500/5 via-card to-card hover:border-violet-500/30 transition-all duration-500">
+                            <div className="md:col-span-2 rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-linear-to-br from-violet-500/5 via-card to-card hover:border-violet-500/30 transition-all duration-500">
                                 {/* Decorative Elements */}
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                 <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl" />
@@ -393,7 +393,7 @@ export function LandingPage() {
                                 {/* Video Player Mockup */}
                                 <div className="relative z-10 mt-6 rounded-xl border border-border bg-zinc-900 shadow-2xl h-44 w-full overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
                                     {/* Video Thumbnail Gradient */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-transparent to-blue-600/20" />
+                                    <div className="absolute inset-0 bg-linear-to-br from-violet-600/20 via-transparent to-blue-600/20" />
 
                                     {/* Play Button */}
                                     <div className="absolute inset-0 flex items-center justify-center">
@@ -403,7 +403,7 @@ export function LandingPage() {
                                     </div>
 
                                     {/* Progress Bar */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-black/80 to-transparent">
                                         <div className="flex items-center gap-3">
                                             <span className="text-[10px] text-white/70 font-mono">12:34</span>
                                             <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
@@ -432,7 +432,7 @@ export function LandingPage() {
                             </div>
 
                             {/* Conteúdo Card */}
-                            <div className="rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-gradient-to-br from-emerald-500/5 via-card to-card hover:border-emerald-500/30 transition-all duration-500">
+                            <div className="rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-linear-to-br from-emerald-500/5 via-card to-card hover:border-emerald-500/30 transition-all duration-500">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                 <div className="relative z-10">
@@ -472,7 +472,7 @@ export function LandingPage() {
                             </div>
 
                             {/* Comunidade Card */}
-                            <div className="rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-gradient-to-br from-blue-500/5 via-card to-card hover:border-blue-500/30 transition-all duration-500">
+                            <div className="rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-linear-to-br from-blue-500/5 via-card to-card hover:border-blue-500/30 transition-all duration-500">
                                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                 <div className="relative z-10">
@@ -495,7 +495,7 @@ export function LandingPage() {
                                             { color: 'from-amber-500 to-orange-500' },
                                         ].map((avatar, i) => (
                                             <div key={i} className="relative group-hover:translate-y-[-2px] transition-transform duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
-                                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatar.color} border-2 border-card shadow-lg`} />
+                                                <div className={`w-10 h-10 rounded-full bg-linear-to-br ${avatar.color} border-2 border-card shadow-lg`} />
                                                 {i === 0 && (
                                                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-card" />
                                                 )}
@@ -515,7 +515,7 @@ export function LandingPage() {
                             </div>
 
                             {/* Analytics & Financeiro - Card Principal */}
-                            <div className="md:col-span-2 rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-gradient-to-br from-amber-500/5 via-card to-card hover:border-amber-500/30 transition-all duration-500">
+                            <div className="md:col-span-2 rounded-2xl border border-border p-8 flex flex-col justify-between overflow-hidden relative group bg-linear-to-br from-amber-500/5 via-card to-card hover:border-amber-500/30 transition-all duration-500">
                                 <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                 <div className="absolute bottom-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl" />
 
@@ -557,7 +557,7 @@ export function LandingPage() {
                                     ].map((bar, i) => (
                                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
                                             <div
-                                                className={`w-full bg-gradient-to-t ${bar.color} rounded-t-lg transition-all duration-500 group-hover:opacity-100 ${bar.current ? 'opacity-100 shadow-lg shadow-emerald-500/20' : 'opacity-60'}`}
+                                                className={`w-full bg-linear-to-t ${bar.color} rounded-t-lg transition-all duration-500 group-hover:opacity-100 ${bar.current ? 'opacity-100 shadow-lg shadow-emerald-500/20' : 'opacity-60'}`}
                                                 style={{
                                                     height: `${bar.h}%`,
                                                     transitionDelay: `${i * 50}ms`
@@ -623,7 +623,7 @@ export function LandingPage() {
                                 </Link>
                             </div>
                             <div className="relative">
-                                <div className="absolute -inset-4 bg-gradient-to-tr from-primary/10 to-transparent rounded-2xl blur-lg opacity-50" />
+                                <div className="absolute -inset-4 bg-linear-to-tr from-primary/10 to-transparent rounded-2xl blur-lg opacity-50" />
                                 <div className="relative bg-card border border-border rounded-2xl p-8 shadow-lg">
                                     <blockquote className="text-xl font-serif italic text-foreground mb-6 leading-relaxed">
                                         &quot;Quando você fecha a porta da sala de aula, aquele espaço é seu.
@@ -655,10 +655,10 @@ export function LandingPage() {
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                href="/auth/sign-up"
+                                href="/contato"
                                 className="w-full sm:w-auto px-8 py-4 bg-foreground text-background font-bold rounded-lg hover:opacity-90 transition-all"
                             >
-                                Criar minha conta grátis
+                                Fale com um especialista
                             </Link>
                             <Link
                                 href="/pricing"

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { BrandCustomizationManager } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services";
+import { BrandCustomizationManager } from "@/app/[tenant]/(modules)/settings/personalizacao/services";
 import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
 
 /**

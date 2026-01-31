@@ -2,7 +2,7 @@ import React from 'react'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { UserProvider } from '@/components/providers/user-provider'
 import { CopilotKitProvider } from '@/components/providers/copilotkit-provider'
-import { BrandingProvider } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/providers/branding-provider"
+import { BrandingProvider } from "@/app/[tenant]/(modules)/settings/personalizacao/providers/branding-provider"
 import { StudentOrganizationsProvider } from '@/components/providers/student-organizations-provider'
 import { ModuleVisibilityProvider } from '@/components/providers/module-visibility-provider'
 import { BottomNavigation } from '@/components/layout/bottom-navigation'

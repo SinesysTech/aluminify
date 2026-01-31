@@ -1,4 +1,4 @@
-import type { CustomThemePreset } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types';
+import type { CustomThemePreset } from '@/app/[tenant]/(modules)/settings/personalizacao/services/brand-customization.types';
 
 export interface ExtendedThemeConfig {
   preset: string;

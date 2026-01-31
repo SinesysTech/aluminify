@@ -5,7 +5,7 @@
  * Used by TenantBrandingProvider and CSSPropertiesManager.
  */
 
-import type { ColorPalette, FontScheme } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types';
+import type { ColorPalette, FontScheme } from '@/app/[tenant]/(modules)/settings/personalizacao/services/brand-customization.types';
 
 /**
  * Maps ColorPalette fields to CSS variable names

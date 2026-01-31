@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { createClient } from '@supabase/supabase-js'
 import fc from 'fast-check'
-import { LogoManagerImpl } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/logo-manager'
+import { LogoManagerImpl } from '@/app/[tenant]/(modules)/settings/personalizacao/services/logo-manager'
 import { getDatabaseClient } from '@/app/shared/core/database/database'
 import type { LogoType } from '@/types/brand-customization'
 

@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals'
 import { createClient } from '@supabase/supabase-js'
 import fc from 'fast-check'
-import { LogoManagerImpl } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/logo-manager'
+import { LogoManagerImpl } from '@/app/[tenant]/(modules)/settings/personalizacao/services/logo-manager'
 import { getDatabaseClient } from '@/app/shared/core/database/database'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL

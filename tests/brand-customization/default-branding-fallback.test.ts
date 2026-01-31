@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { createClient } from '@supabase/supabase-js'
 import fc from 'fast-check'
-import { BrandCustomizationManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization-manager'
+import { BrandCustomizationManager } from '@/app/[tenant]/(modules)/settings/personalizacao/services/brand-customization-manager'
 import { getDatabaseClient } from '@/app/shared/core/database/database'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL

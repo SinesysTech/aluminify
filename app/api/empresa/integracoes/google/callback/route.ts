@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     console.error("Google OAuth error:", error);
     return NextResponse.redirect(
       new URL(
-        `/empresa/integracoes?error=${encodeURIComponent(error)}`,
+        `/settings/integracoes?error=${encodeURIComponent(error)}`,
         request.url,
       ),
     );
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   if (!code || !state) {
     return NextResponse.redirect(
       new URL(
-        "/empresa/integracoes?error=missing_params",
+        "/settings/integracoes?error=missing_params",
         request.url,
       ),
     );
@@ -101,8 +101,8 @@ export async function GET(request: NextRequest) {
     }
 
     const redirectPath = tenantSlug
-      ? `/${tenantSlug}/empresa/integracoes?success=google`
-      : `/empresa/integracoes?success=google`;
+      ? `/${tenantSlug}/settings/integracoes?success=google`
+      : `/settings/integracoes?success=google`;
 
     return NextResponse.redirect(
       new URL(redirectPath, request.url),
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     console.error("Google OAuth callback error:", error);
     return NextResponse.redirect(
       new URL(
-        `/empresa/integracoes?error=${encodeURIComponent(String(error))}`,
+        `/settings/integracoes?error=${encodeURIComponent(String(error))}`,
         request.url,
       ),
     );

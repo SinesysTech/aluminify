@@ -186,12 +186,7 @@ export function LoginPageClient() {
       decorativeBackground="light"
       decorativeContent={<LoginDecorativeCard />}
       footerContent={
-        <p>
-          Não tem uma conta?{' '}
-          <Link href={tenant ? `/${tenant}/auth/sign-up` : "/auth/sign-up"} className="font-medium text-primary hover:underline">
-            Criar conta grátis
-          </Link>
-        </p>
+        <p></p>
       }
     >
       <div className="space-y-6">

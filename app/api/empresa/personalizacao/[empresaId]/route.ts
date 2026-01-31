@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { BrandCustomizationManager } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services";
+import { BrandCustomizationManager } from "@/app/[tenant]/(modules)/settings/personalizacao/services";
 import {
   requireBrandCustomizationAccess,
   BrandCustomizationRequest,
 } from "@/app/shared/core/middleware/brand-customization-access";
 import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
-import type { SaveTenantBrandingRequest } from "@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types";
+import type { SaveTenantBrandingRequest } from "@/app/[tenant]/(modules)/settings/personalizacao/services/brand-customization.types";
 
 interface RouteContext {
   params: Promise<{ empresaId: string }>;

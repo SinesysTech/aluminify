@@ -35,7 +35,7 @@ export default function ProfessorNovaEmpresaPage() {
           description: 'Redirecionando para a página da sua empresa...',
         });
         setTimeout(() => {
-          router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
+          router.push(tenant ? `/${tenant}/settings/detalhes` : '/settings/detalhes');
         }, 1500);
         return;
       }
@@ -58,7 +58,7 @@ export default function ProfessorNovaEmpresaPage() {
               description: 'Redirecionando para a página da sua empresa...',
             });
             setTimeout(() => {
-              router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
+              router.push(tenant ? `/${tenant}/settings/detalhes` : '/settings/detalhes');
             }, 1500);
             return;
           }
@@ -144,7 +144,7 @@ export default function ProfessorNovaEmpresaPage() {
             description: 'Redirecionando para a página da sua empresa...',
           });
           setTimeout(() => {
-            router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
+            router.push(tenant ? `/${tenant}/settings/detalhes` : '/settings/detalhes');
             router.refresh();
           }, 1500);
           return;
@@ -163,7 +163,7 @@ export default function ProfessorNovaEmpresaPage() {
 
       // Aguardar um pouco para o toast aparecer antes de redirecionar
       setTimeout(() => {
-        router.push(tenant ? `/${tenant}/empresa/detalhes` : '/empresa/detalhes');
+        router.push(tenant ? `/${tenant}/settings/detalhes` : '/settings/detalhes');
         router.refresh();
       }, 1000);
     } catch (error) {

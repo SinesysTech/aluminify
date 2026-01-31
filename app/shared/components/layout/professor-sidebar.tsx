@@ -44,7 +44,7 @@ const professorNavItems: NavItem[] = [
   },
   {
     title: "Usuarios",
-    url: "/usuario/equipe",
+    url: "/settings/equipe",
     icon: UserCog,
   },
   {

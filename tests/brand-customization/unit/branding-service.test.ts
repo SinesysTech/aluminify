@@ -1,8 +1,8 @@
-import { BrandingService } from "../../../app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/branding.service";
+import { BrandingService } from "../../../app/[tenant]/(modules)/settings/personalizacao/services/branding.service";
 
 // Mock Dependencies
 jest.mock(
-  "../../../app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/simple-cache",
+  "../../../app/[tenant]/(modules)/settings/personalizacao/services/simple-cache",
   () => {
     return {
       SimpleCache: jest.fn().mockImplementation(() => ({
@@ -16,7 +16,7 @@ jest.mock(
 );
 
 jest.mock(
-  "../../../app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/branding-sync",
+  "../../../app/[tenant]/(modules)/settings/personalizacao/services/branding-sync",
   () => {
     return {
       BrandingSync: jest.fn().mockImplementation(() => ({

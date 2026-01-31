@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, useMemo, useState, useEffect } from 'react';
-import type { CompleteBrandingConfig } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/brand-customization.types';
-import { getCSSPropertiesManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/css-properties-manager';
+import type { CompleteBrandingConfig } from '@/app/[tenant]/(modules)/settings/personalizacao/services/brand-customization.types';
+import { getCSSPropertiesManager } from '@/app/[tenant]/(modules)/settings/personalizacao/services/css-properties-manager';
 import type { ExtendedThemeConfig, ThemePreset } from './types';
 
 export const DEFAULT_THEME: ExtendedThemeConfig = {

@@ -10,9 +10,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { CSSPropertiesManager, getCSSPropertiesManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/css-properties-manager';
-import { BrandingCacheManager, getBrandingCacheManager } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/branding-cache-manager';
-import { BrandingPerformanceMonitor, getBrandingPerformanceMonitor } from '@/app/[tenant]/(modules)/empresa/(gestao)/personalizacao/services/branding-performance-monitor';
+import { CSSPropertiesManager, getCSSPropertiesManager } from '@/app/[tenant]/(modules)/settings/personalizacao/services/css-properties-manager';
+import { BrandingCacheManager, getBrandingCacheManager } from '@/app/[tenant]/(modules)/settings/personalizacao/services/branding-cache-manager';
+import { BrandingPerformanceMonitor, getBrandingPerformanceMonitor } from '@/app/[tenant]/(modules)/settings/personalizacao/services/branding-performance-monitor';
 import type { 
   CompleteBrandingConfig, 
   ColorPalette 
