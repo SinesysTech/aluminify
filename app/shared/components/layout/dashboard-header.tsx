@@ -14,7 +14,7 @@ export function DashboardHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator
           orientation="vertical"
-          className="mr-1 md:mr-2 data-[orientation=vertical]:h-4"
+          className="hidden md:block mr-1 md:mr-2 data-[orientation=vertical]:h-4"
         />
         <DynamicBreadcrumb />
       </div>

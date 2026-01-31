@@ -77,7 +77,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="h-64 w-full pt-4">
+        <div className="h-64 min-h-[256px] w-full min-w-0 pt-4">
           <div className="flex h-full items-end justify-between gap-2">
             {data.map((day, index) => {
               const grossHeight = getHeightPercentage(day.grossTime)

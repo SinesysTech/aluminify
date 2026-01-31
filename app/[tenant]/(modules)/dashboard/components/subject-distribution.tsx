@@ -323,7 +323,7 @@ export function SubjectDistribution({
         ) : (
           <>
             <div className="flex flex-1 items-center justify-center py-4">
-              <div className="relative flex items-center justify-center w-48 h-48">
+              <div className="relative flex items-center justify-center w-48 h-48 min-h-[192px] min-w-[192px]">
                 <svg className="w-full h-full" viewBox="0 0 36 36">
                   {/* Círculo de fundo */}
                   <circle

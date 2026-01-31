@@ -22,7 +22,7 @@ export default function AgentePage() {
       if (!user?.empresaId) return
 
       try {
-        const response = await fetch(`/api/ai-agents/${user.empresaId}`)
+        const response = await fetch(`/api/ai-agents/${user.empresaId}?config=chat`)
         if (!response.ok) {
           if (response.status === 404) {
             setAgentError('Nenhum assistente configurado para esta empresa.')
@@ -32,8 +32,8 @@ export default function AgentePage() {
         }
 
         const data = await response.json()
-        if (data.success && data.agent) {
-          setAgentConfig(data.agent)
+        if (data.success && data.data) {
+          setAgentConfig(data.data)
         }
       } catch (err) {
         console.error('Error fetching agent config:', err)

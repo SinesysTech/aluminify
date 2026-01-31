@@ -28,25 +28,25 @@ interface NavItem {
 const alunoNavItems: NavItem[] = [
   { name: 'Início', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Estudos', href: '/sala-de-estudos', icon: School },
-  { name: 'TobIAs', href: '/tobias', icon: MessageSquare }, // TOBIAS-LEGACY: Remover quando TobIAs for deletado
+  { name: 'Assistente', href: '/agente', icon: MessageSquare }, // TOBIAS-LEGACY: Remover quando TobIAs for deletado
   { name: 'Flashcards', href: '/flashcards', icon: BrainCircuit },
   { name: 'Perfil', href: '/perfil', icon: User },
 ]
 
 const professorNavItems: NavItem[] = [
   { name: 'Início', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Alunos', href: '/aluno', icon: Users },
+  { name: 'Alunos', href: '/usuario/alunos', icon: Users },
   { name: 'Agenda', href: '/agendamentos/disponibilidade', icon: Calendar },
   { name: 'Materiais', href: '/biblioteca/materiais', icon: School },
   { name: 'Perfil', href: '/perfil', icon: User },
 ]
 
 const adminNavItems: NavItem[] = [
-  { name: 'Início', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Alunos', href: '/aluno', icon: Users },
-  { name: 'Turmas', href: '/turma', icon: School },
+  { name: 'Início', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Alunos', href: '/usuario/alunos', icon: Users },
+  { name: 'Cursos', href: '/curso/admin', icon: School },
   { name: 'Agenda', href: '/agendamentos', icon: CalendarCheck },
-  { name: 'Config', href: '/admin/agendamentos/configuracoes', icon: Settings },
+  { name: 'Config', href: '/empresa/detalhes', icon: Settings },
 ]
 
 export function BottomNavigation() {

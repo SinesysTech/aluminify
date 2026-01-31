@@ -221,7 +221,7 @@ export default function StudentDashboardClientPage() {
                 }
             }
         },
-        [heatmapPeriod, activeOrgId] // REMOVED 'user' dependency
+        [heatmapPeriod, activeOrgId]
     )
 
     // Carregamento inicial
