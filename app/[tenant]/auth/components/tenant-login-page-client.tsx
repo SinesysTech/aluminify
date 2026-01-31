@@ -55,6 +55,7 @@ export function TenantLoginPageClient({
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
+            console.log('[tenant-login] Loaded branding data for empresaId:', empresaId)
             const branding = result.data
 
             // Set Logo with fallback (login -> sidebar)
@@ -129,8 +130,9 @@ export function TenantLoginPageClient({
         console.warn('[tenant-login] Failed to load branding:', error)
       } finally {
         setLoadingLogo(false)
-        // Give browser one frame to paint CSS variable changes before animating
-        requestAnimationFrame(() => setBrandingReady(true))
+        console.log('[tenant-login] Branding load complete. Transitioning to ready state.')
+        // Give browser a moment to paint CSS variables
+        setBrandingReady(true)
       }
     }
     loadBranding()
