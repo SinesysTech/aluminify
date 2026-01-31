@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { clientId, clientSecret } = credentials;
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/settings/integracoes/zoom/callback`;
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/empresa/integracoes/zoom/callback`;
 
     // Zoom uses Basic auth with client credentials
     const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString(

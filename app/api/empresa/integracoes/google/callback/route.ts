@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { clientId, clientSecret } = credentials;
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/settings/integracoes/google/callback`;
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/api/empresa/integracoes/google/callback`;
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",

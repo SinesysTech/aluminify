@@ -1,15 +1,11 @@
-import { Metadata } from "next";
-import { generateMeta } from "@/lib/utils";
+import type { Metadata } from "next";
 
 import { SidebarNav } from "./components/sidebar-nav";
 
-export async function generateMetadata(): Promise<Metadata> {
-  return generateMeta({
-    title: "Configurações",
-    description: "Gerencie as configurações da sua empresa.",
-    canonical: "/settings"
-  });
-}
+export const metadata: Metadata = {
+  title: "Configurações",
+  description: "Gerencie as configurações da sua empresa.",
+};
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (

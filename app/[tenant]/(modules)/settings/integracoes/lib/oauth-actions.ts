@@ -82,7 +82,7 @@ export async function getOAuthAuthorizationUrl(
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
-  const redirectUri = `${appUrl}/api/settings/integracoes/${provider}/callback`;
+  const redirectUri = `${appUrl}/api/empresa/integracoes/${provider}/callback`;
   const state = encodeURIComponent(
     JSON.stringify({ professorId, empresaId, tenantSlug }),
   );
