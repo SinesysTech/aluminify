@@ -557,7 +557,7 @@ export function LandingPage() {
                                     ].map((bar, i) => (
                                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
                                             <div
-                                                className={`w-full bg-gradient-to-t ${bar.color} rounded-t-lg transition-all duration-500 group-hover:opacity-100 ${bar.current ? 'opacity-100 shadow-lg shadow-emerald-500/20' : 'opacity-60'}`}
+                                                className={`w-full bg-linear-to-t ${bar.color} rounded-t-lg transition-all duration-500 group-hover:opacity-100 ${bar.current ? 'opacity-100 shadow-lg shadow-emerald-500/20' : 'opacity-60'}`}
                                                 style={{
                                                     height: `${bar.h}%`,
                                                     transitionDelay: `${i * 50}ms`
