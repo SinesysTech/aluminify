@@ -81,9 +81,10 @@ export default function StudentDashboardClientPage() {
 
     const [isLoadingUser, setIsLoadingUser] = useState(true)
     const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
+    const hasLoadedOnce = useRef(false)
 
-    // Derived loading state for the main view
-    const isInitialLoading = isLoadingUser || isLoadingMetrics
+    // Derived loading state - only shows skeleton on true initial load
+    const isInitialLoading = !hasLoadedOnce.current && (isLoadingUser || isLoadingMetrics)
 
     const [error, setError] = useState<string | null>(null)
     const [isAuthError, setIsAuthError] = useState(false)
@@ -207,6 +208,7 @@ export default function StudentDashboardClientPage() {
                 )
 
                 await Promise.all(promises)
+                hasLoadedOnce.current = true
                 setLastRefresh(new Date())
 
             } catch (err) {

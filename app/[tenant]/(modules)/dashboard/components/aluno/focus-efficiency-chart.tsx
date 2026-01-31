@@ -34,10 +34,10 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
   }, [isDark])
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300 bg-linear-to-r from-primary/5 via-primary/3 to-transparent border-primary/20">
+    <Card className="h-full overflow-hidden transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-base font-semibold">
+          <CardTitle className="widget-title">
             Eficiência de Foco
           </CardTitle>
           <TooltipProvider delayDuration={200}>

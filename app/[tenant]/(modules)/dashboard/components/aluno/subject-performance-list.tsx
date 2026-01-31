@@ -230,7 +230,7 @@ export function SubjectPerformanceList({
   }
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300 bg-linear-to-r from-primary/5 via-primary/3 to-transparent border-primary/20">
+    <Card className="h-full overflow-hidden transition-all duration-300">
       <CardContent className="px-4 md:px-6 py-3 md:py-4 h-full flex flex-col min-h-0">
         <div className="flex flex-col gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2">

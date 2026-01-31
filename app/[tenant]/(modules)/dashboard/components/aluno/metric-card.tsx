@@ -30,7 +30,6 @@ interface MetricCardProps {
 
 // Configuração visual por variante
 const variantConfig: Record<MetricVariant, {
-  gradient: string
   iconBg: string
   iconColor: string
   progressColor: string
@@ -39,7 +38,6 @@ const variantConfig: Record<MetricVariant, {
   trendNegative: string
 }> = {
   default: {
-    gradient: 'from-primary/5 to-transparent',
     iconBg: 'bg-primary/10',
     iconColor: 'text-primary',
     progressColor: 'text-primary',
@@ -48,7 +46,6 @@ const variantConfig: Record<MetricVariant, {
     trendNegative: 'text-rose-600 dark:text-rose-400',
   },
   time: {
-    gradient: 'from-blue-500/8 to-transparent',
     iconBg: 'bg-blue-500/10',
     iconColor: 'text-blue-600 dark:text-blue-400',
     progressColor: 'text-blue-600 dark:text-blue-400',
@@ -57,7 +54,6 @@ const variantConfig: Record<MetricVariant, {
     trendNegative: 'text-rose-600 dark:text-rose-400',
   },
   questions: {
-    gradient: 'from-emerald-500/8 to-transparent',
     iconBg: 'bg-emerald-500/10',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
     progressColor: 'text-emerald-600 dark:text-emerald-400',
@@ -66,7 +62,6 @@ const variantConfig: Record<MetricVariant, {
     trendNegative: 'text-rose-600 dark:text-rose-400',
   },
   accuracy: {
-    gradient: 'from-amber-500/8 to-transparent',
     iconBg: 'bg-amber-500/10',
     iconColor: 'text-amber-600 dark:text-amber-400',
     progressColor: 'text-amber-600 dark:text-amber-400',
@@ -75,7 +70,6 @@ const variantConfig: Record<MetricVariant, {
     trendNegative: 'text-rose-600 dark:text-rose-400',
   },
   flashcards: {
-    gradient: 'from-violet-500/8 to-transparent',
     iconBg: 'bg-violet-500/10',
     iconColor: 'text-violet-600 dark:text-violet-400',
     progressColor: 'text-violet-600 dark:text-violet-400',
@@ -99,17 +93,11 @@ export function MetricCard({
   const config = variantConfig[variant]
 
   return (
-    <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-md">
-      {/* Gradient Background */}
-      <div className={cn(
-        'absolute inset-0 bg-linear-to-br opacity-60 transition-opacity group-hover:opacity-100',
-        config.gradient
-      )} />
-
-      <CardContent className="relative p-3 md:p-6">
+    <Card className="group overflow-hidden transition-all duration-200 hover:shadow-md">
+      <CardContent className="p-4 md:p-5">
         {/* Header: Label + Icon */}
-        <div className="flex items-start justify-between mb-2 md:mb-3">
-          <span className="text-xs md:text-sm font-medium leading-tight text-muted-foreground">{label}</span>
+        <div className="flex items-start justify-between mb-2">
+          <span className="metric-label leading-tight">{label}</span>
           <div className="flex items-center gap-1 md:gap-2 shrink-0">
             {tooltip && (
               <TooltipProvider delayDuration={200}>
@@ -147,7 +135,7 @@ export function MetricCard({
         {/* Value Area */}
         <div className="flex items-end justify-between min-w-0">
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="text-xl md:text-3xl font-bold tracking-tight truncate">{value}</span>
+            <span className="metric-value truncate">{value}</span>
             {subtext && (
               <span className="text-xs text-muted-foreground">{subtext}</span>
             )}
