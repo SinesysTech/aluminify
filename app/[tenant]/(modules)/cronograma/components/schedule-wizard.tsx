@@ -46,6 +46,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/app/shared/components/overlay/tooltip'
+import { FrenteOrderDragDrop, type FrenteOrderItem } from './frente-order-drag-drop'
 
 const wizardSchema = z.object({
   data_inicio: z.date({ message: 'Data de início é obrigatória' }),
@@ -298,6 +299,27 @@ export function ScheduleWizard() {
   const tenantContext = useOptionalTenantContext()
   const empresaId = tenantContext?.empresaId ?? null
 
+  // Dados computados para o drag-and-drop de frentes (modo sequencial)
+  const frenteOrderItems = React.useMemo<FrenteOrderItem[]>(() => {
+    const items: FrenteOrderItem[] = []
+    Object.entries(modulosCursoAgrupadosPorDisciplina).forEach(([discId, grupo]) => {
+      grupo.frentes.forEach((frente) => {
+        items.push({
+          id: frente.id,
+          nome: frente.nome,
+          disciplinaId: discId,
+          disciplinaNome: grupo.disciplinaNome,
+          totalModulos: frente.modulos.length,
+          totalAulas: frente.modulos.reduce((acc, m) => acc + m.totalAulas, 0),
+          tempoEstimadoMinutos: frente.modulos.reduce((acc, m) => acc + m.tempoTotal, 0),
+        })
+      })
+    })
+    return items
+  }, [modulosCursoAgrupadosPorDisciplina])
+
+  const isMultiDisciplina = Object.keys(modulosCursoAgrupadosPorDisciplina).length > 1
+
   // Carregar cursos e disciplinas (filtrados pelo tenant ativo)
   React.useEffect(() => {
     async function loadData() {
@@ -373,25 +395,30 @@ export function ScheduleWizard() {
         console.log(`Professor ${user.id} encontrou ${cursosUnicos.length} curso(s):`, cursosUnicos.map((c) => c.nome))
       } else {
         // Aluno vê cursos através da tabela alunos_cursos (filtrado pelo tenant)
-        const { data: alunosCursos, error: alunosCursosError } = (await supabase
+        const { data: matriculas, error: matriculasError } = await supabase
           .from('alunos_cursos')
-          .select('curso_id, cursos(*)')
-          .eq('usuario_id', user.id)) as { data: Array<{ curso_id: string; cursos: CursoData & { empresa_id?: string } }> | null; error: unknown }
+          .select('curso_id')
+          .eq('usuario_id', user.id)
 
-        if (alunosCursosError) {
-          console.error('Erro ao carregar cursos do aluno:', alunosCursosError)
+        if (matriculasError) {
+          console.error('Erro ao carregar cursos do aluno:', matriculasError)
         }
 
-        if (alunosCursos) {
-          let list = alunosCursos
-            .map((ac) => {
-              const c = ac.cursos
-              if (Array.isArray(c)) return c[0] ?? null
-              return c
-            })
-            .filter((c): c is CursoData & { empresa_id?: string } => Boolean(c))
+        if (matriculas && matriculas.length > 0) {
+          const cursoIds = [...new Set(matriculas.map((m) => m.curso_id).filter(Boolean))]
+          const { data: cursosDoAluno, error: cursosError } = await supabase
+            .from('cursos')
+            .select('*')
+            .in('id', cursoIds)
+            .order('nome', { ascending: true })
+
+          if (cursosError) {
+            console.error('Erro ao carregar dados dos cursos:', cursosError)
+          }
+
+          let list = (cursosDoAluno || []) as (CursoData & { empresa_id?: string })[]
           if (empresaId) {
-            list = list.filter((c) => (c as { empresa_id?: string }).empresa_id === empresaId)
+            list = list.filter((c) => c.empresa_id === empresaId)
           }
           cursosData = list as CursoData[]
           console.log(`Aluno ${user.id} encontrou ${cursosData.length} curso(s):`, cursosData.map((c) => c?.nome))
@@ -1992,20 +2019,21 @@ export function ScheduleWizard() {
                   </Card>
                 )}
 
-                {form.watch('modalidade') === 'sequencial' && frentes.length > 0 && (
+                {form.watch('modalidade') === 'sequencial' && frenteOrderItems.length > 1 && (
                   <div className="space-y-2">
-                    <Label>Ordem de Prioridade das Frentes (Arraste para reordenar)</Label>
-                    <div className="space-y-2 p-4 border rounded-md">
-                      {frentes.map((frente) => (
-                        <div key={frente.id} className="flex items-center p-2 bg-muted rounded">
-                          {frente.nome}
-                        </div>
-                      ))}
-                      <p className="text-sm text-muted-foreground">
-                        Nota: A funcionalidade de drag-and-drop será implementada em breve.
-                        Por enquanto, as frentes serão processadas na ordem padrão.
-                      </p>
-                    </div>
+                    <Label>Ordem de Estudo das Frentes</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {isMultiDisciplina
+                        ? 'Arraste para definir a ordem de estudo das frentes dentro de cada disciplina.'
+                        : 'Arraste para definir a ordem em que as frentes serão estudadas.'}
+                    </p>
+                    <FrenteOrderDragDrop
+                      frentes={frenteOrderItems}
+                      onOrderChange={(orderedNames) => {
+                        form.setValue('ordem_frentes_preferencia', orderedNames)
+                      }}
+                      isMultiDisciplina={isMultiDisciplina}
+                    />
                   </div>
                 )}
               </div>

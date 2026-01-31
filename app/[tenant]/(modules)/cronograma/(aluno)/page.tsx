@@ -57,13 +57,14 @@ export default async function CronogramaPage({
     itens_concluidos: itemCounts[c.id]?.done ?? 0,
   }))
 
-  // Check if institution has base content (cursos linked to empresa)
-  const { count: cursosCount } = await supabase
-    .from('cursos')
-    .select('id', { count: 'exact', head: true })
-    .eq('empresa_id', empresaId)
+  // Verifica se o aluno está matriculado em algum curso desta empresa
+  const { count: matriculasCount } = await supabase
+    .from('alunos_cursos')
+    .select('curso_id, cursos!inner(empresa_id)', { count: 'exact', head: true })
+    .eq('usuario_id', user.id)
+    .eq('cursos.empresa_id', empresaId)
 
-  const hasBaseContent = (cursosCount ?? 0) > 0
+  const hasBaseContent = (matriculasCount ?? 0) > 0
 
   return (
     <CronogramaLandingPage

@@ -31,9 +31,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 type Entrada = { empresaNome: string; cursoNome: string };
 
 const ENTRADAS: Entrada[] = [
-  { empresaNome: "Jana Rabelo", cursoNome: "Redação 360 VIP" },
+  { empresaNome: "Jana Rabelo", cursoNome: "Redação 360" },
   { empresaNome: "Química Online", cursoNome: "Química Online" },
-  { empresaNome: "CDF", cursoNome: "CDF LIVE" },
 ];
 
 async function getUserIdByEmail(client: SupabaseClient, email: string): Promise<string | null> {

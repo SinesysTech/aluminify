@@ -50,6 +50,48 @@ async function main() {
     console.log(`Usuário encontrado mas está excluído (deleted_at): ${email}`);
   }
 
+  // 1b) Papéis e autorização (usuarios_empresas + papeis + empresa_admins)
+  const { data: vinculos, error: errVe } = await supabase
+    .from("usuarios_empresas")
+    .select("empresa_id, papel_base, papel_id, is_admin, ativo")
+    .eq("usuario_id", usuario.id)
+    .is("deleted_at", null);
+
+  if (!errVe && vinculos && vinculos.length > 0) {
+    const papelIds = [...new Set((vinculos as { papel_id?: string }[]).map((v) => v.papel_id).filter(Boolean))] as string[];
+    let papeisMap: Record<string, { tipo: string }> = {};
+    if (papelIds.length > 0) {
+      const { data: papeisData } = await supabase.from("papeis").select("id, tipo").in("id", papelIds);
+      if (papeisData) papeisMap = Object.fromEntries((papeisData as { id: string; tipo: string }[]).map((p) => [p.id, { tipo: p.tipo }]));
+    }
+    const isAdminEmAlguma = (vinculos as { is_admin?: boolean }[]).some((v) => v.is_admin === true);
+    const tipos = (vinculos as { papel_base?: string; papel_id?: string }[])
+      .map((v) => (v.papel_id && papeisMap[v.papel_id] ? papeisMap[v.papel_id].tipo : v.papel_base))
+      .filter(Boolean);
+    const isStaff = (vinculos as { papel_base?: string }[]).some((v) => v.papel_base === "professor" || v.papel_base === "usuario");
+    const isAdminRole = tipos.some((t) => String(t).toLowerCase().includes("admin"));
+    const isAdmin = isAdminEmAlguma || isAdminRole;
+    const isProfessor = tipos.some((t) => String(t).toLowerCase().includes("professor")) || isStaff;
+    const isAluno = (vinculos as { papel_base?: string }[]).some((v) => v.papel_base === "aluno") || (!isStaff && vinculos.length > 0);
+    // empresa_admins (admin explícito por empresa)
+    const { data: adminsRows } = await supabase.from("empresa_admins").select("empresa_id, is_owner").eq("user_id", usuario.id);
+    const isAdminEmpresa = (adminsRows?.length ?? 0) > 0;
+    const adminFinal = isAdmin || isAdminEmpresa;
+    console.log("");
+    console.log("--- Autorização / Papéis ---");
+    console.log("  Aluno:", isAluno ? "sim" : "não");
+    console.log("  Professor/Usuário (staff):", isProfessor ? "sim" : "não");
+    console.log("  Admin:", adminFinal ? "sim" : "não", adminFinal && isAdminEmpresa ? "(empresa_admins)" : "");
+    if (tipos.length) console.log("  Tipos de papel:", [...new Set(tipos)].join(", "));
+  } else {
+    // Fallback: só matrícula em curso = aluno
+    const { data: ac } = await supabase.from("alunos_cursos").select("curso_id").eq("usuario_id", usuario.id);
+    const soAluno = (ac?.length ?? 0) > 0 && !vinculos?.length;
+    console.log("");
+    console.log("--- Autorização / Papéis ---");
+    console.log("  Sem vínculo em usuarios_empresas. Considerado:", soAluno ? "aluno (apenas matrícula em curso)" : "indeterminado");
+  }
+
   // 2) Matrículas (alunos_cursos)
   const { data: matriculas, error: errAc } = await supabase
     .from("alunos_cursos")

@@ -248,10 +248,15 @@ export class StudentRepositoryImpl implements StudentRepository {
     }
 
     // Para count, selecione apenas `id` para evitar falhas por permissões em outras colunas.
+    // Quando filtramos por curso/empresa/turma (studentIdsToFilter), a lista vem de matrículas
+    // (alunos_cursos). Não exigir deleted_at IS NULL para não esconder alunos que tiveram apenas
+    // o vínculo de staff removido (soft delete em usuarios) mas continuam matriculados.
     let queryBuilder = this.client
       .from(TABLE)
-      .select("id", { count: "exact", head: true })
-      .is("deleted_at", null);
+      .select("id", { count: "exact", head: true });
+    if (studentIdsToFilter === null) {
+      queryBuilder = queryBuilder.is("deleted_at", null);
+    }
 
     if (studentIdsToFilter !== null) {
       // PostgreSQL tem limites práticos para cláusulas IN com muitos valores
@@ -309,14 +314,15 @@ export class StudentRepositoryImpl implements StudentRepository {
       }
     }
 
-    // Get paginated data
+    // Get paginated data (idem: quando lista é por matrícula, incluir mesmo com deleted_at set)
     let dataQuery = this.client
       .from(TABLE)
       .select("*")
-      .is("deleted_at", null)
       .order(sortBy, { ascending: sortOrder })
       .range(from, to);
-
+    if (studentIdsToFilter === null) {
+      dataQuery = dataQuery.is("deleted_at", null);
+    }
     if (studentIdsToFilter !== null) {
       dataQuery = dataQuery.in("id", studentIdsToFilter);
     }
@@ -343,9 +349,10 @@ export class StudentRepositoryImpl implements StudentRepository {
         let fallbackCountQuery = this.client
           .from(TABLE)
           .select("id", { count: "exact", head: false })
-          .is("deleted_at", null)
           .limit(1); // Apenas precisamos do count, não dos dados
-
+        if (studentIdsToFilter === null) {
+          fallbackCountQuery = fallbackCountQuery.is("deleted_at", null);
+        }
         if (studentIdsToFilter !== null) {
           fallbackCountQuery = fallbackCountQuery.in("id", studentIdsToFilter);
         }
@@ -1007,11 +1014,12 @@ export class StudentRepositoryImpl implements StudentRepository {
       return [];
     }
 
+    // Lista por empresa vem de alunos_cursos (matrículas). Incluir todos matriculados
+    // mesmo com deleted_at set (staff removido), para não esconder alunos.
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .in("id", alunoIds)
-      .is("deleted_at", null)
       .order("nome_completo", { ascending: true });
 
     if (error) {

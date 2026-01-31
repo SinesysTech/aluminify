@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from "react"
 import Link from "next/link"
-import { useParams, usePathname } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Check, ChevronsUpDown } from "lucide-react"
 import Image from "next/image"
 import {
@@ -34,7 +34,6 @@ import { useOptionalTenantContext } from "@/app/[tenant]/tenant-context"
  */
 export function WorkspaceSwitcher() {
   const { isMobile } = useSidebar()
-  const pathname = usePathname()
   const params = useParams()
   const tenantSlug = params?.tenant as string
 
@@ -63,17 +62,15 @@ export function WorkspaceSwitcher() {
   const handleSelectWorkspace = useCallback((org: typeof organizations[0]) => {
     if (org.slug === tenantSlug) return
 
-    const currentPrefix = `/${tenantSlug}`
     const nextPrefix = `/${org.slug}`
-    const nextPath =
-      pathname && pathname.startsWith(currentPrefix)
-        ? `${nextPrefix}${pathname.slice(currentPrefix.length)}`
-        : `${nextPrefix}/dashboard`
+    // Sempre redirecionar para o dashboard da nova organização e fazer refresh
+    // para que os dados do backend sejam atualizados e filtrados pelo novo tenant.
+    const nextPath = `${nextPrefix}/dashboard`
 
     // Full page reload garante que todos os dados do back-end sejam atualizados
     // para o novo tenant (dashboard, sidebar, cronograma, calendário, etc.)
     window.location.assign(nextPath)
-  }, [tenantSlug, pathname])
+  }, [tenantSlug])
 
   // Active workspace display name (from selected org or tenant context)
   const activeDisplayName = useMemo(() => {
