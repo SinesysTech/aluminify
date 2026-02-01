@@ -110,7 +110,9 @@
       "Bash(findstr:*)",
       "Bash(npx next lint)",
       "mcp__supabase__search_docs",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker push:*)"
     ],
     "deny": [],
     "ask": []

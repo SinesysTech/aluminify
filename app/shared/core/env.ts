@@ -51,15 +51,27 @@ const refinedEnv = envSchema.superRefine((data, ctx) => {
   }
 });
 
-// Process env validation
-const _env = refinedEnv.safeParse(process.env);
+// Skip validation during build time (e.g., Docker builds)
+const skipValidation =
+  process.env.SKIP_ENV_VALIDATION === "true" ||
+  process.env.NEXT_PHASE === "phase-production-build";
 
-if (!_env.success) {
-  console.error(
-    "❌ Invalid environment variables:",
-    _env.error.flatten().fieldErrors,
-  );
-  throw new Error("Invalid environment variables");
+function getValidatedEnv(): z.infer<typeof envSchema> {
+  if (skipValidation) {
+    return process.env as unknown as z.infer<typeof envSchema>;
+  }
+
+  const _env = refinedEnv.safeParse(process.env);
+
+  if (!_env.success) {
+    console.error(
+      "❌ Invalid environment variables:",
+      _env.error.flatten().fieldErrors,
+    );
+    throw new Error("Invalid environment variables");
+  }
+
+  return _env.data;
 }
 
-export const env = _env.data;
+export const env = getValidatedEnv();

@@ -44,6 +44,9 @@ ENV GOOGLE_GENERATIVE_AI_API_KEY=$GOOGLE_GENERATIVE_AI_API_KEY
 ENV OPENAI_API_KEY=$OPENAI_API_KEY
 ENV LOG_LEVEL=$LOG_LEVEL
 
+# Skip env validation at build time (validated at runtime)
+ENV SKIP_ENV_VALIDATION=true
+
 # Build Next.js application
 RUN npm run build
 
