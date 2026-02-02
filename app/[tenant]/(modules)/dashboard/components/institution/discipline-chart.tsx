@@ -134,7 +134,7 @@ export function DisciplineChart({ disciplinas }: DisciplineChartProps) {
                 maxBarSize={28}
                 label={{
                   position: 'right',
-                  formatter: (v: number) => `${v}%`,
+                  formatter: (v) => `${v}%`,
                   fontSize: 12,
                   fontWeight: 600,
                   fill: 'var(--color-foreground)',

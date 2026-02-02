@@ -369,15 +369,6 @@ export function TenantLoginPageClient({
             </div>
           )}
 
-          {/* Company name */}
-          <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-3xl">
-            {empresaNome}
-          </h2>
-
-          {/* Tagline */}
-          <p className="mt-3 max-w-xs text-sm text-white/75 md:text-base">
-            Sua plataforma de aprendizado
-          </p>
         </div>
       </div>
 
