@@ -1,9 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/app/shared/components/forms/checkbox'
-import { Label } from '@/app/shared/components/forms/label'
+import { Card, CardContent } from '@/components/ui/card'
 import {
     Flame,
     BookOpen,
@@ -11,6 +9,7 @@ import {
     HeartPulse,
     Target,
     Info,
+    SlidersHorizontal,
     type LucideIcon,
 } from 'lucide-react'
 import {
@@ -54,23 +53,16 @@ function ModeCard({
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Card
-                    role="button"
-                    tabIndex={0}
+                <button
+                    type="button"
                     onClick={onSelect}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            onSelect()
-                        }
-                    }}
                     className={cn(
-                        'group relative cursor-pointer overflow-hidden transition-all duration-200',
-                        'border-2 bg-card/50 backdrop-blur-sm',
+                        'group relative cursor-pointer overflow-hidden rounded-xl text-left transition-all duration-200',
+                        'border-2 bg-card/50',
                         mode.accent,
                         isSelected
-                            ? 'ring-2 ring-primary/20 shadow-lg scale-[1.02]'
-                            : 'hover:shadow-md hover:scale-[1.01]',
+                            ? 'ring-2 ring-primary/20 shadow-md'
+                            : 'hover:shadow-md',
                         isHighlighted && 'md:col-span-2'
                     )}
                 >
@@ -82,50 +74,42 @@ function ModeCard({
                         )}
                     />
 
-                    <CardHeader className="relative py-3 pb-1">
-                        <div className={cn(
-                            'flex items-center gap-2.5',
-                            isHighlighted ? 'justify-center' : 'justify-start'
-                        )}>
-                            {/* Icon Container */}
-                            <div
-                                className={cn(
-                                    'flex h-8 w-8 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
-                                    mode.iconBg
-                                )}
-                            >
-                                <Icon className="h-4 w-4" strokeWidth={2} />
-                            </div>
-
-                            <div className={cn(isHighlighted && 'text-center')}>
-                                <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                                    {mode.title}
-                                    <Info className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                                </CardTitle>
-                            </div>
+                    <div className={cn(
+                        'relative flex items-center gap-3 p-3.5',
+                        isHighlighted && 'justify-center'
+                    )}>
+                        {/* Icon Container */}
+                        <div
+                            className={cn(
+                                'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105',
+                                mode.iconBg
+                            )}
+                        >
+                            <Icon className="h-4 w-4" strokeWidth={2} />
                         </div>
-                    </CardHeader>
 
-                    <CardContent className="relative pt-0 pb-3">
-                        <CardDescription className={cn(
-                            'text-xs leading-relaxed',
-                            isHighlighted && 'text-center'
-                        )}>
-                            {mode.desc}
-                        </CardDescription>
-                    </CardContent>
+                        <div className={cn('min-w-0', isHighlighted && 'text-center')}>
+                            <div className="flex items-center gap-1.5 text-sm font-semibold">
+                                {mode.title}
+                                <Info className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                                {mode.desc}
+                            </p>
+                        </div>
+                    </div>
 
                     {/* Selection Indicator */}
                     {isSelected && (
                         <div className="absolute right-2.5 top-2.5">
-                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary">
-                                <svg className="h-2.5 w-2.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                                <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
                         </div>
                     )}
-                </Card>
+                </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" align="center" className="max-w-xs p-3">
                 <div className="space-y-2 text-sm">
@@ -150,65 +134,64 @@ export function ModeSelector({
     const otherModes = MODOS.filter((m) => m.id !== 'mais_errados')
 
     return (
-        <div className="space-y-5">
-            {/* Hero Header */}
-            <div className="relative">
-                <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                        <h1 className="page-title">
-                            Flashcards
-                        </h1>
-                        <p className="page-subtitle">
-                            Estude de forma inteligente com repetição espaçada. Escolha um modo e comece sua sessão de revisão.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
+        <div className="space-y-4 md:space-y-5">
             {/* Scope Selection Card */}
-            <Card className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 mb-6">
-                <CardContent className="px-4 md:px-6">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-baseline gap-1.5">
-                            <Label className="text-sm font-medium whitespace-nowrap">Fonte dos flashcards</Label>
-                            <span className="text-xs text-muted-foreground">
-                                — escolha se a revisão considera todos os módulos ou apenas os concluídos
-                            </span>
+            <Card className="overflow-hidden">
+                <CardContent className="p-4 md:p-5 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                            <SlidersHorizontal className="h-4 w-4 text-primary" />
                         </div>
-
-                        <div className="flex items-center gap-5 shrink-0">
-                            <label className="flex items-center gap-2 text-sm cursor-pointer group">
-                                <Checkbox
-                                    checked={scope === 'all'}
-                                    onCheckedChange={(checked) => {
-                                        if (checked) onScopeChange('all')
-                                    }}
-                                    disabled={isLoading || modo === 'personalizado'}
-                                    aria-label="Todos os módulos do meu curso"
-                                />
-                                <span className="transition-colors group-hover:text-foreground whitespace-nowrap">
-                                    Todos os módulos
-                                </span>
-                            </label>
-
-                            <label className="flex items-center gap-2 text-sm cursor-pointer group">
-                                <Checkbox
-                                    checked={scope === 'completed'}
-                                    onCheckedChange={(checked) => {
-                                        if (checked) onScopeChange('completed')
-                                    }}
-                                    disabled={isLoading || modo === 'personalizado'}
-                                    aria-label="Apenas módulos concluídos"
-                                />
-                                <span className="transition-colors group-hover:text-foreground whitespace-nowrap">
-                                    Apenas concluídos
-                                </span>
-                            </label>
+                        <div>
+                            <h2 className="text-sm font-semibold">Fonte dos flashcards</h2>
+                            <p className="text-xs text-muted-foreground">
+                                Escolha se a revisão considera todos os módulos ou apenas os concluídos
+                            </p>
                         </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => onScopeChange('all')}
+                            disabled={isLoading || modo === 'personalizado'}
+                            className={cn(
+                                'inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all cursor-pointer',
+                                'disabled:opacity-50 disabled:cursor-not-allowed',
+                                scope === 'all'
+                                    ? 'border-primary/50 bg-primary/5 text-foreground font-medium ring-1 ring-primary/20'
+                                    : 'border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                            )}
+                        >
+                            <div className={cn(
+                                'h-3 w-3 rounded-full border-2 transition-colors',
+                                scope === 'all' ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                            )} />
+                            Todos os módulos
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onScopeChange('completed')}
+                            disabled={isLoading || modo === 'personalizado'}
+                            className={cn(
+                                'inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all cursor-pointer',
+                                'disabled:opacity-50 disabled:cursor-not-allowed',
+                                scope === 'completed'
+                                    ? 'border-primary/50 bg-primary/5 text-foreground font-medium ring-1 ring-primary/20'
+                                    : 'border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                            )}
+                        >
+                            <div className={cn(
+                                'h-3 w-3 rounded-full border-2 transition-colors',
+                                scope === 'completed' ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                            )} />
+                            Apenas concluídos
+                        </button>
                     </div>
 
                     {modo === 'personalizado' && (
-                        <p className="mt-2 text-xs text-muted-foreground border-t pt-2">
+                        <p className="text-xs text-muted-foreground border-t pt-3">
                             No modo <strong>Personalizado</strong>, você escolhe um módulo específico.
                         </p>
                     )}
@@ -217,7 +200,7 @@ export function ModeSelector({
 
             {/* Mode Selection Grid */}
             <div className="space-y-3">
-                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-0.5">
                     Escolha seu modo de estudo
                 </h2>
 

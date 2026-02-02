@@ -4,6 +4,7 @@ import React from 'react'
 import { createClient } from '@/app/shared/core/client'
 import { useOptionalTenantContext } from '@/app/[tenant]/tenant-context'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
+import { PageShell } from '@/components/layout/page-shell'
 import { Flashcard, Curso, Disciplina, Frente, Modulo } from './types'
 import * as flashcardsService from './actions'
 import { ModeSelector } from './components/mode-selector'
@@ -324,14 +325,25 @@ export default function FlashcardsClient() {
     // Se está carregando inicial ou vazio
     if (loading && cards.length === 0) {
         return (
-            <div className="flex h-64 items-center justify-center">
-                <span className="loading loading-spinner text-primary">Carregando...</span>
-            </div>
+            <PageShell
+                title="Flashcards"
+                subtitle="Estude de forma inteligente com repetição espaçada"
+            >
+                <div className="flex h-64 items-center justify-center">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        <p className="text-sm text-muted-foreground">Carregando flashcards...</p>
+                    </div>
+                </div>
+            </PageShell>
         )
     }
 
     return (
-        <div className="space-y-6">
+        <PageShell
+            title="Flashcards"
+            subtitle="Estude de forma inteligente com repetição espaçada"
+        >
             <ModeSelector
                 modo={modo}
                 scope={scope}
@@ -360,10 +372,13 @@ export default function FlashcardsClient() {
             )}
 
             {error && (
-                <div className="p-4 text-red-500 bg-red-100 rounded-md">
+                <div className="flex items-center gap-3 p-4 text-sm rounded-lg border border-destructive/30 bg-destructive/5 text-destructive">
+                    <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
                     {error}
                 </div>
             )}
-        </div>
+        </PageShell>
     )
 }

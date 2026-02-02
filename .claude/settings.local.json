@@ -138,7 +138,9 @@
       "mcp__playwright__browser_snapshot",
       "Bash(python3:*)",
       "Bash(set PYTHONIOENCODING=utf-8:*)",
-      "Bash(PYTHONIOENCODING=utf-8 python3:*)"
+      "Bash(PYTHONIOENCODING=utf-8 python3:*)",
+      "Bash(cmd /c \"set PYTHONIOENCODING=utf-8 && python .claude/skills/ui-ux-pro-max/scripts/search.py \"education student study platform dashboard sidebar\" --design-system -p \"Area do Aluno\"\")",
+      "Bash(PYTHONIOENCODING=utf-8 python:*)"
     ],
     "deny": [],
     "ask": []

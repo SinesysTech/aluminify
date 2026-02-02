@@ -1,10 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/app/shared/components/forms/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/shared/components/forms/select'
-import { Target } from 'lucide-react'
+import { Target, Layers, BookOpen, FolderOpen } from 'lucide-react'
 import { Curso, Disciplina, Frente, Modulo } from '../types'
 
 interface FiltersProps {
@@ -44,34 +44,42 @@ export function Filters({
     isLoadingFiltros = false
 }: FiltersProps) {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Selecionar Flashcards
-                </CardTitle>
-                <CardDescription>
-                    Escolha o curso, disciplina, frente e módulo para revisar flashcards específicos
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-4">
+                {/* Section header */}
+                <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                        <Target className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                        <h2 className="text-sm font-semibold">Selecionar flashcards</h2>
+                        <p className="text-xs text-muted-foreground">
+                            Escolha o curso, disciplina, frente e módulo para revisar
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
                     {/* Curso */}
-                    <div className="space-y-2">
-                        <Label>Curso *</Label>
+                    <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Layers className="h-3 w-3 text-muted-foreground" />
+                            Curso
+                            <span className="text-[10px] text-primary font-normal">(obrigatório)</span>
+                        </Label>
                         <Select
                             value={cursoSelecionado}
                             onValueChange={onCursoChange}
                             disabled={isLoadingFiltros || isLoadingCursos}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10">
                                 <SelectValue
                                     placeholder={
                                         isLoadingCursos
-                                            ? 'Carregando cursos...'
+                                            ? 'Carregando...'
                                             : cursos.length === 0
                                                 ? 'Nenhum curso disponível'
-                                                : 'Selecione um curso'
+                                                : 'Selecione o curso'
                                     }
                                 />
                             </SelectTrigger>
@@ -96,21 +104,25 @@ export function Filters({
                     </div>
 
                     {/* Disciplina */}
-                    <div className="space-y-2">
-                        <Label>Disciplina *</Label>
+                    <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 text-xs font-medium">
+                            <BookOpen className="h-3 w-3 text-muted-foreground" />
+                            Disciplina
+                            <span className="text-[10px] text-primary font-normal">(obrigatório)</span>
+                        </Label>
                         <Select
                             value={disciplinaSelecionada}
                             onValueChange={onDisciplinaChange}
                             disabled={!cursoSelecionado || isLoadingFiltros}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10">
                                 <SelectValue
                                     placeholder={
                                         isLoadingFiltros
                                             ? 'Carregando...'
                                             : !cursoSelecionado
                                                 ? 'Selecione um curso primeiro'
-                                                : 'Selecione uma disciplina'
+                                                : 'Selecione a disciplina'
                                     }
                                 />
                             </SelectTrigger>
@@ -131,21 +143,25 @@ export function Filters({
                     </div>
 
                     {/* Frente */}
-                    <div className="space-y-2">
-                        <Label>Frente *</Label>
+                    <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 text-xs font-medium">
+                            <FolderOpen className="h-3 w-3 text-muted-foreground" />
+                            Frente
+                            <span className="text-[10px] text-primary font-normal">(obrigatório)</span>
+                        </Label>
                         <Select
                             value={frenteSelecionada}
                             onValueChange={onFrenteChange}
                             disabled={!disciplinaSelecionada || !cursoSelecionado || isLoadingFiltros}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10">
                                 <SelectValue
                                     placeholder={
                                         isLoadingFiltros
                                             ? 'Carregando...'
                                             : !disciplinaSelecionada
                                                 ? 'Selecione uma disciplina primeiro'
-                                                : 'Selecione uma frente'
+                                                : 'Selecione a frente'
                                     }
                                 />
                             </SelectTrigger>
@@ -166,21 +182,25 @@ export function Filters({
                     </div>
 
                     {/* Módulo */}
-                    <div className="space-y-2">
-                        <Label>Módulo *</Label>
+                    <div className="space-y-1.5">
+                        <Label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Layers className="h-3 w-3 text-muted-foreground" />
+                            Módulo
+                            <span className="text-[10px] text-primary font-normal">(obrigatório)</span>
+                        </Label>
                         <Select
                             value={moduloSelecionado}
                             onValueChange={onModuloChange}
                             disabled={!frenteSelecionada || !cursoSelecionado || isLoadingFiltros}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10">
                                 <SelectValue
                                     placeholder={
                                         isLoadingFiltros
                                             ? 'Carregando...'
                                             : !frenteSelecionada
                                                 ? 'Selecione uma frente primeiro'
-                                                : 'Selecione um módulo'
+                                                : 'Selecione o módulo'
                                     }
                                 />
                             </SelectTrigger>
