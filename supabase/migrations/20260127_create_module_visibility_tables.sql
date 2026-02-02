@@ -72,7 +72,7 @@ insert into public.module_definitions (id, name, description, icon_name, default
     ('dashboard', 'Dashboard', 'Painel principal com resumo das atividades', 'LayoutDashboard', '/dashboard', 1, true),
     ('estudos', 'Estudos', 'Sala de estudos com materiais e atividades', 'BookOpen', '/sala-de-estudos', 2, false),
     ('cronograma', 'Cronograma', 'Planejamento e cronograma de estudos', 'CalendarCheck', '/cronograma', 3, false),
-    ('agendamentos', 'Agendamentos', 'Sistema de agendamentos e mentorias', 'Calendar', '/agendamentos', 4, false),
+    ('agendamentos', 'Agendamentos', 'Sistema de agendamentos e atendimentos', 'Calendar', '/agendamentos', 4, false),
     ('agente', 'Assistente', 'Assistente de IA para estudos', 'MessageSquare', '/agente', 5, false)
 on conflict (id) do nothing;
 

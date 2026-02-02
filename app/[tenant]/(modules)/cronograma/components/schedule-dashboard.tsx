@@ -7,9 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/app/shared/components/feedback/progress'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/app/shared/components/feedback/skeleton'
 import { ScheduleList } from './schedule-list'
-import { Download } from 'lucide-react'
+import { Download, Clock, BookOpen, Target, CalendarDays, FileText, FileSpreadsheet } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { format, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 
@@ -792,20 +794,25 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     <div className="container mx-auto py-4 md:py-6 space-y-4 md:space-y-6 px-2 md:px-4">
       {/* Header com Resumo */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
+            <div className="space-y-1">
               <CardTitle className="text-lg md:text-xl">{cronograma.nome || 'Meu Cronograma'}</CardTitle>
-              <CardDescription className="text-xs md:text-sm">
-                Semana: {semanaAtual} de {totalSemanas} |{' '}
-                {format(new Date(cronograma.data_inicio), "dd 'de' MMMM", { locale: ptBR })} -{' '}
-                {format(new Date(cronograma.data_fim), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              <CardDescription className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+                <Badge variant="secondary" className="text-xs">
+                  Semana {semanaAtual} de {totalSemanas}
+                </Badge>
+                <span>
+                  {format(new Date(cronograma.data_inicio), "dd 'de' MMMM", { locale: ptBR })} -{' '}
+                  {format(new Date(cronograma.data_fim), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </span>
               </CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto"
+                size="sm"
+                className="flex-1 sm:flex-initial"
                 onClick={async () => {
                   try {
                     const supabase = createClient()
@@ -837,13 +844,13 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   }
                 }}
               >
-                <Download className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Exportar PDF</span>
-                <span className="sm:hidden">PDF</span>
+                <FileText className="mr-1.5 h-4 w-4" />
+                PDF
               </Button>
               <Button
                 variant="outline"
-                className="w-full sm:w-auto"
+                size="sm"
+                className="flex-1 sm:flex-initial"
                 onClick={async () => {
                   try {
                     const supabase = createClient()
@@ -875,23 +882,44 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   }
                 }}
               >
-                <Download className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Exportar XLSX</span>
-                <span className="sm:hidden">XLSX</span>
+                <FileSpreadsheet className="mr-1.5 h-4 w-4" />
+                XLSX
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progresso Geral</span>
-              <span>{itensConcluidos} de {totalItens} aulas concluídas</span>
+        <CardContent className="space-y-4">
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl bg-muted/50 p-3 text-center">
+              <div className="text-2xl font-bold text-primary">{semanaAtual}</div>
+              <div className="text-[11px] text-muted-foreground">Semana atual</div>
             </div>
+            <div className="rounded-xl bg-muted/50 p-3 text-center">
+              <div className="text-2xl font-bold">
+                {itensConcluidos}
+                <span className="text-base font-normal text-muted-foreground">/{totalItens}</span>
+              </div>
+              <div className="text-[11px] text-muted-foreground">Aulas concluídas</div>
+            </div>
+            <div className="rounded-xl bg-muted/50 p-3 text-center">
+              <div className={cn(
+                'text-2xl font-bold',
+                progressoPercentual >= 100 ? 'text-primary' : 'text-foreground',
+              )}>
+                {progressoPercentual.toFixed(1)}%
+              </div>
+              <div className="text-[11px] text-muted-foreground">Progresso</div>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="space-y-1.5">
             <Progress value={progressoPercentual} />
-            <p className="text-xs text-muted-foreground">
-              {progressoPercentual.toFixed(1)}% completo
-            </p>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{itensConcluidos} de {totalItens} aulas</span>
+              <span>{progressoPercentual.toFixed(1)}% completo</span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -899,108 +927,143 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
       {/* Card de Resumo das Configurações */}
       <Card>
         <CardHeader>
-          <CardTitle>Resumo da Configuração</CardTitle>
-          <Separator className="mt-2" />
+          <CardTitle className="text-base">Resumo da Configuração</CardTitle>
+          <CardDescription>Detalhes do seu cronograma de estudos</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Período:</span>
-            <span>
-              {format(new Date(cronograma.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {' '}
-              {format(new Date(cronograma.data_fim), "dd/MM/yyyy", { locale: ptBR })}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Dias por semana:</span>
-            <span>{cronograma.dias_estudo_semana}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Horas por dia:</span>
-            <span>{cronograma.horas_estudo_dia}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Total de semanas disponibilizadas:</span>
-            <span>
-              {calcularSemanasDisponibilizadas(
-                cronograma.data_inicio,
-                cronograma.data_fim,
-                cronograma.periodos_ferias || []
-              )}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Total de semanas do cronograma:</span>
-            <span>{semanasComAulas}</span>
-          </div>
-          <Separator />
-          {curso && (
-            <>
+        <CardContent className="space-y-5 text-sm">
+          {/* Período e Rotina */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-foreground">
+              <Clock className="h-4 w-4 text-primary" />
+              <span>Período e Rotina</span>
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3 space-y-2">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Curso:</span>
-                <span className="font-medium">{curso.nome}</span>
+                <span className="text-muted-foreground">Período</span>
+                <span className="font-medium">
+                  {format(new Date(cronograma.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {' '}
+                  {format(new Date(cronograma.data_fim), "dd/MM/yyyy", { locale: ptBR })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Dias por semana</span>
+                <span className="font-medium">{cronograma.dias_estudo_semana}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Horas por dia</span>
+                <span className="font-medium">{cronograma.horas_estudo_dia}</span>
               </div>
               <Separator />
-            </>
-          )}
-          {disciplinas.length > 0 && (
-            <>
-              {disciplinas.map((disciplina) => {
-                // Calcular horas totais da disciplina baseado nos itens do cronograma
-                let horasTotais = 0
-                if (cronograma?.cronograma_itens) {
-                  cronograma.cronograma_itens.forEach((item) => {
-                    const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id
-                    if (disciplinaId === disciplina.id && item.aulas?.tempo_estimado_minutos) {
-                      horasTotais += item.aulas.tempo_estimado_minutos
-                    }
-                  })
-                }
-                return (
-                  <div key={disciplina.id} className="flex justify-between">
-                    <span className="text-muted-foreground">{disciplina.nome}:</span>
-                    <span>{horasTotais > 0 ? formatHorasFromMinutes(horasTotais) : '--'}</span>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Semanas disponíveis</span>
+                <span className="font-medium">
+                  {calcularSemanasDisponibilizadas(
+                    cronograma.data_inicio,
+                    cronograma.data_fim,
+                    cronograma.periodos_ferias || []
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Semanas do cronograma</span>
+                <span className="font-medium text-primary">{semanasComAulas}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Curso e Disciplinas */}
+          {(curso || disciplinas.length > 0) && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <BookOpen className="h-4 w-4 text-primary" />
+                <span>Curso e Disciplinas</span>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+                {curso && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Curso</span>
+                    <span className="font-medium">{curso.nome}</span>
                   </div>
-                )
-              })}
-            </>
-          )}
-          <Separator />
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Modalidade:</span>
-            <span>
-              {{
-                1: 'Super Extensivo',
-                2: 'Extensivo',
-                3: 'Semi Extensivo',
-                4: 'Intensivo',
-                5: 'Superintensivo',
-              }[cronograma.prioridade_minima || 2] || 'Não definida'}
-            </span>
-          </div>
-          <Separator />
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Tipo de Estudo:</span>
-            <span className="capitalize">
-              {cronograma.modalidade_estudo === 'paralelo' ? 'Frentes em Paralelo' : 'Estudo Sequencial'}
-            </span>
-          </div>
-          <Separator />
-          {cronograma.velocidade_reproducao && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Velocidade de Reprodução:</span>
-              <span>{cronograma.velocidade_reproducao.toFixed(2)}x</span>
+                )}
+                {disciplinas.length > 0 && (
+                  <>
+                    {curso && <Separator />}
+                    {disciplinas.map((disciplina) => {
+                      let horasTotais = 0
+                      if (cronograma?.cronograma_itens) {
+                        cronograma.cronograma_itens.forEach((item) => {
+                          const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id
+                          if (disciplinaId === disciplina.id && item.aulas?.tempo_estimado_minutos) {
+                            horasTotais += item.aulas.tempo_estimado_minutos
+                          }
+                        })
+                      }
+                      return (
+                        <div key={disciplina.id} className="flex justify-between">
+                          <span className="text-muted-foreground">{disciplina.nome}</span>
+                          <span className="font-medium">{horasTotais > 0 ? formatHorasFromMinutes(horasTotais) : '--'}</span>
+                        </div>
+                      )
+                    })}
+                  </>
+                )}
+              </div>
             </div>
           )}
+
+          {/* Estratégia */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-foreground">
+              <Target className="h-4 w-4 text-primary" />
+              <span>Estratégia</span>
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Modalidade</span>
+                <Badge variant="secondary" className="text-xs font-medium">
+                  {{
+                    1: 'Super Extensivo',
+                    2: 'Extensivo',
+                    3: 'Semi Extensivo',
+                    4: 'Intensivo',
+                    5: 'Superintensivo',
+                  }[cronograma.prioridade_minima || 2] || 'Não definida'}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tipo de Estudo</span>
+                <Badge variant="secondary" className="text-xs font-medium">
+                  {cronograma.modalidade_estudo === 'paralelo' ? 'Frentes em Paralelo' : 'Estudo Sequencial'}
+                </Badge>
+              </div>
+              {cronograma.velocidade_reproducao && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Velocidade</span>
+                  <Badge variant="secondary" className="text-xs font-medium">
+                    {cronograma.velocidade_reproducao.toFixed(2)}x
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Pausas e Recessos */}
           {cronograma.periodos_ferias && cronograma.periodos_ferias.length > 0 && (
-            <div className="space-y-1 pt-2">
-              <span className="text-muted-foreground">Pausas e Recessos:</span>
-              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <CalendarDays className="h-4 w-4 text-primary" />
+                <span>Pausas e Recessos</span>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
                 {cronograma.periodos_ferias.map((periodo, index) => (
-                  <li key={index}>
-                    {formatDateSafe(periodo.inicio)} - {formatDateSafe(periodo.fim)}
-                  </li>
+                  <div key={index} className="flex items-center gap-2 text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <span>
+                      {formatDateSafe(periodo.inicio)} - {formatDateSafe(periodo.fim)}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </CardContent>

@@ -581,7 +581,7 @@ Esta e a **tabela principal de enrollment**. Determina quais cursos (e, conseque
 
 ## 7. Agendamentos
 
-Sistema de agendamento de plantoes e mentorias entre professor e aluno.
+Sistema de agendamento de plantões e atendimentos entre professor e aluno.
 
 ### 7.1 Tabela: `agendamentos` (16 colunas)
 

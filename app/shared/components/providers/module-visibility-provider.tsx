@@ -86,24 +86,30 @@ export function ModuleVisibilityProvider({
 
       if (!response.ok) {
         if (response.status === 404) {
-          // No configuration exists - use empty array (will fallback to defaults)
           setModules([]);
           return;
         }
         if (response.status === 401) {
-          // User logged out - return gracefully without error
           setModules([]);
           return;
         }
-        throw new Error(`Failed to fetch module visibility: ${response.statusText}`);
+        let errorDetail = response.statusText;
+        try {
+          const body = await response.json();
+          if (body?.message) errorDetail = body.message;
+          else if (body?.error) errorDetail = body.error;
+        } catch {
+          // ignore
+        }
+        throw new Error(`Failed to fetch module visibility: ${errorDetail}`);
       }
 
       const data = await response.json();
 
-      if (data.success && Array.isArray(data.modules)) {
+      if (data?.success && Array.isArray(data.modules)) {
         setModules(data.modules);
       } else {
-        // No configuration - will use defaults in sidebar
+        // No configuration or invalid shape - will use defaults in sidebar
         setModules([]);
       }
     } catch (err) {
@@ -125,7 +131,7 @@ export function ModuleVisibilityProvider({
 
   const contextValue = useMemo(
     () => ({
-      modules,
+      modules: Array.isArray(modules) ? modules : [],
       loading,
       error,
       refresh: fetchModules,

@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/accordion'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { ChevronDownIcon } from 'lucide-react'
-import { RadioGroup, RadioGroupItem } from '@/app/shared/components/forms/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/feedback/alert'
 import {
@@ -35,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/app/shared/components/ui/alert-dialog'
-import { Loader2, X, AlertCircle, Info } from 'lucide-react'
+import { Loader2, X, AlertCircle, Info, Check, BookOpen, Star, Target, Zap, Rocket, Clock, LayoutGrid, ListOrdered, CalendarDays } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 import { cn } from '@/lib/utils'
@@ -118,6 +117,14 @@ const MODALIDADES = [
     tempo: '⏱️ Tiro rápido é o conteúdo mínimo viável para a prova.'
   },
 ]
+
+const MODALIDADE_ICONS: Record<number, React.ElementType> = {
+  1: BookOpen,
+  2: Star,
+  3: Target,
+  4: Zap,
+  5: Rocket,
+}
 
 const TEMPO_PADRAO_MINUTOS = 10
 const FATOR_MULTIPLICADOR = 1.5
@@ -1340,42 +1347,54 @@ export function ScheduleWizard() {
   return (
     <div className="container mx-auto py-6 max-w-4xl">
       <Card className="overflow-hidden">
-        <CardHeader className="space-y-4">
-          <div>
-            <CardTitle>Criar Cronograma de Estudos</CardTitle>
+        <CardHeader className="space-y-6">
+          <div className="space-y-1">
+            <CardTitle className="text-xl">Criar Cronograma de Estudos</CardTitle>
             <CardDescription>
-              Configure seu plano de estudos personalizado em {STEPS.length} passos
+              Passo {currentStep} de {STEPS.length} &mdash; {STEPS[currentStep - 1].title}
             </CardDescription>
           </div>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-            {STEPS.map((step) => {
+          <div className="flex items-center justify-between">
+            {STEPS.map((step, index) => {
               const completed = currentStep > step.id
               const active = currentStep === step.id
               return (
-                <div
-                  key={step.id}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg border p-3 text-sm transition',
-                    completed
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-100'
-                      : active
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border',
-                  )}
-                >
-                  <Checkbox
-                    checked={completed}
-                    disabled
-                    className={cn(
-                      'pointer-events-none',
-                      active && !completed && 'data-[state=unchecked]:border-primary',
-                    )}
-                  />
-                  <div className="space-y-1">
-                    <p className={cn('text-xs', completed ? 'text-foreground' : 'text-muted-foreground')}>Passo {step.id}</p>
-                    <p className={cn('font-medium', active && 'text-primary', completed && 'text-foreground')}>{step.title}</p>
+                <React.Fragment key={step.id}>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200',
+                        completed
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : active
+                            ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 shadow-sm'
+                            : 'bg-muted text-muted-foreground',
+                      )}
+                    >
+                      {completed ? <Check className="h-4 w-4" /> : step.id}
+                    </div>
+                    <span
+                      className={cn(
+                        'text-xs text-center max-w-[80px] leading-tight hidden sm:block',
+                        active ? 'font-semibold text-foreground' : completed ? 'font-medium text-foreground' : 'text-muted-foreground',
+                      )}
+                    >
+                      {step.title}
+                    </span>
                   </div>
-                </div>
+                  {index < STEPS.length - 1 && (
+                    <div
+                      className={cn(
+                        'h-0.5 flex-1 mx-1 sm:mx-2 rounded-full transition-all duration-300',
+                        currentStep > step.id + 1
+                          ? 'bg-primary'
+                          : currentStep > step.id
+                            ? 'bg-gradient-to-r from-primary to-muted'
+                            : 'bg-muted',
+                      )}
+                    />
+                  )}
+                </React.Fragment>
               )
             })}
           </div>
@@ -1831,57 +1850,81 @@ export function ScheduleWizard() {
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Label>Modalidade</Label>
-                  {/* Primeiros 3 cards em grid de 3 colunas */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {MODALIDADES.slice(0, 3).map(({ nivel, label, descricao, texto, tempo }) => (
-                      <Card
-                        key={nivel}
-                        className={cn(
-                          "cursor-pointer transition-colors h-full",
-                          form.watch('prioridade_minima') === nivel
-                            ? "border-primary bg-primary/5"
-                            : "hover:bg-muted"
-                        )}
-                        onClick={() => form.setValue('prioridade_minima', nivel)}
-                      >
-                        <CardContent className="p-5 space-y-3">
-                          <div className="text-center space-y-1.5 border-b border-border pb-3">
-                            <div className="font-bold text-lg text-foreground">{label}</div>
-                            <div className="text-sm font-semibold text-primary">({descricao})</div>
-                          </div>
-                          <div className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                            <p>{texto}</p>
-                            <p className="font-semibold text-primary">{tempo}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                  {/* Últimos 2 cards centralizados */}
-                  <div className="flex justify-center gap-4 flex-wrap items-stretch">
-                    {MODALIDADES.slice(3).map(({ nivel, label, descricao, texto, tempo }) => (
-                      <Card
-                        key={nivel}
-                        className={cn(
-                          "cursor-pointer transition-colors w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] flex flex-col",
-                          form.watch('prioridade_minima') === nivel
-                            ? "border-primary bg-primary/5"
-                            : "hover:bg-muted"
-                        )}
-                        onClick={() => form.setValue('prioridade_minima', nivel)}
-                      >
-                        <CardContent className="p-5 flex flex-col flex-1">
-                          <div className="text-center space-y-1.5 border-b border-border pb-3 shrink-0">
-                            <div className="font-bold text-lg text-foreground">{label}</div>
-                            <div className="text-sm font-semibold text-primary">({descricao})</div>
-                          </div>
-                          <div className="flex flex-col flex-1 space-y-2.5 text-sm text-muted-foreground leading-relaxed pt-3">
-                            <p className="flex-1">{texto}</p>
-                            <p className="font-semibold text-primary mt-auto pt-2">{tempo}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {MODALIDADES.map(({ nivel, label, descricao, texto, tempo }) => {
+                      const Icon = MODALIDADE_ICONS[nivel]
+                      const selected = form.watch('prioridade_minima') === nivel
+                      const abrangencia = 6 - nivel
+                      return (
+                        <Card
+                          key={nivel}
+                          className={cn(
+                            'cursor-pointer transition-all duration-200 relative group flex flex-col',
+                            'w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]',
+                            selected
+                              ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
+                              : 'hover:bg-muted/50 hover:shadow-sm',
+                          )}
+                          onClick={() => form.setValue('prioridade_minima', nivel)}
+                        >
+                          {selected && (
+                            <div className="absolute top-3 right-3">
+                              <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                                <Check className="h-3 w-3 text-primary-foreground" />
+                              </div>
+                            </div>
+                          )}
+                          <CardContent className="p-5 space-y-4 flex flex-col flex-1">
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={cn(
+                                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
+                                  selected
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
+                                )}
+                              >
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <div className="space-y-0.5 min-w-0">
+                                <div className="font-bold text-base text-foreground leading-tight">{label}</div>
+                                <div className="text-xs font-medium text-primary">{descricao}</div>
+                              </div>
+                              {nivel === 2 && (
+                                <Badge variant="secondary" className="ml-auto shrink-0 text-[10px] px-1.5 py-0">
+                                  Popular
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Abrangência meter */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                Abrangência
+                              </span>
+                              <div className="flex gap-1">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <div
+                                    key={i}
+                                    className={cn(
+                                      'h-1.5 flex-1 rounded-full transition-colors',
+                                      i < abrangencia ? 'bg-primary' : 'bg-muted',
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground leading-relaxed flex-1">{texto}</p>
+
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-primary pt-1">
+                              <Clock className="h-3.5 w-3.5 shrink-0" />
+                              <span>{tempo.replace('⏱️ ', '')}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -1892,68 +1935,115 @@ export function ScheduleWizard() {
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Label>Tipo de Estudo</Label>
-                  <RadioGroup
-                    value={form.watch('modalidade')}
-                    onValueChange={(value) => form.setValue('modalidade', value as 'paralelo' | 'sequencial')}
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="paralelo" id="paralelo" />
-                        <Label htmlFor="paralelo" className="font-semibold cursor-pointer">
-                          Frentes em Paralelo
-                        </Label>
-                      </div>
-                      <p className="text-sm text-muted-foreground pl-6">
-                        Toda semana você estuda todas as disciplinas e todas as frentes, com uma distribuição equilibrada para concluir tudo próximo do fim do período.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sequencial" id="sequencial" />
-                        <Label htmlFor="sequencial" className="font-semibold cursor-pointer">
-                          Estudo Sequencial (Para os mais tradicionais)
-                        </Label>
-                      </div>
-                      <p className="text-sm text-muted-foreground pl-6">
-                        Toda semana você estuda 1 frente de cada disciplina. Quando a frente de uma disciplina terminar, na semana seguinte você passa para a próxima frente daquela disciplina.
-                      </p>
-                    </div>
-                  </RadioGroup>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {([
+                      {
+                        value: 'paralelo' as const,
+                        label: 'Frentes em Paralelo',
+                        icon: LayoutGrid,
+                        description: 'Toda semana você estuda todas as disciplinas e todas as frentes, com uma distribuição equilibrada para concluir tudo próximo do fim do período.',
+                        badge: 'Recomendado',
+                      },
+                      {
+                        value: 'sequencial' as const,
+                        label: 'Estudo Sequencial',
+                        icon: ListOrdered,
+                        description: 'Toda semana você estuda 1 frente de cada disciplina. Quando a frente de uma disciplina terminar, na semana seguinte você passa para a próxima frente daquela disciplina.',
+                        badge: 'Tradicional',
+                      },
+                    ] as const).map(({ value, label, icon: Icon, description, badge }) => {
+                      const selected = form.watch('modalidade') === value
+                      return (
+                        <Card
+                          key={value}
+                          className={cn(
+                            'cursor-pointer transition-all duration-200 relative group',
+                            selected
+                              ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
+                              : 'hover:bg-muted/50 hover:shadow-sm',
+                          )}
+                          onClick={() => form.setValue('modalidade', value)}
+                        >
+                          {selected && (
+                            <div className="absolute top-3 right-3">
+                              <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                                <Check className="h-3 w-3 text-primary-foreground" />
+                              </div>
+                            </div>
+                          )}
+                          <CardContent className="p-5 space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={cn(
+                                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
+                                  selected
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
+                                )}
+                              >
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <div className="space-y-0.5">
+                                <div className="font-bold text-base text-foreground leading-tight">{label}</div>
+                                <Badge
+                                  variant={value === 'paralelo' ? 'default' : 'secondary'}
+                                  className={cn(
+                                    'text-[10px] px-1.5 py-0',
+                                    value === 'paralelo' && 'bg-primary text-primary-foreground',
+                                  )}
+                                >
+                                  {badge}
+                                </Badge>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 <Separator />
 
                 <div className="space-y-4">
                   <Label>Em qual velocidade você assiste as aulas?</Label>
-                  <RadioGroup
-                    value={(form.watch('velocidade_reproducao') ?? 1.0).toFixed(2)}
-                    onValueChange={(value) => form.setValue('velocidade_reproducao', Number(value))}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="1.00" id="velocidade-1.00" />
-                      <Label htmlFor="velocidade-1.00" className="font-normal cursor-pointer">
-                        1,00 x (ideal)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="1.25" id="velocidade-1.25" />
-                      <Label htmlFor="velocidade-1.25" className="font-normal cursor-pointer">
-                        1,25 x (até que vai...)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="1.50" id="velocidade-1.50" />
-                      <Label htmlFor="velocidade-1.50" className="font-normal cursor-pointer">
-                        1,50 x (não recomendo, mas você que sabe...)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="2.00" id="velocidade-2.00" />
-                      <Label htmlFor="velocidade-2.00" className="font-normal cursor-pointer">
-                        2,00 x (ver rápido pra ver duas vezes, né?)
-                      </Label>
-                    </div>
-                  </RadioGroup>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {([
+                      { value: '1.00', display: '1,00x', subtitle: 'Ideal' },
+                      { value: '1.25', display: '1,25x', subtitle: 'Até que vai...' },
+                      { value: '1.50', display: '1,50x', subtitle: 'Não recomendo...' },
+                      { value: '2.00', display: '2,00x', subtitle: 'Você pirou?' },
+                    ]).map(({ value, display, subtitle }) => {
+                      const selected = (form.watch('velocidade_reproducao') ?? 1.0).toFixed(2) === value
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          className={cn(
+                            'rounded-xl border p-4 text-center transition-all duration-200 relative',
+                            selected
+                              ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
+                              : 'hover:bg-muted/50 hover:shadow-sm',
+                          )}
+                          onClick={() => form.setValue('velocidade_reproducao', Number(value))}
+                        >
+                          {value === '1.00' && (
+                            <Badge variant="secondary" className="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] px-1.5 py-0">
+                              Ideal
+                            </Badge>
+                          )}
+                          <div className={cn(
+                            'text-xl font-bold transition-colors',
+                            selected ? 'text-primary' : 'text-foreground',
+                          )}>
+                            {display}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-1">{subtitle}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 <Separator />
@@ -1976,7 +2066,7 @@ export function ScheduleWizard() {
                       ) : modalidadeStatsError ? (
                         <p className="text-destructive text-sm py-4">{modalidadeStatsError}</p>
                       ) : (
-                        <div className="grid grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                           {MODALIDADES.map(({ nivel, label }) => {
                             const stats = modalidadeStats[nivel]
                             if (!stats) return null
@@ -1986,17 +2076,44 @@ export function ScheduleWizard() {
                             const tempoAulaAjustado = stats.tempoAulaMinutos / velocidade
                             // Tempo de estudo = tempo de aula ajustado * (FATOR_MULTIPLICADOR - 1)
                             const tempoEstudoAjustado = tempoAulaAjustado * (FATOR_MULTIPLICADOR - 1)
+                            const isSelected = form.watch('prioridade_minima') === nivel
+                            const Icon = MODALIDADE_ICONS[nivel]
 
                             return (
-                              <Card key={nivel} className="p-3">
+                              <Card
+                                key={nivel}
+                                className={cn(
+                                  'p-3 transition-all duration-200',
+                                  isSelected && 'border-primary bg-primary/5 ring-1 ring-primary/20',
+                                )}
+                              >
                                 <div className="text-center space-y-2">
-                                  <div className="font-bold text-xs">{label}</div>
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <Icon className={cn(
+                                      'h-3.5 w-3.5',
+                                      isSelected ? 'text-primary' : 'text-muted-foreground',
+                                    )} />
+                                    <div className={cn(
+                                      'font-bold text-xs',
+                                      isSelected && 'text-primary',
+                                    )}>
+                                      {label}
+                                    </div>
+                                  </div>
+                                  {isSelected && (
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                      Selecionada
+                                    </Badge>
+                                  )}
                                   <div className="space-y-1 text-xs">
                                     <div>
                                       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                                         Tempo de aula
                                       </p>
-                                      <p className="text-sm font-semibold">
+                                      <p className={cn(
+                                        'text-sm font-semibold',
+                                        isSelected && 'text-primary',
+                                      )}>
                                         {formatHorasFromMinutes(tempoAulaAjustado)}
                                       </p>
                                     </div>
@@ -2004,7 +2121,10 @@ export function ScheduleWizard() {
                                       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                                         Tempo de estudo
                                       </p>
-                                      <p className="text-sm font-semibold">
+                                      <p className={cn(
+                                        'text-sm font-semibold',
+                                        isSelected && 'text-primary',
+                                      )}>
                                         {formatHorasFromMinutes(Math.round(tempoEstudoAjustado))}
                                       </p>
                                     </div>
@@ -2057,119 +2177,154 @@ export function ScheduleWizard() {
 
                 <Card className="overflow-hidden">
                   <CardHeader>
-                    <CardTitle>Resumo da Configuração</CardTitle>
-                    <Separator className="mt-2" />
+                    <CardTitle className="text-base">Resumo da Configuração</CardTitle>
+                    <CardDescription>Confira os dados antes de gerar seu cronograma</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Período:</span>
-                      <span>
-                        {form.watch('data_inicio') ? format(form.watch('data_inicio')!, "dd/MM/yyyy", { locale: ptBR }) : '--'} - {' '}
-                        {form.watch('data_fim') ? format(form.watch('data_fim')!, "dd/MM/yyyy", { locale: ptBR }) : '--'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Dias por semana:</span>
-                      <span>{form.watch('dias_semana')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Horas por dia:</span>
-                      <span>{form.watch('horas_dia')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total de semanas disponibilizadas:</span>
-                      <span>
-                        {calcularSemanasDisponibilizadas(
-                          form.watch('data_inicio'),
-                          form.watch('data_fim'),
-                          form.watch('ferias')
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total de semanas do cronograma:</span>
-                      <span>
-                        {calcularSemanasCronograma(
-                          modalidadeStats,
-                          form.watch('prioridade_minima'),
-                          form.watch('velocidade_reproducao') ?? 1.0,
-                          form.watch('horas_dia'),
-                          form.watch('dias_semana')
-                        )}
-                      </span>
-                    </div>
-                    <Separator />
-                    {cursoAtual?.nome && (
-                      <>
+                  <CardContent className="space-y-5 text-sm">
+                    {/* Período e Rotina */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 font-semibold text-foreground">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span>Período e Rotina</span>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 p-3 space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Curso:</span>
-                          <span className="font-medium">{cursoAtual.nome}</span>
+                          <span className="text-muted-foreground">Período</span>
+                          <span className="font-medium">
+                            {form.watch('data_inicio') ? format(form.watch('data_inicio')!, "dd/MM/yyyy", { locale: ptBR }) : '--'} - {' '}
+                            {form.watch('data_fim') ? format(form.watch('data_fim')!, "dd/MM/yyyy", { locale: ptBR }) : '--'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Dias por semana</span>
+                          <span className="font-medium">{form.watch('dias_semana')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Horas por dia</span>
+                          <span className="font-medium">{form.watch('horas_dia')}</span>
                         </div>
                         <Separator />
-                      </>
-                    )}
-                    {form.watch('disciplinas_ids').length === 0 ? (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Disciplinas:</span>
-                        <span className="text-muted-foreground">Nenhuma disciplina selecionada</span>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Semanas disponíveis</span>
+                          <span className="font-medium">
+                            {calcularSemanasDisponibilizadas(
+                              form.watch('data_inicio'),
+                              form.watch('data_fim'),
+                              form.watch('ferias')
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Semanas do cronograma</span>
+                          <span className="font-medium text-primary">
+                            {calcularSemanasCronograma(
+                              modalidadeStats,
+                              form.watch('prioridade_minima'),
+                              form.watch('velocidade_reproducao') ?? 1.0,
+                              form.watch('horas_dia'),
+                              form.watch('dias_semana')
+                            )}
+                          </span>
+                        </div>
                       </div>
-                    ) : (
-                      disciplinasDoCurso
-                        .filter((d) => form.watch('disciplinas_ids').includes(d.id))
-                        .map((disciplina) => {
-                          // Calcular horas totais da disciplina baseado nos módulos selecionados
-                          const grupoDisciplina = modulosCursoAgrupadosPorDisciplina[disciplina.id]
-                          let horasTotais = 0
-                          if (grupoDisciplina) {
-                            grupoDisciplina.frentes.forEach((frente) => {
-                              frente.modulos.forEach((modulo) => {
-                                if (modulosSelecionados.includes(modulo.id)) {
-                                  horasTotais += modulo.tempoTotal || 0
+                    </div>
+
+                    {/* Curso e Disciplinas */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 font-semibold text-foreground">
+                        <BookOpen className="h-4 w-4 text-primary" />
+                        <span>Curso e Disciplinas</span>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+                        {cursoAtual?.nome && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Curso</span>
+                            <span className="font-medium">{cursoAtual.nome}</span>
+                          </div>
+                        )}
+                        {form.watch('disciplinas_ids').length === 0 ? (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Disciplinas</span>
+                            <span className="text-muted-foreground">Nenhuma selecionada</span>
+                          </div>
+                        ) : (
+                          <>
+                            {cursoAtual?.nome && <Separator />}
+                            {disciplinasDoCurso
+                              .filter((d) => form.watch('disciplinas_ids').includes(d.id))
+                              .map((disciplina) => {
+                                const grupoDisciplina = modulosCursoAgrupadosPorDisciplina[disciplina.id]
+                                let horasTotais = 0
+                                if (grupoDisciplina) {
+                                  grupoDisciplina.frentes.forEach((frente) => {
+                                    frente.modulos.forEach((modulo) => {
+                                      if (modulosSelecionados.includes(modulo.id)) {
+                                        horasTotais += modulo.tempoTotal || 0
+                                      }
+                                    })
+                                  })
                                 }
-                              })
-                            })
-                          }
-                          return (
-                            <div key={disciplina.id} className="flex justify-between">
-                              <span className="text-muted-foreground">{disciplina.nome}:</span>
-                              <span>{horasTotais > 0 ? formatHorasFromMinutes(horasTotais) : '--'}</span>
-                            </div>
-                          )
-                        })
-                    )}
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Modalidade:</span>
-                      <span>
-                        {{
-                          1: 'Super Extensivo',
-                          2: 'Extensivo',
-                          3: 'Semi Extensivo',
-                          4: 'Intensivo',
-                          5: 'Superintensivo',
-                        }[form.watch('prioridade_minima')] || 'Não definida'}
-                      </span>
+                                return (
+                                  <div key={disciplina.id} className="flex justify-between">
+                                    <span className="text-muted-foreground">{disciplina.nome}</span>
+                                    <span className="font-medium">{horasTotais > 0 ? formatHorasFromMinutes(horasTotais) : '--'}</span>
+                                  </div>
+                                )
+                              })}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tipo de Estudo:</span>
-                      <span className="capitalize">{form.watch('modalidade')}</span>
+
+                    {/* Estratégia */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 font-semibold text-foreground">
+                        <Target className="h-4 w-4 text-primary" />
+                        <span>Estratégia</span>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Modalidade</span>
+                          <Badge variant="secondary" className="text-xs font-medium">
+                            {{
+                              1: 'Super Extensivo',
+                              2: 'Extensivo',
+                              3: 'Semi Extensivo',
+                              4: 'Intensivo',
+                              5: 'Superintensivo',
+                            }[form.watch('prioridade_minima')] || 'Não definida'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Tipo de Estudo</span>
+                          <Badge variant="secondary" className="text-xs font-medium capitalize">
+                            {form.watch('modalidade')}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
-                    <Separator />
+
+                    {/* Pausas e Recessos */}
                     {form.watch('ferias').length > 0 && (
-                      <div className="space-y-1 pt-2">
-                        <span className="text-muted-foreground">Pausas e Recessos:</span>
-                        <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 font-semibold text-foreground">
+                          <CalendarDays className="h-4 w-4 text-primary" />
+                          <span>Pausas e Recessos</span>
+                        </div>
+                        <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
                           {form.watch('ferias').map((periodo, index) => {
                             if (!periodo.inicio || !periodo.fim) return null
                             return (
-                              <li key={index}>
-                                {format(periodo.inicio, "dd/MM/yyyy", { locale: ptBR })} -{' '}
-                                {format(periodo.fim, "dd/MM/yyyy", { locale: ptBR })}
-                              </li>
+                              <div key={index} className="flex items-center gap-2 text-muted-foreground">
+                                <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                                <span>
+                                  {format(periodo.inicio, "dd/MM/yyyy", { locale: ptBR })} -{' '}
+                                  {format(periodo.fim, "dd/MM/yyyy", { locale: ptBR })}
+                                </span>
+                              </div>
                             )
                           })}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -2178,22 +2333,28 @@ export function ScheduleWizard() {
               </div>
             )}
 
-            <div className="flex justify-between pt-4">
+            <Separator />
+            <div className="flex items-center justify-between pt-2">
               <Button
                 type="button"
                 variant="outline"
+                size="lg"
                 onClick={prevStep}
                 disabled={currentStep === 1}
               >
                 Anterior
               </Button>
+              <span className="text-xs text-muted-foreground hidden sm:block">
+                {currentStep} de {STEPS.length}
+              </span>
               {currentStep < STEPS.length ? (
-                <Button type="button" onClick={nextStep}>
+                <Button type="button" size="lg" onClick={nextStep}>
                   Próximo
                 </Button>
               ) : (
                 <Button
                   type="submit"
+                  size="lg"
                   disabled={loading || !form.watch('nome') || form.watch('nome')?.trim().length === 0}
                 >
                   {loading ? (

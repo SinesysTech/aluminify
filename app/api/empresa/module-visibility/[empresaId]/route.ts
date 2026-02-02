@@ -61,9 +61,15 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       modules,
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const details = error instanceof Error ? error.stack : String(error);
     console.error("Error fetching module visibility:", error);
+
     return NextResponse.json(
-      { error: "Failed to fetch module visibility" },
+      {
+        error: "Failed to fetch module visibility",
+        ...(process.env.NODE_ENV === "development" && { message, details }),
+      },
       { status: 500 },
     );
   }

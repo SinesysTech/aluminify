@@ -61,7 +61,7 @@ O calendário usa a mesma lógica da página de cronograma (ScheduleCalendarView
 
 ---
 
-### 5. Agendamentos (Calendário de mentoria)
+### 5. Agendamentos (Calendário de atendimentos)
 
 **Problema:**
 - `getAgendamentosAluno()` em `appointment-actions.ts` busca agendamentos **sem filtro empresa_id**

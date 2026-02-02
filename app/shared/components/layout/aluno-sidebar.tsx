@@ -129,7 +129,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     icon: Calendar,
   },
   {
-    title: "Agendar Mentoria",
+    title: "Agendar Atendimento",
     url: "/agendamentos",
     icon: CalendarPlus,
   },

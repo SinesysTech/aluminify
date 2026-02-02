@@ -66,7 +66,7 @@ O Aluminify é modular por design. Ative apenas o que você precisa.
 |--------|-----------|
 | **Curso** | Estrutura flexível: segmentos, disciplinas, módulos e aulas |
 | **Usuários** | Gestão de alunos, professores e equipe com RBAC granular |
-| **Agendamentos** | Mentorias individuais/grupo com sync de calendário |
+| **Agendamentos** | Atendimentos individuais/grupo com sync de calendário |
 | **Financeiro** | Vendas, transações, cupons e integrações de pagamento |
 | **Empresa** | Configurações do tenant, personalização e integrações |
 
@@ -156,7 +156,7 @@ app/
 │   │   ├── curso/          # Core acadêmico
 │   │   ├── flashcards/     # Revisão espaçada
 │   │   ├── cronograma/     # Plano de estudos
-│   │   ├── agendamentos/   # Mentorias e reuniões
+│   │   ├── agendamentos/   # Atendimentos e reuniões
 │   │   ├── biblioteca/     # Materiais de apoio
 │   │   ├── financeiro/     # Vendas e Transações
 │   │   ├── usuario/        # Gestão de Pessoas

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/app/shared/components/forms/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/shared/components/forms/select'
 import { Button } from '@/components/ui/button'
@@ -70,10 +70,6 @@ export function ContextSelector({
     const [showAdvanced, setShowAdvanced] = useState(false)
 
     // Get selected names for display
-    const _selectedCurso = useMemo(() =>
-        cursos.find(c => c.id === cursoId)?.nome || '',
-        [cursos, cursoId]
-    )
     const selectedDisciplina = useMemo(() =>
         disciplinas.find(d => d.id === disciplinaId)?.nome || '',
         [disciplinas, disciplinaId]
@@ -93,53 +89,54 @@ export function ContextSelector({
     }, [cursoId, disciplinaId, frenteId, moduloId, atividadeId])
 
     return (
-        <Card>
-            <CardHeader className="pb-1.5 pt-2.5 px-3">
+        <Card className="overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-4">
+                {/* Section header */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-primary" />
-                        <CardTitle className="text-sm font-medium">O que você vai estudar?</CardTitle>
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                            <BookOpen className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-semibold">O que você vai estudar?</h2>
+                            {disciplinaId && (
+                                <p className="text-xs text-muted-foreground">{selectedDisciplina}</p>
+                            )}
+                        </div>
                     </div>
-                    {disciplinaId && (
-                        <span className="text-xs text-muted-foreground">
-                            {selectedDisciplina}
-                        </span>
-                    )}
                 </div>
-            </CardHeader>
 
-            <CardContent className="space-y-2 pb-2.5 px-3">
                 {/* Quick Start Option */}
                 {hasValidLastContext && !disciplinaId && (
-                    <div className="p-2.5 rounded-md border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors">
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                                 <Sparkles className="h-4 w-4 text-primary" />
-                                <div>
-                                    <p className="text-sm font-medium">Continuar onde parou</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {lastContext?.cursoNome && `${lastContext.cursoNome} · `}
-                                        {lastContext?.disciplinaNome}
-                                    </p>
-                                </div>
                             </div>
-                            <Button
-                                variant="default"
-                                size="sm"
-                                onClick={onQuickStart}
-                                className="shrink-0 h-8 text-xs"
-                            >
-                                Usar
-                            </Button>
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium">Continuar onde parou</p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                    {lastContext?.cursoNome && `${lastContext.cursoNome} · `}
+                                    {lastContext?.disciplinaNome}
+                                </p>
+                            </div>
                         </div>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={onQuickStart}
+                            className="shrink-0 h-8 text-xs"
+                        >
+                            Usar
+                        </Button>
                     </div>
                 )}
 
                 {/* Primary selections - always visible */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Curso */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="curso" className="flex items-center gap-1.5 text-xs">
+                        <Label htmlFor="curso" className="flex items-center gap-1.5 text-xs font-medium">
                             <Layers className="h-3 w-3 text-muted-foreground" />
                             Curso
                         </Label>
@@ -148,7 +145,7 @@ export function ContextSelector({
                             onValueChange={onCursoChange}
                             disabled={loadingCursos}
                         >
-                            <SelectTrigger className="h-9">
+                            <SelectTrigger className="h-10">
                                 <SelectValue placeholder={loadingCursos ? 'Carregando...' : 'Selecione o curso'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -163,7 +160,7 @@ export function ContextSelector({
 
                     {/* Disciplina - Required */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="disciplina" className="flex items-center gap-1.5 text-xs">
+                        <Label htmlFor="disciplina" className="flex items-center gap-1.5 text-xs font-medium">
                             <BookOpen className="h-3 w-3 text-muted-foreground" />
                             Disciplina
                             <span className="text-[10px] text-primary font-normal">(obrigatório)</span>
@@ -174,7 +171,7 @@ export function ContextSelector({
                             disabled={loadingDisciplinas}
                         >
                             <SelectTrigger className={cn(
-                                "h-9",
+                                "h-10",
                                 !disciplinaId && "border-primary/50 ring-1 ring-primary/20"
                             )}>
                                 <SelectValue placeholder={loadingDisciplinas ? 'Carregando...' : 'Selecione a disciplina'} />
@@ -192,17 +189,17 @@ export function ContextSelector({
 
                 {/* Advanced Options - Progressive Disclosure */}
                 {disciplinaId && cursoId && (
-                    <div className="pt-1">
+                    <div>
                         <button
                             type="button"
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full justify-between py-1.5 px-1 rounded-md hover:bg-muted/50 cursor-pointer"
+                            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full justify-between py-2 px-2 rounded-lg hover:bg-muted/50 cursor-pointer"
                         >
                             <span className="flex items-center gap-1.5">
                                 <FolderOpen className="h-3.5 w-3.5" />
                                 Especificar frente, módulo ou atividade
                                 {(frenteId || moduloId || atividadeId) && (
-                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
                                         {selectionDepth - 2}
                                     </span>
                                 )}
@@ -215,10 +212,10 @@ export function ContextSelector({
                         </button>
 
                         {showAdvanced && (
-                            <div className="mt-2 space-y-3 pl-3 border-l-2 border-muted">
+                            <div className="mt-3 space-y-3 pl-4 border-l-2 border-muted">
                                 {/* Frente */}
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="frente" className="flex items-center gap-1.5 text-xs">
+                                    <Label htmlFor="frente" className="flex items-center gap-1.5 text-xs font-medium">
                                         <FolderOpen className="h-3 w-3 text-muted-foreground" />
                                         Frente
                                     </Label>
@@ -227,7 +224,7 @@ export function ContextSelector({
                                         onValueChange={onFrenteChange}
                                         disabled={!disciplinaId || loadingFrentes}
                                     >
-                                        <SelectTrigger className="h-8">
+                                        <SelectTrigger className="h-9">
                                             <SelectValue placeholder={
                                                 loadingFrentes ? 'Carregando...' :
                                                     frentes.length === 0 ? 'Nenhuma frente' :
@@ -247,7 +244,7 @@ export function ContextSelector({
                                 {/* Módulo - only show if frente selected */}
                                 {frenteId && (
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="modulo" className="flex items-center gap-1.5 text-xs">
+                                        <Label htmlFor="modulo" className="flex items-center gap-1.5 text-xs font-medium">
                                             <Layers className="h-3 w-3 text-muted-foreground" />
                                             Módulo
                                         </Label>
@@ -256,7 +253,7 @@ export function ContextSelector({
                                             onValueChange={onModuloChange}
                                             disabled={loadingModulos}
                                         >
-                                            <SelectTrigger className="h-8">
+                                            <SelectTrigger className="h-9">
                                                 <SelectValue placeholder={
                                                     loadingModulos ? 'Carregando...' :
                                                         modulos.length === 0 ? 'Nenhum módulo' :
@@ -277,7 +274,7 @@ export function ContextSelector({
                                 {/* Atividade - only show if módulo selected */}
                                 {moduloId && (
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="atividade" className="flex items-center gap-1.5 text-xs">
+                                        <Label htmlFor="atividade" className="flex items-center gap-1.5 text-xs font-medium">
                                             <FileText className="h-3 w-3 text-muted-foreground" />
                                             Atividade
                                             <span className="text-[10px] text-muted-foreground font-normal">(opcional)</span>
@@ -287,7 +284,7 @@ export function ContextSelector({
                                             onValueChange={onAtividadeChange}
                                             disabled={loadingAtividades}
                                         >
-                                            <SelectTrigger className="h-8">
+                                            <SelectTrigger className="h-9">
                                                 <SelectValue placeholder={
                                                     loadingAtividades ? 'Carregando...' :
                                                         atividades.length === 0 ? 'Nenhuma atividade' :

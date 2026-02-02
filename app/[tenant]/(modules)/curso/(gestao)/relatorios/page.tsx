@@ -23,7 +23,7 @@ export default async function RelatoriosPage() {
       <div className="flex flex-col gap-2">
         <h1 className="page-title">Relatórios de Desempenho</h1>
         <p className="page-subtitle">
-          Acompanhe os indicadores das suas mentorias.
+          Acompanhe os indicadores dos seus atendimentos.
         </p>
       </div>
 

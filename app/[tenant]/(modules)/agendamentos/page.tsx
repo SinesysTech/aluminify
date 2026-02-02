@@ -28,9 +28,9 @@ export default async function AgendamentosPage({
     return (
       <div className="flex flex-col gap-6 max-w-5xl mx-auto">
         <div className="flex flex-col gap-2 items-center lg:px-10">
-          <h1 className="page-title">Agendar Plantão</h1>
+          <h1 className="page-title">Agendar Atendimento</h1>
           <p className="page-subtitle text-center px-4 md:px-10">
-            Escolha um professor para agendar sua sessão de plantão ou dúvidas.
+            Escolha um professor para agendar seu atendimento (plantão, dúvidas, mentoria, etc.).
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default async function AgendamentosPage({
         <div className="flex flex-col gap-2">
           <h1 className="page-title">Agendamentos</h1>
           <p className="page-subtitle">
-            Gerencie os agendamentos de plantão dos professores.
+            Gerencie os agendamentos de atendimento dos professores.
           </p>
         </div>
 

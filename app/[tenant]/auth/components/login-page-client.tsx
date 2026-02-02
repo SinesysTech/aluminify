@@ -51,7 +51,7 @@ export function LoginPageClient() {
       const emailRedirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`
 
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         options: { emailRedirectTo },
       })
 
@@ -99,7 +99,7 @@ export function LoginPageClient() {
       console.log('[DEBUG] Cliente Supabase criado, chamando signInWithPassword...')
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       })
 

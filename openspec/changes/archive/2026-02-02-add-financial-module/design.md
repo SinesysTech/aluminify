@@ -76,7 +76,7 @@ products (
 )
 ```
 
-**Rationale**: Permite flexibilidade para vender produtos que não são cursos (mentorias, materiais) e ter múltiplas ofertas/preços para o mesmo curso.
+**Rationale**: Permite flexibilidade para vender produtos que não são cursos (atendimentos, materiais) e ter múltiplas ofertas/preços para o mesmo curso.
 
 ### 3. Webhook Idempotente
 

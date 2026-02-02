@@ -66,10 +66,10 @@ type EmailTemplate = {
 
 const emailTemplates: Record<NotificacaoPayload['tipo'], EmailTemplate> = {
   criacao: {
-    subject: "Novo agendamento de mentoria",
+    subject: "Novo agendamento de atendimento",
     getBody: (data: TemplateData) => `
-      <h2>Novo Agendamento de Mentoria</h2>
-      <p>Voce recebeu um novo pedido de agendamento de mentoria.</p>
+      <h2>Novo Agendamento de Atendimento</h2>
+      <p>Voce recebeu um novo pedido de agendamento de atendimento.</p>
       <p><strong>Aluno:</strong> ${data.alunoNome}</p>
       <p><strong>Data:</strong> ${data.dataFormatada}</p>
       <p><strong>Horario:</strong> ${data.horario}</p>
@@ -81,7 +81,7 @@ const emailTemplates: Record<NotificacaoPayload['tipo'], EmailTemplate> = {
     subject: "Seu agendamento foi confirmado!",
     getBody: (data: TemplateData) => `
       <h2>Agendamento Confirmado!</h2>
-      <p>Seu agendamento de mentoria foi confirmado.</p>
+      <p>Seu agendamento de atendimento foi confirmado.</p>
       <p><strong>Professor:</strong> ${data.professorNome}</p>
       <p><strong>Data:</strong> ${data.dataFormatada}</p>
       <p><strong>Horario:</strong> ${data.horario}</p>
@@ -93,7 +93,7 @@ const emailTemplates: Record<NotificacaoPayload['tipo'], EmailTemplate> = {
     subject: "Agendamento cancelado",
     getBody: (data: TemplateData) => `
       <h2>Agendamento Cancelado</h2>
-      <p>Um agendamento de mentoria foi cancelado.</p>
+      <p>Um agendamento de atendimento foi cancelado.</p>
       <p><strong>Com:</strong> ${data.nomeOutraParte}</p>
       <p><strong>Data:</strong> ${data.dataFormatada}</p>
       <p><strong>Horario:</strong> ${data.horario}</p>
@@ -113,10 +113,10 @@ const emailTemplates: Record<NotificacaoPayload['tipo'], EmailTemplate> = {
     `
   },
   lembrete: {
-    subject: "Lembrete: Agendamento de mentoria amanha",
+    subject: "Lembrete: Agendamento de atendimento amanha",
     getBody: (data: TemplateData) => `
       <h2>Lembrete de Agendamento</h2>
-      <p>Voce tem um agendamento de mentoria amanha!</p>
+      <p>Voce tem um agendamento de atendimento amanha!</p>
       <p><strong>Com:</strong> ${data.nomeOutraParte}</p>
       <p><strong>Data:</strong> ${data.dataFormatada}</p>
       <p><strong>Horario:</strong> ${data.horario}</p>
@@ -127,7 +127,7 @@ const emailTemplates: Record<NotificacaoPayload['tipo'], EmailTemplate> = {
     subject: "Agendamento atualizado",
     getBody: (data: TemplateData) => `
       <h2>Agendamento Atualizado</h2>
-      <p>Um agendamento de mentoria foi atualizado.</p>
+      <p>Um agendamento de atendimento foi atualizado.</p>
       <p><strong>Com:</strong> ${data.nomeOutraParte}</p>
       <p><strong>Data:</strong> ${data.dataFormatada}</p>
       <p><strong>Horario:</strong> ${data.horario}</p>

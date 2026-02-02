@@ -54,6 +54,18 @@ export interface ModuleVisibilityRepository {
 }
 
 // ============================================
+// Helpers
+// ============================================
+
+/** Supabase .select() may return data as array or (in some cases) object; ensure we always get an array. */
+function toArray<T>(data: unknown): T[] {
+  if (data == null) return [];
+  if (Array.isArray(data)) return data;
+  if (typeof data === 'object' && !Array.isArray(data)) return Object.values(data) as T[];
+  return [];
+}
+
+// ============================================
 // Row Mappers
 // ============================================
 
@@ -137,7 +149,7 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
       throw new Error(`Failed to fetch module definitions: ${error.message}`);
     }
 
-    return (data ?? []).map(mapModuleDefinitionRow);
+    return toArray<ModuleDefinitionRow>(data).map(mapModuleDefinitionRow);
   }
 
   async findAllSubmoduleDefinitions(): Promise<SubmoduleDefinition[]> {
@@ -150,7 +162,7 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
       throw new Error(`Failed to fetch submodule definitions: ${error.message}`);
     }
 
-    return (data ?? []).map(mapSubmoduleDefinitionRow);
+    return toArray<SubmoduleDefinitionRow>(data).map(mapSubmoduleDefinitionRow);
   }
 
   async findSubmodulesByModuleId(moduleId: string): Promise<SubmoduleDefinition[]> {
@@ -164,7 +176,7 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
       throw new Error(`Failed to fetch submodules for module ${moduleId}: ${error.message}`);
     }
 
-    return (data ?? []).map(mapSubmoduleDefinitionRow);
+    return toArray<SubmoduleDefinitionRow>(data).map(mapSubmoduleDefinitionRow);
   }
 
   // ----------------------------------------
@@ -181,7 +193,7 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
       throw new Error(`Failed to fetch module visibility for empresa ${empresaId}: ${error.message}`);
     }
 
-    return (data ?? []).map(mapModuleVisibilityRow);
+    return toArray<TenantModuleVisibilityRow>(data).map(mapModuleVisibilityRow);
   }
 
   async findSubmoduleVisibilityByEmpresa(empresaId: string): Promise<TenantSubmoduleVisibility[]> {
@@ -194,7 +206,7 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
       throw new Error(`Failed to fetch submodule visibility for empresa ${empresaId}: ${error.message}`);
     }
 
-    return (data ?? []).map(mapSubmoduleVisibilityRow);
+    return toArray<TenantSubmoduleVisibilityRow>(data).map(mapSubmoduleVisibilityRow);
   }
 
   // ----------------------------------------

@@ -10,7 +10,7 @@ O sistema de agendamento foi implementado com uma arquitetura inicial que evolui
 4. Integracao com provedores de reuniao implementada mas sem UI
 
 ### Stakeholders
-- **Alunos**: Precisam agendar mentorias facilmente
+- **Alunos**: Precisam agendar atendimentos facilmente
 - **Professores**: Precisam gerenciar disponibilidade e confirmar agendamentos
 - **Admins**: Precisam visualizar relatorios e gerenciar bloqueios da empresa
 

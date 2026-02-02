@@ -39,26 +39,25 @@ export class CursoModulosService {
   }
 
   /**
-   * Get the UNION of all module IDs from a student's enrolled courses
+   * Get the UNION of all module IDs from a student's enrolled courses.
+   * Uses two-step query: .in() expects an array, not a subquery (passing a query builder causes "object is not iterable").
    */
   async getModulesForStudentCourses(
     usuarioId: string,
     empresaId: string,
   ): Promise<string[]> {
-    // Use a two-step approach to avoid type errors and ensure compatibility
     const { data: enrollments, error: enrollError } = await this.client
       .from("alunos_cursos")
       .select("curso_id")
       .eq("usuario_id", usuarioId);
 
     if (enrollError || !enrollments?.length) {
-      if (enrollError) {
-        console.error("Error fetching enrollments:", enrollError);
-      }
       return [];
     }
 
-    const cursoIds = enrollments.map((e: { curso_id: string }) => e.curso_id);
+    const cursoIds = Array.isArray(enrollments)
+      ? enrollments.map((e: { curso_id: string }) => e.curso_id)
+      : Object.values(enrollments).map((e: { curso_id: string }) => e.curso_id);
 
     const { data: modules, error: modError } = await this.client
       .from("curso_modulos")
@@ -72,7 +71,6 @@ export class CursoModulosService {
       );
     }
 
-    // Return unique module IDs
     return [
       ...new Set(
         (modules ?? []).map((row: { module_id: string }) => row.module_id),

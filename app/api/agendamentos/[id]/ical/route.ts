@@ -78,7 +78,7 @@ async function getHandler(
         product: 'Agendamentos',
         language: 'PT',
       },
-      name: 'Agendamento de Mentoria',
+      name: 'Agendamento de Atendimento',
       timezone: 'America/Sao_Paulo',
     })
 
@@ -90,8 +90,8 @@ async function getHandler(
 
     // Build event summary
     const summary = isAluno
-      ? `Mentoria com ${outraParte}`
-      : `Mentoria - ${outraParte}`
+      ? `Atendimento com ${outraParte}`
+      : `Atendimento - ${outraParte}`
 
     // Build event description
     const descriptionParts: string[] = []
@@ -118,7 +118,7 @@ async function getHandler(
       description: description,
       location: typedAgendamento.link_reuniao || 'Aluminify',
       url: typedAgendamento.link_reuniao || undefined,
-      categories: [{ name: 'Mentoria' }],
+      categories: [{ name: 'Atendimento' }],
     })
 
     const icsContent = calendar.toString()

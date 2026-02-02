@@ -112,6 +112,8 @@ function AulaItem({
 
   const disciplinaNome = item.aulas?.modulos?.frentes?.disciplinas?.nome
   const frenteNome = item.aulas?.modulos?.frentes?.nome
+  const moduloNome = item.aulas?.modulos?.nome
+  const moduloNumero = item.aulas?.modulos?.numero_modulo
 
   return (
     <div
@@ -139,8 +141,9 @@ function AulaItem({
       />
       <div className="flex-1 min-w-0">
         {item.aulas ? (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-            <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex flex-col gap-1">
+            {/* Linha 1: Disciplina, Frente, Módulo */}
+            <div className="flex flex-wrap items-center gap-1.5">
               {disciplinaNome && (
                 <Badge variant="default" className="text-xs whitespace-nowrap">
                   {disciplinaNome}
@@ -151,17 +154,22 @@ function AulaItem({
                   {frenteNome}
                 </Badge>
               )}
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
-              {item.aulas.modulos?.numero_modulo && (
-                <span>M{item.aulas.modulos.numero_modulo}</span>
+              {(moduloNumero || moduloNome) && (
+                <Badge variant="outline" className="text-xs whitespace-nowrap text-muted-foreground">
+                  {moduloNumero ? `M${moduloNumero}` : ''}{moduloNumero && moduloNome ? ' · ' : ''}{moduloNome || ''}
+                </Badge>
               )}
-              <span className="font-medium">Aula {item.aulas.numero_aula || 'N/A'}</span>
             </div>
-            <span className="hidden sm:inline text-muted-foreground/40">·</span>
-            <span className={cn("text-sm truncate", item.concluido && "line-through")}>
-              {item.aulas.nome}
-            </span>
+            {/* Linha 2: Número da aula + Nome da aula */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground font-medium shrink-0">
+                Aula {item.aulas.numero_aula || 'N/A'}
+              </span>
+              <span className="text-muted-foreground/40">·</span>
+              <span className={cn("text-sm truncate", item.concluido && "line-through")}>
+                {item.aulas.nome}
+              </span>
+            </div>
           </div>
         ) : (
           <div className="text-sm text-muted-foreground">
@@ -348,8 +356,24 @@ export function ScheduleList({
           const isFerias = isSemanaFerias(semana)
           const isAposTermino = cronogramaTerminouAntes && semana > ultimaSemanaComAulas
 
-          // Para modo sequencial, não agrupar por frente
-          const itensOrdenados = [...itens].sort((a, b) => a.ordem_na_semana - b.ordem_na_semana)
+          // Ordenar: Disciplina → Frente (A, B, C) → Módulo → Aula
+          const itensOrdenados = [...itens].sort((a, b) => {
+            const discA = a.aulas?.modulos?.frentes?.disciplinas?.nome || ''
+            const discB = b.aulas?.modulos?.frentes?.disciplinas?.nome || ''
+            if (discA !== discB) return discA.localeCompare(discB)
+
+            const frenteA = a.aulas?.modulos?.frentes?.nome || ''
+            const frenteB = b.aulas?.modulos?.frentes?.nome || ''
+            if (frenteA !== frenteB) return frenteA.localeCompare(frenteB)
+
+            const modA = a.aulas?.modulos?.numero_modulo || 0
+            const modB = b.aulas?.modulos?.numero_modulo || 0
+            if (modA !== modB) return modA - modB
+
+            const aulaA = a.aulas?.numero_aula || 0
+            const aulaB = b.aulas?.numero_aula || 0
+            return aulaA - aulaB
+          })
 
           return (
             <AccordionItem key={semana} value={`semana-${semana}`}>

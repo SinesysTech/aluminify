@@ -2016,61 +2016,51 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
     <div className="container mx-auto py-4 md:py-6 space-y-4 md:space-y-6 px-2 md:px-4">
       {/* Header com Resumo */}
       <Card className="overflow-hidden">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
+            <div className="space-y-1">
               <CardTitle className="text-lg md:text-xl">{cronograma.nome || 'Meu Cronograma'}</CardTitle>
-              <CardDescription className="text-xs md:text-sm">
-                {format(new Date(cronograma.data_inicio), "dd 'de' MMMM", { locale: ptBR })} -{' '}
-                {format(new Date(cronograma.data_fim), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              <CardDescription className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+                <Badge variant="secondary" className="text-xs">Calendario</Badge>
+                <span>
+                  {format(new Date(cronograma.data_inicio), "dd 'de' MMMM", { locale: ptBR })} -{' '}
+                  {format(new Date(cronograma.data_fim), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </span>
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-2">
-                <span>Progresso Geral</span>
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                        aria-label="Informações sobre progresso geral"
-                      >
-                        <Info className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      align="start"
-                      className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                      sideOffset={8}
-                    >
-                      <div className="space-y-2 text-sm">
-                        <p>
-                          Este indicador mostra o progresso geral do seu cronograma de estudos.
-                        </p>
-                        <p>
-                          O percentual é calculado com base no número de aulas que você já marcou como concluídas
-                          em relação ao total de aulas previstas no cronograma.
-                        </p>
-                        <p>
-                          Acompanhar seu progresso ajuda a manter a motivação e identificar se está no ritmo esperado.
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <span>{itensConcluidos} de {totalItens} aulas concluídas</span>
+        <CardContent className="space-y-4">
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl bg-muted/50 p-3 text-center">
+              <div className="text-2xl font-bold text-primary">{itensConcluidos}</div>
+              <div className="text-[11px] text-muted-foreground">Concluídas</div>
             </div>
+            <div className="rounded-xl bg-muted/50 p-3 text-center">
+              <div className="text-2xl font-bold">
+                {totalItens - itensConcluidos}
+              </div>
+              <div className="text-[11px] text-muted-foreground">Pendentes</div>
+            </div>
+            <div className="rounded-xl bg-muted/50 p-3 text-center">
+              <div className={cn(
+                'text-2xl font-bold',
+                progressoPercentual >= 100 ? 'text-primary' : 'text-foreground',
+              )}>
+                {progressoPercentual.toFixed(1)}%
+              </div>
+              <div className="text-[11px] text-muted-foreground">Progresso</div>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="space-y-1.5">
             <Progress value={progressoPercentual} />
-            <p className="text-xs text-muted-foreground">
-              {progressoPercentual.toFixed(1)}% completo
-            </p>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{itensConcluidos} de {totalItens} aulas</span>
+              <span>{progressoPercentual.toFixed(1)}% completo</span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -2080,48 +2070,15 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <CalendarCheck className="h-5 w-5 text-primary" />
+              </div>
               <div>
                 <CardTitle>Calendário de Estudos</CardTitle>
                 <CardDescription>
-                  Visualize suas aulas agendadas e marque as concluídas
+                  Selecione datas para ver e gerenciar suas aulas
                 </CardDescription>
               </div>
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                      aria-label="Informações sobre calendário de estudos"
-                    >
-                      <Info className="h-4 w-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    align="start"
-                    className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                    sideOffset={8}
-                  >
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        O calendário mostra todas as suas aulas agendadas de forma visual, organizadas por data.
-                      </p>
-                      <p>
-                        Você pode selecionar um período clicando em duas datas para ver as aulas daquele intervalo.
-                      </p>
-                      <p>
-                        As cores indicam o status das aulas: verde para concluídas, laranja para parcialmente concluídas,
-                        azul para pendentes e amarelo para dias selecionados sem aulas ainda.
-                      </p>
-                      <p>
-                        Use o botão &quot;Exportar Calendário&quot; para baixar seu cronograma em formato ICS e importá-lo
-                        em aplicativos de calendário como Google Calendar ou Outlook.
-                      </p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
             <Button
               variant="outline"
@@ -2253,152 +2210,69 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                 }
               </p>
 
-              {/* Legenda e Instruções */}
-              <Card className="mt-3 w-full py-1 overflow-hidden">
-                <div className="flex flex-col lg:flex-row gap-3 items-start">
-                  {/* Primeira parte: Legendas */}
-                  <div className="w-full lg:w-64 lg:shrink-0 min-w-0">
-                    <CardHeader className="pb-1 pt-1.5 px-3">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base font-bold">Legendas</CardTitle>
-                        <TooltipProvider delayDuration={200}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                aria-label="Informações sobre legendas"
-                              >
-                                <Info className="h-4 w-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="right"
-                              align="start"
-                              className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                              sideOffset={8}
-                            >
-                              <div className="space-y-2 text-sm">
-                                <p>
-                                  As cores no calendário ajudam você a identificar rapidamente o status das suas aulas.
-                                </p>
-                                <p>
-                                  <strong>Amarelo:</strong> Dias selecionados para estudo, mas sem aulas agendadas ainda.
-                                </p>
-                                <p>
-                                  <strong>Azul:</strong> Dias com aulas agendadas, mas nenhuma concluída.
-                                </p>
-                                <p>
-                                  <strong>Verde:</strong> Dias com todas as aulas concluídas.
-                                </p>
-                                <p>
-                                  <strong>Laranja:</strong> Dias com algumas aulas concluídas, mas ainda há pendentes.
-                                </p>
-                                <p>
-                                  <strong>Rosa:</strong> Períodos de férias ou recesso definidos no cronograma.
-                                </p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-3 pb-1.5 pt-0">
-                      <div className="flex flex-col gap-1.5 text-sm">
-                        <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-[#FACC15]/20 dark:bg-[#FACC15]/25 border border-[#FACC15]/35 dark:border-[#FACC15]/45 shrink-0" />
-                          <span className="text-xs">Dias selecionados para estudo</span>
-                        </div>
-                        <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-[#60A5FA]/20 dark:bg-[#60A5FA]/25 border border-[#60A5FA]/35 dark:border-[#60A5FA]/45 shrink-0" />
-                          <span className="text-xs">Dia com aulas</span>
-                        </div>
-                        <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-[#34D399]/20 dark:bg-[#34D399]/25 border border-[#34D399]/35 dark:border-[#34D399]/45 shrink-0" />
-                          <span className="text-xs">Dia com aulas concluídas</span>
-                        </div>
-                        <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-[#FB923C]/20 dark:bg-[#FB923C]/25 border border-[#FB923C]/35 dark:border-[#FB923C]/45 shrink-0" />
-                          <span className="text-xs">Dia com aulas pendentes</span>
-                        </div>
-                        <div className="flex items-center gap-2 h-5">
-                          <div className="w-4 h-4 rounded bg-[#F472B6]/20 dark:bg-[#F472B6]/25 border border-[#F472B6]/35 dark:border-[#F472B6]/45 shrink-0" />
-                          <span className="text-xs">Períodos de férias e recesso</span>
-                        </div>
-                      </div>
-                    </CardContent>
+              {/* Legenda */}
+              <div className="mt-3 w-full space-y-2">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg bg-muted/50 px-3 py-2.5">
+                  <span className="text-xs font-semibold text-foreground">Legendas</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#FACC15]/20 dark:bg-[#FACC15]/25 border border-[#FACC15]/35 dark:border-[#FACC15]/45 shrink-0" />
+                    <span className="text-[11px] text-muted-foreground">Selecionados</span>
                   </div>
-
-                  {/* Divisor vertical */}
-                  <Separator orientation="vertical" className="hidden lg:block" />
-
-                  {/* Segunda parte: Instruções */}
-                  <div className="w-full lg:flex-1 lg:max-w-[500px] min-w-0">
-                    <CardHeader className="pb-1 pt-1.5 px-3">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base font-bold">Como usar</CardTitle>
-                        <TooltipProvider delayDuration={200}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                aria-label="Informações sobre como usar o calendário"
-                              >
-                                <Info className="h-4 w-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="right"
-                              align="start"
-                              className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                              sideOffset={8}
-                            >
-                              <div className="space-y-2 text-sm">
-                                <p>
-                                  Este calendário permite visualizar e gerenciar suas aulas de forma prática e organizada.
-                                </p>
-                                <p>
-                                  Selecione os dias da semana em que deseja estudar no painel lateral e clique em
-                                  &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas automaticamente.
-                                </p>
-                                <p>
-                                  Clique em uma data ou selecione um período para ver as aulas agendadas naquele intervalo.
-                                </p>
-                                <p>
-                                  Marque as aulas como concluídas usando os checkboxes na lista que aparece abaixo do calendário.
-                                </p>
-                                <p>
-                                  Use o botão &quot;Exportar Calendário&quot; para baixar seu cronograma e importá-lo em outros aplicativos.
-                                </p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-3 pb-1.5 pt-0 min-w-0">
-                      <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground wrap-break-word whitespace-normal">
-                        <li className="leading-snug">
-                          Selecione os dias da semana em que deseja estudar no painel lateral
-                        </li>
-                        <li className="leading-snug">
-                          Clique em &quot;Salvar e Atualizar Calendário&quot; para recalcular as datas das aulas
-                        </li>
-                        <li className="leading-snug">
-                          Use o botão de data para selecionar um período e ver as aulas agendadas
-                        </li>
-                        <li className="leading-snug">
-                          Marque as aulas como concluídas usando os checkboxes na lista
-                        </li>
-                        <li className="leading-snug">
-                          Dê um duplo clique em qualquer data do calendário para alterar o período selecionado
-                        </li>
-                      </ul>
-                    </CardContent>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#60A5FA]/20 dark:bg-[#60A5FA]/25 border border-[#60A5FA]/35 dark:border-[#60A5FA]/45 shrink-0" />
+                    <span className="text-[11px] text-muted-foreground">Com aulas</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#34D399]/20 dark:bg-[#34D399]/25 border border-[#34D399]/35 dark:border-[#34D399]/45 shrink-0" />
+                    <span className="text-[11px] text-muted-foreground">Concluídas</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#FB923C]/20 dark:bg-[#FB923C]/25 border border-[#FB923C]/35 dark:border-[#FB923C]/45 shrink-0" />
+                    <span className="text-[11px] text-muted-foreground">Pendentes</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-[#F472B6]/20 dark:bg-[#F472B6]/25 border border-[#F472B6]/35 dark:border-[#F472B6]/45 shrink-0" />
+                    <span className="text-[11px] text-muted-foreground">Férias/Recesso</span>
                   </div>
                 </div>
-              </Card>
+
+                {/* Instruções - colapsável */}
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-1 group">
+                      <Info className="h-3.5 w-3.5" />
+                      <span>Como usar o calendário</span>
+                      <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]:rotate-180" />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="mt-1.5 rounded-lg bg-muted/50 px-3 py-2.5">
+                      <ul className="space-y-1.5 text-xs text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-px shrink-0">•</span>
+                          <span>Selecione os dias da semana no painel lateral e clique em &quot;Salvar e Atualizar&quot;</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-px shrink-0">•</span>
+                          <span>Clique em uma data ou selecione um período para ver as aulas agendadas</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-px shrink-0">•</span>
+                          <span>Marque as aulas como concluídas usando os checkboxes na lista</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-px shrink-0">•</span>
+                          <span>Dê um duplo clique em qualquer data para alterar o período selecionado</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-px shrink-0">•</span>
+                          <span>Use &quot;Exportar Calendário&quot; para baixar e importar em outros apps</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             </div>
 
             <div className="w-full lg:w-80 shrink-0 flex flex-col gap-3">
@@ -2416,7 +2290,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                               <TooltipTrigger asChild>
                                 <button
                                   type="button"
-                                  className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                                  className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                                   aria-label="Informações sobre resumo por semana"
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -2426,7 +2300,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                               <TooltipContent
                                 side="right"
                                 align="start"
-                                className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                                className="max-w-xs p-3 z-50"
                                 sideOffset={8}
                               >
                                 <div className="space-y-2 text-sm">
@@ -2463,217 +2337,66 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="max-h-[600px] overflow-y-auto space-y-2">
+                    <CardContent className="max-h-[600px] overflow-y-auto space-y-2 pt-0">
                       {estatisticasSemanas.semanas
                         .sort((a, b) => a.semana_numero - b.semana_numero)
                         .map((semana) => (
-                          <Card key={semana.semana_numero} className="border overflow-hidden">
-                            <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="text-sm">Semana {semana.semana_numero}</CardTitle>
-                                  <CardDescription className="text-xs">
-                                    {format(new Date(semana.data_inicio), 'dd/MM')} - {format(new Date(semana.data_fim), 'dd/MM')}
-                                  </CardDescription>
-                                </div>
+                          <div key={semana.semana_numero} className="rounded-lg bg-muted/50 p-2.5 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-sm font-semibold">S{semana.semana_numero}</span>
+                                <span className="text-[11px] text-muted-foreground">
+                                  {format(new Date(semana.data_inicio), 'dd/MM')} – {format(new Date(semana.data_fim), 'dd/MM')}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
                                 {semana.is_ferias && (
-                                  <Badge variant="outline" className="text-xs">Férias</Badge>
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">Férias</Badge>
                                 )}
+                                <span className={cn(
+                                  "text-[11px] font-semibold",
+                                  semana.percentual_usado > 100 && "text-red-600 dark:text-red-400",
+                                  semana.percentual_usado >= 80 && semana.percentual_usado <= 100 && "text-orange-600 dark:text-orange-400",
+                                  semana.percentual_usado < 80 && "text-primary"
+                                )}>
+                                  {semana.percentual_usado.toFixed(0)}%
+                                </span>
                               </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              <div className="space-y-2">
-                                <Progress
-                                  value={Math.min(100, semana.percentual_usado)}
-                                  className={cn(
-                                    semana.percentual_usado > 100 && "bg-red-500",
-                                    semana.percentual_usado >= 95 && semana.percentual_usado <= 100 && "bg-orange-500",
-                                    semana.percentual_usado >= 80 && semana.percentual_usado < 95 && "bg-yellow-500",
-                                    semana.percentual_usado < 80 && "bg-green-500"
-                                  )}
-                                />
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                  <div className="flex items-center gap-1">
-                                    <TooltipProvider delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <button
-                                            type="button"
-                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                            aria-label="Informações sobre tempo disponível"
-                                          >
-                                            <Info className="h-3 w-3" />
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="right"
-                                          align="start"
-                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                                          sideOffset={8}
-                                        >
-                                          <div className="space-y-2 text-sm">
-                                            <p>
-                                              Tempo disponível é o total de horas de estudo que você tem nesta semana,
-                                              calculado com base nos dias selecionados e horas por dia configuradas no cronograma.
-                                            </p>
-                                            <p>
-                                              Este valor considera apenas os dias úteis, excluindo períodos de férias.
-                                            </p>
-                                          </div>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <span className="text-muted-foreground">Disponível:</span>
-                                    <span className="ml-1 font-medium">{formatarMinutos(semana.capacidade_minutos)}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <TooltipProvider delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <button
-                                            type="button"
-                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                            aria-label="Informações sobre tempo usado"
-                                          >
-                                            <Info className="h-3 w-3" />
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="right"
-                                          align="start"
-                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                                          sideOffset={8}
-                                        >
-                                          <div className="space-y-2 text-sm">
-                                            <p>
-                                              Tempo usado é a soma do tempo estimado de todas as aulas agendadas para esta semana.
-                                            </p>
-                                            <p>
-                                              Este valor considera o tempo estimado de cada aula, incluindo tempo de estudo
-                                              e tempo adicional para anotações e exercícios.
-                                            </p>
-                                          </div>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <span className="text-muted-foreground">Usado:</span>
-                                    <span className="ml-1 font-medium">{formatarMinutos(semana.tempo_usado_minutos)}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <TooltipProvider delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <button
-                                            type="button"
-                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                            aria-label="Informações sobre tempo restante"
-                                          >
-                                            <Info className="h-3 w-3" />
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="right"
-                                          align="start"
-                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                                          sideOffset={8}
-                                        >
-                                          <div className="space-y-2 text-sm">
-                                            <p>
-                                              Tempo restante é a diferença entre o tempo disponível e o tempo usado.
-                                            </p>
-                                            <p>
-                                              Um valor positivo indica que você tem tempo livre na semana.
-                                              Um valor negativo indica que a semana está sobrecarregada.
-                                            </p>
-                                          </div>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <span className="text-muted-foreground">Restante:</span>
-                                    <span className="ml-1 font-medium">{formatarMinutos(semana.tempo_disponivel_minutos)}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <TooltipProvider delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <button
-                                            type="button"
-                                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                            aria-label="Informações sobre aulas"
-                                          >
-                                            <Info className="h-3 w-3" />
-                                          </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="right"
-                                          align="start"
-                                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                                          sideOffset={8}
-                                        >
-                                          <div className="space-y-2 text-sm">
-                                            <p>
-                                              Mostra quantas aulas foram concluídas em relação ao total de aulas agendadas para esta semana.
-                                            </p>
-                                            <p>
-                                              O formato é &quot;concluídas/total&quot;, onde o primeiro número são as aulas que você já marcou
-                                              como concluídas e o segundo é o total de aulas da semana.
-                                            </p>
-                                          </div>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <span className="text-muted-foreground">Aulas:</span>
-                                    <span className="ml-1 font-medium">
-                                      {semana.aulas_concluidas}/{semana.total_aulas}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <TooltipProvider delayDuration={200}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <button
-                                          type="button"
-                                          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                                          aria-label="Informações sobre percentual da capacidade"
-                                        >
-                                          <Info className="h-3 w-3" />
-                                        </button>
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="right"
-                                        align="start"
-                                        className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                                        sideOffset={8}
-                                      >
-                                        <div className="space-y-2 text-sm">
-                                          <p>
-                                            Este percentual mostra quanto da capacidade semanal está sendo utilizada.
-                                          </p>
-                                          <p>
-                                            Valores abaixo de 80% indicam que há tempo livre na semana.
-                                            Entre 80% e 95% indica uso moderado.
-                                            Entre 95% e 100% indica uso completo.
-                                            Acima de 100% indica sobrecarga.
-                                          </p>
-                                          <p>
-                                            Semanas sobrecarregadas podem precisar de ajustes no cronograma para distribuir
-                                            melhor o conteúdo.
-                                          </p>
-                                        </div>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <span>{semana.percentual_usado.toFixed(1)}% da capacidade</span>
-                                </div>
-                                {semana.percentual_usado > 100 && (
-                                  <div className="text-xs text-red-600 dark:text-red-400 font-medium">
-                                    ⚠️ Semana sobrecarregada! Excede {((semana.percentual_usado - 100) * 100).toFixed(0)}% da capacidade.
-                                  </div>
-                                )}
+                            </div>
+                            <Progress
+                              value={Math.min(100, semana.percentual_usado)}
+                              className={cn(
+                                "h-1.5",
+                                semana.percentual_usado > 100 && "bg-red-500",
+                                semana.percentual_usado >= 95 && semana.percentual_usado <= 100 && "bg-orange-500",
+                                semana.percentual_usado >= 80 && semana.percentual_usado < 95 && "bg-yellow-500",
+                                semana.percentual_usado < 80 && "bg-green-500"
+                              )}
+                            />
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Disponível</span>
+                                <span className="font-medium">{formatarMinutos(semana.capacidade_minutos)}</span>
                               </div>
-                            </CardContent>
-                          </Card>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Usado</span>
+                                <span className="font-medium">{formatarMinutos(semana.tempo_usado_minutos)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Restante</span>
+                                <span className="font-medium">{formatarMinutos(semana.tempo_disponivel_minutos)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Aulas</span>
+                                <span className="font-medium">{semana.aulas_concluidas}/{semana.total_aulas}</span>
+                              </div>
+                            </div>
+                            {semana.percentual_usado > 100 && (
+                              <div className="text-[11px] text-red-600 dark:text-red-400 font-medium">
+                                Sobrecarregada — excede {(semana.percentual_usado - 100).toFixed(0)}%
+                              </div>
+                            )}
+                          </div>
                         ))}
                     </CardContent>
                   </CollapsibleContent>
@@ -2681,17 +2404,17 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
               </Card>
             )}
 
-            {/* Painel de Filtros - Lado Direito - Alinhado com o calendário */}
-            <Card className="w-full flex flex-col border rounded-md shadow-sm py-2 mt-0 md:mt-0">
+            {/* Painel de Filtros - Lado Direito */}
+            <Card className="w-full flex flex-col py-2">
               <CardHeader className="pb-1 pt-2 px-3">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-bold leading-tight">Selecionar dias para ver a aula</CardTitle>
+                  <CardTitle className="text-base font-bold leading-tight">Dias de estudo</CardTitle>
                   <TooltipProvider delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                          className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                           aria-label="Informações sobre seleção de dias"
                         >
                           <Info className="h-4 w-4" />
@@ -2700,7 +2423,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                       <TooltipContent
                         side="left"
                         align="start"
-                        className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
+                        className="max-w-xs p-3 z-50"
                         sideOffset={8}
                       >
                         <div className="space-y-2 text-sm">
@@ -2708,14 +2431,8 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                             Selecione os dias da semana em que você deseja estudar.
                           </p>
                           <p>
-                            Ao selecionar os dias e clicar em &quot;Salvar e Atualizar Calendário&quot;, o sistema recalcula
-                            automaticamente as datas de todas as aulas para que sejam distribuídas apenas nos dias selecionados.
-                          </p>
-                          <p>
-                            Isso permite personalizar seu cronograma de acordo com sua disponibilidade semanal.
-                          </p>
-                          <p>
-                            Os dias selecionados aparecem em amarelo no calendário, mesmo que ainda não tenham aulas agendadas.
+                            Ao salvar, o sistema recalcula automaticamente as datas de todas as aulas
+                            para que sejam distribuídas nos dias selecionados.
                           </p>
                         </div>
                       </TooltipContent>
@@ -2723,7 +2440,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   </TooltipProvider>
                 </div>
                 <CardDescription className="text-xs mt-0.5 leading-tight mb-0">
-                  Selecione os dias em que deseja ver as aulas no calendário
+                  Selecione e salve para recalcular o calendário
                 </CardDescription>
                 {(() => {
                   // Verificar se há dias selecionados sem itens
@@ -2752,13 +2469,10 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                   return null
                 })()}
               </CardHeader>
-              <CardContent className="flex flex-col px-3 pb-1 pt-1">
-                {/* Divisão visual antes do checkbox */}
-                <Separator className="mb-2" />
-
-                {/* Checkbox "Manter dias atuais" e dias da semana em grid compacto */}
-                <div className="mb-2 pb-2 border-b">
-                  <div className="flex items-center space-x-2 py-0.5 mb-1">
+              <CardContent className="flex flex-col px-3 pb-2 pt-1 gap-2">
+                {/* Checkbox "Manter dias atuais" */}
+                <div className="rounded-lg bg-muted/50 p-2.5">
+                  <div className="flex items-center space-x-2">
                     <Checkbox
                       id="manter-dias-atuais"
                       checked={manterDiasAtuais}
@@ -2771,105 +2485,65 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     >
                       Manter dias atuais
                     </Label>
-                    <TooltipProvider delayDuration={200}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                            aria-label="Informações sobre manter dias atuais"
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="left"
-                          align="start"
-                          className="max-w-xs bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 p-3 z-50"
-                          sideOffset={8}
-                        >
-                          <div className="space-y-2 text-sm">
-                            <p>
-                              Quando marcado, este checkbox mantém os dias da semana que já estão salvos no seu cronograma.
-                            </p>
-                            <p>
-                              Com o checkbox marcado, você não pode editar os dias selecionados. Desmarque para poder
-                              alterar quais dias da semana deseja estudar.
-                            </p>
-                            <p>
-                              Após alterar os dias e salvar, o sistema recalcula todas as datas das aulas automaticamente.
-                            </p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   </div>
-                  <p className="text-xs text-muted-foreground ml-6 mb-1.5 leading-tight">
+                  <p className="text-[11px] text-muted-foreground ml-6 mt-1 leading-tight">
                     {manterDiasAtuais
-                      ? 'Usando os dias salvos no calendário. Desmarque para editar.'
-                      : 'Edite os dias selecionados ou desmarque todos para ver apenas as aulas.'}
+                      ? 'Usando os dias salvos. Desmarque para editar.'
+                      : 'Selecione os dias abaixo.'}
                   </p>
+                </div>
 
-                  {/* Divisão visual */}
-                  <Separator className="my-2" />
-
-                  {/* Lista de dias da semana - vertical */}
-                  <div className="flex flex-col gap-1">
-                    {DIAS_SEMANA.map((dia) => (
-                      <div key={dia.valor} className="flex items-center space-x-2 py-0.5">
-                        <Checkbox
-                          id={`dia-${dia.valor}`}
-                          checked={diasSelecionados.includes(dia.valor)}
-                          onCheckedChange={() => handleToggleDia(dia.valor)}
-                          disabled={manterDiasAtuais}
-                          className="h-4 w-4"
-                        />
-                        <Label
-                          htmlFor={`dia-${dia.valor}`}
-                          className={cn(
-                            "text-sm font-normal flex-1 leading-tight",
-                            manterDiasAtuais ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-                          )}
-                        >
-                          {dia.nome}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                {/* Lista de dias da semana */}
+                <div className="flex flex-col gap-0.5">
+                  {DIAS_SEMANA.map((dia) => (
+                    <div key={dia.valor} className={cn(
+                      "flex items-center space-x-2 py-1 px-2 rounded-md transition-colors",
+                      diasSelecionados.includes(dia.valor) && !manterDiasAtuais && "bg-primary/5"
+                    )}>
+                      <Checkbox
+                        id={`dia-${dia.valor}`}
+                        checked={diasSelecionados.includes(dia.valor)}
+                        onCheckedChange={() => handleToggleDia(dia.valor)}
+                        disabled={manterDiasAtuais}
+                        className="h-4 w-4"
+                      />
+                      <Label
+                        htmlFor={`dia-${dia.valor}`}
+                        className={cn(
+                          "text-sm font-normal flex-1 leading-tight",
+                          manterDiasAtuais ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                        )}
+                      >
+                        {dia.nome}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Botão de salvar */}
-                <div className="space-y-1 mt-2">
-                  <Separator className="my-1" />
-                  <Button
-                    onClick={handleSalvarDistribuicao}
-                    disabled={salvandoDistribuicao || (diasSelecionados.length === 0 && !manterDiasAtuais)}
-                    className="w-full"
-                    size="sm"
-                  >
-                    {salvandoDistribuicao ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Salvar e Atualizar Calendário
-                      </>
-                    )}
-                  </Button>
-                  {salvandoDistribuicao && (
-                    <p className="text-xs text-muted-foreground text-center animate-pulse leading-tight mt-1">
-                      Recalculando datas das aulas...
-                    </p>
+                <Button
+                  onClick={handleSalvarDistribuicao}
+                  disabled={salvandoDistribuicao || (diasSelecionados.length === 0 && !manterDiasAtuais)}
+                  className="w-full"
+                  size="sm"
+                >
+                  {salvandoDistribuicao ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Salvar e Atualizar
+                    </>
                   )}
-                  {!salvandoDistribuicao && (
-                    <p className="text-xs text-muted-foreground text-center leading-tight mt-1 mb-0">
-                      Ao salvar, as datas das aulas serão recalculadas automaticamente
-                    </p>
-                  )}
-                </div>
+                </Button>
+                {salvandoDistribuicao && (
+                  <p className="text-[11px] text-muted-foreground text-center animate-pulse leading-tight">
+                    Recalculando datas das aulas...
+                  </p>
+                )}
               </CardContent>
             </Card>
             </div>
@@ -3255,52 +2929,52 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                                         {itensGrupo.map((item) => (
                                           <div
                                             key={item.id}
-                                            className="flex items-start gap-3 p-2 rounded-md border hover:bg-accent/50 transition-colors"
+                                            className={cn(
+                                              "flex items-center gap-3 p-2.5 rounded-md border hover:bg-accent/50 transition-colors",
+                                              item.concluido && "opacity-60"
+                                            )}
                                           >
                                             <Checkbox
                                               checked={item.concluido}
                                               onCheckedChange={(checked) =>
                                                 toggleConcluido(item.id, checked === true)
                                               }
-                                              className="mt-1"
+                                              className="shrink-0"
                                             />
                                             <div className="flex-1 min-w-0">
-                                              <div className="flex items-start justify-between gap-2">
-                                                <div className="flex-1">
-                                                  {/* Badges: Módulo (acima) e Aula (abaixo). Frente já aparece no card. */}
-                                                  <div className="flex flex-col gap-1 mb-1.5 min-w-0">
-                                                    {item.aulas?.modulos?.numero_modulo && (
-                                                      <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0 w-fit">
-                                                        Módulo {item.aulas.modulos.numero_modulo}
-                                                      </Badge>
-                                                    )}
-                                                    {item.aulas?.numero_aula && (
-                                                      <Badge variant="outline" className="text-xs whitespace-nowrap shrink-0 w-fit">
-                                                        Aula {item.aulas.numero_aula}
-                                                      </Badge>
-                                                    )}
-                                                  </div>
-
-                                                  {/* Nome da aula */}
-                                                  <p className="font-medium text-sm mb-1">
-                                                    {item.aulas?.nome || 'Aula sem nome'}
-                                                  </p>
-
-                                                  {/* Tempo estimado */}
-                                                  {item.aulas?.tempo_estimado_minutos && (
-                                                    <p className="text-xs text-muted-foreground">
-                                                      {formatTempo(item.aulas.tempo_estimado_minutos)}
-                                                    </p>
-                                                  )}
-                                                </div>
-
-                                                {/* Badge de concluída */}
-                                                {item.concluido && (
-                                                  <Badge variant="default" className="text-xs shrink-0">
-                                                    Concluída
+                                              <div className="flex flex-col gap-1">
+                                                {/* Linha 1: Módulo badge (número + nome) */}
+                                                {(item.aulas?.modulos?.numero_modulo || item.aulas?.modulos?.nome) && (
+                                                  <Badge variant="outline" className="text-xs whitespace-nowrap w-fit text-muted-foreground">
+                                                    {item.aulas?.modulos?.numero_modulo ? `M${item.aulas.modulos.numero_modulo}` : ''}
+                                                    {item.aulas?.modulos?.numero_modulo && item.aulas?.modulos?.nome ? ' · ' : ''}
+                                                    {item.aulas?.modulos?.nome || ''}
                                                   </Badge>
                                                 )}
+                                                {/* Linha 2: Número da aula + Nome da aula */}
+                                                <div className="flex items-center gap-1.5">
+                                                  <span className="text-xs text-muted-foreground font-medium shrink-0">
+                                                    Aula {item.aulas?.numero_aula || 'N/A'}
+                                                  </span>
+                                                  <span className="text-muted-foreground/40">·</span>
+                                                  <span className={cn("text-sm truncate", item.concluido && "line-through")}>
+                                                    {item.aulas?.nome || 'Aula sem nome'}
+                                                  </span>
+                                                </div>
                                               </div>
+                                            </div>
+                                            {/* Tempo + Badge concluída */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                              {item.concluido && (
+                                                <Badge variant="default" className="text-xs">
+                                                  Concluída
+                                                </Badge>
+                                              )}
+                                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                                {item.aulas?.tempo_estimado_minutos && item.aulas.tempo_estimado_minutos > 0
+                                                  ? formatTempo(item.aulas.tempo_estimado_minutos)
+                                                  : '--'}
+                                              </span>
                                             </div>
                                           </div>
                                         ))}
