@@ -1,76 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { deflate, inflate } from "pako";
 import { getPublicSupabaseConfig } from "./supabase-public-env";
 import {
   resolveTenantContext,
   extractTenantFromPath,
 } from "@/app/shared/core/services/tenant-resolution.service";
-
-function base64Encode(input: string): string {
-  try {
-    return btoa(input);
-  } catch {
-    // Fallback (ex.: em ambientes que não expõem btoa)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (globalThis as any).Buffer.from(input, "utf-8").toString("base64");
-  }
-}
-
-function base64Decode(input: string): string {
-  try {
-    return atob(input);
-  } catch {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (globalThis as any).Buffer.from(input, "base64").toString("utf-8");
-  }
-}
-
-function compressCookieValue(value: string): string {
-  // Prefixo para identificar facilmente valores comprimidos
-  const compressed = deflate(value);
-  const bytes = new Uint8Array(compressed);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 1) {
-    binary += String.fromCharCode(bytes[i]!);
-  }
-  return `pako:${base64Encode(binary)}`;
-}
-
-function decompressCookieValue(value: string): string {
-  if (!value.startsWith("pako:")) return value;
-  const payload = value.slice("pako:".length);
-  const binary = base64Decode(payload);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return inflate(bytes, { to: "string" });
-}
-
-function shouldCompressCookie(name: string, value: string): boolean {
-  // Foco nos cookies grandes do Supabase, que tendem a estourar buffers de header
-  if (!name.startsWith("sb-") || !name.includes("-auth-token")) return false;
-  // Threshold conservador (bytes aproximados)
-  return value.length >= 1024;
-}
-
-function buildCookieHeader(cookies: Array<{ name: string; value: string }>): string {
-  return cookies.map((c) => `${c.name}=${c.value}`).join("; ");
-}
-
-function encodeTenantHeader(tenantContext: {
-  empresaId?: string | null;
-  empresaSlug?: string | null;
-  resolutionType?: string | null;
-}): string {
-  const tenantData = {
-    id: tenantContext.empresaId,
-    slug: tenantContext.empresaSlug,
-    res: tenantContext.resolutionType,
-  };
-  return base64Encode(JSON.stringify(tenantData));
-}
+import {
+  compressCookieValue,
+  decompressCookieValue,
+  shouldCompressCookie,
+  isCompressedCookie,
+  buildCookieHeader,
+} from "@/app/shared/core/cookie-compression";
 
 // --- LOGGING CONFIGURATION ---
 type LogLevel = "debug" | "info" | "warn" | "error" | "none";
@@ -222,12 +163,13 @@ export async function updateSession(request: NextRequest) {
   // Isso reduz tamanho de headers trafegados para o Nginx sem quebrar o SDK.
   let didDecompressRequestCookies = false;
   for (const c of request.cookies.getAll()) {
-    if (typeof c.value === "string" && c.value.startsWith("pako:")) {
+    if (isCompressedCookie(c.value)) {
       const inflated = decompressCookieValue(c.value);
       request.cookies.set(c.name, inflated);
       didDecompressRequestCookies = true;
     }
   }
+  let cookiesModified = didDecompressRequestCookies;
   if (projectRef) {
     const expectedPrefix = `sb-${projectRef}-auth-token`;
     const allCookies = request.cookies.getAll();
@@ -243,6 +185,7 @@ export async function updateSession(request: NextRequest) {
         expectedPrefix,
         foreign: foreignCookies.map((c) => c.name),
       });
+      cookiesModified = true;
 
       for (const c of foreignCookies) {
         request.cookies.delete(c.name);
@@ -256,7 +199,7 @@ export async function updateSession(request: NextRequest) {
     cookies: {
       getAll() {
         return request.cookies.getAll().map((c) => {
-          if (typeof c.value === "string" && c.value.startsWith("pako:")) {
+          if (isCompressedCookie(c.value)) {
             return { ...c, value: decompressCookieValue(c.value) };
           }
           return c;
@@ -303,7 +246,10 @@ export async function updateSession(request: NextRequest) {
       target.cookies.set(cookie.name, cookie.value);
     });
     if (tenantContext.empresaId) {
-      target.headers.set("x-tenant", encodeTenantHeader(tenantContext));
+      target.headers.set("x-tenant-id", tenantContext.empresaId);
+    }
+    if (tenantContext.empresaSlug) {
+      target.headers.set("x-tenant-slug", tenantContext.empresaSlug);
     }
     return target;
   };
@@ -370,7 +316,12 @@ export async function updateSession(request: NextRequest) {
       logInfo(`rewrite /auth → ${url.pathname}`);
 
       const response = NextResponse.rewrite(url);
-      response.headers.set("x-tenant", encodeTenantHeader(tenantContext));
+      if (tenantContext.empresaId) {
+        response.headers.set("x-tenant-id", tenantContext.empresaId);
+      }
+      if (tenantContext.empresaSlug) {
+        response.headers.set("x-tenant-slug", tenantContext.empresaSlug);
+      }
 
       supabaseResponse.cookies.getAll().forEach((cookie) => {
         response.cookies.set(cookie.name, cookie.value);
@@ -412,7 +363,10 @@ export async function updateSession(request: NextRequest) {
 
   // Add headers
   if (tenantContext.empresaId) {
-    supabaseResponse.headers.set("x-tenant", encodeTenantHeader(tenantContext));
+    supabaseResponse.headers.set("x-tenant-id", tenantContext.empresaId);
+  }
+  if (tenantContext.empresaSlug) {
+    supabaseResponse.headers.set("x-tenant-slug", tenantContext.empresaSlug);
   }
 
   // --- 6. FINALIZE RESPONSE ---
@@ -422,7 +376,7 @@ export async function updateSession(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   // Importante: mudanças em `request.cookies.set(...)` não garantem que o header
   // `cookie` repassado para Server Components seja atualizado. Reconstituímos aqui.
-  if (didDecompressRequestCookies) {
+  if (cookiesModified) {
     requestHeaders.set(
       "cookie",
       buildCookieHeader(
@@ -431,7 +385,10 @@ export async function updateSession(request: NextRequest) {
     );
   }
   if (tenantContext.empresaId) {
-    requestHeaders.set("x-tenant", encodeTenantHeader(tenantContext));
+    requestHeaders.set("x-tenant-id", tenantContext.empresaId);
+  }
+  if (tenantContext.empresaSlug) {
+    requestHeaders.set("x-tenant-slug", tenantContext.empresaSlug);
   }
 
   const finalResponse = NextResponse.next({
@@ -445,22 +402,28 @@ export async function updateSession(request: NextRequest) {
     finalResponse.cookies.set(cookie.name, cookie.value, cookie);
   });
 
-  // Copy output headers (like x-tenant-id for client) from supabaseResponse
+  // Copy output headers (x-tenant-id, x-tenant-slug, etc.) from supabaseResponse
   supabaseResponse.headers.forEach((value, key) => {
     finalResponse.headers.set(key, value);
   });
 
-  // --- 7. MONITORAMENTO (DEV): TAMANHO DOS HEADERS ---
+  // --- 7. MONITORAMENTO: TAMANHO DOS HEADERS ---
+  const headerSize =
+    JSON.stringify(Object.fromEntries(finalResponse.headers)).length;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).__headerSizeTotalBytes =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((globalThis as any).__headerSizeTotalBytes ?? 0) + headerSize;
+  if (headerSize > 4096) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).__headerSizeWarnings =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((globalThis as any).__headerSizeWarnings ?? 0) + 1;
+  }
   if (process.env.NODE_ENV === "development") {
-    const headerSize =
-      JSON.stringify(Object.fromEntries(finalResponse.headers)).length;
     console.log(`[MW] Header size: ${headerSize} bytes`);
     if (headerSize > 4096) {
       console.warn(`[MW] WARNING: Headers exceeding 4KB (${headerSize} bytes)`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (globalThis as any).__headerSizeWarnings =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((globalThis as any).__headerSizeWarnings ?? 0) + 1;
     }
   }
 

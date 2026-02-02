@@ -46,12 +46,12 @@ type EmpresaAdminRow = {
   created_at?: string | null;
 };
 
-type ProfessorRow = {
+type UsuarioRow = {
   id: string;
   email: string;
   nome_completo?: string | null;
   empresa_id?: string | null;
-  is_admin?: boolean | null;
+  ativo?: boolean | null;
 };
 
 function safe(v: unknown): string {
@@ -104,45 +104,45 @@ async function main() {
 
   const adminUserIds = Array.from(new Set(((admins ?? []) as EmpresaAdminRow[]).map((a) => a.user_id)));
 
-  const { data: professores, error: profError } = await supabase
-    .from("professores")
-    .select("id, email, nome_completo, empresa_id, is_admin")
+  const { data: usuariosAdmins, error: usuariosError } = await supabase
+    .from("usuarios")
+    .select("id, email, nome_completo, empresa_id, ativo")
     .in("id", adminUserIds);
-  if (profError) throw new Error(`Falha ao buscar professores(admins): ${profError.message}`);
+  if (usuariosError) throw new Error(`Falha ao buscar usuarios(admins): ${usuariosError.message}`);
 
-  const professoresById = new Map<string, ProfessorRow>();
-  for (const p of (professores ?? []) as ProfessorRow[]) professoresById.set(p.id, p);
+  const usuariosById = new Map<string, UsuarioRow>();
+  for (const p of (usuariosAdmins ?? []) as UsuarioRow[]) usuariosById.set(p.id, p);
 
   console.log("\n👤 Admins/owners vinculados (empresa_admins)");
   console.log("-".repeat(80));
   for (const a of (admins ?? []) as EmpresaAdminRow[]) {
     const empresa = Array.from(bySlug.values()).find((e) => e.id === a.empresa_id);
-    const prof = professoresById.get(a.user_id);
+    const usuario = usuariosById.get(a.user_id);
     console.log(
       `- empresa: ${empresa?.slug ?? a.empresa_id} | user_id: ${a.user_id} | email: ${
-        prof?.email ?? "—"
-      } | owner: ${safe(a.is_owner)} | is_admin(prof): ${safe(prof?.is_admin)}`,
+        usuario?.email ?? "—"
+      } | owner: ${safe(a.is_owner)} | ativo: ${safe(usuario?.ativo)}`,
     );
   }
 
-  console.log("\n🧾 Professor informado");
+  console.log("\n🧾 Usuário informado");
   console.log("-".repeat(80));
-  const { data: professor, error: professorError } = await supabase
-    .from("professores")
-    .select("id, email, nome_completo, empresa_id, is_admin")
+  const { data: usuario, error: usuarioError2 } = await supabase
+    .from("usuarios")
+    .select("id, email, nome_completo, empresa_id, ativo")
     .eq("email", professorEmail)
     .maybeSingle();
-  if (professorError) throw new Error(`Falha ao buscar professor por email: ${professorError.message}`);
+  if (usuarioError2) throw new Error(`Falha ao buscar usuario por email: ${usuarioError2.message}`);
 
-  if (!professor) {
-    console.log(`- ${professorEmail}: (não encontrado em professores)`);
+  if (!usuario) {
+    console.log(`- ${professorEmail}: (não encontrado em usuarios)`);
   } else {
-    const p = professor as ProfessorRow;
+    const p = usuario as UsuarioRow;
     const empresa = p.empresa_id ? Array.from(bySlug.values()).find((e) => e.id === p.empresa_id) : null;
     console.log(
       `- ${p.email} (id: ${p.id}, nome: ${safe(p.nome_completo)}, empresa_id: ${safe(
         p.empresa_id,
-      )}${empresa ? `, empresa_slug: ${empresa.slug}` : ""}, is_admin: ${safe(p.is_admin)})`,
+      )}${empresa ? `, empresa_slug: ${empresa.slug}` : ""}, ativo: ${safe(p.ativo)})`,
     );
   }
 

@@ -24,7 +24,7 @@ const supabase = createClient(url, key);
 async function testConnection() {
   try {
     const { data: _data, count, error } = await supabase
-      .from("alunos")
+      .from("usuarios")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null);
 

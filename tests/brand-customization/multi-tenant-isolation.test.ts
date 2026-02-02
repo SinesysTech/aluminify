@@ -116,7 +116,7 @@ describe('Brand Customization Multi-Tenant Isolation', () => {
         await supabase.from('font_schemes').delete().in('id', testFontSchemeIds)
       }
       if (testUserIds.length > 0) {
-        await supabase.from('professores').delete().in('id', testUserIds)
+        await supabase.from('usuarios').delete().in('id', testUserIds)
         for (const userId of testUserIds) {
           await supabase.auth.admin.deleteUser(userId)
         }

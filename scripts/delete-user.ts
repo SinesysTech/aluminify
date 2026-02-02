@@ -39,9 +39,9 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 type DeleteTarget = { table: string; column: string; label?: string };
 
 const DELETE_TARGETS: DeleteTarget[] = [
-  // Dados de aluno (FK direto em public.alunos)
+  // Dados de aluno (FK via usuario_id)
   { table: "aulas_concluidas", column: "aluno_id" },
-  { table: "alunos_cursos", column: "aluno_id" },
+  { table: "alunos_cursos", column: "usuario_id" },
   { table: "alunos_turmas", column: "aluno_id" },
   { table: "cronogramas", column: "aluno_id" },
   { table: "matriculas", column: "aluno_id" },
@@ -50,41 +50,27 @@ const DELETE_TARGETS: DeleteTarget[] = [
   { table: "sessoes_estudo", column: "aluno_id" },
   { table: "transactions", column: "aluno_id" },
 
-  // Dados ligados ao usuário (não necessariamente FK em alunos)
+  // Dados ligados ao usuário
   { table: "chat_conversation_history", column: "user_id" },
   { table: "empresa_admins", column: "user_id" },
 
-  // Perfis (em último caso, por id)
-  { table: "usuarios", column: "id", label: "perfil usuario (staff)" },
-  { table: "professores", column: "id", label: "perfil professor (legacy)" },
-  { table: "alunos", column: "id", label: "perfil aluno" },
+  // Perfil (em último caso, por id)
+  { table: "usuarios", column: "id", label: "perfil usuario" },
 ];
 
-async function findAlunoIdByEmail(email: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("alunos")
+async function findAuthUserIdByEmail(email: string): Promise<string | null> {
+  // Buscar pelo perfil em public.usuarios
+  const { data: usuarioData, error: usuarioError } = await supabase
+    .from("usuarios")
     .select("id")
     .eq("email", email)
     .maybeSingle();
 
-  if (error) {
-    // Não bloquear a deleção por falha aqui: apenas reportar.
-    console.warn(`[WARN] Falha ao buscar aluno por email: ${error.message}`);
-    return null;
+  if (!usuarioError && usuarioData?.id) {
+    return usuarioData.id;
   }
 
-  return (data as { id?: string } | null)?.id ?? null;
-}
-
-async function findAuthUserIdByEmail(email: string): Promise<string | null> {
-  // 1) Caminho preferencial: aluno (public.alunos.email é UNIQUE).
-  // Isso evita depender de listUsers (que pode falhar por permissão/chave).
-  const alunoId = await findAlunoIdByEmail(email);
-  if (alunoId) {
-    return alunoId;
-  }
-
-  // Não existe busca direta por email no Admin API; fazemos paginação.
+  // Fallback: paginar Auth users.
   let page = 1;
   const perPage = 1000;
 
@@ -124,11 +110,6 @@ async function deleteById(table: string, column: string, id: string) {
   return { ok: true as const, count: count ?? 0 };
 }
 
-async function resolveSecondaryAlunoIdByEmail(email: string): Promise<string | null> {
-  // Mantido por back-compat do script: usa a mesma busca centralizada.
-  return findAlunoIdByEmail(email);
-}
-
 async function main() {
   const rawEmail = process.argv[2];
   if (!rawEmail) {
@@ -150,15 +131,7 @@ async function main() {
 
   console.log(`✅ Auth user id: ${authUserId}`);
 
-  // Alguns bancos antigos podem ter aluno registrado por email com id divergente.
-  const alunoIdByEmail = await resolveSecondaryAlunoIdByEmail(email);
   const targetIds = new Set<string>([authUserId]);
-  if (alunoIdByEmail && alunoIdByEmail !== authUserId) {
-    console.warn(
-      `⚠️ Encontrado public.alunos.id diferente do Auth id. Também será removido: ${alunoIdByEmail}`,
-    );
-    targetIds.add(alunoIdByEmail);
-  }
 
   // 1) Apagar vínculos/linhas conhecidas (best-effort)
   for (const targetId of targetIds) {

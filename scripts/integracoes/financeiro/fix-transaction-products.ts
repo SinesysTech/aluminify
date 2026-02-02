@@ -88,7 +88,7 @@ async function main() {
       id,
       buyer_email,
       sale_date,
-      aluno_id,
+      usuario_id,
       product_id,
       products!inner (curso_id)
     `)
@@ -101,17 +101,17 @@ async function main() {
   // Load existing matriculas to avoid duplicates
   const { data: existingMatriculas } = await supabase
     .from("matriculas")
-    .select("aluno_id, curso_id")
+    .select("usuario_id, curso_id")
     .eq("empresa_id", EMPRESA_ID);
 
   const matriculaSet = new Set<string>();
   for (const m of existingMatriculas || []) {
-    matriculaSet.add(`${m.aluno_id}-${m.curso_id}`);
+    matriculaSet.add(`${m.usuario_id}-${m.curso_id}`);
   }
 
-  // Load alunos by email
+  // Load alunos by email (modelo unificado: usuarios com vinculo aluno)
   const { data: alunos } = await supabase
-    .from("alunos")
+    .from("usuarios")
     .select("id, email")
     .eq("empresa_id", EMPRESA_ID);
 
@@ -124,7 +124,7 @@ async function main() {
   let matriculasSkipped = 0;
 
   for (const tx of approvedTx || []) {
-    const alunoId = tx.aluno_id || alunoMap.get(tx.buyer_email.toLowerCase());
+    const alunoId = tx.usuario_id || alunoMap.get(tx.buyer_email.toLowerCase());
     const productsArray = tx.products as { curso_id: string }[];
     const cursoId = productsArray?.[0]?.curso_id;
 
@@ -145,7 +145,7 @@ async function main() {
 
     const { error } = await supabase.from("matriculas").insert({
       empresa_id: EMPRESA_ID,
-      aluno_id: alunoId,
+      usuario_id: alunoId,
       curso_id: cursoId,
       data_matricula: saleDate.toISOString(),
       data_inicio_acesso: saleDate.toISOString().split("T")[0],

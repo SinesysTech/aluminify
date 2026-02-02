@@ -2,6 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "./database.types";
 import { getPublicSupabaseConfig } from "./supabase-public-env";
+import {
+  decompressCookieValue,
+  isCompressedCookie,
+} from "@/app/shared/core/cookie-compression";
 
 /**
  * If using Fluid compute: Don't put this client in a global variable. Always create a new client within each
@@ -14,7 +18,12 @@ export async function createClient() {
   return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return cookieStore.getAll().map((c) => {
+          if (isCompressedCookie(c.value)) {
+            return { ...c, value: decompressCookieValue(c.value) };
+          }
+          return c;
+        });
       },
       setAll(cookiesToSet) {
         try {

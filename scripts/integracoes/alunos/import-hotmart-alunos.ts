@@ -117,13 +117,13 @@ async function main() {
 
     try {
       // Verificar se já existe por email
-      const { data: existingAluno } = await supabase
-        .from("alunos")
+      const { data: existingUsuario } = await supabase
+        .from("usuarios")
         .select("id, email")
         .eq("email", aluno.email.toLowerCase())
         .maybeSingle();
 
-      if (existingAluno) {
+      if (existingUsuario) {
         results.push({
           email: aluno.email,
           status: "exists",
@@ -181,9 +181,9 @@ async function main() {
       // Aguardar trigger criar o registro base
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // Atualizar dados do aluno
+      // Atualizar dados do usuario
       const { error: updateError } = await supabase
-        .from("alunos")
+        .from("usuarios")
         .update({
           nome_completo: aluno.fullName,
           cpf: aluno.cpf?.replace(/\D/g, "") || null,

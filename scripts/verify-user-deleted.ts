@@ -1,11 +1,11 @@
 /**
- * Verifica se um usuário foi removido do Auth e do perfil de aluno.
+ * Verifica se um usuário foi removido do Auth e do perfil de usuario.
  *
  * Execute com:
  *   npx tsx scripts/verify-user-deleted.ts <email> <user_id_opcional>
  *
  * - Se user_id for fornecido, verifica diretamente via auth.admin.getUserById (sem listUsers).
- * - Sempre verifica se existe registro em public.alunos por email.
+ * - Sempre verifica se existe registro em public.usuarios por email.
  */
 
 import * as dotenv from "dotenv";
@@ -47,19 +47,19 @@ async function main() {
   console.log(`📧 Email: ${email}`);
   if (userId) console.log(`🆔 user_id: ${userId}`);
 
-  // 1) Verificar perfil de aluno por email
-  const { data: alunoRow, error: alunoError } = await supabase
-    .from("alunos")
+  // 1) Verificar perfil de usuario por email
+  const { data: usuarioRow, error: usuarioError } = await supabase
+    .from("usuarios")
     .select("id, email, deleted_at")
     .eq("email", email)
     .maybeSingle();
 
-  if (alunoError) {
-    console.log(`⚠️  Falha ao consultar public.alunos: ${alunoError.message}`);
-  } else if (alunoRow) {
-    console.log("❌ Ainda existe registro em public.alunos:", alunoRow);
+  if (usuarioError) {
+    console.log(`⚠️  Falha ao consultar public.usuarios: ${usuarioError.message}`);
+  } else if (usuarioRow) {
+    console.log("❌ Ainda existe registro em public.usuarios:", usuarioRow);
   } else {
-    console.log("✅ Nenhum registro em public.alunos para este email.");
+    console.log("✅ Nenhum registro em public.usuarios para este email.");
   }
 
   // 2) Verificar no Auth por user_id (se informado)

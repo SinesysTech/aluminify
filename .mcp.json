@@ -10,6 +10,11 @@
       "args": ["/c", "npx", "-y", "@mastra/mcp-docs-server@latest"],
       "env": {}
     },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+    },
     "gemini-cli-prompt-library": {
       "type": "http",
       "url": "https://mcp.gemini.com/cli-prompt-library/mcp"

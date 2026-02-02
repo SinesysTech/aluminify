@@ -11,11 +11,11 @@
  * ```typescript
  * // Server-side operations (bypasses RLS)
  * const client = getDatabaseClient();
- * const { data } = await client.from('professores').select('*');
+ * const { data } = await client.from('usuarios').select('*');
  *
  * // User-scoped operations (respects RLS)
  * const client = getDatabaseClientAsUser(accessToken);
- * const { data } = await client.from('professores').select('*');
+ * const { data } = await client.from('usuarios').select('*');
  * ```
  *
  * For detailed documentation, see: docs/TYPESCRIPT_SUPABASE_GUIDE.md
@@ -84,7 +84,7 @@ function getDatabaseUserCredentials() {
  * ```typescript
  * const client = getDatabaseClient();
  * const { data, error } = await client
- *   .from('professores')
+ *   .from('usuarios')
  *   .select('*')
  *   .eq('empresa_id', empresaId);
  * ```
@@ -124,7 +124,7 @@ export function getDatabaseClient(): SupabaseClient<Database> {
  *
  * // This query respects RLS policies for the authenticated user
  * const { data, error } = await client
- *   .from('professores')
+ *   .from('usuarios')
  *   .select('*')
  *   .eq('id', userId);
  * ```

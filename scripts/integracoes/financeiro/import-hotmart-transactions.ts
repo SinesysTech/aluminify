@@ -110,7 +110,7 @@ function mapPaymentMethod(method: string): PaymentMethod {
 async function loadStudentsCache(supabase: SupabaseClient): Promise<void> {
   console.log("Carregando alunos existentes...");
   const { data: existingStudents } = await supabase
-    .from("alunos")
+    .from("usuarios")
     .select("id, email")
     .eq("empresa_id", EMPRESA_ID);
 
@@ -332,7 +332,7 @@ async function main() {
       // Create transaction
       const { error: insertError } = await supabase.from("transactions").insert({
         empresa_id: EMPRESA_ID,
-        aluno_id: alunoId,
+        usuario_id: alunoId,
         product_id: productId,
         provider: PROVIDER,
         provider_transaction_id: tx.providerTransactionId,

@@ -8,6 +8,8 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const headerSizeWarnings = (globalThis as any).__headerSizeWarnings ?? 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const headerSizeTotalBytes = (globalThis as any).__headerSizeTotalBytes ?? 0;
 
     // Basic health check - application is running
     const health = {
@@ -17,6 +19,7 @@ export async function GET() {
       environment: process.env.NODE_ENV,
       metrics: {
         headerSizeWarnings,
+        headerSizeTotalBytes,
       },
     };
 

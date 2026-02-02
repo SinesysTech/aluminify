@@ -200,7 +200,7 @@ export default function InstitutionDashboardClient() {
 
   if (!data) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <p className="text-muted-foreground">Nenhum dado disponível</p>
       </div>
     )
@@ -251,7 +251,7 @@ export default function InstitutionDashboardClient() {
       {/* Controles */}
       <div className="flex items-center gap-2 justify-end">
         <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
-          <SelectTrigger className="w-[120px] h-9 text-sm">
+          <SelectTrigger className="w-30 h-9 text-sm">
             <SelectValue placeholder="Periodo" />
           </SelectTrigger>
           <SelectContent>

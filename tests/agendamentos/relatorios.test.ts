@@ -52,11 +52,12 @@ describeIfSupabase('Sistema de Relatórios de Agendamentos', () => {
 
     testProfessorId = user!.user.id
 
-    await supabase.from('professores').insert({
+    await supabase.from('usuarios').insert({
       id: testProfessorId,
       nome_completo: 'Professor Relatórios',
       email: user!.user.email!,
       empresa_id: testEmpresaId,
+      ativo: true,
     })
 
     // Criar agendamentos de teste
@@ -93,7 +94,7 @@ describeIfSupabase('Sistema de Relatórios de Agendamentos', () => {
       await supabase.from('agendamentos').delete().in('id', testAgendamentosIds)
     }
     if (testProfessorId) {
-      await supabase.from('professores').delete().eq('id', testProfessorId)
+      await supabase.from('usuarios').delete().eq('id', testProfessorId)
       await supabase.auth.admin.deleteUser(testProfessorId)
     }
     if (testEmpresaId) {

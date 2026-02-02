@@ -44,14 +44,17 @@ async function main() {
 
   const staffIds = new Set<string>((staffRows ?? []).map((r) => r.id));
 
-  // 2) IDs que são aluno: alunos.id, matriculas.aluno_id, alunos_cursos (usuario_id ou aluno_id)
+  // 2) IDs que são aluno: usuarios_empresas.papel_base = 'aluno', matriculas.aluno_id, alunos_cursos.usuario_id
   const alunoIds = new Set<string>();
 
-  // 2a) alunos.id = auth user id
-  const { data: alunosRows } = await supabase.from("alunos").select("id");
-  (alunosRows ?? []).forEach((r) => alunoIds.add(r.id));
+  // 2a) usuarios_empresas com papel_base = 'aluno'
+  const { data: alunosRows } = await supabase
+    .from("usuarios_empresas")
+    .select("usuario_id")
+    .eq("papel_base", "aluno");
+  (alunosRows ?? []).forEach((r) => { if (r.usuario_id) alunoIds.add(r.usuario_id); });
 
-  // 2b) matriculas.aluno_id (aluno_id referencia alunos.id = auth.uid)
+  // 2b) matriculas.aluno_id (aluno_id referencia auth.uid)
   const { data: matriculasRows } = await supabase
     .from("matriculas")
     .select("aluno_id");
@@ -69,14 +72,13 @@ async function main() {
     });
   }
 
-  // 2d) alunos_cursos: tentar usuario_id e aluno_id
+  // 2d) alunos_cursos: usuario_id
   const { data: acRows } = await supabase
     .from("alunos_cursos")
-    .select("usuario_id, aluno_id");
+    .select("usuario_id");
   (acRows ?? []).forEach(
-    (r: { usuario_id?: string | null; aluno_id?: string | null }) => {
+    (r: { usuario_id?: string | null }) => {
       if (r.usuario_id) alunoIds.add(r.usuario_id);
-      if (r.aluno_id) alunoIds.add(r.aluno_id);
     },
   );
 

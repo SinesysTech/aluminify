@@ -45,7 +45,7 @@ afterAll(async () => {
   try {
     // Clean up test data
     if (testUserIds.length > 0) {
-      await supabase.from('professores').delete().in('id', testUserIds)
+      await supabase.from('usuarios').delete().in('id', testUserIds)
       for (const userId of testUserIds) {
         await supabase.auth.admin.deleteUser(userId)
       }
@@ -153,12 +153,12 @@ describe('Property 17: Access Control Validation', () => {
                   }
                 }
 
-                await supabase.from('professores').insert({
+                await supabase.from('usuarios').insert({
                   id: testUser.id,
                   nome_completo: `Test Professor ${scenario.userId}`,
                   email: testUser.email,
                   empresa_id: targetEmpresaId,
-                  is_admin: scenario.userType === 'admin',
+                  ativo: true,
                 })
               }
 

@@ -30,24 +30,24 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-async function findAlunoIdByEmail(email: string): Promise<string | null> {
+async function findUsuarioIdByEmail(email: string): Promise<string | null> {
   const { data, error } = await supabase
-    .from("alunos")
+    .from("usuarios")
     .select("id")
     .eq("email", email)
     .maybeSingle();
 
   if (error) {
-    throw new Error(`Falha ao buscar aluno por email: ${error.message}`);
+    throw new Error(`Falha ao buscar usuario por email: ${error.message}`);
   }
 
   return (data as { id?: string } | null)?.id ?? null;
 }
 
 async function findAuthUserIdByEmail(email: string): Promise<string | null> {
-  // Preferencial: se existir `alunos`, o id é o auth.users.id (FK).
-  const alunoId = await findAlunoIdByEmail(email);
-  if (alunoId) return alunoId;
+  // Preferencial: buscar pelo perfil em `usuarios`.
+  const usuarioId = await findUsuarioIdByEmail(email);
+  if (usuarioId) return usuarioId;
 
   // Fallback: varrer Auth users (pode ser custoso em instâncias grandes).
   let page = 1;
@@ -107,7 +107,7 @@ async function main() {
   const { data: alunosCursos, error: acError } = await supabase
     .from("alunos_cursos")
     .select("curso_id, created_at")
-    .eq("aluno_id", userId);
+    .eq("usuario_id", userId);
   if (acError) {
     throw new Error(`Falha ao buscar alunos_cursos: ${acError.message}`);
   }

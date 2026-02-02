@@ -120,7 +120,15 @@
       "Bash(docker rmi:*)",
       "WebFetch(domain:aluminify.service.sinesys.app)",
       "WebFetch(domain:aluminify.sinesys.app)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(del \"e:\\\\Development\\\\aluminify\\\\supabase\\\\migrations\\\\20260202140000_ensure_professores_exists.sql\")",
+      "Bash(del \"e:\\\\Development\\\\aluminify\\\\supabase\\\\migrations\\\\20260202150000_fix_is_empresa_admin.sql\")",
+      "Bash(del \"e:\\\\Development\\\\aluminify\\\\supabase\\\\migrations\\\\20260202150001_fix_get_user_empresa_id.sql\")",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(npm run test)"
     ],
     "deny": [],
     "ask": []

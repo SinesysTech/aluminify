@@ -85,22 +85,22 @@ describe('Property 5: Insert Operation Type Safety', () => {
     const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
     
     // Valid insert with required fields
-    const validInsert: Database['public']['Tables']['professores']['Insert'] = {
+    const validInsert: Database['public']['Tables']['usuarios']['Insert'] = {
       id: 'test-id',
       empresa_id: 'test-empresa-id',
       nome_completo: 'Test Name',
       email: 'test@example.com',
     };
-    
+
     expect(validInsert.id).toBe('test-id');
     expect(validInsert.empresa_id).toBe('test-empresa-id');
-    
+
     // Verify query builder accepts valid insert
-    const query = client.from('professores').insert(validInsert);
+    const query = client.from('usuarios').insert(validInsert);
     expect(query).toBeDefined();
-    
+
     // The following would fail at compile time (missing required fields):
-    // const invalidInsert: Database['public']['Tables']['professores']['Insert'] = {
+    // const invalidInsert: Database['public']['Tables']['usuarios']['Insert'] = {
     //   id: 'test-id',
     //   // Missing empresa_id, nome_completo, email
     // };
@@ -194,29 +194,29 @@ describe('Property 6: Update Operation Type Safety', () => {
     const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
     
     // Valid update with no fields (empty update)
-    const emptyUpdate: Database['public']['Tables']['professores']['Update'] = {};
+    const emptyUpdate: Database['public']['Tables']['usuarios']['Update'] = {};
     expect(emptyUpdate).toBeDefined();
-    
+
     // Valid update with one field
-    const partialUpdate: Database['public']['Tables']['professores']['Update'] = {
+    const partialUpdate: Database['public']['Tables']['usuarios']['Update'] = {
       nome_completo: 'Updated Name',
     };
     expect(partialUpdate.nome_completo).toBe('Updated Name');
-    
+
     // Valid update with multiple fields
-    const multiFieldUpdate: Database['public']['Tables']['professores']['Update'] = {
+    const multiFieldUpdate: Database['public']['Tables']['usuarios']['Update'] = {
       nome_completo: 'Updated Name',
       email: 'updated@example.com',
       telefone: '123456789',
     };
     expect(multiFieldUpdate.nome_completo).toBe('Updated Name');
     expect(multiFieldUpdate.email).toBe('updated@example.com');
-    
+
     // Verify query builder accepts all update variations
-    const query1 = client.from('professores').update(emptyUpdate).eq('id', 'test-id');
-    const query2 = client.from('professores').update(partialUpdate).eq('id', 'test-id');
-    const query3 = client.from('professores').update(multiFieldUpdate).eq('id', 'test-id');
-    
+    const query1 = client.from('usuarios').update(emptyUpdate).eq('id', 'test-id');
+    const query2 = client.from('usuarios').update(partialUpdate).eq('id', 'test-id');
+    const query3 = client.from('usuarios').update(multiFieldUpdate).eq('id', 'test-id');
+
     expect(query1).toBeDefined();
     expect(query2).toBeDefined();
     expect(query3).toBeDefined();
@@ -229,7 +229,7 @@ describe('Property 6: Update Operation Type Safety', () => {
         fc.constantFrom(
           { table: 'disciplinas', data: { nome: 'Updated Discipline' } },
           { table: 'segmentos', data: { nome: 'Updated Segment' } },
-          { table: 'alunos', data: { email: 'updated@example.com' } }
+          { table: 'usuarios', data: { email: 'updated@example.com' } }
         ),
         async ({ table, data }) => {
           const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
@@ -255,15 +255,15 @@ describe('Property 6: Update Operation Type Safety', () => {
           const client = createClient<Database>(mockSupabaseUrl, mockSupabaseKey);
           
           // Build update data setting nullable field to null
-          const updateData: Database['public']['Tables']['professores']['Update'] = {
+          const updateData: Database['public']['Tables']['usuarios']['Update'] = {
             [nullableField]: null,
           };
-          
+
           // Verify the update data structure
           expect(updateData[nullableField]).toBeNull();
-          
+
           // Verify query builder accepts the update data
-          const query = client.from('professores').update(updateData).eq('id', 'test-id');
+          const query = client.from('usuarios').update(updateData).eq('id', 'test-id');
           expect(query).toBeDefined();
         }
       ),

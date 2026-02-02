@@ -55,15 +55,15 @@ describeIfSupabase('Sistema de Recorrência de Agendamentos', () => {
     if (userError) throw userError
     testProfessorId = user.user.id
 
-    // Criar registro de professor
+    // Criar registro de usuario (professor)
     const { error: profError } = await supabase
-      .from('professores')
+      .from('usuarios')
       .insert({
         id: testProfessorId,
         nome_completo: 'Professor Teste',
         email: user.user.email!,
         empresa_id: testEmpresaId,
-        is_admin: false,
+        ativo: true,
       })
 
     if (profError) throw profError
@@ -78,7 +78,7 @@ describeIfSupabase('Sistema de Recorrência de Agendamentos', () => {
       await supabase.from('agendamento_bloqueios').delete().eq('id', testBloqueioId)
     }
     if (testProfessorId) {
-      await supabase.from('professores').delete().eq('id', testProfessorId)
+      await supabase.from('usuarios').delete().eq('id', testProfessorId)
       await supabase.auth.admin.deleteUser(testProfessorId)
     }
     if (testEmpresaId) {
@@ -222,17 +222,18 @@ describeIfSupabase('Sistema de Recorrência de Agendamentos', () => {
 
       outroProfessorId = user!.user.id
 
-      await supabase.from('professores').insert({
+      await supabase.from('usuarios').insert({
         id: outroProfessorId,
         nome_completo: 'Outro Professor',
         email: user!.user.email!,
         empresa_id: outraEmpresaId,
+        ativo: true,
       })
     })
 
     afterAll(async () => {
       if (outroProfessorId) {
-        await supabase.from('professores').delete().eq('id', outroProfessorId)
+        await supabase.from('usuarios').delete().eq('id', outroProfessorId)
         await supabase.auth.admin.deleteUser(outroProfessorId)
       }
       if (outraEmpresaId) {
