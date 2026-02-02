@@ -61,13 +61,11 @@ if [ -f .env.local ]; then
         # Skip comments and empty lines
         [[ $key =~ ^#.*$ ]] && continue
         [[ -z $key ]] && continue
-        # Only pass NEXT_PUBLIC_*, SUPABASE_*, AI_*, GOOGLE_*, OPENAI_*, and LOG_LEVEL
+        # Only pass NEXT_PUBLIC_*, SUPABASE_*, OAUTH_*, and SENTRY_*
         if [[ $key =~ ^NEXT_PUBLIC_ ]] || \
            [[ $key =~ ^SUPABASE_ ]] || \
-           [[ $key =~ ^AI_ ]] || \
-           [[ $key =~ ^GOOGLE_ ]] || \
-           [[ $key =~ ^OPENAI_ ]] || \
-           [[ $key == "LOG_LEVEL" ]]; then
+           [[ $key =~ ^OAUTH_ ]] || \
+           [[ $key =~ ^SENTRY_ ]]; then
             BUILD_ARGS="$BUILD_ARGS --build-arg $key=$value"
             echo "  ✓ Loaded: $key"
         fi
