@@ -153,6 +153,7 @@ export function CoursesListTable({
     [onContinueCourse, onStartCourse, onViewDetails]
   )
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: courses,
     columns,

@@ -406,7 +406,7 @@ export default function StudentDashboardClientPage() {
     }).slice(0, 5) // Limitar a 5 itens para o pie chart
 
     // Calcular contagens para ProgressStatisticsCard
-    const totalItems = coursesList.length
+
     const inProgressItems = coursesList.filter(c => c.started && c.progress < 100).length
     const completedItems = coursesList.filter(c => c.progress >= 100).length
 
