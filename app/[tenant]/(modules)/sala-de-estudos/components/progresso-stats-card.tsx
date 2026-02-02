@@ -11,12 +11,14 @@ import {
   Flame,
 } from 'lucide-react'
 import { Progress } from '@/app/shared/components/feedback/progress'
+import { Skeleton } from '@/app/shared/components/feedback/skeleton'
 import { cn } from '@/lib/utils'
 import { AtividadeComProgresso } from '../types'
 
 interface ProgressoStatsCardProps {
   atividades: AtividadeComProgresso[]
   streakDays?: number
+  isStreakLoading?: boolean
   dailyGoal?: { completed: number; target: number }
   className?: string
 }
@@ -24,6 +26,7 @@ interface ProgressoStatsCardProps {
 export function ProgressoStatsCard({
   atividades,
   streakDays = 0,
+  isStreakLoading = false,
   dailyGoal,
   className,
 }: ProgressoStatsCardProps) {
@@ -100,17 +103,26 @@ export function ProgressoStatsCard({
               />
             </div>
             <div className="flex flex-col">
-              <span
-                className={cn(
-                  'text-sm font-bold leading-tight',
-                  streakDays > 0 ? 'text-orange-600' : 'text-orange-500/70'
-                )}
-              >
-                {streakDays} {streakDays === 1 ? 'dia seguido' : 'dias seguidos'}
-              </span>
-              <span className="text-[10px] text-muted-foreground leading-tight">
-                {streakMessage}
-              </span>
+              {isStreakLoading ? (
+                <>
+                  <Skeleton className="h-4 w-20 mb-1" />
+                  <Skeleton className="h-3 w-16" />
+                </>
+              ) : (
+                <>
+                  <span
+                    className={cn(
+                      'text-sm font-bold leading-tight',
+                      streakDays > 0 ? 'text-orange-600' : 'text-orange-500/70'
+                    )}
+                  >
+                    {streakDays} {streakDays === 1 ? 'dia seguido' : 'dias seguidos'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground leading-tight">
+                    {streakMessage}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
