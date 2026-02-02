@@ -13,7 +13,18 @@ NC='\033[0m' # No Color
 
 # Configuration
 IMAGE_NAME="sinesystec/aluminify"
-VERSION="${VERSION:-latest}"
+
+# Get version from package.json if not provided
+if [ -z "$VERSION" ]; then
+    if [ -f package.json ]; then
+        # Extract version using grep and sed to avoid jq dependency
+        VERSION=$(grep -m1 '"version":' package.json | sed 's/[", ]//g' | cut -d: -f2)
+        echo -e "${YELLOW}Auto-detected version from package.json: ${VERSION}${NC}"
+    else
+        VERSION="latest"
+        echo -e "${YELLOW}package.json not found, defaulting to version: ${VERSION}${NC}"
+    fi
+fi
 
 echo -e "${GREEN}=== Aluminify Docker Build and Push ===${NC}"
 echo ""
@@ -50,7 +61,7 @@ if [ -f .env.local ]; then
         # Skip comments and empty lines
         [[ $key =~ ^#.*$ ]] && continue
         [[ -z $key ]] && continue
-        # Only pass NEXT_PUBLIC_*, UPSTASH_*, SUPABASE_*, SUPERADMIN_*, AI_*, GOOGLE_*, OPENAI_*, and LOG_LEVEL
+        # Only pass NEXT_PUBLIC_*, SUPABASE_*, AI_*, GOOGLE_*, OPENAI_*, and LOG_LEVEL
         if [[ $key =~ ^NEXT_PUBLIC_ ]] || \
            [[ $key =~ ^SUPABASE_ ]] || \
            [[ $key =~ ^AI_ ]] || \
