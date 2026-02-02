@@ -174,7 +174,7 @@ export function CursoTable() {
     setMounted(true)
   }, [])
 
-  const createForm = useForm<CursoFormValues>({
+  const createForm = useForm<CursoFormValues, any, CursoFormValues>({
     resolver: zodResolver(cursoSchema),
     defaultValues: {
       segmentId: null,
@@ -195,7 +195,7 @@ export function CursoTable() {
     },
   })
 
-  const editForm = useForm<CursoFormValues>({
+  const editForm = useForm<CursoFormValues, any, CursoFormValues>({
     resolver: zodResolver(cursoSchema),
     defaultValues: {
       segmentId: null,
@@ -1084,7 +1084,7 @@ export function CursoTable() {
             </div>
           </>
         ) : (
-          <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+          <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-100">
             <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border">
               <BookOpen className="w-8 h-8 text-muted-foreground" strokeWidth={1} />
             </div>

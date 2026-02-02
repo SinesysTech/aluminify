@@ -55,6 +55,10 @@ function shouldCompressCookie(name: string, value: string): boolean {
   return value.length >= 1024;
 }
 
+function buildCookieHeader(cookies: Array<{ name: string; value: string }>): string {
+  return cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+}
+
 function encodeTenantHeader(tenantContext: {
   empresaId?: string | null;
   empresaSlug?: string | null;
@@ -216,10 +220,12 @@ export async function updateSession(request: NextRequest) {
 
   // Descompressão transparente: browser → middleware (para consumo do Supabase/server)
   // Isso reduz tamanho de headers trafegados para o Nginx sem quebrar o SDK.
+  let didDecompressRequestCookies = false;
   for (const c of request.cookies.getAll()) {
     if (typeof c.value === "string" && c.value.startsWith("pako:")) {
       const inflated = decompressCookieValue(c.value);
       request.cookies.set(c.name, inflated);
+      didDecompressRequestCookies = true;
     }
   }
   if (projectRef) {
@@ -414,6 +420,16 @@ export async function updateSession(request: NextRequest) {
   // The original 'supabaseResponse' has the cookies set by createServerClient, so we must copy them.
 
   const requestHeaders = new Headers(request.headers);
+  // Importante: mudanças em `request.cookies.set(...)` não garantem que o header
+  // `cookie` repassado para Server Components seja atualizado. Reconstituímos aqui.
+  if (didDecompressRequestCookies) {
+    requestHeaders.set(
+      "cookie",
+      buildCookieHeader(
+        request.cookies.getAll().map((c) => ({ name: c.name, value: c.value })),
+      ),
+    );
+  }
   if (tenantContext.empresaId) {
     requestHeaders.set("x-tenant", encodeTenantHeader(tenantContext));
   }
