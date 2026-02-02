@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ModuleVisibilityRepositoryImpl } from './module-visibility.repository';
+import { CursoModulosService } from '@/app/[tenant]/(modules)/curso/services/curso-modulos.service';
 import type {
   ModuleWithVisibility,
   VisibleModule,
@@ -11,9 +12,11 @@ import type {
 
 export class ModuleVisibilityService {
   private readonly repository: ModuleVisibilityRepositoryImpl;
+  private readonly cursoModulosService: CursoModulosService;
 
   constructor(private readonly client: SupabaseClient) {
     this.repository = new ModuleVisibilityRepositoryImpl(client);
+    this.cursoModulosService = new CursoModulosService(client);
   }
 
   /**
@@ -23,6 +26,35 @@ export class ModuleVisibilityService {
    */
   async getVisibleModules(empresaId: string): Promise<VisibleModule[]> {
     return this.repository.getVisibleModulesForEmpresa(empresaId);
+  }
+
+  /**
+   * Get visible modules for a student, filtered by their enrolled courses
+   * Logic:
+   * 1. Get tenant-visible modules (existing behavior)
+   * 2. Get modules granted by student's enrolled courses (via curso_modulos)
+   * 3. Return INTERSECTION: tenant-visible AND course-granted
+   * 4. Core modules (Dashboard) are always visible
+   * 5. Backward compat: if no curso_modulos bindings exist for the tenant, return all
+   */
+  async getVisibleModulesForStudent(empresaId: string, userId: string): Promise<VisibleModule[]> {
+    // Get tenant-level visible modules (the "ceiling")
+    const tenantModules = await this.repository.getVisibleModulesForEmpresa(empresaId);
+
+    // Check if any course-module bindings exist for this tenant
+    const hasBindings = await this.cursoModulosService.hasAnyCourseModuleBindings(empresaId);
+    if (!hasBindings) {
+      // No bindings configured yet - backward compat: show all tenant modules
+      return tenantModules;
+    }
+
+    // Get modules from student's enrolled courses
+    const studentModuleIds = await this.cursoModulosService.getModulesForStudentCourses(userId, empresaId);
+
+    // Filter: keep only modules that are both tenant-visible AND course-granted (or core)
+    return tenantModules.filter(
+      module => module.isCore || studentModuleIds.includes(module.id)
+    );
   }
 
   /**

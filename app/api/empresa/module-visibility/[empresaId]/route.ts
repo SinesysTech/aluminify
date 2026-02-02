@@ -31,8 +31,31 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       });
     }
 
-    // Return visible modules for sidebar
-    const modules = await service.getVisibleModules(empresaId);
+    // Check if the caller is a student - if so, filter modules by enrolled courses
+    const { data: { user } } = await supabase.auth.getUser();
+    let modules: Awaited<ReturnType<typeof service.getVisibleModules>>;
+
+    if (user) {
+      // Check if user is a student in this empresa
+      const { data: userEmpresa } = await supabase
+        .from("usuarios_empresas")
+        .select("papel_base")
+        .eq("usuario_id", user.id)
+        .eq("empresa_id", empresaId)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (userEmpresa?.papel_base === "aluno") {
+        // Student: filter modules by enrolled courses
+        modules = await service.getVisibleModulesForStudent(empresaId, user.id);
+      } else {
+        // Non-student: return all tenant-visible modules
+        modules = await service.getVisibleModules(empresaId);
+      }
+    } else {
+      modules = await service.getVisibleModules(empresaId);
+    }
+
     return NextResponse.json({
       success: true,
       modules,

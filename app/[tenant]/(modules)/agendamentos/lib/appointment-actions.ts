@@ -15,6 +15,7 @@ import {
 } from "../types";
 import { getConfiguracoesProfessor } from "./config-actions";
 import { validateAgendamento } from "./validation-actions";
+import { PlantaoQuotaService } from "../services/plantao-quota.service";
 
 export async function createAgendamento(
   data: Omit<Agendamento, "id" | "created_at" | "updated_at">,
@@ -57,6 +58,23 @@ export async function createAgendamento(
     throw new Error("Você só pode agendar com professores da sua instituição");
   }
 
+  // Check plantao quota
+  const plantaoQuotaService = new PlantaoQuotaService(supabase);
+  const quotaInfo = await plantaoQuotaService.getStudentQuotaInfo(
+    user.id,
+    alunoData.empresa_id,
+  );
+  if (quotaInfo.totalQuota > 0 && quotaInfo.remaining <= 0) {
+    throw new Error(
+      "Sua cota mensal de plantões foi atingida. Você não pode agendar mais plantões este mês.",
+    );
+  }
+  if (quotaInfo.totalQuota === 0) {
+    throw new Error(
+      "Seu curso não inclui plantões. Entre em contato com a administração.",
+    );
+  }
+
   // Extra validation on client-provided data
   const validation = await validateAgendamento(
     data.professor_id,
@@ -90,6 +108,14 @@ export async function createAgendamento(
   if (error) {
     console.error("Error creating appointment:", error);
     throw new Error("Failed to create appointment");
+  }
+
+  // Increment plantao usage after successful booking
+  try {
+    await plantaoQuotaService.incrementUsage(user.id, alunoData.empresa_id);
+  } catch (incError) {
+    console.error("Error incrementing plantao usage:", incError);
+    // Don't fail the booking if usage tracking fails
   }
 
   revalidatePath("/agendamentos");
@@ -441,7 +467,7 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
 
   const { data: agendamento, error: fetchError } = await supabase
     .from("agendamentos")
-    .select("professor_id")
+    .select("professor_id, aluno_id, empresa_id")
     .eq("id", id)
     .single();
 
@@ -470,6 +496,16 @@ export async function rejeitarAgendamento(id: string, motivo: string) {
     throw new Error("Falha ao rejeitar agendamento");
   }
 
+  // Decrement plantao usage on rejection
+  if (agendamento.aluno_id && agendamento.empresa_id) {
+    try {
+      const plantaoQuotaService = new PlantaoQuotaService(supabase);
+      await plantaoQuotaService.decrementUsage(agendamento.aluno_id, agendamento.empresa_id);
+    } catch (decError) {
+      console.error("Error decrementing plantao usage on rejection:", decError);
+    }
+  }
+
   revalidatePath("/agendamentos");
   revalidatePath("/meus-agendamentos");
   return data;
@@ -487,7 +523,7 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
 
   const { data: agendamento, error: fetchError } = await supabase
     .from("agendamentos")
-    .select("professor_id, aluno_id, data_inicio, status")
+    .select("professor_id, aluno_id, data_inicio, status, empresa_id")
     .eq("id", id)
     .single();
 
@@ -524,6 +560,16 @@ export async function cancelAgendamentoWithReason(id: string, motivo?: string) {
   if (error) {
     console.error("Error cancelling appointment:", error);
     throw new Error("Falha ao cancelar agendamento");
+  }
+
+  // Decrement plantao usage on cancellation
+  if (agendamento.aluno_id && agendamento.empresa_id) {
+    try {
+      const plantaoQuotaService = new PlantaoQuotaService(supabase);
+      await plantaoQuotaService.decrementUsage(agendamento.aluno_id, agendamento.empresa_id);
+    } catch (decError) {
+      console.error("Error decrementing plantao usage on cancellation:", decError);
+    }
   }
 
   revalidatePath("/agendamentos");
