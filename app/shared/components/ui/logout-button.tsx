@@ -2,10 +2,12 @@
 
 import { createClient } from '@/app/shared/core/client'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 export function LogoutButton() {
   const router = useRouter()
+  const params = useParams()
+  const tenantSlug = params?.tenant as string | undefined
 
   const logout = async () => {
     const supabase = createClient()
@@ -26,7 +28,7 @@ export function LogoutButton() {
       // noop
     }
     await supabase.auth.signOut()
-    router.push('/auth')
+    router.push(tenantSlug ? `/${tenantSlug}/auth/login` : '/auth')
   }
 
   return <Button onClick={logout}>Logout</Button>

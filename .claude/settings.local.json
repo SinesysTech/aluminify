@@ -140,7 +140,9 @@
       "Bash(set PYTHONIOENCODING=utf-8:*)",
       "Bash(PYTHONIOENCODING=utf-8 python3:*)",
       "Bash(cmd /c \"set PYTHONIOENCODING=utf-8 && python .claude/skills/ui-ux-pro-max/scripts/search.py \"education student study platform dashboard sidebar\" --design-system -p \"Area do Aluno\"\")",
-      "Bash(PYTHONIOENCODING=utf-8 python:*)"
+      "Bash(PYTHONIOENCODING=utf-8 python:*)",
+      "Bash(npm run test:*)",
+      "Bash(npx jest:*)"
     ],
     "deny": [],
     "ask": []

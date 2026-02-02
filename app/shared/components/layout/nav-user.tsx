@@ -130,7 +130,7 @@ export function NavUser() {
         // noop
       }
       await supabase.auth.signOut()
-      router.push('/auth')
+      router.push(tenantSlug ? `/${tenantSlug}/auth/login` : '/auth')
       router.refresh()
     } catch (error) {
       console.error('Error logging out:', error)
