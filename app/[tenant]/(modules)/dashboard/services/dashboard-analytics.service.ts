@@ -3233,9 +3233,9 @@ export class DashboardAnalyticsService {
 
         const { count: aulasConcluidas } = await client
           .from("aulas_concluidas")
-          .select("id", { count: "exact", head: true })
+          .select("aula_id", { count: "exact", head: true })
           .eq("curso_id", curso.id)
-          .eq("aluno_id", alunoId);
+          .eq("usuario_id", alunoId);
 
         const total = totalAulas ?? 0;
         const concluidas = aulasConcluidas ?? 0;
@@ -3245,7 +3245,7 @@ export class DashboardAnalyticsService {
         const { data: atividades } = await client
           .from("progresso_atividades")
           .select("questoes_totais, questoes_acertos")
-          .eq("aluno_id", alunoId)
+          .eq("usuario_id", alunoId)
           .eq("status", "Concluido");
 
         let score = 0;
@@ -3292,7 +3292,7 @@ export class DashboardAnalyticsService {
     const { data, error } = await client
       .from("aulas_concluidas")
       .select("created_at")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .in("curso_id", cursoIds)
       .gte("created_at", sixMonthsAgo.toISOString())
       .order("created_at", { ascending: true });
@@ -3351,7 +3351,7 @@ export class DashboardAnalyticsService {
     const { data: cronogramas, error } = await client
       .from("cronogramas")
       .select("id, nome")
-      .eq("aluno_id", alunoId)
+      .eq("usuario_id", alunoId)
       .order("created_at", { ascending: false })
       .limit(2);
 
@@ -3407,7 +3407,7 @@ export class DashboardAnalyticsService {
     // Buscar alunos da empresa com tempo de estudo
     const { data: alunos, error } = await client
       .from("usuarios_empresas")
-      .select("usuario_id, usuarios:usuario_id(id, nome_completo, avatar_url)")
+      .select("usuario_id, usuarios:usuario_id(id, nome_completo, foto_url)")
       .eq("empresa_id", empresaId)
       .eq("role", "aluno")
       .eq("ativo", true);
@@ -3417,7 +3417,7 @@ export class DashboardAnalyticsService {
 
     const alunoIds = alunos
       .map((a) => {
-        const u = a.usuarios as { id: string; nome_completo: string | null; avatar_url: string | null } | null;
+        const u = a.usuarios as { id: string; nome_completo: string | null; foto_url: string | null } | null;
         return u?.id;
       })
       .filter(Boolean) as string[];
@@ -3427,8 +3427,8 @@ export class DashboardAnalyticsService {
     // Buscar tempo de estudo de cada aluno
     const { data: sessoes, error: sessoesError } = await client
       .from("sessoes_estudo")
-      .select("aluno_id, tempo_total_liquido_segundos")
-      .in("aluno_id", alunoIds)
+      .select("usuario_id, tempo_total_liquido_segundos")
+      .in("usuario_id", alunoIds)
       .eq("status", "concluido");
 
     if (sessoesError) throw new Error(`Erro ao buscar sessoes: ${sessoesError.message}`);
@@ -3436,14 +3436,14 @@ export class DashboardAnalyticsService {
     // Agregar por aluno
     const pointsMap = new Map<string, number>();
     for (const s of sessoes ?? []) {
-      const current = pointsMap.get(s.aluno_id) ?? 0;
-      pointsMap.set(s.aluno_id, current + (s.tempo_total_liquido_segundos ?? 0));
+      const current = pointsMap.get(s.usuario_id) ?? 0;
+      pointsMap.set(s.usuario_id, current + (s.tempo_total_liquido_segundos ?? 0));
     }
 
     // Converter para horas e montar resultado
     const results = alunos
       .map((a) => {
-        const u = a.usuarios as { id: string; nome_completo: string | null; avatar_url: string | null } | null;
+        const u = a.usuarios as { id: string; nome_completo: string | null; foto_url: string | null } | null;
         if (!u) return null;
         const seconds = pointsMap.get(u.id) ?? 0;
         const hours = Math.round(seconds / 3600);
@@ -3451,7 +3451,7 @@ export class DashboardAnalyticsService {
           id: u.id,
           name: u.nome_completo ?? "Aluno",
           points: hours,
-          avatarUrl: u.avatar_url,
+          avatarUrl: u.foto_url,
         };
       })
       .filter(Boolean) as Array<{

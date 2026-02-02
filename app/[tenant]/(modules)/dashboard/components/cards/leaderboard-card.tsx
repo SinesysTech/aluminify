@@ -9,7 +9,7 @@ export interface LeaderboardItem {
   id: string
   name: string
   points: number
-  avatarUrl?: string
+  avatarUrl?: string | null
 }
 
 export interface LeaderboardCardProps {
