@@ -90,9 +90,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy startup script
+# Copy startup script and fix Windows CRLF line endings
 COPY --from=builder /app/start.sh ./start.sh
-RUN chmod +x ./start.sh
+RUN sed -i 's/\r$//' ./start.sh && chmod +x ./start.sh
 
 # Set ownership to non-root user
 RUN chown -R nextjs:nodejs /app

@@ -112,7 +112,15 @@
       "mcp__supabase__search_docs",
       "Bash(npm run type-check:*)",
       "Bash(docker-compose:*)",
-      "Bash(docker push:*)"
+      "Bash(docker push:*)",
+      "Bash(docker ps:*)",
+      "Bash(xxd:*)",
+      "Bash(docker images:*)",
+      "Bash(docker rm:*)",
+      "Bash(docker rmi:*)",
+      "WebFetch(domain:aluminify.service.sinesys.app)",
+      "WebFetch(domain:aluminify.sinesys.app)",
+      "Bash(docker logs:*)"
     ],
     "deny": [],
     "ask": []

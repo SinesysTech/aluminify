@@ -1,6 +1,9 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import path from "path";
 import "./app/shared/core/env";
+
+const projectRoot = path.resolve(process.cwd());
 
 const nextConfig: NextConfig = {
   // Otimizações para produção
@@ -53,10 +56,22 @@ const nextConfig: NextConfig = {
 
   // Configuração do Webpack para produção
   webpack: (config) => {
+    // Garantir resolução a partir da raiz do projeto (evita bug com caminhos no Windows)
+    config.resolve.modules = [
+      path.join(projectRoot, "node_modules"),
+      ...(config.resolve.modules || []),
+    ];
     // Ignorar dependências opcionais do unzipper
+    // Alias: Mastra/anthropic-v5 precisa de provider-utils 3.x (createProviderDefinedToolFactory);
+    // o root tem 4.x (de @ai-sdk/openai). Webpack resolve o root primeiro, então forçamos 3.x.
+    const providerUtilsV3 = path.join(
+      projectRoot,
+      "node_modules/@ai-sdk/anthropic-v5/node_modules/@ai-sdk/provider-utils"
+    );
     config.resolve.alias = {
       ...config.resolve.alias,
       "@aws-sdk/client-s3": false,
+      "@ai-sdk/provider-utils": providerUtilsV3,
     };
 
     // Ignorar módulos opcionais

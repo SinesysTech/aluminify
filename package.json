@@ -3,9 +3,9 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --webpack",
     "dev:all": "npm run dev",
-    "dev:webpack": "next dev --webpack",
+    "dev:turbopack": "next dev --turbopack",
     "build": "next build --turbopack",
     "build:all": "npm run build",
     "start": "next start",
@@ -167,6 +167,14 @@
     "typescript": "^5"
   },
   "overrides": {
+    "@mastra/core": {
+      "@ai-sdk/provider-utils": "3.0.20"
+    },
+    "ai": "^5.0.52",
+    "jsondiffpatch": "0.7.3",
+    "fast-xml-parser": "^5.3.4",
+    "lodash-es": "^4.17.23",
+    "prismjs": "^1.30.0",
     "rimraf": "^6.0.0",
     "tar": "^7.5.6",
     "node-domexception": "^2.0.2",
