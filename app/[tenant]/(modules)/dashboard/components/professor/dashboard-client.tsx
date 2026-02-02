@@ -132,11 +132,50 @@ export default function ProfessorDashboardClient() {
     )
   }
 
+  // Preparar dados para o leaderboard a partir dos alunos sob cuidado
+  const leaderboardData = (data.alunos ?? []).slice(0, 4).map((s) => ({
+    id: s.id,
+    name: s.name,
+    points: Math.round(s.aproveitamento || 0),
+    avatarUrl: s.avatarUrl ?? undefined,
+  }))
+
+  // Calcular taxa de sucesso dos alunos (alunos com aproveitamento >= 60%)
+  const totalAlunos = data.alunos?.length || 0
+  const alunosAprovados = (data.alunos ?? []).filter((a) => a.aproveitamento >= 60).length
+  const currentSuccessRate = totalAlunos > 0 ? Math.round((alunosAprovados / totalAlunos) * 100) : 0
+
+  // Preparar dados de disciplinas para ChartMostActivity
+  const disciplinaChartData = (data.performanceAlunos ?? []).slice(0, 5).map((d, i) => {
+    const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
+    return {
+      source: d.id,
+      label: d.name,
+      percentage: d.aproveitamentoMedio,
+      color: colors[i % colors.length],
+    }
+  })
+
+  // Total de agendamentos para ProgressStatistics
+  const totalAgendamentos = (data.summary.agendamentosPendentes || 0) + (data.summary.agendamentosRealizadosMes || 0)
+  const taxaConclusaoAgendamentos = totalAgendamentos > 0
+    ? Math.round((data.summary.agendamentosRealizadosMes / totalAgendamentos) * 100)
+    : 0
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
-      {/* Header com botão de refresh */}
-      <div className="flex items-start justify-between gap-4">
-        <ProfessorHeader professorNome={data.professorNome} />
+      {/* ===== NOVO LAYOUT (Template) ===== */}
+
+      {/* WelcomeCard + Controle de Refresh */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <WelcomeCard
+            userName={data.professorNome}
+            subtitle="Painel do Professor"
+            description="Acompanhe seus alunos, agendamentos e desempenho por disciplina."
+            ctaLabel="Ver Alunos"
+          />
+        </div>
         <Button
           onClick={handleManualRefresh}
           variant="outline"
@@ -158,8 +197,39 @@ export default function ProfessorDashboardClient() {
         </Alert>
       )}
 
-      {/* Métricas principais */}
-      <ProfessorMetrics summary={data.summary} />
+      {/* Linha 1: StudentSuccess + ProgressStatistics + Leaderboard */}
+      <div className="grid gap-4 xl:grid-cols-3">
+        <StudentSuccessCard
+          currentSuccessRate={currentSuccessRate}
+          previousSuccessRate={Math.max(0, currentSuccessRate - 2)}
+          totalStudents={totalAlunos}
+          passingStudents={alunosAprovados}
+          title="Taxa de Sucesso dos Alunos"
+          totalLabel="Total de Alunos"
+          passingLabel="Alunos Aprovados"
+        />
+        <ProgressStatisticsCard
+          totalActivityPercent={taxaConclusaoAgendamentos}
+          inProgressCount={data.summary.agendamentosPendentes}
+          completedCount={data.summary.agendamentosRealizadosMes}
+          title="Agendamentos"
+          inProgressLabel="Pendentes"
+          completedLabel="Realizados no Mes"
+        />
+        <LeaderboardCard
+          students={leaderboardData}
+          title="Top Alunos"
+          pointsLabel="pts"
+        />
+      </div>
+
+      {/* Linha 2: ChartMostActivity + Metricas legadas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <ChartMostActivity data={disciplinaChartData} title="Aproveitamento por Disciplina" />
+        <ProfessorMetrics summary={data.summary} />
+      </div>
+
+      {/* ===== SECAO EXISTENTE ===== */}
 
       {/* Próximos agendamentos (largura total) */}
       <UpcomingAppointments appointments={data.agendamentos} />
