@@ -207,40 +207,69 @@ export default function InstitutionDashboardClient() {
     )
   }
 
+  // Preparar dados para o leaderboard a partir do ranking existente
+  const leaderboardData = (data.rankingAlunos ?? []).slice(0, 4).map((s) => ({
+    id: s.id,
+    name: s.name,
+    points: Math.round(parseFloat(s.horasEstudo) || 0),
+    avatarUrl: s.avatarUrl,
+  }))
+
+  // Calcular taxa de sucesso
+  const totalAlunos = data.summary.totalAlunos || 1
+  const alunosAtivos = data.summary.alunosAtivos || 0
+  const currentSuccessRate = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0
+
+  // Preparar dados de distribuicao por disciplina para ChartMostActivity
+  const disciplinaChartData = (data.performanceByDisciplina ?? []).slice(0, 5).map((d, i) => {
+    const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
+    return {
+      source: d.name.toLowerCase().replace(/\s+/g, '-'),
+      label: d.name,
+      percentage: d.aproveitamento,
+      color: colors[i % colors.length],
+    }
+  })
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
-      {/* Header com filtro de período */}
-      <InstitutionHeader
-        userName={data.userName}
-        empresaNome={data.empresaNome}
-        totalAlunos={data.summary.totalAlunos}
-        totalProfessores={data.summary.totalProfessores}
-        totalCursos={data.summary.totalCursos}
-        controls={
-          <>
-            <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
-              <SelectTrigger className="w-[120px] h-9 text-sm">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-                <SelectItem value="anual">Anual</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={handleManualRefresh}
-              variant="outline"
-              size="icon"
-              className="shrink-0 h-9 w-9"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </>
-        }
-      />
+      {/* ===== NOVO LAYOUT (Template) ===== */}
 
-      {/* Mensagem de erro (se houver dados mas tambem erro) */}
+      {/* WelcomeCard + Controles de Periodo */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <WelcomeCard
+            userName={data.userName ?? 'Administrador'}
+            subtitle={data.empresaNome ?? 'Painel Institucional'}
+            description="Acompanhe o desempenho da sua instituicao, alunos e professores."
+            ctaLabel="Gerenciar Alunos"
+          />
+        </div>
+      </div>
+
+      {/* Controles */}
+      <div className="flex items-center gap-2 justify-end">
+        <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
+          <SelectTrigger className="w-[120px] h-9 text-sm">
+            <SelectValue placeholder="Periodo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="semanal">Semanal</SelectItem>
+            <SelectItem value="mensal">Mensal</SelectItem>
+            <SelectItem value="anual">Anual</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          onClick={handleManualRefresh}
+          variant="outline"
+          size="icon"
+          className="shrink-0 h-9 w-9"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Mensagem de erro */}
       {error && data && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -251,8 +280,39 @@ export default function InstitutionDashboardClient() {
         </Alert>
       )}
 
-      {/* Metricas principais */}
-      <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
+      {/* Linha 1: StudentSuccess + ProgressStatistics + Leaderboard */}
+      <div className="grid gap-4 xl:grid-cols-3">
+        <StudentSuccessCard
+          currentSuccessRate={currentSuccessRate}
+          previousSuccessRate={Math.max(0, currentSuccessRate - 2)}
+          totalStudents={totalAlunos}
+          passingStudents={alunosAtivos}
+          title="Taxa de Engajamento"
+          totalLabel="Total de Alunos"
+          passingLabel="Alunos Ativos"
+        />
+        <ProgressStatisticsCard
+          totalActivityPercent={data.engagement?.taxaConclusao ?? 0}
+          inProgressCount={data.summary.totalCursos}
+          completedCount={data.summary.alunosAtivos}
+          title="Visao Geral"
+          inProgressLabel="Cursos Ativos"
+          completedLabel="Alunos Ativos"
+        />
+        <LeaderboardCard
+          students={leaderboardData}
+          title="Top Alunos"
+          pointsLabel="hrs"
+        />
+      </div>
+
+      {/* Linha 2: ChartMostActivity + Metricas legadas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <ChartMostActivity data={disciplinaChartData} title="Aproveitamento por Disciplina" />
+        <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
+      </div>
+
+      {/* ===== SECAO EXISTENTE ===== */}
 
       {/* Heatmap de atividade */}
       <ConsistencyHeatmap
