@@ -36,7 +36,7 @@ const AUTH_SESSION_CACHE_TTL = 1800; // 30 minutos
 
 type EssentialAuthSessionData = Pick<
   AppUser,
-  "id" | "email" | "role" | "empresaId" | "empresaSlug" | "mustChangePassword"
+  "id" | "email" | "role" | "roleType" | "permissions" | "fullName" | "avatarUrl" | "empresaId" | "empresaSlug" | "empresaNome" | "mustChangePassword"
 >;
 
 /**
@@ -299,8 +299,13 @@ async function _getAuthenticatedUser(): Promise<AppUser | null> {
     id: appUser.id,
     email: appUser.email,
     role: appUser.role,
+    roleType: appUser.roleType,
+    permissions: appUser.permissions,
+    fullName: appUser.fullName,
+    avatarUrl: appUser.avatarUrl,
     empresaId: appUser.empresaId,
     empresaSlug: appUser.empresaSlug,
+    empresaNome: appUser.empresaNome,
     mustChangePassword: appUser.mustChangePassword,
   };
 

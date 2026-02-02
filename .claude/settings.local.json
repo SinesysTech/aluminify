@@ -130,7 +130,12 @@
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_wait_for",
       "mcp__playwright__browser_take_screenshot",
-      "Bash(npm run test)"
+      "Bash(npm run test)",
+      "Bash(taskkill /F /FI \"WINDOWTITLE eq *next*\" /FI \"IMAGENAME eq node.exe\")",
+      "Bash(timeout /t 2 /nobreak)",
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_snapshot"
     ],
     "deny": [],
     "ask": []
