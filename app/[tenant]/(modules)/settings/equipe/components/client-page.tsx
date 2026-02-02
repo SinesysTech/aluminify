@@ -79,7 +79,7 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
 
           <h3 className="empty-state-title mb-2">Nenhum membro na equipe</h3>
           <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
-            Ainda nao ha membros cadastrados na equipe desta empresa.
+            Ainda não há membros cadastrados na equipe desta empresa.
           </p>
         </section>
       )}

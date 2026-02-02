@@ -27,10 +27,10 @@ export function UserTable({ usuarios }: UserTableProps) {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border">
             <tr>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Usuario / Email</th>
+              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Usuário / Email</th>
               <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Papel</th>
               <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-[150px]">Status</th>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-[80px]">Acoes</th>
+              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-[80px]">Ações</th>
             </tr>
           </thead>
 
@@ -38,7 +38,7 @@ export function UserTable({ usuarios }: UserTableProps) {
             {usuarios.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-muted-foreground">
-                  Nenhum usuario encontrado com esses filtros.
+                  Nenhum usuário encontrado com esses filtros.
                 </td>
               </tr>
             ) : (

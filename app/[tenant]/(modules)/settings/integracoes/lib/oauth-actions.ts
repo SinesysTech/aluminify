@@ -35,7 +35,7 @@ export async function saveTenantOAuthCredentials(
   const user = await requireUser({ allowedRoles: ["usuario"] });
 
   if (!user.isAdmin || user.empresaId !== empresaId) {
-    throw new Error("Sem permissao para configurar credenciais OAuth");
+    throw new Error("Sem permissão para configurar credenciais OAuth");
   }
 
   await saveOAuthCredentials(empresaId, provider, clientId, clientSecret, user.id);
@@ -53,7 +53,7 @@ export async function deleteTenantOAuthCredentials(
   const user = await requireUser({ allowedRoles: ["usuario"] });
 
   if (!user.isAdmin || user.empresaId !== empresaId) {
-    throw new Error("Sem permissao para deletar credenciais OAuth");
+    throw new Error("Sem permissão para deletar credenciais OAuth");
   }
 
   await deleteOAuthCredentials(empresaId, provider);

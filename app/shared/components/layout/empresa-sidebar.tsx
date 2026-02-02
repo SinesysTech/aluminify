@@ -91,14 +91,6 @@ const empresaNavItems: NavItem[] = [
     title: "Configurações",
     url: "/settings",
     icon: Settings,
-    items: [
-      { title: "Detalhes", url: "/settings/detalhes" },
-      { title: "Usuários", url: "/settings/equipe" },
-      { title: "Papéis e Permissões", url: "/settings/papeis" },
-      { title: "Personalização", url: "/settings/personalizacao" },
-      { title: "Módulos do Aluno", url: "/settings/modulos" },
-      { title: "Integrações", url: "/settings/integracoes" },
-    ],
   },
 ]
 
