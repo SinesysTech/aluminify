@@ -225,7 +225,9 @@ export class StudentRepositoryImpl implements StudentRepository {
 
         studentIdsToFilter = Array.from(
           new Set(
-            (alunosCursos ?? []).map((ac: { usuario_id: string }) => ac.usuario_id),
+            (alunosCursos ?? []).map(
+              (ac: { usuario_id: string }) => ac.usuario_id,
+            ),
           ),
         );
       }
@@ -254,9 +256,6 @@ export class StudentRepositoryImpl implements StudentRepository {
     let queryBuilder = this.client
       .from(TABLE)
       .select("id", { count: "exact", head: true });
-    if (studentIdsToFilter === null) {
-      queryBuilder = queryBuilder.is("deleted_at", null);
-    }
 
     if (studentIdsToFilter !== null) {
       // PostgreSQL tem limites práticos para cláusulas IN com muitos valores
@@ -320,9 +319,6 @@ export class StudentRepositoryImpl implements StudentRepository {
       .select("*")
       .order(sortBy, { ascending: sortOrder })
       .range(from, to);
-    if (studentIdsToFilter === null) {
-      dataQuery = dataQuery.is("deleted_at", null);
-    }
     if (studentIdsToFilter !== null) {
       dataQuery = dataQuery.in("id", studentIdsToFilter);
     }
@@ -436,7 +432,6 @@ export class StudentRepositoryImpl implements StudentRepository {
       .from(TABLE)
       .select("*")
       .eq("id", id)
-      .is("deleted_at", null)
       .maybeSingle();
 
     if (error) {
@@ -456,7 +451,6 @@ export class StudentRepositoryImpl implements StudentRepository {
       .from(TABLE)
       .select("*")
       .eq("email", email.toLowerCase())
-      .is("deleted_at", null)
       .maybeSingle();
 
     if (error) {
@@ -506,7 +500,6 @@ export class StudentRepositoryImpl implements StudentRepository {
       .from(TABLE)
       .select("*")
       .eq("cpf", cpf)
-      .is("deleted_at", null)
       .maybeSingle();
 
     if (error) {
@@ -528,8 +521,7 @@ export class StudentRepositoryImpl implements StudentRepository {
     let query = this.client
       .from(TABLE)
       .select("*")
-      .eq("numero_matricula", enrollmentNumber)
-      .is("deleted_at", null);
+      .eq("numero_matricula", enrollmentNumber);
 
     // Se empresaId foi fornecido, filtrar por empresa também
     if (empresaId) {
@@ -869,7 +861,9 @@ export class StudentRepositoryImpl implements StudentRepository {
       .eq("empresa_id", empresaId);
 
     if (cursosError) {
-      throw new Error(`Failed to fetch courses for empresa: ${cursosError.message}`);
+      throw new Error(
+        `Failed to fetch courses for empresa: ${cursosError.message}`,
+      );
     }
 
     const ids = (cursoIds ?? []).map((c) => c.id);
@@ -881,7 +875,9 @@ export class StudentRepositoryImpl implements StudentRepository {
         .in("curso_id", ids);
 
       if (deleteError) {
-        throw new Error(`Failed to revoke student enrollments: ${deleteError.message}`);
+        throw new Error(
+          `Failed to revoke student enrollments: ${deleteError.message}`,
+        );
       }
     }
 
@@ -899,10 +895,7 @@ export class StudentRepositoryImpl implements StudentRepository {
         .eq("id", id)
         .single();
       if (usuario?.empresa_id === empresaId) {
-        await this.client
-          .from(TABLE)
-          .update({ empresa_id: null })
-          .eq("id", id);
+        await this.client.from(TABLE).update({ empresa_id: null }).eq("id", id);
       }
     }
   }
@@ -1076,12 +1069,10 @@ export class StudentRepositoryImpl implements StudentRepository {
       curso_id: courseId,
     }));
 
-    const { error } = await this.client
-      .from(COURSE_LINK_TABLE)
-      .upsert(rows, {
-        onConflict: "usuario_id,curso_id",
-        ignoreDuplicates: true,
-      });
+    const { error } = await this.client.from(COURSE_LINK_TABLE).upsert(rows, {
+      onConflict: "usuario_id,curso_id",
+      ignoreDuplicates: true,
+    });
 
     if (error) {
       throw new Error(`Failed to link student to courses: ${error.message}`);
