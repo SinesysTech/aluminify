@@ -273,7 +273,7 @@ export function TenantLoginPageClient({
 
       window.location.href = finalNext
     } catch (error) {
-      console.error('[DEBUG] Erro inesperado no login:', error)
+      console.error('Erro inesperado no login:', error)
       toast.error('Erro inesperado', {
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
       })
