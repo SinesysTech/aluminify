@@ -17,7 +17,10 @@ export interface PaginatedResult<T> {
 }
 
 export interface CursoRepository {
-  list(params?: PaginationParams, empresaId?: string): Promise<PaginatedResult<Curso>>;
+  list(
+    params?: PaginationParams,
+    empresaId?: string,
+  ): Promise<PaginatedResult<Curso>>;
   findById(id: string): Promise<Curso | null>;
   create(payload: CreateCursoInput): Promise<Curso>;
   update(id: string, payload: UpdateCursoInput): Promise<Curso>;
@@ -44,6 +47,7 @@ type CourseRow = {
   disciplina_id: string | null;
   nome: string;
   modalidade: Modality;
+  modalidade_id: string | null;
   tipo: CourseType;
   descricao: string | null;
   ano_vigencia: number;
@@ -69,6 +73,7 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Curso> {
     disciplineIds, // Nova propriedade
     name: row.nome,
     modality: row.modalidade,
+    modalityId: row.modalidade_id ?? undefined,
     type: row.tipo,
     description: row.descricao,
     year: row.ano_vigencia,
@@ -212,6 +217,7 @@ export class CursoRepositoryImpl implements CursoRepository {
       disciplina_id: disciplineIds.length > 0 ? disciplineIds[0] : null, // Manter primeira disciplina para compatibilidade
       nome: payload.name,
       modalidade: payload.modality,
+      modalidade_id: payload.modalityId ?? null,
       tipo: payload.type,
       descricao: payload.description ?? null,
       ano_vigencia: payload.year,
@@ -270,6 +276,10 @@ export class CursoRepositoryImpl implements CursoRepository {
 
     if (payload.modality !== undefined) {
       updateData.modalidade = payload.modality;
+    }
+
+    if (payload.modalityId !== undefined) {
+      updateData.modalidade_id = payload.modalityId;
     }
 
     if (payload.type !== undefined) {

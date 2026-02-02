@@ -79,6 +79,7 @@ import { apiClient, ApiClientError } from '@/shared/library/api-client'
 import { format, parse } from 'date-fns'
 import { TableSkeleton } from '@/app/shared/components/ui/table-skeleton'
 
+
 export type Curso = {
   id: string
   segmentId: string | null
@@ -86,6 +87,12 @@ export type Curso = {
   disciplineIds?: string[] // Nova propriedade para múltiplas disciplinas
   name: string
   modality: 'EAD' | 'LIVE'
+  modalityId?: string
+  modalityData?: {
+    id: string
+    nome: string
+    slug: string
+  }
   type: 'Superextensivo' | 'Extensivo' | 'Intensivo' | 'Superintensivo' | 'Revisão'
   description: string | null
   year: number
@@ -110,12 +117,19 @@ export type Disciplina = {
   name: string
 }
 
+export type Modalidade = {
+  id: string
+  nome: string
+  slug: string
+}
+
 const cursoSchema = z.object({
   segmentId: z.string().optional().nullable(),
   disciplineId: z.string().optional().nullable(), // Mantido para compatibilidade
   disciplineIds: z.array(z.string()).optional().default([]), // Nova propriedade para múltiplas disciplinas
   name: z.string().min(1, 'Nome é obrigatório'),
-  modality: z.enum(['EAD', 'LIVE'], { message: 'Modalidade é obrigatória' }),
+  modality: z.enum(['EAD', 'LIVE']).optional(), // Deprecated but kept for compatibility logic helper
+  modalityId: z.string({ required_error: 'Modalidade é obrigatória' }).min(1, 'Modalidade é obrigatória'),
   type: z.enum(['Superextensivo', 'Extensivo', 'Intensivo', 'Superintensivo', 'Revisão'], {
     message: 'Tipo é obrigatório',
   }),
@@ -138,6 +152,7 @@ export function CursoTable() {
   const [data, setData] = React.useState<Curso[]>([])
   const [segmentos, setSegmentos] = React.useState<Segmento[]>([])
   const [disciplinas, setDisciplinas] = React.useState<Disciplina[]>([])
+  const [modalidades, setModalidades] = React.useState<Modalidade[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
@@ -167,7 +182,8 @@ export function CursoTable() {
       disciplineId: null,
       disciplineIds: [],
       name: '',
-      modality: 'EAD',
+      modality: 'EAD', // Deprecated default
+      modalityId: '',
       type: 'Extensivo',
       description: null,
       year: new Date().getFullYear(),
@@ -189,6 +205,7 @@ export function CursoTable() {
       disciplineIds: [],
       name: '',
       modality: 'EAD',
+      modalityId: '',
       type: 'Extensivo',
       description: null,
       year: new Date().getFullYear(),
@@ -200,6 +217,17 @@ export function CursoTable() {
       usaTurmas: false,
     },
   })
+
+  const fetchModalidades = React.useCallback(async () => {
+    try {
+      const response = await apiClient.get<{ data: Modalidade[] }>('/api/curso/modalidades')
+      if (response && 'data' in response) {
+        setModalidades(response.data)
+      }
+    } catch (err) {
+      console.error('Error fetching modalidades:', err)
+    }
+  }, [])
 
   const fetchSegmentos = React.useCallback(async () => {
     try {
@@ -270,8 +298,9 @@ export function CursoTable() {
     fetchCursos()
     fetchSegmentos()
     fetchDisciplinas()
+    fetchModalidades()
     fetchEnrollmentCounts()
-  }, [fetchCursos, fetchSegmentos, fetchDisciplinas, fetchEnrollmentCounts])
+  }, [fetchCursos, fetchSegmentos, fetchDisciplinas, fetchModalidades, fetchEnrollmentCounts])
 
   const handleCreate = async (values: CursoFormValues) => {
     try {
@@ -282,6 +311,7 @@ export function CursoTable() {
         segmentId: values.segmentId || undefined,
         disciplineId: values.disciplineId || undefined, // Mantido para compatibilidade
         disciplineIds: values.disciplineIds || [], // Sempre enviar array, mesmo se vazio
+        modalityId: values.modalityId,
         planningUrl: values.planningUrl || undefined,
         coverImageUrl: values.coverImageUrl || undefined,
         usaTurmas: values.usaTurmas || false,
@@ -321,6 +351,7 @@ export function CursoTable() {
       disciplineIds: curso.disciplineIds || (curso.disciplineId ? [curso.disciplineId] : []),
       name: curso.name,
       modality: curso.modality,
+      modalityId: curso.modalityId || '',
       type: curso.type,
       description: curso.description,
       year: curso.year,
@@ -345,6 +376,7 @@ export function CursoTable() {
         segmentId: values.segmentId || null,
         disciplineId: values.disciplineId || null, // Mantido para compatibilidade
         disciplineIds: values.disciplineIds || [], // Sempre enviar array, mesmo se vazio
+        modalityId: values.modalityId,
         planningUrl: values.planningUrl || null,
         coverImageUrl: values.coverImageUrl || null,
         usaTurmas: values.usaTurmas,
@@ -413,7 +445,7 @@ export function CursoTable() {
     {
       accessorKey: 'modality',
       header: 'Modalidade',
-      cell: ({ row }) => <div>{row.getValue('modality')}</div>,
+      cell: ({ row }) => <div>{row.original.modalityData?.nome || row.getValue('modality')}</div>,
     },
     {
       accessorKey: 'type',
@@ -554,177 +586,617 @@ export function CursoTable() {
 
   return (
     <TooltipProvider>
-    <div className="flex flex-col gap-8 h-full pb-10">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-        <div>
-          <h1 className="page-title">Cursos</h1>
-          <p className="page-subtitle">Gerencie os cursos do sistema</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {mounted ? (
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <button className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2">
-                  <Plus className="w-5 h-5" strokeWidth={1.5} />
-                  Novo Curso
-                </button>
-              </DialogTrigger>
-              <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader className="pb-4 border-b">
-                  <DialogTitle className="text-xl">Criar Curso</DialogTitle>
-                  <DialogDescription>
-                    Adicione um novo curso ao sistema.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...createForm}>
-                  <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-6 py-4">
-                    {/* Seção: Identificação */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                        <FormField
-                          control={createForm.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem className="sm:col-span-3">
-                              <FormLabel>Nome *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: Matemática Básica" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="year"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Ano *</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="2024" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+      <div className="flex flex-col gap-8 h-full pb-10">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <h1 className="page-title">Cursos</h1>
+            <p className="page-subtitle">Gerencie os cursos do sistema</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {mounted ? (
+              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <button className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2">
+                    <Plus className="w-5 h-5" strokeWidth={1.5} />
+                    Novo Curso
+                  </button>
+                </DialogTrigger>
+                <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader className="pb-4 border-b">
+                    <DialogTitle className="text-xl">Criar Curso</DialogTitle>
+                    <DialogDescription>
+                      Adicione um novo curso ao sistema.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...createForm}>
+                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-6 py-4">
+                      {/* Seção: Identificação */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                          <FormField
+                            control={createForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem className="sm:col-span-3">
+                                <FormLabel>Nome *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ex: Matemática Básica" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createForm.control}
+                            name="year"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ano *</FormLabel>
+                                <FormControl>
+                                  <Input type="number" placeholder="2024" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Seção: Configuração */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Configuração</h3>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <FormField
-                          control={createForm.control}
-                          name="modality"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Modalidade *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      {/* Seção: Configuração */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Configuração</h3>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <FormField
+                            control={createForm.control}
+                            name="modalityId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Modalidade *</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {modalidades.map((modality) => (
+                                      <SelectItem key={modality.id} value={modality.id}>
+                                        {modality.nome}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createForm.control}
+                            name="type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tipo *</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Superextensivo">Superextensivo</SelectItem>
+                                    <SelectItem value="Extensivo">Extensivo</SelectItem>
+                                    <SelectItem value="Intensivo">Intensivo</SelectItem>
+                                    <SelectItem value="Superintensivo">Superintensivo</SelectItem>
+                                    <SelectItem value="Revisão">Revisão</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createForm.control}
+                            name="accessMonths"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Meses de Acesso</FormLabel>
                                 <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
+                                  <Input
+                                    type="number"
+                                    placeholder="12"
+                                    {...field}
+                                    value={field.value || ''}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                  />
                                 </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="EAD">EAD</SelectItem>
-                                  <SelectItem value="LIVE">LIVE</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         <FormField
                           control={createForm.control}
-                          name="type"
+                          name="usaTurmas"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Superextensivo">Superextensivo</SelectItem>
-                                  <SelectItem value="Extensivo">Extensivo</SelectItem>
-                                  <SelectItem value="Intensivo">Intensivo</SelectItem>
-                                  <SelectItem value="Superintensivo">Superintensivo</SelectItem>
-                                  <SelectItem value="Revisão">Revisão</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="accessMonths"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Meses de Acesso</FormLabel>
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">Habilitar Turmas</FormLabel>
+                                <FormDescription>
+                                  Permite organizar alunos em turmas dentro do curso (ex: Manhã, Tarde, Turno A).
+                                </FormDescription>
+                              </div>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="12"
-                                  {...field}
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
                                 />
                               </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Seção: Categorização */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Categorização</h3>
+                        <FormField
+                          control={createForm.control}
+                          name="segmentId"
+                          render={({ field }) => (
+                            <FormItem className="sm:max-w-xs">
+                              <FormLabel>Segmento</FormLabel>
+                              <Select
+                                onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                                value={field.value || '__none__'}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o segmento" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="__none__">Nenhum</SelectItem>
+                                  {segmentos.map((segmento) => (
+                                    <SelectItem key={segmento.id} value={segmento.id}>
+                                      {segmento.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="disciplineIds"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Disciplinas</FormLabel>
+                              <FormDescription className="text-xs">
+                                Selecione uma ou mais disciplinas para este curso
+                              </FormDescription>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border rounded-lg p-4 bg-muted/30">
+                                {disciplinas.map((disciplina) => (
+                                  <div key={disciplina.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`create-discipline-${disciplina.id}`}
+                                      checked={field.value?.includes(disciplina.id) || false}
+                                      onCheckedChange={(checked) => {
+                                        const currentValue = field.value || []
+                                        if (checked) {
+                                          field.onChange([...currentValue, disciplina.id])
+                                        } else {
+                                          field.onChange(currentValue.filter((id) => id !== disciplina.id))
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`create-discipline-${disciplina.id}`}
+                                      className="text-sm leading-none cursor-pointer"
+                                    >
+                                      {disciplina.name}
+                                    </label>
+                                  </div>
+                                ))}
+                                {disciplinas.length === 0 && (
+                                  <p className="text-sm text-muted-foreground col-span-full">
+                                    Nenhuma disciplina cadastrada
+                                  </p>
+                                )}
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
+
+                      {/* Seção: Descrição */}
                       <FormField
                         control={createForm.control}
-                        name="usaTurmas"
+                        name="description"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-base">Habilitar Turmas</FormLabel>
-                              <FormDescription>
-                                Permite organizar alunos em turmas dentro do curso (ex: Manhã, Tarde, Turno A).
-                              </FormDescription>
-                            </div>
+                          <FormItem>
+                            <FormLabel>Descrição</FormLabel>
                             <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
+                              <Textarea
+                                placeholder="Descrição do curso..."
+                                {...field}
+                                value={field.value || ''}
+                                rows={3}
+                                className="resize-none"
                               />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Seção: Período */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Período</h3>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <FormField
+                            control={createForm.control}
+                            name="startDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Data de Início</FormLabel>
+                                <FormControl>
+                                  <DatePicker
+                                    value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
+                                    onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                    placeholder="dd/mm/yyyy"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createForm.control}
+                            name="endDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Data de Término</FormLabel>
+                                <FormControl>
+                                  <DatePicker
+                                    value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
+                                    onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                    placeholder="dd/mm/yyyy"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Seção: Links */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Links</h3>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <FormField
+                            control={createForm.control}
+                            name="planningUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>URL do Planejamento</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="url"
+                                    placeholder="https://..."
+                                    {...field}
+                                    value={field.value || ''}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createForm.control}
+                            name="coverImageUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>URL da Imagem de Capa</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="url"
+                                    placeholder="https://..."
+                                    {...field}
+                                    value={field.value || ''}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setCreateDialogOpen(false)}
+                          disabled={isSubmitting}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? 'Criando...' : 'Criar'}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <button
+                onClick={() => setCreateDialogOpen(true)}
+                className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" strokeWidth={1.5} />
+                Novo Curso
+              </button>
+            )}
+          </div>
+        </header>
+
+        {error && (
+          <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
+            {successMessage}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
+            <input
+              type="text"
+              placeholder="Filtrar por nome..."
+              className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+              value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+              onChange={(event) =>
+                table.getColumn('name')?.setFilterValue(event.target.value)
+              }
+            />
+          </div>
+        </div>
+
+        {loading ? (
+          <TableSkeleton rows={5} columns={6} />
+        ) : table.getRowModel().rows?.length ? (
+          <>
+            {/* Mobile Card View */}
+            <div className="block md:hidden space-y-4">
+              {table.getRowModel().rows.map((row) => {
+                const curso = row.original
+                return (
+                  <div key={row.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{curso.name}</h3>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="outline" className="text-xs">{curso.modality}</Badge>
+                            <Badge variant="outline" className="text-xs">{curso.type}</Badge>
+                            <Badge variant="outline" className="text-xs">{curso.year}</Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              <Users className="h-3 w-3 mr-1" />
+                              {enrollmentCounts[curso.id] || 0} alunos
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => router.push(tenant ? `/${tenant}/curso/admin/${curso.id}` : `/curso/admin/${curso.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Visualizar alunos</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleEdit(curso)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteClick(curso)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Excluir</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      {curso.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">{curso.description}</p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-hidden flex-1">
+              <Table className="w-full text-left text-sm">
+                <TableHeader className="border-b border-border">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id} className="h-10 px-4 font-mono text-xs font-medium text-muted-foreground tracking-wider">
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          </TableHead>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody className="divide-y divide-border">
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                      className="group hover:bg-muted/50 transition-colors"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="p-4">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        ) : (
+          <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border">
+              <BookOpen className="w-8 h-8 text-muted-foreground" strokeWidth={1} />
+            </div>
+
+            <h3 className="empty-state-title mb-2">Nenhum curso cadastrado</h3>
+            <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
+              Sua infraestrutura está pronta. Adicione cursos manualmente para começar a organizar seu conteúdo.
+            </p>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCreateDialogOpen(true)}
+                className="h-10 px-6 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" strokeWidth={1.5} />
+                Adicionar Curso
+              </button>
+            </div>
+          </section>
+        )}
+
+        {table.getRowModel().rows?.length > 0 && (
+          <div className="border-t border-border px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> {table.getFilteredRowModel().rows.length === 1 ? 'resultado' : 'resultados'}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted"
+              >
+                Próximo
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Dialog */}
+        {mounted && editingCurso && (
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="pb-4 border-b">
+                <DialogTitle className="text-xl">Editar Curso</DialogTitle>
+                <DialogDescription>
+                  Atualize as informações do curso.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-6 py-4">
+                  {/* Seção: Identificação */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                      <FormField
+                        control={editForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem className="sm:col-span-3">
+                            <FormLabel>Nome *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Matemática Básica" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="year"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ano *</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="2024" {...field} />
+                            </FormControl>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
+                  </div>
 
-                    {/* Seção: Categorização */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Categorização</h3>
+                  {/* Seção: Configuração */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Configuração</h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <FormField
-                        control={createForm.control}
-                        name="segmentId"
+                        control={editForm.control}
+                        name="modalityId"
                         render={({ field }) => (
-                          <FormItem className="sm:max-w-xs">
-                            <FormLabel>Segmento</FormLabel>
-                            <Select
-                              onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                              value={field.value || '__none__'}
-                            >
+                          <FormItem>
+                            <FormLabel>Modalidade *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o segmento" />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="__none__">Nenhum</SelectItem>
-                                {segmentos.map((segmento) => (
-                                  <SelectItem key={segmento.id} value={segmento.id}>
-                                    {segmento.name}
+                                {modalidades.map((modality) => (
+                                  <SelectItem key={modality.id} value={modality.id}>
+                                    {modality.nome}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -734,433 +1206,96 @@ export function CursoTable() {
                         )}
                       />
                       <FormField
-                        control={createForm.control}
-                        name="disciplineIds"
+                        control={editForm.control}
+                        name="type"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Disciplinas</FormLabel>
-                            <FormDescription className="text-xs">
-                              Selecione uma ou mais disciplinas para este curso
-                            </FormDescription>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border rounded-lg p-4 bg-muted/30">
-                              {disciplinas.map((disciplina) => (
-                                <div key={disciplina.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`create-discipline-${disciplina.id}`}
-                                    checked={field.value?.includes(disciplina.id) || false}
-                                    onCheckedChange={(checked) => {
-                                      const currentValue = field.value || []
-                                      if (checked) {
-                                        field.onChange([...currentValue, disciplina.id])
-                                      } else {
-                                        field.onChange(currentValue.filter((id) => id !== disciplina.id))
-                                      }
-                                    }}
-                                  />
-                                  <label
-                                    htmlFor={`create-discipline-${disciplina.id}`}
-                                    className="text-sm leading-none cursor-pointer"
-                                  >
-                                    {disciplina.name}
-                                  </label>
-                                </div>
-                              ))}
-                              {disciplinas.length === 0 && (
-                                <p className="text-sm text-muted-foreground col-span-full">
-                                  Nenhuma disciplina cadastrada
-                                </p>
-                              )}
-                            </div>
+                            <FormLabel>Tipo *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Superextensivo">Superextensivo</SelectItem>
+                                <SelectItem value="Extensivo">Extensivo</SelectItem>
+                                <SelectItem value="Intensivo">Intensivo</SelectItem>
+                                <SelectItem value="Superintensivo">Superintensivo</SelectItem>
+                                <SelectItem value="Revisão">Revisão</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="accessMonths"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Meses de Acesso</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="12"
+                                {...field}
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-
-                    {/* Seção: Descrição */}
                     <FormField
-                      control={createForm.control}
-                      name="description"
+                      control={editForm.control}
+                      name="usaTurmas"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descrição</FormLabel>
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Habilitar Turmas</FormLabel>
+                            <FormDescription>
+                              Permite organizar alunos em turmas dentro do curso (ex: Manhã, Tarde, Turno A).
+                            </FormDescription>
+                          </div>
                           <FormControl>
-                            <Textarea
-                              placeholder="Descrição do curso..."
-                              {...field}
-                              value={field.value || ''}
-                              rows={3}
-                              className="resize-none"
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Seção: Período */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Período</h3>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <FormField
-                          control={createForm.control}
-                          name="startDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data de Início</FormLabel>
-                              <FormControl>
-                                <DatePicker
-                                  value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
-                                  onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                                  placeholder="dd/mm/yyyy"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="endDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data de Término</FormLabel>
-                              <FormControl>
-                                <DatePicker
-                                  value={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : null}
-                                  onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                                  placeholder="dd/mm/yyyy"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Seção: Links */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Links</h3>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <FormField
-                          control={createForm.control}
-                          name="planningUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>URL do Planejamento</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="url"
-                                  placeholder="https://..."
-                                  {...field}
-                                  value={field.value || ''}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="coverImageUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>URL da Imagem de Capa</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="url"
-                                  placeholder="https://..."
-                                  {...field}
-                                  value={field.value || ''}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setCreateDialogOpen(false)}
-                        disabled={isSubmitting}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Criando...' : 'Criar'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          ) : (
-            <button
-              onClick={() => setCreateDialogOpen(true)}
-              className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" strokeWidth={1.5} />
-              Novo Curso
-            </button>
-          )}
-        </div>
-      </header>
-
-      {error && (
-        <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
-      {successMessage && (
-        <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
-          {successMessage}
-        </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-          <input
-            type="text"
-            placeholder="Filtrar por nome..."
-            className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
-            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn('name')?.setFilterValue(event.target.value)
-            }
-          />
-        </div>
-      </div>
-
-      {loading ? (
-        <TableSkeleton rows={5} columns={6} />
-      ) : table.getRowModel().rows?.length ? (
-        <>
-          {/* Mobile Card View */}
-          <div className="block md:hidden space-y-4">
-            {table.getRowModel().rows.map((row) => {
-              const curso = row.original
-              return (
-                <div key={row.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{curso.name}</h3>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <Badge variant="outline" className="text-xs">{curso.modality}</Badge>
-                          <Badge variant="outline" className="text-xs">{curso.type}</Badge>
-                          <Badge variant="outline" className="text-xs">{curso.year}</Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            <Users className="h-3 w-3 mr-1" />
-                            {enrollmentCounts[curso.id] || 0} alunos
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => router.push(tenant ? `/${tenant}/curso/admin/${curso.id}` : `/curso/admin/${curso.id}`)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Visualizar alunos</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleEdit(curso)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Editar</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteClick(curso)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Excluir</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-                    {curso.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{curso.description}</p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-hidden flex-1">
-            <Table className="w-full text-left text-sm">
-              <TableHeader className="border-b border-border">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} className="h-10 px-4 font-mono text-xs font-medium text-muted-foreground tracking-wider">
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody className="divide-y divide-border">
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className="group hover:bg-muted/50 transition-colors"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="p-4">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </>
-      ) : (
-        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
-          <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border">
-            <BookOpen className="w-8 h-8 text-muted-foreground" strokeWidth={1} />
-          </div>
-
-          <h3 className="empty-state-title mb-2">Nenhum curso cadastrado</h3>
-          <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
-            Sua infraestrutura está pronta. Adicione cursos manualmente para começar a organizar seu conteúdo.
-          </p>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setCreateDialogOpen(true)}
-              className="h-10 px-6 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" strokeWidth={1.5} />
-              Adicionar Curso
-            </button>
-          </div>
-        </section>
-      )}
-
-      {table.getRowModel().rows?.length > 0 && (
-        <div className="border-t border-border px-4 py-3 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> {table.getFilteredRowModel().rows.length === 1 ? 'resultado' : 'resultados'}
-          </span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted"
-            >
-              Próximo
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Dialog */}
-      {mounted && editingCurso && (
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="pb-4 border-b">
-              <DialogTitle className="text-xl">Editar Curso</DialogTitle>
-              <DialogDescription>
-                Atualize as informações do curso.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-6 py-4">
-                {/* Seção: Identificação */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                    <FormField
-                      control={editForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem className="sm:col-span-3">
-                          <FormLabel>Nome *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: Matemática Básica" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editForm.control}
-                      name="year"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ano *</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="2024" {...field} />
-                          </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                </div>
 
-                {/* Seção: Configuração */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Configuração</h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {/* Seção: Categorização */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Categorização</h3>
                     <FormField
                       control={editForm.control}
-                      name="modality"
+                      name="segmentId"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Modalidade *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                        <FormItem className="sm:max-w-xs">
+                          <FormLabel>Segmento</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                            value={field.value || '__none__'}
+                          >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
+                                <SelectValue placeholder="Selecione o segmento" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="EAD">EAD</SelectItem>
-                              <SelectItem value="LIVE">LIVE</SelectItem>
+                              <SelectItem value="__none__">Nenhum</SelectItem>
+                              {segmentos.map((segmento) => (
+                                <SelectItem key={segmento.id} value={segmento.id}>
+                                  {segmento.name}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -1169,294 +1304,197 @@ export function CursoTable() {
                     />
                     <FormField
                       control={editForm.control}
-                      name="type"
+                      name="disciplineIds"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tipo *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Superextensivo">Superextensivo</SelectItem>
-                              <SelectItem value="Extensivo">Extensivo</SelectItem>
-                              <SelectItem value="Intensivo">Intensivo</SelectItem>
-                              <SelectItem value="Superintensivo">Superintensivo</SelectItem>
-                              <SelectItem value="Revisão">Revisão</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editForm.control}
-                      name="accessMonths"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Meses de Acesso</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="12"
-                              {...field}
-                              value={field.value || ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={editForm.control}
-                    name="usaTurmas"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Habilitar Turmas</FormLabel>
-                          <FormDescription>
-                            Permite organizar alunos em turmas dentro do curso (ex: Manhã, Tarde, Turno A).
+                          <FormLabel>Disciplinas</FormLabel>
+                          <FormDescription className="text-xs">
+                            Selecione uma ou mais disciplinas para este curso
                           </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Seção: Categorização */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Categorização</h3>
-                  <FormField
-                    control={editForm.control}
-                    name="segmentId"
-                    render={({ field }) => (
-                      <FormItem className="sm:max-w-xs">
-                        <FormLabel>Segmento</FormLabel>
-                        <Select
-                          onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                          value={field.value || '__none__'}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o segmento" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="__none__">Nenhum</SelectItem>
-                            {segmentos.map((segmento) => (
-                              <SelectItem key={segmento.id} value={segmento.id}>
-                                {segmento.name}
-                              </SelectItem>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border rounded-lg p-4 bg-muted/30">
+                            {disciplinas.map((disciplina) => (
+                              <div key={disciplina.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`edit-discipline-${disciplina.id}`}
+                                  checked={field.value?.includes(disciplina.id) || false}
+                                  onCheckedChange={(checked) => {
+                                    const currentValue = field.value || []
+                                    if (checked) {
+                                      field.onChange([...currentValue, disciplina.id])
+                                    } else {
+                                      field.onChange(currentValue.filter((id) => id !== disciplina.id))
+                                    }
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`edit-discipline-${disciplina.id}`}
+                                  className="text-sm leading-none cursor-pointer"
+                                >
+                                  {disciplina.name}
+                                </label>
+                              </div>
                             ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                            {disciplinas.length === 0 && (
+                              <p className="text-sm text-muted-foreground col-span-full">
+                                Nenhuma disciplina cadastrada
+                              </p>
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Seção: Descrição */}
                   <FormField
                     control={editForm.control}
-                    name="disciplineIds"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Disciplinas</FormLabel>
-                        <FormDescription className="text-xs">
-                          Selecione uma ou mais disciplinas para este curso
-                        </FormDescription>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border rounded-lg p-4 bg-muted/30">
-                          {disciplinas.map((disciplina) => (
-                            <div key={disciplina.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`edit-discipline-${disciplina.id}`}
-                                checked={field.value?.includes(disciplina.id) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentValue = field.value || []
-                                  if (checked) {
-                                    field.onChange([...currentValue, disciplina.id])
-                                  } else {
-                                    field.onChange(currentValue.filter((id) => id !== disciplina.id))
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`edit-discipline-${disciplina.id}`}
-                                className="text-sm leading-none cursor-pointer"
-                              >
-                                {disciplina.name}
-                              </label>
-                            </div>
-                          ))}
-                          {disciplinas.length === 0 && (
-                            <p className="text-sm text-muted-foreground col-span-full">
-                              Nenhuma disciplina cadastrada
-                            </p>
-                          )}
-                        </div>
+                        <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Descrição do curso..."
+                            {...field}
+                            value={field.value || ''}
+                            rows={3}
+                            className="resize-none"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
-                {/* Seção: Descrição */}
-                <FormField
-                  control={editForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Descrição do curso..."
-                          {...field}
-                          value={field.value || ''}
-                          rows={3}
-                          className="resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Seção: Período */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Período</h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={editForm.control}
-                      name="startDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data de Início</FormLabel>
-                          <FormControl>
-                            <DatePicker
-                              value={field.value ? new Date(field.value) : null}
-                              onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                              placeholder="dd/mm/yyyy"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editForm.control}
-                      name="endDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data de Término</FormLabel>
-                          <FormControl>
-                            <DatePicker
-                              value={field.value ? new Date(field.value) : null}
-                              onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
-                              placeholder="dd/mm/yyyy"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Seção: Período */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Período</h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <FormField
+                        control={editForm.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Data de Início</FormLabel>
+                            <FormControl>
+                              <DatePicker
+                                value={field.value ? new Date(field.value) : null}
+                                onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                placeholder="dd/mm/yyyy"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="endDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Data de Término</FormLabel>
+                            <FormControl>
+                              <DatePicker
+                                value={field.value ? new Date(field.value) : null}
+                                onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                                placeholder="dd/mm/yyyy"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Seção: Links */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Links</h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={editForm.control}
-                      name="planningUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL do Planejamento</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://..."
-                              {...field}
-                              value={field.value || ''}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editForm.control}
-                      name="coverImageUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL da Imagem de Capa</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://..."
-                              {...field}
-                              value={field.value || ''}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Seção: Links */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Links</h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <FormField
+                        control={editForm.control}
+                        name="planningUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>URL do Planejamento</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="url"
+                                placeholder="https://..."
+                                {...field}
+                                value={field.value || ''}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={editForm.control}
+                        name="coverImageUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>URL da Imagem de Capa</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="url"
+                                placeholder="https://..."
+                                {...field}
+                                value={field.value || ''}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setEditDialogOpen(false)}
-                    disabled={isSubmitting}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Atualizando...' : 'Atualizar'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      )}
+                  <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditDialogOpen(false)}
+                      disabled={isSubmitting}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? 'Atualizando...' : 'Atualizar'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        )}
 
-      {/* Delete Alert Dialog */}
-      {mounted && deletingCurso && (
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o curso &quot;{deletingCurso.name}&quot;?
-                Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                disabled={isSubmitting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {isSubmitting ? 'Excluindo...' : 'Excluir'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </div>
+        {/* Delete Alert Dialog */}
+        {mounted && deletingCurso && (
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir o curso &quot;{deletingCurso.name}&quot;?
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isSubmitting ? 'Excluindo...' : 'Excluir'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
     </TooltipProvider>
   )
 }

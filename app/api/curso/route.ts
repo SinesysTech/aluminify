@@ -4,7 +4,10 @@ import {
   CourseConflictError,
   CourseValidationError,
 } from "@/app/[tenant]/(modules)/curso/services";
-import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
+import {
+  requireAuth,
+  AuthenticatedRequest,
+} from "@/app/[tenant]/auth/middleware";
 import {
   getDatabaseClient,
   getDatabaseClientAsUser,
@@ -19,6 +22,8 @@ const serializeCourse = (
   disciplineIds: course.disciplineIds, // Nova propriedade
   name: course.name,
   modality: course.modality,
+  modalityId: course.modalityId,
+  modalityData: course.modalityData,
   type: course.type,
   description: course.description,
   year: course.year,
@@ -60,7 +65,8 @@ async function getHandler(request: AuthenticatedRequest) {
     const client = getDatabaseClientAsUser(token);
 
     // Query cursos com disciplinas associadas
-    const { data, error } = await client
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const { data: rawData, error } = await (client
       .from("cursos")
       .select(
         `
@@ -69,6 +75,7 @@ async function getHandler(request: AuthenticatedRequest) {
         disciplina_id,
         nome,
         modalidade,
+        modalidade_id,
         tipo,
         descricao,
         ano_vigencia,
@@ -80,17 +87,25 @@ async function getHandler(request: AuthenticatedRequest) {
         usa_turmas,
         created_at,
         updated_at,
-        cursos_disciplinas (disciplina_id)
+        cursos_disciplinas (disciplina_id),
+        modalidades_curso (
+          id,
+          nome,
+          slug
+        )
       `,
       )
-      .order("nome", { ascending: true });
+      .order("nome", { ascending: true }) as unknown as Promise<{
+      data: any[];
+      error: any;
+    }>);
 
     if (error) {
       throw new Error(`Erro ao listar cursos: ${error.message}`);
     }
 
     const response = NextResponse.json({
-      data: (data || []).map((c) => ({
+      data: (rawData || []).map((c: any) => ({
         id: c.id,
         segmentId: c.segmento_id,
         disciplineId: c.disciplina_id,
@@ -100,6 +115,8 @@ async function getHandler(request: AuthenticatedRequest) {
           ) || [],
         name: c.nome,
         modality: c.modalidade,
+        modalityId: c.modalidade_id,
+        modalityData: c.modalidades_curso,
         type: c.tipo,
         description: c.descricao,
         year: c.ano_vigencia,
@@ -113,6 +130,7 @@ async function getHandler(request: AuthenticatedRequest) {
         updatedAt: c.updated_at,
       })),
     });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     // Cache privado pois é específico do usuário/tenant
     response.headers.set(
@@ -130,10 +148,7 @@ export const GET = requireAuth(getHandler);
 
 // POST requer autenticação de usuario (JWT ou API Key)
 async function postHandler(request: AuthenticatedRequest) {
-  if (
-    request.user &&
-    request.user.role !== "usuario"
-  ) {
+  if (request.user && request.user.role !== "usuario") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -212,6 +227,7 @@ async function postHandler(request: AuthenticatedRequest) {
       disciplineIds: body?.disciplineIds, // Nova propriedade
       name: body?.name,
       modality: body?.modality,
+      modalityId: body?.modalityId,
       type: body?.type,
       description: body?.description,
       year: body?.year,

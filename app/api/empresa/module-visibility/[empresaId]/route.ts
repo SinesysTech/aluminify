@@ -1,28 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { ModuleVisibilityService } from "@/app/[tenant]/(modules)/empresa/services/module-visibility.service";
-import { getPublicSupabaseConfig } from "@/app/shared/core/supabase-public-env";
 import type { BulkUpdateModuleVisibilityInput } from "@/app/[tenant]/(modules)/empresa/services/module-visibility.types";
+import { createAuthenticatedClient } from "@/app/shared/core/api-client";
 
 interface RouteContext {
   params: Promise<{ empresaId: string }>;
-}
-
-/**
- * Creates an authenticated Supabase client from request headers
- */
-function createAuthenticatedClient(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const { url, anonKey } = getPublicSupabaseConfig();
-
-  return createClient(url, anonKey, {
-    global: {
-      headers: authHeader ? { Authorization: authHeader } : {},
-    },
-    auth: {
-      persistSession: false,
-    },
-  });
 }
 
 /**
@@ -32,15 +14,12 @@ function createAuthenticatedClient(request: NextRequest) {
  * Query params:
  * - config=true: Returns full config with all modules for admin UI
  */
-export async function GET(
-  request: NextRequest,
-  { params }: RouteContext,
-) {
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     const { empresaId } = await params;
     const isConfigMode = request.nextUrl.searchParams.get("config") === "true";
 
-    const supabase = createAuthenticatedClient(request);
+    const supabase = await createAuthenticatedClient();
     const service = new ModuleVisibilityService(supabase);
 
     if (isConfigMode) {
@@ -72,10 +51,7 @@ export async function GET(
  * Updates module visibility configuration for a tenant
  * Only empresa admins can update
  */
-export async function POST(
-  request: NextRequest,
-  { params }: RouteContext,
-) {
+export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
     const { empresaId } = await params;
     const body = (await request.json()) as BulkUpdateModuleVisibilityInput;
@@ -95,16 +71,16 @@ export async function POST(
       );
     }
 
-    const supabase = createAuthenticatedClient(request);
+    const supabase = await createAuthenticatedClient();
 
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: "Não autorizado" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     const service = new ModuleVisibilityService(supabase);
@@ -113,7 +89,10 @@ export async function POST(
     const isAdmin = await service.isEmpresaAdmin(user.id, empresaId);
     if (!isAdmin) {
       return NextResponse.json(
-        { error: "Acesso negado. Apenas administradores podem configurar módulos." },
+        {
+          error:
+            "Acesso negado. Apenas administradores podem configurar módulos.",
+        },
         { status: 403 },
       );
     }
@@ -131,19 +110,16 @@ export async function POST(
     console.error("Error updating module visibility:", error);
 
     // Check if it's a validation error (core module)
-    const errorMessage = error instanceof Error ? error.message : "Failed to update module visibility";
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to update module visibility";
 
     if (errorMessage.includes("essencial")) {
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -152,23 +128,20 @@ export async function POST(
  * Resets module visibility to defaults for a tenant
  * Only empresa admins can reset
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteContext,
-) {
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
   try {
     const { empresaId } = await params;
 
-    const supabase = createAuthenticatedClient(request);
+    const supabase = await createAuthenticatedClient();
 
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: "Não autorizado" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     const service = new ModuleVisibilityService(supabase);
@@ -177,7 +150,10 @@ export async function DELETE(
     const isAdmin = await service.isEmpresaAdmin(user.id, empresaId);
     if (!isAdmin) {
       return NextResponse.json(
-        { error: "Acesso negado. Apenas administradores podem resetar configurações." },
+        {
+          error:
+            "Acesso negado. Apenas administradores podem resetar configurações.",
+        },
         { status: 403 },
       );
     }

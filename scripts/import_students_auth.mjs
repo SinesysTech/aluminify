@@ -38,8 +38,8 @@ async function main() {
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
     const values = row.values;
-    const status = values[19];
-    if (status !== "Aprovado") return;
+    // const status = values[19];
+    // if (status !== 'Aprovado') return; // REMOVED FILTER
 
     const name = values[20];
     const document = values[21];
@@ -65,7 +65,7 @@ async function main() {
     });
   });
 
-  console.log(`Found ${students.length} approved students.`);
+  console.log(`Found ${students.length} students (all statuses).`);
 
   for (const student of students) {
     if (!student.email) continue;
@@ -79,7 +79,11 @@ async function main() {
           email: student.email,
           email_confirm: true,
           password: "TempPassword123!",
-          user_metadata: { full_name: student.nome_completo },
+          user_metadata: {
+            full_name: student.nome_completo,
+            empresa_id: EMPRESA_ID,
+            role: "aluno",
+          },
         });
 
       if (createError) {
@@ -160,6 +164,7 @@ async function main() {
         curso_id: CURSO_ID,
         data_matricula: new Date(),
         data_inicio_acesso: new Date(),
+        data_fim_acesso: "2026-12-31",
         ativo: true,
       });
       if (enrollError) console.error("Enrollment failed:", enrollError);

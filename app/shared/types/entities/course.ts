@@ -2,7 +2,8 @@
  * Tipos de entidades de curso compartilhados
  */
 
-import type { Modality, CourseType } from '../enums';
+import type { Modality, CourseType } from "../enums";
+import type { ModalityEntity } from "./modality";
 
 export interface Course {
   id: string;
@@ -11,7 +12,10 @@ export interface Course {
   disciplineId: string | null; // Mantido para compatibilidade, mas deprecated
   disciplineIds: string[]; // Nova propriedade para múltiplas disciplinas
   name: string;
+  /** @deprecated Use modalityId and modality relation */
   modality: Modality;
+  modalityId?: string; // Relation FK
+  modalityData?: ModalityEntity; // Relation Data
   type: CourseType;
   description: string | null;
   year: number;
@@ -31,7 +35,9 @@ export interface CreateCourseInput {
   disciplineId?: string; // Mantido para compatibilidade
   disciplineIds?: string[]; // Nova propriedade para múltiplas disciplinas
   name: string;
-  modality: Modality;
+  /** @deprecated Use modalityId */
+  modality?: Modality;
+  modalityId?: string;
   type: CourseType;
   description?: string;
   year: number;
@@ -48,7 +54,9 @@ export interface UpdateCourseInput {
   disciplineId?: string | null; // Mantido para compatibilidade
   disciplineIds?: string[]; // Nova propriedade para múltiplas disciplinas
   name?: string;
+  /** @deprecated Use modalityId */
   modality?: Modality;
+  modalityId?: string;
   type?: CourseType;
   description?: string | null;
   year?: number;
@@ -59,4 +67,3 @@ export interface UpdateCourseInput {
   coverImageUrl?: string | null;
   usaTurmas?: boolean;
 }
-
