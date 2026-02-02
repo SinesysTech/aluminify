@@ -280,3 +280,85 @@ export async function fetchDashboardDistribution(
   );
   return response.data;
 }
+
+// ============================================================
+// Novos fetch functions para o novo layout
+// ============================================================
+
+import type {
+  CourseListItem,
+  MonthlyProgressItem,
+  LearningPath,
+  LeaderboardItem,
+} from "../components/cards";
+
+export async function fetchCoursesList(
+  empresaId?: string | null,
+): Promise<CourseListItem[]> {
+  const params = new URLSearchParams();
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: CourseListItem[] }>(
+    `/api/dashboard/courses-list?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchProgressByMonth(
+  empresaId?: string | null,
+): Promise<MonthlyProgressItem[]> {
+  const params = new URLSearchParams();
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{ data: MonthlyProgressItem[] }>(
+    `/api/dashboard/progress-by-month?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+  return response.data;
+}
+
+export async function fetchLearningPaths(): Promise<LearningPath[]> {
+  const response = await apiClient.get<{ data: LearningPath[] }>(
+    "/api/dashboard/learning-paths",
+  );
+  return response.data;
+}
+
+export async function fetchLeaderboard(
+  empresaId?: string | null,
+): Promise<LeaderboardItem[]> {
+  const params = new URLSearchParams();
+  if (empresaId) params.set("empresa_id", empresaId);
+
+  const response = await apiClient.get<{
+    data: Array<{
+      id: string;
+      name: string;
+      horasEstudo: string;
+      avatarUrl: string | null;
+      aproveitamento: number;
+      streakDays: number;
+    }>;
+  }>(
+    `/api/dashboard/institution?${params.toString()}`,
+    empresaId ? { tenantId: empresaId } : undefined,
+  );
+
+  // Mapear do formato do endpoint institution para LeaderboardItem
+  const ranking = (response.data as unknown as { studentRanking?: Array<{
+    id: string;
+    name: string;
+    horasEstudo: string;
+    avatarUrl: string | null;
+    aproveitamento: number;
+    streakDays: number;
+  }> })?.studentRanking ?? [];
+
+  return ranking.slice(0, 4).map((s) => ({
+    id: s.id,
+    name: s.name,
+    points: Math.round(parseFloat(s.horasEstudo) || 0),
+    avatarUrl: s.avatarUrl,
+  }));
+}

@@ -3185,4 +3185,284 @@ export class DashboardAnalyticsService {
       };
     });
   }
+
+  // ============================================================
+  // Novos metodos para o novo layout do dashboard
+  // ============================================================
+
+  /**
+   * Retorna cursos do aluno com progresso calculado (aulas concluidas / total).
+   */
+  async getCoursesWithProgress(
+    alunoId: string,
+    empresaId?: string,
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      category: string;
+      imageUrl: string | null;
+      score: number;
+      progress: number;
+      started: boolean;
+    }>
+  > {
+    const client = getDatabaseClient();
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client, empresaId);
+    if (cursoIds.length === 0) return [];
+
+    const { data: cursos, error: cursosError } = await client
+      .from("cursos")
+      .select("id, nome, imagem_capa_url, disciplinas:disciplina_id(nome)")
+      .in("id", cursoIds);
+
+    if (cursosError) throw new Error(`Erro ao buscar cursos: ${cursosError.message}`);
+    if (!cursos || cursos.length === 0) return [];
+
+    const results = await Promise.all(
+      (cursos as Array<{
+        id: string;
+        nome: string;
+        imagem_capa_url: string | null;
+        disciplinas: { nome: string } | null;
+      }>).map(async (curso) => {
+        const { count: totalAulas } = await client
+          .from("aulas")
+          .select("id", { count: "exact", head: true })
+          .eq("curso_id", curso.id);
+
+        const { count: aulasConcluidas } = await client
+          .from("aulas_concluidas")
+          .select("id", { count: "exact", head: true })
+          .eq("curso_id", curso.id)
+          .eq("aluno_id", alunoId);
+
+        const total = totalAulas ?? 0;
+        const concluidas = aulasConcluidas ?? 0;
+        const progress = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+
+        // Calcular score baseado em aproveitamento de atividades do curso
+        const { data: atividades } = await client
+          .from("progresso_atividades")
+          .select("questoes_totais, questoes_acertos")
+          .eq("aluno_id", alunoId)
+          .eq("status", "Concluido");
+
+        let score = 0;
+        if (atividades && atividades.length > 0) {
+          const totalQ = atividades.reduce((sum, a) => sum + (a.questoes_totais || 0), 0);
+          const acertos = atividades.reduce((sum, a) => sum + (a.questoes_acertos || 0), 0);
+          score = totalQ > 0 ? Math.round((acertos / totalQ) * 50) / 10 : 0; // Scale to 0-5
+        }
+
+        return {
+          id: curso.id,
+          name: curso.nome,
+          category: (curso.disciplinas as { nome: string } | null)?.nome ?? "Geral",
+          imageUrl: curso.imagem_capa_url,
+          score: Math.min(score, 5),
+          progress,
+          started: concluidas > 0,
+        };
+      }),
+    );
+
+    return results.sort((a, b) => b.progress - a.progress);
+  }
+
+  /**
+   * Retorna progresso agregado por mes (ultimos 6 meses).
+   */
+  async getProgressByMonth(
+    alunoId: string,
+    empresaId?: string,
+  ): Promise<
+    Array<{
+      month: string;
+      value: number;
+    }>
+  > {
+    const client = getDatabaseClient();
+    const { cursoIds } = await this.resolveCursoScope(alunoId, client, empresaId);
+    if (cursoIds.length === 0) return [];
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const { data, error } = await client
+      .from("aulas_concluidas")
+      .select("created_at")
+      .eq("aluno_id", alunoId)
+      .in("curso_id", cursoIds)
+      .gte("created_at", sixMonthsAgo.toISOString())
+      .order("created_at", { ascending: true });
+
+    if (error) throw new Error(`Erro ao buscar progresso mensal: ${error.message}`);
+
+    const monthNames = [
+      "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    ];
+
+    const monthMap = new Map<string, number>();
+
+    // Inicializar ultimos 6 meses
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthMap.set(key, 0);
+    }
+
+    // Agregar dados
+    for (const row of data ?? []) {
+      const d = new Date(row.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (monthMap.has(key)) {
+        monthMap.set(key, (monthMap.get(key) ?? 0) + 1);
+      }
+    }
+
+    return Array.from(monthMap.entries()).map(([key, value]) => {
+      const [, monthStr] = key.split("-");
+      return {
+        month: monthNames[parseInt(monthStr, 10) - 1],
+        value,
+      };
+    });
+  }
+
+  /**
+   * Retorna cronogramas (trilhas de aprendizado) com progresso.
+   */
+  async getLearningPaths(
+    alunoId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      progress: number;
+      completedModules: number;
+      totalModules: number;
+    }>
+  > {
+    const client = getDatabaseClient();
+
+    const { data: cronogramas, error } = await client
+      .from("cronogramas")
+      .select("id, nome")
+      .eq("aluno_id", alunoId)
+      .order("created_at", { ascending: false })
+      .limit(2);
+
+    if (error) throw new Error(`Erro ao buscar cronogramas: ${error.message}`);
+    if (!cronogramas || cronogramas.length === 0) return [];
+
+    const results = await Promise.all(
+      cronogramas.map(async (cr) => {
+        const { count: totalItens } = await client
+          .from("cronograma_itens")
+          .select("id", { count: "exact", head: true })
+          .eq("cronograma_id", cr.id);
+
+        const { count: concluidos } = await client
+          .from("cronograma_itens")
+          .select("id", { count: "exact", head: true })
+          .eq("cronograma_id", cr.id)
+          .eq("concluido", true);
+
+        const total = totalItens ?? 0;
+        const done = concluidos ?? 0;
+        const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+        return {
+          id: cr.id,
+          name: cr.nome ?? "Cronograma",
+          progress,
+          completedModules: done,
+          totalModules: total,
+        };
+      }),
+    );
+
+    return results;
+  }
+
+  /**
+   * Retorna ranking de alunos (por horas de estudo) para o leaderboard.
+   */
+  async getLeaderboard(
+    empresaId: string,
+    limit = 4,
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      points: number;
+      avatarUrl: string | null;
+    }>
+  > {
+    const client = getDatabaseClient();
+
+    // Buscar alunos da empresa com tempo de estudo
+    const { data: alunos, error } = await client
+      .from("usuarios_empresas")
+      .select("usuario_id, usuarios:usuario_id(id, nome_completo, avatar_url)")
+      .eq("empresa_id", empresaId)
+      .eq("role", "aluno")
+      .eq("ativo", true);
+
+    if (error) throw new Error(`Erro ao buscar alunos: ${error.message}`);
+    if (!alunos || alunos.length === 0) return [];
+
+    const alunoIds = alunos
+      .map((a) => {
+        const u = a.usuarios as { id: string; nome_completo: string | null; avatar_url: string | null } | null;
+        return u?.id;
+      })
+      .filter(Boolean) as string[];
+
+    if (alunoIds.length === 0) return [];
+
+    // Buscar tempo de estudo de cada aluno
+    const { data: sessoes, error: sessoesError } = await client
+      .from("sessoes_estudo")
+      .select("aluno_id, tempo_total_liquido_segundos")
+      .in("aluno_id", alunoIds)
+      .eq("status", "concluido");
+
+    if (sessoesError) throw new Error(`Erro ao buscar sessoes: ${sessoesError.message}`);
+
+    // Agregar por aluno
+    const pointsMap = new Map<string, number>();
+    for (const s of sessoes ?? []) {
+      const current = pointsMap.get(s.aluno_id) ?? 0;
+      pointsMap.set(s.aluno_id, current + (s.tempo_total_liquido_segundos ?? 0));
+    }
+
+    // Converter para horas e montar resultado
+    const results = alunos
+      .map((a) => {
+        const u = a.usuarios as { id: string; nome_completo: string | null; avatar_url: string | null } | null;
+        if (!u) return null;
+        const seconds = pointsMap.get(u.id) ?? 0;
+        const hours = Math.round(seconds / 3600);
+        return {
+          id: u.id,
+          name: u.nome_completo ?? "Aluno",
+          points: hours,
+          avatarUrl: u.avatar_url,
+        };
+      })
+      .filter(Boolean) as Array<{
+        id: string;
+        name: string;
+        points: number;
+        avatarUrl: string | null;
+      }>;
+
+    return results
+      .sort((a, b) => b.points - a.points)
+      .slice(0, limit);
+  }
 }
