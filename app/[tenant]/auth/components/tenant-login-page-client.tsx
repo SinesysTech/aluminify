@@ -185,15 +185,12 @@ export function TenantLoginPageClient({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('[DEBUG] handleSubmit iniciado', { email, hasPassword: !!password, tenantSlug, empresaId })
 
     if (isLoading) {
-      console.log('[DEBUG] handleSubmit cancelado: já está carregando')
       return
     }
 
     if (!email || !password) {
-      console.log('[DEBUG] handleSubmit cancelado: campos vazios')
       toast.error('Campos obrigatórios', {
         description: 'Informe email e senha para entrar.',
       })
@@ -202,20 +199,11 @@ export function TenantLoginPageClient({
 
     setIsLoading(true)
     try {
-      console.log('[DEBUG] Criando cliente Supabase...')
       const supabase = createClient()
-      console.log('[DEBUG] Cliente Supabase criado, chamando signInWithPassword...')
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
-      })
-
-      console.log('[DEBUG] Resultado signInWithPassword:', {
-        hasError: !!error,
-        errorMessage: error?.message,
-        hasSession: !!data?.session,
-        hasUser: !!data?.user,
       })
 
       if (error) {
@@ -253,7 +241,6 @@ export function TenantLoginPageClient({
       }
 
       // Validate user belongs to this tenant
-      console.log('[DEBUG] Validando pertencimento ao tenant...')
       const validateResponse = await fetch('/api/auth/validate-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -262,7 +249,6 @@ export function TenantLoginPageClient({
 
       if (!validateResponse.ok) {
         const validateResult = await validateResponse.json()
-        console.log('[DEBUG] Validação de tenant falhou:', validateResult)
 
         // Logout user since they don't belong to this tenant
         await supabase.auth.signOut()
@@ -274,15 +260,8 @@ export function TenantLoginPageClient({
       }
 
       // Identify user roles for this tenant
-      console.log('[DEBUG] Identificando roles do usuário...')
       const { identifyUserRoleAction } = await import('@/app/shared/core/actions/auth-actions')
       const roleResult = await identifyUserRoleAction(data.user.id)
-
-      if (roleResult.success) {
-        console.log('[DEBUG] Role identificado, URL de destino:', roleResult.redirectUrl)
-      }
-
-      console.log('[DEBUG] Login bem-sucedido, redirecionando para:', next)
 
       let finalNext = next
       if (roleResult.success && roleResult.redirectUrl) {
@@ -292,15 +271,13 @@ export function TenantLoginPageClient({
         }
       }
 
-      console.log('[DEBUG] Redirecionamento final:', finalNext)
       window.location.href = finalNext
     } catch (error) {
-      console.error('[DEBUG] Erro inesperado no login:', error)
+      console.error('Erro inesperado no login:', error)
       toast.error('Erro inesperado', {
         description: error instanceof Error ? error.message : 'Tente novamente em instantes.',
       })
     } finally {
-      console.log('[DEBUG] handleSubmit finalizado')
       setIsLoading(false)
     }
   }

@@ -13,6 +13,7 @@ import {
 } from './types'
 import { StatusAtividade, DificuldadePercebida } from '@/app/shared/types/enums'
 import { salaEstudosService } from './services/sala-estudos.service'
+import { useStreakDays } from './hooks/use-streak-days'
 
 // New components
 import { StudyRoomHeader } from './components/study-room-header'
@@ -39,8 +40,8 @@ export default function SalaEstudosClientPage() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  // Engagement data (would come from API in production)
-  const [streakDays] = React.useState(0) // TODO: fetch from dashboard analytics service
+  // Engagement data
+  const { streakDays, isLoading: isStreakLoading } = useStreakDays()
 
   const isReadOnlyImpersonation = React.useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -230,6 +231,7 @@ export default function SalaEstudosClientPage() {
           <ProgressoStatsCard
             atividades={atividades}
             streakDays={streakDays}
+            isStreakLoading={isStreakLoading}
             dailyGoal={dailyGoal}
           />
 

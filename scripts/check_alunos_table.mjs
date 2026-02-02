@@ -10,7 +10,7 @@ async function main() {
   console.log("Verificando tabelas de alunos...\n");
 
   // Check usuarios table
-  const { count: usuariosCount, error: usuariosError } = await supabase
+  const { count: usuariosCount } = await supabase
     .from("usuarios")
     .select("*", { count: "exact", head: true })
     .eq("empresa_id", EMPRESA_ID);

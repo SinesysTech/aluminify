@@ -14,19 +14,16 @@ NC='\033[0m' # No Color
 # Configuration
 IMAGE_NAME="sinesystec/aluminify"
 
-# Get version from package.json if not provided
-if [ -z "$VERSION" ]; then
-    if [ -f package.json ]; then
-        # Extract version using grep and sed to avoid jq dependency
-        VERSION=$(grep -m1 '"version":' package.json | sed 's/[", ]//g' | cut -d: -f2)
-        echo -e "${YELLOW}Auto-detected version from package.json: ${VERSION}${NC}"
-    else
-        VERSION="latest"
-        echo -e "${YELLOW}package.json not found, defaulting to version: ${VERSION}${NC}"
-    fi
-fi
+# Get version (timestamp) + latest
+# Format: YYYY-MM-DD-HH-MM
+TIMESTAMP_TAG=$(date +"%Y-%m-%d-%H-%M")
 
 echo -e "${GREEN}=== Aluminify Docker Build and Push ===${NC}"
+echo ""
+echo "Tags to be pushed:"
+echo "  - ${IMAGE_NAME}:${TIMESTAMP_TAG}"
+echo "  - ${IMAGE_NAME}:latest"
+
 echo ""
 
 # Check if Docker is installed
@@ -79,7 +76,8 @@ echo -e "${GREEN}Building image with loaded environment variables...${NC}"
 docker build \
     --platform linux/amd64 \
     $BUILD_ARGS \
-    -t "${IMAGE_NAME}:${VERSION}" \
+    --build-arg DOCKER_BUILD=true \
+    -t "${IMAGE_NAME}:${TIMESTAMP_TAG}" \
     -t "${IMAGE_NAME}:latest" \
     .
 
@@ -89,14 +87,14 @@ echo ""
 
 # Push image
 echo -e "${GREEN}Pushing to Docker Hub...${NC}"
-docker push "${IMAGE_NAME}:${VERSION}"
+docker push "${IMAGE_NAME}:${TIMESTAMP_TAG}"
 docker push "${IMAGE_NAME}:latest"
 
 echo ""
 echo -e "${GREEN}✓ Push completed successfully!${NC}"
 echo ""
 echo -e "${GREEN}Images pushed:${NC}"
-echo "  - ${IMAGE_NAME}:${VERSION}"
+echo "  - ${IMAGE_NAME}:${TIMESTAMP_TAG}"
 echo "  - ${IMAGE_NAME}:latest"
 echo ""
 echo -e "${GREEN}Next steps on your server:${NC}"

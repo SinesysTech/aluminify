@@ -35,12 +35,14 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     if (cursoError || !curso) {
       return NextResponse.json(
         { error: "Curso não encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const visibilityService = new ModuleVisibilityService(supabase);
-    const tenantModules = await visibilityService.getVisibleModules(curso.empresa_id);
+    const tenantModules = await visibilityService.getVisibleModules(
+      curso.empresa_id,
+    );
 
     return NextResponse.json({
       success: true,
@@ -52,7 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     console.error("Error fetching course modules:", error);
     return NextResponse.json(
       { error: "Failed to fetch course modules" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -70,35 +72,52 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!body || !Array.isArray(body.moduleIds) || !body.empresaId) {
       return NextResponse.json(
         { error: "Request must include 'moduleIds' array and 'empresaId'" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const supabase = await createAuthenticatedClient();
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     // Check admin permissions
     const visibilityService = new ModuleVisibilityService(supabase);
-    const isAdmin = await visibilityService.isEmpresaAdmin(user.id, body.empresaId);
+    const isAdmin = await visibilityService.isEmpresaAdmin(
+      user.id,
+      body.empresaId,
+    );
     if (!isAdmin) {
       return NextResponse.json(
-        { error: "Acesso negado. Apenas administradores podem configurar módulos do curso." },
-        { status: 403 }
+        {
+          error:
+            "Acesso negado. Apenas administradores podem configurar módulos do curso.",
+        },
+        { status: 403 },
       );
     }
 
     const service = new CursoModulosService(supabase);
-    await service.setModulesForCourse(cursoId, body.empresaId, body.moduleIds, user.id);
+    await service.setModulesForCourse(
+      cursoId,
+      body.empresaId,
+      body.moduleIds,
+      user.id,
+    );
 
     const updatedModuleIds = await service.getModulesForCourse(cursoId);
     return NextResponse.json({ success: true, moduleIds: updatedModuleIds });
   } catch (error) {
     console.error("Error updating course modules:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to update course modules";
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to update course modules";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -21,9 +21,12 @@ import {
     fetchDashboardEfficiency,
     fetchDashboardStrategic,
     fetchDashboardDistribution,
+    fetchCoursesList,
+    fetchProgressByMonth,
+    fetchLearningPaths,
+    fetchLeaderboard,
     type DashboardServiceError,
 } from '../../services/aluno/dashboard.service'
-import { DashboardHeader } from './dashboard-header'
 import { useStudentOrganizations } from '@/components/providers/student-organizations-provider'
 import { useOptionalTenantContext } from '@/app/[tenant]/tenant-context'
 import { ScheduleProgress } from './schedule-progress'
@@ -39,6 +42,20 @@ import { StrategicDomain as StrategicDomainComponent } from './strategic-domain'
 import { DashboardSkeleton } from './dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/feedback/alert'
+import {
+    WelcomeCard,
+    ProgressStatisticsCard,
+    ChartMostActivity,
+    CourseProgressByMonth,
+    CoursesListTable,
+    LeaderboardCard,
+    LearningPathCard,
+    StudentSuccessCard,
+    type CourseListItem,
+    type MonthlyProgressItem,
+    type LearningPath,
+    type LeaderboardItem,
+} from '../cards'
 
 /**
  * Converte HeatmapPeriod para DashboardPeriod
@@ -73,6 +90,12 @@ export default function StudentDashboardClientPage() {
     const [efficiency, setEfficiency] = useState<FocusEfficiencyDay[]>([])
     const [strategic, setStrategic] = useState<StrategicDomain | null>(null)
     const [distribution, setDistribution] = useState<SubjectDistributionItem[]>([])
+
+    // Novos estados para componentes do novo layout
+    const [coursesList, setCoursesList] = useState<CourseListItem[]>([])
+    const [progressByMonth, setProgressByMonth] = useState<MonthlyProgressItem[]>([])
+    const [learningPaths, setLearningPaths] = useState<LearningPath[]>([])
+    const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([])
 
     // Sincroniza o ref com o estado para uso em callbacks sem causar loops de dependência
     useEffect(() => {
@@ -206,6 +229,36 @@ export default function StudentDashboardClientPage() {
                         .then(setDistribution)
                         .catch(e => console.warn(handleError(e, 'distribuição')))
                 )
+
+                // 8. Courses List (novo layout)
+                promises.push(
+                    fetchCoursesList(activeOrgId)
+                        .then(setCoursesList)
+                        .catch(e => console.warn(handleError(e, 'lista de cursos')))
+                )
+
+                // 9. Progress By Month (novo layout)
+                promises.push(
+                    fetchProgressByMonth(activeOrgId)
+                        .then(setProgressByMonth)
+                        .catch(e => console.warn(handleError(e, 'progresso mensal')))
+                )
+
+                // 10. Learning Paths (novo layout)
+                promises.push(
+                    fetchLearningPaths()
+                        .then(setLearningPaths)
+                        .catch(e => console.warn(handleError(e, 'trilhas')))
+                )
+
+                // 11. Leaderboard (novo layout)
+                if (activeOrgId) {
+                    promises.push(
+                        fetchLeaderboard(activeOrgId)
+                            .then(setLeaderboard)
+                            .catch(e => console.warn(handleError(e, 'ranking')))
+                    )
+                }
 
                 await Promise.all(promises)
                 hasLoadedOnce.current = true
@@ -341,12 +394,25 @@ export default function StudentDashboardClientPage() {
         )
     }
 
+    // Preparar dados para o ChartMostActivity a partir da distribuicao por disciplina
+    const chartActivityData = distribution.map((item, index) => {
+        const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
+        return {
+            source: item.name.toLowerCase().replace(/\s+/g, '-'),
+            label: item.name,
+            percentage: Math.round(item.percentage * 10) / 10,
+            color: item.color || colors[index % colors.length],
+        }
+    }).slice(0, 5) // Limitar a 5 itens para o pie chart
+
+    // Calcular contagens para ProgressStatisticsCard
+
+    const inProgressItems = coursesList.filter(c => c.started && c.progress < 100).length
+    const completedItems = coursesList.filter(c => c.progress >= 100).length
+
     return (
         <div className="mx-auto max-w-7xl space-y-4 md:space-y-8">
-            {/* Topo: Header */}
-            <DashboardHeader user={user} />
-
-            {/* Mensagem de erro (se houver dados mas também erro) */}
+            {/* Mensagem de erro (se houver dados mas tambem erro) */}
             {error && (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -354,6 +420,59 @@ export default function StudentDashboardClientPage() {
                     <AlertDescription>{error}. Dados podem estar desatualizados.</AlertDescription>
                 </Alert>
             )}
+
+            {/* ===== NOVO LAYOUT (Template) ===== */}
+
+            {/* Linha 1: WelcomeCard (largura total) */}
+            <div className="grid gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-12 xl:col-span-6">
+                    <WelcomeCard
+                        userName={user.name}
+                        streakDays={user.streakDays}
+                        subtitle="O que deseja aprender hoje?"
+                        description="Descubra cursos, acompanhe seu progresso e alcance seus objetivos de aprendizado."
+                        ctaLabel="Explorar Cursos"
+                        ctaHref={tenant ? `/${tenant}/cursos` : '#'}
+                    />
+                </div>
+                <div className="lg:col-span-6 xl:col-span-3">
+                    <LearningPathCard paths={learningPaths} />
+                </div>
+                <div className="lg:col-span-6 xl:col-span-3">
+                    <LeaderboardCard
+                        students={leaderboard}
+                        title="Ranking"
+                        pointsLabel="hrs"
+                    />
+                </div>
+            </div>
+
+            {/* Linha 2: StudentSuccess + Progress + Activity */}
+            <div className="grid gap-4 xl:grid-cols-3">
+                <StudentSuccessCard
+                    currentSuccessRate={metrics.accuracy}
+                    previousSuccessRate={Math.max(0, metrics.accuracy - 3)}
+                    totalStudents={metrics.questionsAnswered}
+                    passingStudents={Math.round(metrics.questionsAnswered * metrics.accuracy / 100)}
+                    title="Taxa de Acerto"
+                    totalLabel="Questoes Respondidas"
+                    passingLabel="Questoes Corretas"
+                />
+                <ProgressStatisticsCard
+                    totalActivityPercent={metrics.scheduleProgress}
+                    inProgressCount={inProgressItems}
+                    completedCount={completedItems}
+                />
+                <ChartMostActivity data={chartActivityData} title="Distribuicao por Disciplina" />
+            </div>
+
+            {/* Linha 3: Progresso Mensal + Lista de Cursos */}
+            <div className="mt-4 gap-4 space-y-4 xl:grid xl:grid-cols-2 xl:space-y-0">
+                <CourseProgressByMonth data={progressByMonth} title="Aulas Concluidas por Mes" />
+                <CoursesListTable courses={coursesList} title="Meus Cursos" />
+            </div>
+
+            {/* ===== SECAO EXISTENTE (mantida) ===== */}
 
             {/* Progresso do Cronograma */}
             <ScheduleProgress value={metrics.scheduleProgress} streakDays={user.streakDays} />
@@ -370,19 +489,19 @@ export default function StudentDashboardClientPage() {
                         isPositive: metrics.focusTimeDelta.startsWith('+'),
                     }}
                     tooltip={[
-                        'Tempo total de estudo no período, somando aulas assistidas e sessões de exercícios.',
-                        'O valor mostra a diferença em relação ao período anterior.',
+                        'Tempo total de estudo no periodo, somando aulas assistidas e sessoes de exercicios.',
+                        'O valor mostra a diferenca em relacao ao periodo anterior.',
                     ]}
                 />
                 <MetricCard
-                    label="Questões Feitas"
+                    label="Questoes Feitas"
                     value={metrics.questionsAnswered}
                     subtext={metrics.questionsAnsweredPeriod}
                     icon={CheckCircle2}
                     variant="questions"
                     tooltip={[
-                        'Total de questões resolvidas no período.',
-                        'Resolver questões é fundamental para fixar o conteúdo!',
+                        'Total de questoes resolvidas no periodo.',
+                        'Resolver questoes e fundamental para fixar o conteudo!',
                     ]}
                 />
                 <MetricCard
@@ -393,8 +512,8 @@ export default function StudentDashboardClientPage() {
                     showProgressCircle={true}
                     progressValue={metrics.accuracy}
                     tooltip={[
-                        'Porcentagem de acertos nas questões resolvidas.',
-                        'Quanto maior, melhor você está dominando o conteúdo.',
+                        'Porcentagem de acertos nas questoes resolvidas.',
+                        'Quanto maior, melhor voce esta dominando o conteudo.',
                     ]}
                 />
                 <MetricCard
@@ -405,7 +524,7 @@ export default function StudentDashboardClientPage() {
                     variant="flashcards"
                     tooltip={[
                         'Cartas de flashcards revisadas.',
-                        'Técnica eficaz para memorização e revisão rápida!',
+                        'Tecnica eficaz para memorizacao e revisao rapida!',
                     ]}
                 />
             </div>

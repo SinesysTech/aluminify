@@ -28,6 +28,7 @@ ARG OAUTH_ENCRYPTION_KEY
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 # Sentry (Optional)
 ARG SENTRY_AUTH_TOKEN
+ARG DOCKER_BUILD
 
 # Set environment variables
 ENV SUPABASE_URL=$SUPABASE_URL
@@ -37,6 +38,7 @@ ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHAB
 ENV OAUTH_ENCRYPTION_KEY=$OAUTH_ENCRYPTION_KEY
 ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
+ENV DOCKER_BUILD=$DOCKER_BUILD
 
 # Skip env validation at build time (validated at runtime)
 ENV SKIP_ENV_VALIDATION=true
@@ -80,13 +82,13 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy package files for runtime
-COPY --from=builder /app/package.json ./package.json
-
 # Copy dependencies and assets
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 # Copy startup script and fix Windows CRLF line endings
 COPY --from=builder /app/start.sh ./start.sh

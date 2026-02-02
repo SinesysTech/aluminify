@@ -296,3 +296,11 @@ export async function fetchDashboardDistribution(
   );
   return response.data;
 }
+
+// Re-exportar novos fetch functions do service principal
+export {
+  fetchCoursesList,
+  fetchProgressByMonth,
+  fetchLearningPaths,
+  fetchLeaderboard,
+} from "../dashboard.service";

@@ -134,10 +134,10 @@ const cursoSchema = z.object({
     message: 'Tipo é obrigatório',
   }),
   description: z.string().optional().nullable(),
-  year: z.coerce.number().min(2020, 'Ano inválido').max(2100, 'Ano inválido'),
+  year: z.number().min(2020, 'Ano inválido').max(2100, 'Ano inválido'),
   startDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
-  accessMonths: z.coerce.number().optional().nullable(),
+  accessMonths: z.number().optional().nullable(),
   planningUrl: z.string().url('URL inválida').optional().nullable().or(z.literal('')),
   coverImageUrl: z.string().url('URL inválida').optional().nullable().or(z.literal('')),
   usaTurmas: z.boolean().optional().default(false),
@@ -175,8 +175,7 @@ export function CursoTable() {
   }, [])
 
   const createForm = useForm<CursoFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(cursoSchema) as any,
+    resolver: zodResolver(cursoSchema),
     defaultValues: {
       segmentId: null,
       disciplineId: null,
@@ -197,8 +196,7 @@ export function CursoTable() {
   })
 
   const editForm = useForm<CursoFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(cursoSchema) as any,
+    resolver: zodResolver(cursoSchema),
     defaultValues: {
       segmentId: null,
       disciplineId: null,

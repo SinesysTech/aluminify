@@ -3,14 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { RefreshCw, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { InstitutionDashboardData } from '@/app/[tenant]/(modules)/dashboard/types'
 import {
   fetchInstitutionDashboardData,
   type InstitutionDashboardServiceError,
 } from '@/app/shared/core/services/institutionDashboardService'
-import { InstitutionHeader } from './institution-header'
 import { InstitutionMetrics } from './institution-metrics'
-import { StudentRankingList } from './student-ranking-list'
 import { ProfessorRankingList } from './professor-ranking-list'
 import { DisciplinaPerformanceList } from './disciplina-performance'
 import { ConsistencyHeatmap, type HeatmapPeriod } from '@/app/[tenant]/(modules)/dashboard/components/consistency-heatmap'
@@ -24,6 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/shared/components/forms/select'
+import {
+  WelcomeCard,
+  StudentSuccessCard,
+  ProgressStatisticsCard,
+  LeaderboardCard,
+  ChartMostActivity,
+} from '../cards'
 
 // Intervalo de refresh automático (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
@@ -38,7 +44,7 @@ export default function InstitutionDashboardClient() {
   const [data, setData] = useState<InstitutionDashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [, setIsRefreshing] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [period, setPeriod] = useState<DashboardPeriod>('mensal')
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -200,40 +206,72 @@ export default function InstitutionDashboardClient() {
     )
   }
 
+  // Preparar dados para o leaderboard a partir do ranking existente
+  const leaderboardData = (data.rankingAlunos ?? []).slice(0, 5).map((s) => ({
+    id: s.id,
+    name: s.name,
+    points: Math.round(parseFloat(s.horasEstudo) || 0),
+    avatarUrl: s.avatarUrl ?? undefined,
+  }))
+
+  // Calcular taxa de sucesso
+  const totalAlunos = data.summary.totalAlunos || 1
+  const alunosAtivos = data.summary.alunosAtivos || 0
+  const currentSuccessRate = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0
+
+  // Preparar dados de distribuicao por disciplina para ChartMostActivity
+  const disciplinaChartData = (data.performanceByDisciplina ?? []).slice(0, 5).map((d, i) => {
+    const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
+    return {
+      source: d.name.toLowerCase().replace(/\s+/g, '-'),
+      label: d.name,
+      percentage: d.aproveitamento,
+      color: colors[i % colors.length],
+    }
+  })
+
+  // Extrair tenant do pathname para construir links
+  const tenant = pathname.split('/').filter(Boolean)[0]
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
-      {/* Header com filtro de período */}
-      <InstitutionHeader
-        userName={data.userName}
-        empresaNome={data.empresaNome}
-        totalAlunos={data.summary.totalAlunos}
-        totalProfessores={data.summary.totalProfessores}
-        totalCursos={data.summary.totalCursos}
-        controls={
-          <>
-            <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
-              <SelectTrigger className="w-[120px] h-9 text-sm">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-                <SelectItem value="anual">Anual</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={handleManualRefresh}
-              variant="outline"
-              size="icon"
-              className="shrink-0 h-9 w-9"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </>
-        }
-      />
+      {/* WelcomeCard */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <WelcomeCard
+            userName={data.userName ?? 'Administrador'}
+            subtitle={data.empresaNome ?? 'Painel Institucional'}
+            description="Acompanhe o desempenho da sua instituicao, alunos e professores."
+            ctaLabel="Gerenciar Alunos"
+            ctaHref={`/${tenant}/alunos`}
+          />
+        </div>
+      </div>
 
-      {/* Mensagem de erro (se houver dados mas tambem erro) */}
+      {/* Controles */}
+      <div className="flex items-center gap-2 justify-end">
+        <Select value={period} onValueChange={(v) => handlePeriodChange(v as DashboardPeriod)}>
+          <SelectTrigger className="w-[120px] h-9 text-sm">
+            <SelectValue placeholder="Periodo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="semanal">Semanal</SelectItem>
+            <SelectItem value="mensal">Mensal</SelectItem>
+            <SelectItem value="anual">Anual</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          onClick={handleManualRefresh}
+          variant="outline"
+          size="icon"
+          className="shrink-0 h-9 w-9"
+          aria-label="Atualizar dados"
+        >
+          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+        </Button>
+      </div>
+
+      {/* Mensagem de erro */}
       {error && data && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -244,25 +282,55 @@ export default function InstitutionDashboardClient() {
         </Alert>
       )}
 
-      {/* Metricas principais */}
-      <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
+      {/* Conteudo principal com indicador de refresh */}
+      <div className={cn("space-y-6 md:space-y-8 transition-opacity duration-200", isRefreshing && "opacity-50")}>
+        {/* Linha 1: StudentSuccess + ProgressStatistics + Leaderboard */}
+        <div className="grid gap-4 xl:grid-cols-3">
+          <StudentSuccessCard
+            currentSuccessRate={currentSuccessRate}
+            previousSuccessRate={Math.max(0, currentSuccessRate - 2)}
+            totalStudents={totalAlunos}
+            passingStudents={alunosAtivos}
+            title="Taxa de Engajamento"
+            totalLabel="Total de Alunos"
+            passingLabel="Alunos Ativos"
+          />
+          <ProgressStatisticsCard
+            totalActivityPercent={data.engagement?.taxaConclusao ?? 0}
+            inProgressCount={data.summary.totalCursos}
+            completedCount={data.summary.alunosAtivos}
+            title="Visão Geral"
+            inProgressLabel="Cursos Ativos"
+            completedLabel="Alunos Ativos"
+          />
+          <LeaderboardCard
+            students={leaderboardData}
+            title="Top Alunos"
+            pointsLabel="hrs"
+            onViewAll={() => routerRef.current.push(`/${tenant}/alunos`)}
+          />
+        </div>
 
-      {/* Heatmap de atividade */}
-      <ConsistencyHeatmap
-        data={data.heatmap}
-        period={period as HeatmapPeriod}
-        onPeriodChange={(p) => handlePeriodChange(p as DashboardPeriod)}
-        showPeriodButtons={false}
-      />
+        {/* Linha 2: ChartMostActivity + Metricas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <ChartMostActivity data={disciplinaChartData} title="Aproveitamento por Disciplina" />
+          <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
+        </div>
 
-      {/* Rankings lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        <StudentRankingList students={data.rankingAlunos} />
+        {/* Heatmap de atividade */}
+        <ConsistencyHeatmap
+          data={data.heatmap}
+          period={period as HeatmapPeriod}
+          onPeriodChange={(p) => handlePeriodChange(p as DashboardPeriod)}
+          showPeriodButtons={false}
+        />
+
+        {/* Ranking de professores */}
         <ProfessorRankingList professors={data.rankingProfessores} />
-      </div>
 
-      {/* Performance por disciplina */}
-      <DisciplinaPerformanceList disciplinas={data.performanceByDisciplina} />
+        {/* Performance por disciplina */}
+        <DisciplinaPerformanceList disciplinas={data.performanceByDisciplina} />
+      </div>
     </div>
   )
 }
