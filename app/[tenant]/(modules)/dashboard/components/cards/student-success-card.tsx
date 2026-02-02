@@ -29,11 +29,11 @@ export function StudentSuccessCard({
   const passingPercentage = totalStudents > 0 ? (passingStudents / totalStudents) * 100 : 0
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-8 lg:space-y-6">
+      <CardContent className="flex-1 space-y-8 lg:space-y-6">
         <div className="flex items-center justify-between">
           <span className="font-display text-3xl lg:text-4xl">{currentSuccessRate}%</span>
           <div

@@ -1,5 +1,6 @@
 'use client'
 
+import { GraduationCap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { DisciplinaPerformance } from '@/app/[tenant]/(modules)/dashboard/types'
@@ -33,10 +34,12 @@ export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformance
       </CardHeader>
       <CardContent className="pt-0 px-4 md:px-5 pb-4">
         {disciplinas.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[100px]">
-            <p className="text-sm text-muted-foreground">
-              Nenhuma disciplina com dados de performance
-            </p>
+          <div className="flex flex-col items-center justify-center min-h-[100px] gap-3 py-8">
+            <GraduationCap className="h-12 w-12 text-muted-foreground/40" />
+            <div className="text-center space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">Nenhuma disciplina com dados de performance</p>
+              <p className="text-xs text-muted-foreground/70">Dados de performance aparecem conforme alunos respondem questões.</p>
+            </div>
           </div>
         ) : (
           <ScrollArea className="h-52 pr-3">

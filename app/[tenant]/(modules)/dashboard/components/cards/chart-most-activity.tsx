@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Pie, PieChart } from "recharts"
+import { BarChart3 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   type ChartConfig,
@@ -53,8 +54,12 @@ export function ChartMostActivity({
         <CardHeader>
           <CardTitle>{title}</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-12">
-          <span className="text-muted-foreground text-sm">Sem dados de atividade</span>
+        <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
+          <BarChart3 className="h-12 w-12 text-muted-foreground/40" />
+          <div className="text-center space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">Sem dados de atividade</p>
+            <p className="text-xs text-muted-foreground/70">Os dados aparecem quando alunos completam atividades nas disciplinas.</p>
+          </div>
         </CardContent>
       </Card>
     )

@@ -3,13 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { RefreshCw, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { InstitutionDashboardData } from '@/app/[tenant]/(modules)/dashboard/types'
 import {
   fetchInstitutionDashboardData,
   type InstitutionDashboardServiceError,
 } from '@/app/shared/core/services/institutionDashboardService'
 import { InstitutionMetrics } from './institution-metrics'
-import { StudentRankingList } from './student-ranking-list'
 import { ProfessorRankingList } from './professor-ranking-list'
 import { DisciplinaPerformanceList } from './disciplina-performance'
 import { ConsistencyHeatmap, type HeatmapPeriod } from '@/app/[tenant]/(modules)/dashboard/components/consistency-heatmap'
@@ -44,7 +44,7 @@ export default function InstitutionDashboardClient() {
   const [data, setData] = useState<InstitutionDashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [, setIsRefreshing] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [period, setPeriod] = useState<DashboardPeriod>('mensal')
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -207,7 +207,7 @@ export default function InstitutionDashboardClient() {
   }
 
   // Preparar dados para o leaderboard a partir do ranking existente
-  const leaderboardData = (data.rankingAlunos ?? []).slice(0, 4).map((s) => ({
+  const leaderboardData = (data.rankingAlunos ?? []).slice(0, 5).map((s) => ({
     id: s.id,
     name: s.name,
     points: Math.round(parseFloat(s.horasEstudo) || 0),
@@ -230,11 +230,12 @@ export default function InstitutionDashboardClient() {
     }
   })
 
+  // Extrair tenant do pathname para construir links
+  const tenant = pathname.split('/').filter(Boolean)[0]
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
-      {/* ===== NOVO LAYOUT (Template) ===== */}
-
-      {/* WelcomeCard + Controles de Periodo */}
+      {/* WelcomeCard */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <WelcomeCard
@@ -242,6 +243,7 @@ export default function InstitutionDashboardClient() {
             subtitle={data.empresaNome ?? 'Painel Institucional'}
             description="Acompanhe o desempenho da sua instituicao, alunos e professores."
             ctaLabel="Gerenciar Alunos"
+            ctaHref={`/${tenant}/alunos`}
           />
         </div>
       </div>
@@ -263,8 +265,9 @@ export default function InstitutionDashboardClient() {
           variant="outline"
           size="icon"
           className="shrink-0 h-9 w-9"
+          aria-label="Atualizar dados"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
         </Button>
       </div>
 
@@ -279,56 +282,55 @@ export default function InstitutionDashboardClient() {
         </Alert>
       )}
 
-      {/* Linha 1: StudentSuccess + ProgressStatistics + Leaderboard */}
-      <div className="grid gap-4 xl:grid-cols-3">
-        <StudentSuccessCard
-          currentSuccessRate={currentSuccessRate}
-          previousSuccessRate={Math.max(0, currentSuccessRate - 2)}
-          totalStudents={totalAlunos}
-          passingStudents={alunosAtivos}
-          title="Taxa de Engajamento"
-          totalLabel="Total de Alunos"
-          passingLabel="Alunos Ativos"
+      {/* Conteudo principal com indicador de refresh */}
+      <div className={cn("space-y-6 md:space-y-8 transition-opacity duration-200", isRefreshing && "opacity-50")}>
+        {/* Linha 1: StudentSuccess + ProgressStatistics + Leaderboard */}
+        <div className="grid gap-4 xl:grid-cols-3">
+          <StudentSuccessCard
+            currentSuccessRate={currentSuccessRate}
+            previousSuccessRate={Math.max(0, currentSuccessRate - 2)}
+            totalStudents={totalAlunos}
+            passingStudents={alunosAtivos}
+            title="Taxa de Engajamento"
+            totalLabel="Total de Alunos"
+            passingLabel="Alunos Ativos"
+          />
+          <ProgressStatisticsCard
+            totalActivityPercent={data.engagement?.taxaConclusao ?? 0}
+            inProgressCount={data.summary.totalCursos}
+            completedCount={data.summary.alunosAtivos}
+            title="Visão Geral"
+            inProgressLabel="Cursos Ativos"
+            completedLabel="Alunos Ativos"
+          />
+          <LeaderboardCard
+            students={leaderboardData}
+            title="Top Alunos"
+            pointsLabel="hrs"
+            onViewAll={() => routerRef.current.push(`/${tenant}/alunos`)}
+          />
+        </div>
+
+        {/* Linha 2: ChartMostActivity + Metricas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <ChartMostActivity data={disciplinaChartData} title="Aproveitamento por Disciplina" />
+          <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
+        </div>
+
+        {/* Heatmap de atividade */}
+        <ConsistencyHeatmap
+          data={data.heatmap}
+          period={period as HeatmapPeriod}
+          onPeriodChange={(p) => handlePeriodChange(p as DashboardPeriod)}
+          showPeriodButtons={false}
         />
-        <ProgressStatisticsCard
-          totalActivityPercent={data.engagement?.taxaConclusao ?? 0}
-          inProgressCount={data.summary.totalCursos}
-          completedCount={data.summary.alunosAtivos}
-          title="Visao Geral"
-          inProgressLabel="Cursos Ativos"
-          completedLabel="Alunos Ativos"
-        />
-        <LeaderboardCard
-          students={leaderboardData}
-          title="Top Alunos"
-          pointsLabel="hrs"
-        />
-      </div>
 
-      {/* Linha 2: ChartMostActivity + Metricas legadas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        <ChartMostActivity data={disciplinaChartData} title="Aproveitamento por Disciplina" />
-        <InstitutionMetrics summary={data.summary} engagement={data.engagement} />
-      </div>
-
-      {/* ===== SECAO EXISTENTE ===== */}
-
-      {/* Heatmap de atividade */}
-      <ConsistencyHeatmap
-        data={data.heatmap}
-        period={period as HeatmapPeriod}
-        onPeriodChange={(p) => handlePeriodChange(p as DashboardPeriod)}
-        showPeriodButtons={false}
-      />
-
-      {/* Rankings lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        <StudentRankingList students={data.rankingAlunos} />
+        {/* Ranking de professores */}
         <ProfessorRankingList professors={data.rankingProfessores} />
-      </div>
 
-      {/* Performance por disciplina */}
-      <DisciplinaPerformanceList disciplinas={data.performanceByDisciplina} />
+        {/* Performance por disciplina */}
+        <DisciplinaPerformanceList disciplinas={data.performanceByDisciplina} />
+      </div>
     </div>
   )
 }

@@ -106,7 +106,7 @@ export function MetricCard({
           <div className="flex-1 min-w-0">
             {/* Label row */}
             <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-sm font-medium text-muted-foreground truncate">{label}</span>
+              <span className="text-sm font-medium text-muted-foreground truncate" title={label}>{label}</span>
               {tooltip && (
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
