@@ -134,7 +134,7 @@ const cursoSchema = z.object({
     message: 'Tipo é obrigatório',
   }),
   description: z.string().optional().nullable(),
-  year: z.coerce.number().min(2020, 'Ano inválido').max(2100, 'Ano inválido'),
+  year: z.number().min(2020, 'Ano inválido').max(2100, 'Ano inválido'),
   startDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
   accessMonths: z.coerce.number().optional().nullable(),
