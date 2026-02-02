@@ -1,34 +1,16 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runner
-      args:
-        # Supabase
-        - SUPABASE_URL=${SUPABASE_URL}
-        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-        - SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY}
-        - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY}
-        # Redis
-        - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
-        - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
-        # Superadmin
-        - SUPERADMIN_USERNAME=${SUPERADMIN_USERNAME}
-        - SUPERADMIN_PASSWORD=${SUPERADMIN_PASSWORD}
-        # Mastra AI
-        - AI_MODEL_PROVIDER=${AI_MODEL_PROVIDER}
-        - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
-        - OPENAI_API_KEY=${OPENAI_API_KEY}
-        - LOG_LEVEL=${LOG_LEVEL}
-        # Analytics
-        - NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+    image: sinesystec/aluminify:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    #   target: runner
     container_name: aluminify-app-prod
     ports:
-      - "3000:3000"   # Next.js
-      - "4111:4111"   # Mastra Studio
+      - "3000:3000" # Next.js
+      - "4111:4111" # Mastra Studio
     env_file:
       - .env.local
     environment:
@@ -39,10 +21,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: "2"
           memory: 2G
         reservations:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
     logging:
       driver: "json-file"
@@ -50,7 +32,13 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
       interval: 30s
       timeout: 10s
       start_period: 40s
@@ -78,10 +66,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
     logging:
       driver: "json-file"
