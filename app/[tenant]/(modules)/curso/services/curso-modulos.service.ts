@@ -41,15 +41,6 @@ export class CursoModulosService {
   /**
    * Get the UNION of all module IDs from a student's enrolled courses
    */
-<<<<<<< HEAD
-  async getModulesForStudentCourses(usuarioId: string, empresaId: string): Promise<string[]> {
-    const { data: enrollments, error: enrollError } = await this.client
-      .from('alunos_cursos')
-      .select('curso_id')
-      .eq('usuario_id', usuarioId);
-
-    if (enrollError || !enrollments?.length) {
-=======
   async getModulesForStudentCourses(
     usuarioId: string,
     empresaId: string,
@@ -64,26 +55,12 @@ export class CursoModulosService {
       if (enrollError) {
         console.error("Error fetching enrollments:", enrollError);
       }
->>>>>>> 444698c1668ccf356661f33da598b561282edac8
       return [];
     }
 
     const cursoIds = enrollments.map((e: { curso_id: string }) => e.curso_id);
 
     const { data: modules, error: modError } = await this.client
-<<<<<<< HEAD
-      .from('curso_modulos')
-      .select('module_id')
-      .eq('empresa_id', empresaId)
-      .in('curso_id', cursoIds);
-
-    if (modError) {
-      throw new Error(`Failed to fetch student course modules: ${modError.message}`);
-    }
-
-    // Return unique module IDs
-    return [...new Set((modules ?? []).map((row: { module_id: string }) => row.module_id))];
-=======
       .from("curso_modulos")
       .select("module_id")
       .eq("empresa_id", empresaId)
@@ -101,7 +78,6 @@ export class CursoModulosService {
         (modules ?? []).map((row: { module_id: string }) => row.module_id),
       ),
     ];
->>>>>>> 444698c1668ccf356661f33da598b561282edac8
   }
 
   /**

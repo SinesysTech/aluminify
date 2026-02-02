@@ -211,7 +211,7 @@ export default function InstitutionDashboardClient() {
     id: s.id,
     name: s.name,
     points: Math.round(parseFloat(s.horasEstudo) || 0),
-    avatarUrl: s.avatarUrl,
+    avatarUrl: s.avatarUrl ?? undefined,
   }))
 
   // Calcular taxa de sucesso
