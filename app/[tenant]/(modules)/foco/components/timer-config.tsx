@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/app/shared/components/forms/label'
 import { Slider } from '@/components/ui/slider'
@@ -73,7 +73,8 @@ const METHODS = [
         description: 'Sem limite de tempo',
         color: 'text-blue-500',
         bgColor: 'bg-blue-500/10',
-        borderColor: 'border-blue-500',
+        borderColor: 'border-blue-500/60',
+        ringColor: 'ring-blue-500/20',
     },
     {
         id: 'timer' as MetodoEstudo,
@@ -82,7 +83,8 @@ const METHODS = [
         description: 'Tempo definido',
         color: 'text-amber-500',
         bgColor: 'bg-amber-500/10',
-        borderColor: 'border-amber-500',
+        borderColor: 'border-amber-500/60',
+        ringColor: 'ring-amber-500/20',
     },
     {
         id: 'pomodoro' as MetodoEstudo,
@@ -91,7 +93,8 @@ const METHODS = [
         description: 'Ciclos de foco',
         color: 'text-emerald-500',
         bgColor: 'bg-emerald-500/10',
-        borderColor: 'border-emerald-500',
+        borderColor: 'border-emerald-500/60',
+        ringColor: 'ring-emerald-500/20',
     },
 ]
 
@@ -135,17 +138,18 @@ export function TimerConfig({
     }
 
     return (
-        <Card>
-            <CardHeader className="pb-1.5 pt-2.5 px-3">
-                <div className="flex items-center gap-2">
-                    <Settings2 className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-sm font-medium">Como você quer estudar?</CardTitle>
+        <Card className="overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-4">
+                {/* Section header */}
+                <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                        <Settings2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <h2 className="text-sm font-semibold">Como você quer estudar?</h2>
                 </div>
-            </CardHeader>
 
-            <CardContent className="space-y-2 pb-2.5 px-3">
                 {/* Method Selection - Horizontal Cards */}
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-3 gap-2">
                     {METHODS.map((method) => {
                         const Icon = method.icon
                         const isSelected = metodo === method.id
@@ -156,15 +160,15 @@ export function TimerConfig({
                                 type="button"
                                 onClick={() => onMetodoChange(method.id)}
                                 className={cn(
-                                    'relative flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg border-2 transition-all cursor-pointer',
+                                    'relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all cursor-pointer',
                                     'hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50',
                                     isSelected
-                                        ? `${method.borderColor} ${method.bgColor}`
+                                        ? `${method.borderColor} ${method.bgColor} ring-2 ${method.ringColor}`
                                         : 'border-muted hover:border-muted-foreground/30'
                                 )}
                             >
                                 <div className={cn(
-                                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                                    'flex h-9 w-9 items-center justify-center rounded-full transition-colors',
                                     isSelected ? method.bgColor : 'bg-muted'
                                 )}>
                                     <Icon className={cn(
@@ -179,7 +183,7 @@ export function TimerConfig({
                                     )}>
                                         {method.label}
                                     </p>
-                                    <p className="text-[10px] text-muted-foreground leading-tight">
+                                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
                                         {method.description}
                                     </p>
                                 </div>
@@ -192,13 +196,12 @@ export function TimerConfig({
                 <div className="min-h-[88px]">
                     {/* Cronômetro - No config needed */}
                     {metodo === 'cronometro' && (
-                        <div className="flex flex-col items-center justify-center h-[100px] text-center p-3 rounded-lg bg-muted/30 border border-dashed">
-                            <Timer className="h-5 w-5 text-muted-foreground mb-1.5" />
+                        <div className="flex flex-col items-center justify-center h-[100px] text-center p-4 rounded-xl bg-muted/30 border border-dashed">
+                            <Timer className="h-5 w-5 text-muted-foreground mb-2" />
                             <p className="text-xs text-muted-foreground">
                                 O cronômetro livre não precisa de configuração.
-                                <br />
-                                <span className="text-xs">Você controla quando parar.</span>
                             </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Você controla quando parar.</p>
                         </div>
                     )}
 
@@ -206,28 +209,28 @@ export function TimerConfig({
                     {metodo === 'timer' && (
                         <div className="space-y-3">
                             {/* Presets */}
-                            <div className="flex gap-1.5">
+                            <div className="grid grid-cols-4 gap-1.5">
                                 {TIMER_PRESETS.map((preset) => (
                                     <button
                                         key={preset.value}
                                         type="button"
                                         onClick={() => onTimerMinChange(preset.value)}
                                         className={cn(
-                                            'flex-1 py-2 px-2 rounded-md border text-center transition-all cursor-pointer',
+                                            'py-2.5 px-2 rounded-lg border text-center transition-all cursor-pointer',
                                             'hover:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/30',
                                             timerMin === preset.value
-                                                ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                ? 'border-amber-500/60 bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20'
                                                 : 'border-muted hover:bg-muted/50'
                                         )}
                                     >
                                         <p className="font-medium text-xs">{preset.label}</p>
-                                        <p className="text-[10px] text-muted-foreground">{preset.description}</p>
+                                        <p className="text-[10px] text-muted-foreground mt-0.5">{preset.description}</p>
                                     </button>
                                 ))}
                             </div>
 
                             {/* Custom slider */}
-                            <div className="space-y-2">
+                            <div className="space-y-2 px-1">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-xs">Personalizar</Label>
                                     <span className="text-sm font-bold text-amber-500 tabular-nums">
@@ -249,40 +252,40 @@ export function TimerConfig({
                     {metodo === 'pomodoro' && (
                         <div className="space-y-3">
                             {/* Presets */}
-                            <div className="flex gap-1.5">
+                            <div className="grid grid-cols-3 gap-1.5">
                                 {POMODORO_PRESETS.map((preset) => (
                                     <button
                                         key={preset.label}
                                         type="button"
                                         onClick={() => applyPomodoroPreset(preset)}
                                         className={cn(
-                                            'flex-1 py-2 px-2 rounded-md border text-center transition-all cursor-pointer',
+                                            'py-2.5 px-2 rounded-lg border text-center transition-all cursor-pointer',
                                             'hover:border-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
                                             getCurrentPomodoroPreset() === preset.label
-                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20'
                                                 : 'border-muted hover:bg-muted/50'
                                         )}
                                     >
                                         <p className="font-medium text-xs">{preset.label}</p>
-                                        <p className="text-[10px] text-muted-foreground">{preset.description}</p>
+                                        <p className="text-[10px] text-muted-foreground mt-0.5">{preset.description}</p>
                                     </button>
                                 ))}
                             </div>
 
                             {/* Summary */}
-                            <div className="flex items-center justify-center gap-4 py-2 px-3 rounded-md bg-muted/30">
+                            <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-xl bg-muted/30 border border-dashed">
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-emerald-500">{focusMin}</p>
+                                    <p className="text-lg font-bold text-emerald-500 tabular-nums">{focusMin}</p>
                                     <p className="text-[10px] text-muted-foreground">foco</p>
                                 </div>
                                 <div className="h-6 w-px bg-border" />
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-blue-500">{shortBreakMin}</p>
+                                    <p className="text-lg font-bold text-blue-500 tabular-nums">{shortBreakMin}</p>
                                     <p className="text-[10px] text-muted-foreground">pausa</p>
                                 </div>
                                 <div className="h-6 w-px bg-border" />
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-violet-500">{pomodoroCycles}</p>
+                                    <p className="text-lg font-bold text-violet-500 tabular-nums">{pomodoroCycles}</p>
                                     <p className="text-[10px] text-muted-foreground">ciclos</p>
                                 </div>
                             </div>
@@ -291,7 +294,7 @@ export function TimerConfig({
                             <button
                                 type="button"
                                 onClick={() => setShowAdvancedPomodoro(!showAdvancedPomodoro)}
-                                className="flex items-center justify-between w-full py-1.5 px-1 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 cursor-pointer"
+                                className="flex items-center justify-between w-full py-2 px-2 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50 cursor-pointer"
                             >
                                 <span>Configuração avançada</span>
                                 {showAdvancedPomodoro ? (
@@ -303,12 +306,12 @@ export function TimerConfig({
 
                             {/* Advanced config */}
                             {showAdvancedPomodoro && (
-                                <div className="space-y-3 pt-2 pl-3 border-l-2 border-muted">
+                                <div className="space-y-3 pt-1 pl-4 border-l-2 border-muted">
                                     {/* Focus time */}
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between text-xs">
                                             <Label className="text-xs">Tempo de foco</Label>
-                                            <span className="font-mono text-emerald-500">{focusMin} min</span>
+                                            <span className="font-mono text-emerald-500 font-medium">{focusMin} min</span>
                                         </div>
                                         <Slider
                                             value={[focusMin]}
@@ -323,7 +326,7 @@ export function TimerConfig({
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between text-xs">
                                             <Label className="text-xs">Pausa curta</Label>
-                                            <span className="font-mono text-blue-500">{shortBreakMin} min</span>
+                                            <span className="font-mono text-blue-500 font-medium">{shortBreakMin} min</span>
                                         </div>
                                         <Slider
                                             value={[shortBreakMin]}
@@ -338,7 +341,7 @@ export function TimerConfig({
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between text-xs">
                                             <Label className="text-xs">Pausa longa</Label>
-                                            <span className="font-mono text-violet-500">{longBreakMin} min</span>
+                                            <span className="font-mono text-violet-500 font-medium">{longBreakMin} min</span>
                                         </div>
                                         <Slider
                                             value={[longBreakMin]}
@@ -353,7 +356,7 @@ export function TimerConfig({
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between text-xs">
                                             <Label className="text-xs">Ciclos</Label>
-                                            <span className="font-mono">{pomodoroCycles}</span>
+                                            <span className="font-mono font-medium">{pomodoroCycles}</span>
                                         </div>
                                         <Slider
                                             value={[pomodoroCycles]}
@@ -369,10 +372,15 @@ export function TimerConfig({
                     )}
                 </div>
 
-                {/* Start Button */}
+                {/* Start Button - Prominent CTA matching dashboard style */}
                 <Button
-                    size="default"
-                    className="w-full h-10 text-sm gap-2 shadow-md hover:shadow-lg transition-shadow"
+                    size="lg"
+                    className={cn(
+                        'w-full h-12 text-sm font-semibold gap-2 transition-all duration-200',
+                        'bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70',
+                        'shadow-lg hover:shadow-xl hover:scale-[1.01]',
+                        'disabled:opacity-50 disabled:shadow-none disabled:hover:scale-100'
+                    )}
                     onClick={onStart}
                     disabled={iniciando || !disciplinaId}
                 >
@@ -383,14 +391,14 @@ export function TimerConfig({
                         </>
                     ) : (
                         <>
-                            <Play className="h-4 w-4 fill-current" />
+                            <Play className="h-4.5 w-4.5 fill-current" />
                             Iniciar Sessão de Foco
                         </>
                     )}
                 </Button>
 
                 {!disciplinaId && (
-                    <p className="text-center text-[11px] text-muted-foreground">
+                    <p className="text-center text-xs text-muted-foreground -mt-1">
                         Selecione uma disciplina acima para começar
                     </p>
                 )}

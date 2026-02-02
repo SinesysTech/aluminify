@@ -231,6 +231,7 @@ export default function StructureManagerClient() {
           .eq('usuario_id', user.id)
           .eq('ativo', true)
           .is('deleted_at', null)
+          .limit(1)
           .maybeSingle()
 
         if (error) {
@@ -244,21 +245,23 @@ export default function StructureManagerClient() {
           setError('Acesso negado. Você não tem associação ativa com esta instituição.')
         }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        const errorObj = err as Record<string, unknown>;
-        console.error('--- DEBUG: Erro ao verificar permissões ---');
-        console.error('Mensagem:', errorMsg);
-        console.error('Detalhes:', errorObj?.details);
-        console.error('Hint:', errorObj?.hint);
-        console.error('Código:', errorObj?.code);
-        console.error('Tipo:', typeof err);
-        console.error('-------------------------------------------');
+        console.error('Erro ao verificar permissões:', err instanceof Error ? err.message : (err as Record<string, unknown>)?.message ?? err)
         setIsAuthorized(false)
       }
     }
 
     checkAuthorization()
   }, [supabase, router, tenant])
+
+  // Mensagem legível a partir de erros Supabase/Postgrest (evita "[object Object]")
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) return err.message
+    const o = err as Record<string, unknown>
+    if (o?.message && typeof o.message === 'string') return o.message
+    if (o?.code === '42P01') return 'Tabela não encontrada. Verifique se as migrações do banco foram aplicadas.'
+    if (o?.details ?? o?.hint) return [o.details, o.hint].filter(Boolean).join(' — ')
+    try { return JSON.stringify(o) } catch { return 'Erro desconhecido' }
+  }
 
   // Carregar disciplinas (todas - usado para outros propósitos)
   React.useEffect(() => {
@@ -272,16 +275,14 @@ export default function StructureManagerClient() {
         if (error) throw error
         setDisciplinas(data || [])
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        const errorObj = err as Record<string, unknown>;
-        console.error('--- DEBUG: Erro ao carregar disciplinas ---');
-        console.error('Mensagem:', errorMsg);
-        console.error('Detalhes:', errorObj?.details);
-        console.error('Hint:', errorObj?.hint);
-        console.error('Código:', errorObj?.code);
-        console.error('Tipo:', typeof err);
-        console.error('-------------------------------------------');
-        setError('Erro ao carregar disciplinas')
+        const errorObj = err as Record<string, unknown>
+        const code = errorObj?.code as string | undefined
+        if (code === '42P01') {
+          setError('Estrutura de dados não encontrada. As tabelas de disciplinas/cursos podem não existir neste ambiente — verifique se as migrações do Supabase foram aplicadas.')
+        } else {
+          console.error('Erro ao carregar disciplinas:', getErrorMessage(err))
+          setError('Erro ao carregar disciplinas')
+        }
       }
     }
 
@@ -307,7 +308,8 @@ export default function StructureManagerClient() {
           .eq('curso_id', cursoSelecionado)
 
         if (cdError) {
-          console.error('Erro ao carregar disciplinas do curso:', cdError)
+          const code = (cdError as Record<string, unknown>)?.code as string | undefined
+          if (code !== '42P01') console.error('Erro ao carregar disciplinas do curso:', cdError.message ?? cdError)
           setDisciplinasDoCurso([])
           return
         }
@@ -327,7 +329,8 @@ export default function StructureManagerClient() {
           .order('nome', { ascending: true })
 
         if (discError) {
-          console.error('Erro ao carregar detalhes das disciplinas:', discError)
+          const code = (discError as Record<string, unknown>)?.code as string | undefined
+          if (code !== '42P01') console.error('Erro ao carregar detalhes das disciplinas:', discError.message ?? discError)
           setDisciplinasDoCurso([])
           return
         }
@@ -341,14 +344,8 @@ export default function StructureManagerClient() {
           setDisciplinaSelecionada('')
         }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        const errorObj = err as Record<string, unknown>;
-        console.error('--- DEBUG: Erro ao carregar disciplinas do curso ---');
-        console.error('Mensagem:', errorMsg);
-        console.error('Detalhes:', errorObj?.details);
-        console.error('Hint:', errorObj?.hint);
-        console.error('Código:', errorObj?.code);
-        console.error('----------------------------------------------------');
+        const errorObj = err as Record<string, unknown>
+        if (errorObj?.code !== '42P01') console.error('Erro ao carregar disciplinas do curso:', getErrorMessage(err))
         setDisciplinasDoCurso([])
         setDisciplinaSelecionada('')
       }
@@ -372,16 +369,12 @@ export default function StructureManagerClient() {
           .order('nome', { ascending: true })
 
         if (cursosError) {
-          console.error('Erro na query de cursos:', {
-            message: cursosError.message,
-            details: cursosError.details,
-            hint: cursosError.hint,
-            code: cursosError.code,
-          })
+          const code = (cursosError as Record<string, unknown>)?.code as string | undefined
+          if (code !== '42P01') {
+            console.error('Erro na query de cursos:', cursosError.message ?? getErrorMessage(cursosError))
+          }
           throw cursosError
         }
-
-        console.log('Cursos carregados:', cursosData?.length || 0, cursosData)
 
         // Buscar disciplinas separadamente se necessário (opcional, para exibir nomes)
         let disciplinasMap: Map<string, string> = new Map()
@@ -433,17 +426,15 @@ export default function StructureManagerClient() {
             disciplinaIds: cursosDisciplinasMap.get(curso.id) || [],
           })) ?? []
 
-        console.log('Cursos mapeados:', mapped.length, mapped)
         setCursos(mapped)
       } catch (err) {
-        console.error('Erro ao carregar cursos:', {
-          error: err,
-          errorString: String(err),
-          errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-          errorType: typeof err,
-          errorKeys: err && typeof err === 'object' ? Object.keys(err) : [],
-        })
-        setError('Erro ao carregar cursos disponíveis. Verifique se você tem permissão para acessar os cursos.')
+        const errorObj = err as Record<string, unknown>
+        if (errorObj?.code === '42P01') {
+          setError('Estrutura de dados não encontrada. As tabelas de disciplinas/cursos podem não existir neste ambiente — verifique se as migrações do Supabase foram aplicadas.')
+        } else {
+          console.error('Erro ao carregar cursos:', getErrorMessage(err))
+          setError('Erro ao carregar cursos disponíveis. Verifique se você tem permissão para acessar os cursos.')
+        }
       }
     }
 

@@ -332,28 +332,20 @@ export async function fetchLeaderboard(
   if (empresaId) params.set("empresa_id", empresaId);
 
   const response = await apiClient.get<{
-    data: Array<{
+    data: { studentRanking?: Array<{
       id: string;
       name: string;
       horasEstudo: string;
       avatarUrl: string | null;
       aproveitamento: number;
       streakDays: number;
-    }>;
+    }> };
   }>(
-    `/api/dashboard/institution?${params.toString()}`,
+    `/api/dashboard/leaderboard?${params.toString()}`,
     empresaId ? { tenantId: empresaId } : undefined,
   );
 
-  // Mapear do formato do endpoint institution para LeaderboardItem
-  const ranking = (response.data as unknown as { studentRanking?: Array<{
-    id: string;
-    name: string;
-    horasEstudo: string;
-    avatarUrl: string | null;
-    aproveitamento: number;
-    streakDays: number;
-  }> })?.studentRanking ?? [];
+  const ranking = response.data?.studentRanking ?? [];
 
   return ranking.slice(0, 4).map((s) => ({
     id: s.id,

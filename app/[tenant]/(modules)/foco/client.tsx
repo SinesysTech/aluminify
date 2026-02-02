@@ -14,11 +14,12 @@ import {
     FOCUS_CONTEXT_STORAGE_KEY
 } from './types'
 import { focoService } from './services/foco.service'
-import { FocusHeader } from './components/focus-header'
+import { PresenceBadge } from './components/focus-header'
 import { ContextSelector } from './components/context-selector'
 import { TimerConfig } from './components/timer-config'
 import { CleanView } from './components/clean-view'
 import { SessionSummaryModal } from './components/session-summary-modal'
+import { PageShell } from '@/app/shared/components/layout/page-shell'
 
 function formatMs(ms: number) {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -451,9 +452,12 @@ export default function FocoClient() {
                 />
             )}
 
-            <div className="space-y-3 container py-3 md:py-4 mx-auto max-w-3xl" aria-hidden={isCleanView}>
-                <FocusHeader presenceCount={presence.count} />
-
+            <div className="container mx-auto max-w-3xl" aria-hidden={isCleanView}>
+                <PageShell
+                    title="Modo Foco"
+                    subtitle="Estudo imersivo para máxima concentração"
+                    actions={<PresenceBadge count={presence.count} />}
+                >
                 {erro && (
                     <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                         <span className="font-medium">Erro:</span>
@@ -505,6 +509,7 @@ export default function FocoClient() {
                     iniciando={iniciando}
                     disciplinaId={disciplinaId}
                 />
+                </PageShell>
             </div>
 
             {/* Session Summary Modal */}

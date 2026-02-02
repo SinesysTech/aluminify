@@ -121,7 +121,11 @@
       "WebFetch(domain:aluminify.service.sinesys.app)",
       "WebFetch(domain:aluminify.sinesys.app)",
       "Bash(docker logs:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(set:*)",
+      "Bash(chcp 6500)"
     ],
     "deny": [],
     "ask": []

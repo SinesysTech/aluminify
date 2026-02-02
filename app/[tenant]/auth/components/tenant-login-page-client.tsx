@@ -159,7 +159,7 @@ export function TenantLoginPageClient({
       const emailRedirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`
 
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         options: { emailRedirectTo },
       })
 
@@ -202,7 +202,7 @@ export function TenantLoginPageClient({
       const supabase = createClient()
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       })
 

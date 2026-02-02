@@ -105,6 +105,7 @@ export function WorkspaceSwitcher() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{activeDisplayName}</span>
+                <span className="truncate text-xs text-sidebar-foreground/50">Sua escola</span>
               </div>
             </Link>
           </SidebarMenuButton>
@@ -121,9 +122,9 @@ export function WorkspaceSwitcher() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="group/ws data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-sidebar-border hover:border-sidebar-foreground/25 hover:bg-sidebar-accent/50 shadow-sm hover:shadow-md dark:border-sidebar-foreground/20 dark:bg-sidebar-accent/30 dark:hover:border-sidebar-foreground/35 dark:hover:bg-sidebar-accent/50 dark:shadow-none dark:ring-1 dark:ring-sidebar-foreground/10 dark:hover:ring-sidebar-foreground/20 transition-all"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ring-1 ring-sidebar-border/30 dark:ring-sidebar-foreground/20">
                 <TenantLogo
                   logoType="sidebar"
                   empresaId={activeEmpresaId}
@@ -134,8 +135,9 @@ export function WorkspaceSwitcher() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{activeDisplayName}</span>
+                <span className="truncate text-xs text-sidebar-foreground/50">Trocar curso/escola</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/40 group-hover/ws:text-sidebar-foreground/70 transition-colors" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -145,7 +147,7 @@ export function WorkspaceSwitcher() {
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Workspaces
+              Suas escolas
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {organizations.map((org) => (
