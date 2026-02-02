@@ -80,6 +80,12 @@ Após o deploy, verifique:
 
 ## 🔧 Configurações Adicionais
 
+### Configuração do Nginx (CapRover)
+
+Se você estiver hospedando via CapRover/Nginx e enfrentar erros 502 do tipo **"upstream sent too big header"**, aplique a configuração de buffers e timeouts recomendada.
+
+Guia: [nginx-caprover-config.md](docs/infra/nginx-caprover-config.md)
+
 ### Domínio Customizado
 
 1. Vá em **Settings > Domains**

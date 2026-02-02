@@ -34,6 +34,11 @@ type LegacyAppUserRole = "professor" | "empresa";
 
 const AUTH_SESSION_CACHE_TTL = 1800; // 30 minutos
 
+type EssentialAuthSessionData = Pick<
+  AppUser,
+  "id" | "email" | "role" | "empresaId" | "empresaSlug" | "mustChangePassword"
+>;
+
 /**
  * Invalida o cache de sessão de um usuário.
  * Chamar quando: logout, troca de senha, alteração de papel/permissões, impersonação.
@@ -262,7 +267,7 @@ async function _getAuthenticatedUser(): Promise<AppUser | null> {
       ? `auth:session:${user.id}:imp:${context.impersonatedUserId}`
       : `auth:session:${user.id}`;
 
-  const cached = await cacheService.get<AppUser>(cacheKey);
+  const cached = await cacheService.get<EssentialAuthSessionData>(cacheKey);
   if (cached) {
     if (process.env.NODE_ENV === "development") {
       console.log("[AUTH DEBUG] getAuthenticatedUser: session cache hit", {
@@ -289,7 +294,17 @@ async function _getAuthenticatedUser(): Promise<AppUser | null> {
       mustChangePassword: appUser.mustChangePassword,
     });
   }
-  await cacheService.set(cacheKey, appUser, AUTH_SESSION_CACHE_TTL);
+
+  const essentialData: EssentialAuthSessionData = {
+    id: appUser.id,
+    email: appUser.email,
+    role: appUser.role,
+    empresaId: appUser.empresaId,
+    empresaSlug: appUser.empresaSlug,
+    mustChangePassword: appUser.mustChangePassword,
+  };
+
+  await cacheService.set(cacheKey, essentialData, AUTH_SESSION_CACHE_TTL);
   return appUser;
 }
 
