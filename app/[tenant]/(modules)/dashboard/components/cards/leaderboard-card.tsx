@@ -9,7 +9,7 @@ export interface LeaderboardItem {
   id: string
   name: string
   points: number
-  avatarUrl?: string
+  avatarUrl?: string | null
 }
 
 export interface LeaderboardCardProps {
@@ -65,7 +65,7 @@ export function LeaderboardCard({
             <div key={student.id} className="flex items-center space-x-4">
               <span className="w-5 text-sm font-medium">{index + 1}.</span>
               <Avatar>
-                <AvatarImage src={student.avatarUrl} alt={student.name} />
+                <AvatarImage src={student.avatarUrl ?? undefined} alt={student.name} />
                 <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
               </Avatar>
               <span className="flex-1 truncate">{student.name}</span>
