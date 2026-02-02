@@ -146,6 +146,7 @@ function mapRow(
     twitter: row.twitter,
     hotmartId: row.hotmart_id ?? null,
     origemCadastro: row.origem_cadastro ?? null,
+    ativo: row.ativo,
     courses,
     mustChangePassword: row.must_change_password,
     temporaryPassword: row.senha_temporaria,
