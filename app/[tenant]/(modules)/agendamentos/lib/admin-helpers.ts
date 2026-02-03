@@ -72,8 +72,34 @@ interface ProfessorOption {
 export async function getTeachersForAdminSelector(
   empresaId: string,
 ): Promise<ProfessorOption[]> {
+  const user = await getAuthenticatedUser();
+
+  if (!user) {
+    console.error(
+      "Unauthorized access attempt to getTeachersForAdminSelector: No user",
+    );
+    throw new Error("Unauthorized");
+  }
+
+  // Ensure user is admin
+  if (!user.roleType || !isAdminRoleTipo(user.roleType)) {
+    console.error(
+      `Unauthorized access attempt to getTeachersForAdminSelector: User ${user.id} is not admin (role: ${user.roleType})`,
+    );
+    throw new Error("Unauthorized");
+  }
+
+  // Ensure user belongs to the requested empresa
+  if (user.empresaId !== empresaId) {
+    console.error(
+      `Cross-tenant access attempt to getTeachersForAdminSelector: User ${user.id} (empresa: ${user.empresaId}) requested empresa ${empresaId}`,
+    );
+    throw new Error("Unauthorized");
+  }
+
   const adminClient = getDatabaseClient();
 
+  // Explicitly filter by empresa_id again just to be safe, although we checked user.empresaId === empresaId
   const { data, error } = await adminClient
     .from("usuarios")
     .select("id, nome_completo, papel_id, papeis!inner(tipo)")
