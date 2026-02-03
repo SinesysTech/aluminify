@@ -286,24 +286,10 @@ export async function fetchDashboardDistribution(
 // ============================================================
 
 import type {
-  CourseListItem,
   MonthlyProgressItem,
   LearningPath,
   LeaderboardItem,
 } from "../components/cards";
-
-export async function fetchCoursesList(
-  empresaId?: string | null,
-): Promise<CourseListItem[]> {
-  const params = new URLSearchParams();
-  if (empresaId) params.set("empresa_id", empresaId);
-
-  const response = await apiClient.get<{ data: CourseListItem[] }>(
-    `/api/dashboard/courses-list?${params.toString()}`,
-    empresaId ? { tenantId: empresaId } : undefined,
-  );
-  return response.data;
-}
 
 export async function fetchProgressByMonth(
   empresaId?: string | null,

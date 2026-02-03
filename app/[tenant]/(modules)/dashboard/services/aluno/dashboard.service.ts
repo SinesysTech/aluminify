@@ -297,9 +297,8 @@ export async function fetchDashboardDistribution(
   return response.data;
 }
 
-// Re-exportar novos fetch functions do service principal
+// Re-exportar fetch functions do service principal
 export {
-  fetchCoursesList,
   fetchProgressByMonth,
   fetchLearningPaths,
   fetchLeaderboard,
