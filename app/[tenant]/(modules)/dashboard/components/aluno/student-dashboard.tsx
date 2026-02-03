@@ -21,7 +21,6 @@ import {
     fetchDashboardEfficiency,
     fetchDashboardStrategic,
     fetchDashboardDistribution,
-    fetchCoursesList,
     fetchProgressByMonth,
     fetchLearningPaths,
     fetchLeaderboard,
@@ -86,8 +85,7 @@ export default function StudentDashboardClientPage() {
     const [strategic, setStrategic] = useState<StrategicDomain | null>(null)
     const [distribution, setDistribution] = useState<SubjectDistributionItem[]>([])
 
-    // Novos estados para componentes do novo layout
-    const [coursesList, setCoursesList] = useState<CourseListItem[]>([])
+    // Estados para componentes complementares
     const [progressByMonth, setProgressByMonth] = useState<MonthlyProgressItem[]>([])
     const [learningPaths, setLearningPaths] = useState<LearningPath[]>([])
     const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([])
@@ -225,28 +223,21 @@ export default function StudentDashboardClientPage() {
                         .catch(e => console.warn(handleError(e, 'distribuição')))
                 )
 
-                // 8. Courses List (novo layout)
-                promises.push(
-                    fetchCoursesList(activeOrgId)
-                        .then(setCoursesList)
-                        .catch(e => console.warn(handleError(e, 'lista de cursos')))
-                )
-
-                // 9. Progress By Month (novo layout)
+                // 8. Progress By Month
                 promises.push(
                     fetchProgressByMonth(activeOrgId)
                         .then(setProgressByMonth)
                         .catch(e => console.warn(handleError(e, 'progresso mensal')))
                 )
 
-                // 10. Learning Paths (novo layout)
+                // 9. Learning Paths
                 promises.push(
                     fetchLearningPaths()
                         .then(setLearningPaths)
                         .catch(e => console.warn(handleError(e, 'trilhas')))
                 )
 
-                // 11. Leaderboard (novo layout)
+                // 10. Leaderboard
                 if (activeOrgId) {
                     promises.push(
                         fetchLeaderboard(activeOrgId)
