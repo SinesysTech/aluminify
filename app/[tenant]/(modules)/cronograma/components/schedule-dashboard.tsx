@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/app/shared/core/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -566,6 +566,130 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
     }
   }, [cronogramaId])
 
+  // Hooks relocated to top-level to avoid conditional hook call errors
+  // Função para calcular semanas disponibilizadas (período entre data início e fim, descontando férias)
+  const semanasDisponibilizadas = useMemo(() => {
+    if (!cronograma) return 0
+    const dataInicio = cronograma.data_inicio
+    const dataFim = cronograma.data_fim
+    const ferias = cronograma.periodos_ferias || []
+
+    const inicio = new Date(dataInicio)
+    const fim = new Date(dataFim)
+    let semanas = 0
+    let dataAtual = new Date(inicio)
+
+    while (dataAtual <= fim) {
+      const fimSemana = addDays(dataAtual, 6) // 7 dias (0-6)
+
+      // Verificar se a semana cai em período de férias
+      let isFerias = false
+      for (const periodo of ferias || []) {
+        if (!periodo.inicio || !periodo.fim) continue
+
+        const inicioFerias = new Date(periodo.inicio)
+        const fimFerias = new Date(periodo.fim)
+
+        // Validar se as datas são válidas
+        if (isNaN(inicioFerias.getTime()) || isNaN(fimFerias.getTime())) {
+          continue
+        }
+
+        if (
+          (dataAtual >= inicioFerias && dataAtual <= fimFerias) ||
+          (fimSemana >= inicioFerias && fimSemana <= fimFerias) ||
+          (dataAtual <= inicioFerias && fimSemana >= fimFerias)
+        ) {
+          isFerias = true
+          break
+        }
+      }
+
+      if (!isFerias) {
+        semanas++
+      }
+
+      dataAtual = addDays(dataAtual, 7)
+    }
+
+    return semanas
+  }, [cronograma])
+
+  // Calcular semanas com aulas (semanas que têm pelo menos um item)
+  const semanasComAulas = useMemo(() =>
+    cronograma ? new Set(cronograma.cronograma_itens.map(item => item.semana_numero)).size : 0
+  , [cronograma])
+
+  // Calcular todas as semanas do cronograma (incluindo férias)
+  const todasSemanas = useMemo(() => {
+    if (!cronograma) return []
+    const dataInicio = new Date(cronograma.data_inicio)
+    const dataFim = new Date(cronograma.data_fim)
+    const semanas: number[] = []
+    let semanaNumero = 1
+    const dataAtual = new Date(dataInicio)
+
+    while (dataAtual <= dataFim) {
+      semanas.push(semanaNumero)
+      dataAtual.setDate(dataAtual.getDate() + 7)
+      semanaNumero = semanaNumero + 1
+    }
+    return semanas
+  }, [cronograma])
+
+  // Agrupar itens por semana
+  const itensPorSemana = useMemo(() => {
+    if (!cronograma || !todasSemanas) return {}
+    const agrupado = cronograma.cronograma_itens.reduce((acc, item) => {
+      if (!acc[item.semana_numero]) {
+        acc[item.semana_numero] = []
+      }
+      acc[item.semana_numero].push(item)
+      return acc
+    }, {} as Record<number, CronogramaItem[]>)
+
+    // Garantir que todas as semanas tenham uma entrada (mesmo que vazia)
+    todasSemanas.forEach((semana) => {
+      if (!agrupado[semana]) {
+        agrupado[semana] = []
+      }
+    })
+
+    // Ordenar itens dentro de cada semana
+    Object.keys(agrupado).forEach((semana) => {
+      agrupado[Number(semana)].sort((a, b) => a.ordem_na_semana - b.ordem_na_semana)
+    })
+
+    return agrupado
+  }, [cronograma, todasSemanas])
+
+  // Calcular total de semanas e semana atual (depois de itensPorSemana estar definido)
+  const { totalSemanas, semanaAtual } = useMemo(() => {
+    if (!cronograma || !itensPorSemana || !todasSemanas) return { totalSemanas: 0, semanaAtual: 0 }
+    const hoje = new Date()
+    const dataInicioCalc = new Date(cronograma.data_inicio)
+    const diffTime = hoje.getTime() - dataInicioCalc.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    const total = Math.max(1, Object.keys(itensPorSemana).length || todasSemanas.length || 1)
+    const atual = Math.min(total, Math.max(1, Math.floor(diffDays / 7) + 1))
+
+    return { totalSemanas: total, semanaAtual: atual }
+  }, [cronograma, itensPorSemana, todasSemanas])
+
+  const horasPorDisciplina = useMemo(() => {
+    const horas: Record<string, number> = {}
+    if (cronograma?.cronograma_itens) {
+      cronograma.cronograma_itens.forEach((item) => {
+        const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id
+        if (disciplinaId && item.aulas?.tempo_estimado_minutos) {
+          horas[disciplinaId] = (horas[disciplinaId] || 0) + item.aulas.tempo_estimado_minutos
+        }
+      })
+    }
+    return horas
+  }, [cronograma?.cronograma_itens])
+
   const toggleConcluido = async (itemId: string, concluido: boolean) => {
     const supabase = createClient()
 
@@ -694,101 +818,6 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const totalItens = cronograma.cronograma_itens.length
   const itensConcluidos = cronograma.cronograma_itens.filter((item) => item.concluido).length
   const progressoPercentual = totalItens > 0 ? (itensConcluidos / totalItens) * 100 : 0
-
-  // Função para calcular semanas disponibilizadas (período entre data início e fim, descontando férias)
-  const calcularSemanasDisponibilizadas = (
-    dataInicio: string,
-    dataFim: string,
-    ferias: Array<{ inicio: string; fim: string }>,
-  ): number => {
-    const inicio = new Date(dataInicio)
-    const fim = new Date(dataFim)
-    let semanas = 0
-    let dataAtual = new Date(inicio)
-
-    while (dataAtual <= fim) {
-      const fimSemana = addDays(dataAtual, 6) // 7 dias (0-6)
-
-      // Verificar se a semana cai em período de férias
-      let isFerias = false
-      for (const periodo of ferias || []) {
-        if (!periodo.inicio || !periodo.fim) continue
-
-        const inicioFerias = new Date(periodo.inicio)
-        const fimFerias = new Date(periodo.fim)
-
-        // Validar se as datas são válidas
-        if (isNaN(inicioFerias.getTime()) || isNaN(fimFerias.getTime())) {
-          continue
-        }
-
-        if (
-          (dataAtual >= inicioFerias && dataAtual <= fimFerias) ||
-          (fimSemana >= inicioFerias && fimSemana <= fimFerias) ||
-          (dataAtual <= inicioFerias && fimSemana >= fimFerias)
-        ) {
-          isFerias = true
-          break
-        }
-      }
-
-      if (!isFerias) {
-        semanas++
-      }
-
-      dataAtual = addDays(dataAtual, 7)
-    }
-
-    return semanas
-  }
-
-  // Calcular semanas com aulas (semanas que têm pelo menos um item)
-  const semanasComAulas = new Set(cronograma.cronograma_itens.map(item => item.semana_numero)).size
-
-  // Calcular semana atual
-  const hoje = new Date()
-  const dataInicioCalc = new Date(cronograma.data_inicio)
-  const diffTime = hoje.getTime() - dataInicioCalc.getTime()
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-  // Calcular todas as semanas do cronograma (incluindo férias)
-  const dataInicio = new Date(cronograma.data_inicio)
-  const dataFim = new Date(cronograma.data_fim)
-  const todasSemanas: number[] = []
-  let semanaNumero = 1
-  const dataAtual = new Date(dataInicio)
-
-  while (dataAtual <= dataFim) {
-    todasSemanas.push(semanaNumero)
-    dataAtual.setDate(dataAtual.getDate() + 7)
-    semanaNumero = semanaNumero + 1
-  }
-
-  // Agrupar itens por semana
-  const itensPorSemana = cronograma.cronograma_itens.reduce((acc, item) => {
-    if (!acc[item.semana_numero]) {
-      acc[item.semana_numero] = []
-    }
-    acc[item.semana_numero].push(item)
-    return acc
-  }, {} as Record<number, CronogramaItem[]>)
-
-  // Calcular total de semanas e semana atual (depois de itensPorSemana estar definido)
-  const totalSemanas = Math.max(1, Object.keys(itensPorSemana).length || todasSemanas.length || 1)
-  const semanaAtual = Math.min(totalSemanas, Math.max(1, Math.floor(diffDays / 7) + 1))
-
-  // Garantir que todas as semanas tenham uma entrada (mesmo que vazia)
-  // Isso é importante para exibir todas as semanas do período, mesmo sem aulas
-  todasSemanas.forEach((semana) => {
-    if (!itensPorSemana[semana]) {
-      itensPorSemana[semana] = []
-    }
-  })
-
-  // Ordenar itens dentro de cada semana
-  Object.keys(itensPorSemana).forEach((semana) => {
-    itensPorSemana[Number(semana)].sort((a, b) => a.ordem_na_semana - b.ordem_na_semana)
-  })
 
   return (
     <div className="container mx-auto py-4 md:py-6 space-y-4 md:space-y-6 px-2 md:px-4">
@@ -957,11 +986,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Semanas disponíveis</span>
                 <span className="font-medium">
-                  {calcularSemanasDisponibilizadas(
-                    cronograma.data_inicio,
-                    cronograma.data_fim,
-                    cronograma.periodos_ferias || []
-                  )}
+                  {semanasDisponibilizadas}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -989,15 +1014,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
                   <>
                     {curso && <Separator />}
                     {disciplinas.map((disciplina) => {
-                      let horasTotais = 0
-                      if (cronograma?.cronograma_itens) {
-                        cronograma.cronograma_itens.forEach((item) => {
-                          const disciplinaId = item.aulas?.modulos?.frentes?.disciplinas?.id
-                          if (disciplinaId === disciplina.id && item.aulas?.tempo_estimado_minutos) {
-                            horasTotais += item.aulas.tempo_estimado_minutos
-                          }
-                        })
-                      }
+                      const horasTotais = horasPorDisciplina[disciplina.id] || 0
                       return (
                         <div key={disciplina.id} className="flex justify-between">
                           <span className="text-muted-foreground">{disciplina.nome}</span>

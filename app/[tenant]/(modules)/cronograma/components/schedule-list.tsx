@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   DndContext,
   DragEndEvent,
@@ -207,20 +207,49 @@ export function ScheduleList({
   )
 
   // Calcular todas as semanas do período (data_inicio até data_fim)
-  const dataInicioDate = new Date(dataInicio)
-  const dataFimDate = new Date(dataFim)
-  const todasSemanas: number[] = []
-  let semanaNumero = 1
-  const dataAtual = new Date(dataInicioDate)
+  const todasSemanas = useMemo(() => {
+    const dataInicioDate = new Date(dataInicio)
+    const dataFimDate = new Date(dataFim)
+    const weeks: number[] = []
+    let semanaNumero = 1
+    const dataAtual = new Date(dataInicioDate)
 
-  while (dataAtual <= dataFimDate) {
-    todasSemanas.push(semanaNumero)
-    dataAtual.setDate(dataAtual.getDate() + 7)
-    semanaNumero++
-  }
+    while (dataAtual <= dataFimDate) {
+      weeks.push(semanaNumero)
+      dataAtual.setDate(dataAtual.getDate() + 7)
+      semanaNumero++
+    }
+    return weeks
+  }, [dataInicio, dataFim])
 
   // Usar todas as semanas, não apenas as que têm itens
   const semanas = todasSemanas
+
+  // Pre-calculate sorted items for each week
+  const sortedItemsByWeek = useMemo(() => {
+    const result: Record<number, CronogramaItem[]> = {}
+    semanas.forEach((semana) => {
+      const itens = itensPorSemana[semana] || []
+      result[semana] = [...itens].sort((a, b) => {
+        const discA = a.aulas?.modulos?.frentes?.disciplinas?.nome || ''
+        const discB = b.aulas?.modulos?.frentes?.disciplinas?.nome || ''
+        if (discA !== discB) return discA.localeCompare(discB)
+
+        const frenteA = a.aulas?.modulos?.frentes?.nome || ''
+        const frenteB = b.aulas?.modulos?.frentes?.nome || ''
+        if (frenteA !== frenteB) return frenteA.localeCompare(frenteB)
+
+        const modA = a.aulas?.modulos?.numero_modulo || 0
+        const modB = b.aulas?.modulos?.numero_modulo || 0
+        if (modA !== modB) return modA - modB
+
+        const aulaA = a.aulas?.numero_aula || 0
+        const aulaB = b.aulas?.numero_aula || 0
+        return aulaA - aulaB
+      })
+    })
+    return result
+  }, [semanas, itensPorSemana])
 
   const getSemanaDates = (semanaNumero: number) => {
     const inicio = new Date(dataInicio)
@@ -356,24 +385,7 @@ export function ScheduleList({
           const isFerias = isSemanaFerias(semana)
           const isAposTermino = cronogramaTerminouAntes && semana > ultimaSemanaComAulas
 
-          // Ordenar: Disciplina → Frente (A, B, C) → Módulo → Aula
-          const itensOrdenados = [...itens].sort((a, b) => {
-            const discA = a.aulas?.modulos?.frentes?.disciplinas?.nome || ''
-            const discB = b.aulas?.modulos?.frentes?.disciplinas?.nome || ''
-            if (discA !== discB) return discA.localeCompare(discB)
-
-            const frenteA = a.aulas?.modulos?.frentes?.nome || ''
-            const frenteB = b.aulas?.modulos?.frentes?.nome || ''
-            if (frenteA !== frenteB) return frenteA.localeCompare(frenteB)
-
-            const modA = a.aulas?.modulos?.numero_modulo || 0
-            const modB = b.aulas?.modulos?.numero_modulo || 0
-            if (modA !== modB) return modA - modB
-
-            const aulaA = a.aulas?.numero_aula || 0
-            const aulaB = b.aulas?.numero_aula || 0
-            return aulaA - aulaB
-          })
+          const itensOrdenados = sortedItemsByWeek[semana] || []
 
           return (
             <AccordionItem key={semana} value={`semana-${semana}`}>
