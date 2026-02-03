@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useForm, type Path } from 'react-hook-form'
+import { useForm, useWatch, type Path } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
@@ -61,7 +61,7 @@ export function PapelForm({ papel, onSubmit, onCancel, isLoading }: PapelFormPro
 
   // Determine if we are editing or creating
   const isEditing = !!papel
-  const tipo = form.watch('tipo')
+  const tipo = useWatch({ control: form.control, name: 'tipo' })
 
   // Update permissions when type changes (only if creating)
   useEffect(() => {

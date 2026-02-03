@@ -1,6 +1,6 @@
 name: Build & Deploy to CapRover
 
-on:
+"on":
   push:
     branches: [main]
 
@@ -11,6 +11,8 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 jobs:
   build-and-deploy:
@@ -55,8 +57,8 @@ jobs:
             SUPABASE_SECRET_KEY=${{ secrets.SUPABASE_SECRET_KEY }}
             NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY }}
             OAUTH_ENCRYPTION_KEY=${{ secrets.OAUTH_ENCRYPTION_KEY }}
-            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
-            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ env.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            SENTRY_AUTH_TOKEN=${{ env.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to CapRover
         uses: caprover/deploy-from-github@v1.1.2

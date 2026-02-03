@@ -125,9 +125,9 @@ export function StudentTable({ students, meta }: StudentTableProps) {
                     <tr>
                         <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Aluno / Email</th>
                         <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Cursos</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-[150px]">Status</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-[200px]">Progresso</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-[60px]">Ações</th>
+                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-37.5">Status</th>
+                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-50">Progresso</th>
+                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-15">Ações</th>
                     </tr>
                 </thead>
 

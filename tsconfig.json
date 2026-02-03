@@ -67,6 +67,8 @@
     "proxy.ts",
     "supabase/functions",
     "tests",
+    "e2e",
+    "playwright.config.ts",
     "codebase-cleanup",
     "dist",
     "build",
