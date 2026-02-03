@@ -11,8 +11,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install all dependencies (including dev dependencies)
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --no-audit --prefer-offline --ignore-scripts
+RUN npm ci --no-audit --prefer-offline --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -45,8 +44,7 @@ ENV DOCKER_BUILD=$DOCKER_BUILD
 ENV SKIP_ENV_VALIDATION=true
 
 # Build Next.js application
-RUN --mount=type=cache,target=/app/.next/cache \
-    npm run build
+RUN npm run build
 
 # Stage 2: Runner - Production runtime
 FROM node:20-alpine AS runner
