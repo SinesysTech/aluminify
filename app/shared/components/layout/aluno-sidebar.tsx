@@ -188,34 +188,17 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           : undefined,
       }))
 
-    // Student UX: remove redundant "Agendar Atendimento" do menu.
-    // A ação de agendar fica como botão dentro de "Meus Agendamentos".
+    // Student UX: hide "Agendar Atendimento" (/agendamentos) from sidebar.
+    // Students access scheduling via the button inside the "Meus Agendamentos" page.
     const stripTenantPrefix = (url: string) => {
       if (!tenantSlug) return url
       const prefix = `/${tenantSlug}`
       return url.startsWith(prefix) ? url.slice(prefix.length) || "/" : url
     }
 
-    const normalized = built.map((item) => {
+    return built.filter((item) => {
       const path = stripTenantPrefix(item.url)
-      if (path === "/agendamentos") {
-        // Prefer always routing students to the list page.
-        return {
-          ...item,
-          title: "Meus Agendamentos",
-          url: tenantSlug ? `/${tenantSlug}/agendamentos/meus` : "/agendamentos/meus",
-          icon: Calendar,
-          items: undefined,
-        }
-      }
-      return item
-    })
-
-    // In case both module and submodule render separately (custom configs), hide direct "Agendar" links.
-    return normalized.filter((item) => {
-      const path = stripTenantPrefix(item.url)
-      const isDirectAgendar = path === "/agendamentos"
-      return !isDirectAgendar
+      return path !== "/agendamentos"
     })
   }, [modules, loading, tenantSlug])
 

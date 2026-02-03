@@ -69,7 +69,6 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const host = request.headers.get("host") || "";
 
-  const accept = request.headers.get("accept") || "";
   const isNextInternalPath =
     pathname === "/favicon.ico" ||
     pathname === "/icon" ||
@@ -83,15 +82,6 @@ export async function updateSession(request: NextRequest) {
   // Next.js App Router signals
   const isServerAction =
     request.method === "POST" && !!request.headers.get("next-action");
-  const isRscRequest =
-    request.headers.get("rsc") === "1" || accept.includes("text/x-component");
-  const isNextDataRequest = request.headers.get("x-nextjs-data") === "1";
-  const isHtmlNavigation =
-    request.method === "GET" &&
-    accept.includes("text/html") &&
-    !isRscRequest &&
-    !isNextDataRequest &&
-    !isApiRoute;
 
   // Debug Logging (Controlled) - cookies removidos por segurança
   logDebug(`${request.method} ${pathname} host:${host}`);
