@@ -151,7 +151,11 @@
       "Bash(git -C /Users/jordanmedeiros/Development/aluminify status package-lock.json)",
       "Bash(npm ci:*)",
       "Bash(npm cache clean:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "mcp__sentry__find_organizations",
+      "mcp__sentry__find_projects",
+      "mcp__sentry__search_issues",
+      "mcp__sentry__search_events"
     ],
     "deny": [],
     "ask": []

@@ -112,6 +112,7 @@ export async function updateSession(request: NextRequest) {
     "/api/auth/signup-with-empresa",
     "/api/tobias/chat/attachments", // TOBIAS-LEGACY: Remover quando TobIAs for deletado
     "/api/health",
+    "/api/webhooks",
     "/",
     "/signup",
     // Landing page routes (route group: (landing-page))
@@ -338,13 +339,9 @@ export async function updateSession(request: NextRequest) {
   if ((!user || error) && !isPublicPath) {
     if (isNextInternalPath) return supabaseResponse;
 
-    if (
-      !isHtmlNavigation ||
-      isApiRoute ||
-      isRscRequest ||
-      isServerAction ||
-      isNextDataRequest
-    ) {
+    // APIs should receive 401 JSON. Page navigations (including RSC/NextData)
+    // should redirect to login so the Next.js client can recover gracefully.
+    if (isApiRoute || request.method !== "GET" || isServerAction) {
       logWarn(`${request.method} ${pathname} → 401 unauthorized`);
       const response = NextResponse.json(
         { error: "Unauthorized" },

@@ -3,8 +3,10 @@ import { cookies } from "next/headers";
 import type { Database } from "./database.types";
 import { getPublicSupabaseConfig } from "./supabase-public-env";
 import {
+  compressCookieValue,
   decompressCookieValue,
   isCompressedCookie,
+  shouldCompressCookie,
 } from "@/app/shared/core/cookie-compression";
 
 /**
@@ -27,9 +29,15 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const cookieValue =
+              typeof value === "string" &&
+              !isCompressedCookie(value) &&
+              shouldCompressCookie(name, value)
+                ? compressCookieValue(value)
+                : value;
+            cookieStore.set(name, cookieValue, options);
+          });
         } catch {
           // The `setAll` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing
