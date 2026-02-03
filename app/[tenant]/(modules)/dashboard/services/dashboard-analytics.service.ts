@@ -708,8 +708,7 @@ export class DashboardAnalyticsService {
     };
 
     // 4) Atividades desses módulos
-    const atividades: Array<{ id: string; modulo_id: string }> = [];
-    for (const idsChunk of chunk(moduloIds, 900)) {
+    const atividadesPromises = chunk(moduloIds, 900).map(async (idsChunk) => {
       let q = client
         .from("atividades")
         .select("id, modulo_id")
@@ -721,13 +720,12 @@ export class DashboardAnalyticsService {
           "[dashboard-analytics] Erro ao buscar atividades por modulo_id:",
           chunkErr,
         );
-        continue;
+        return [];
       }
-      atividades.push(
-        ...(((chunkRows ?? []) as Array<{ id: string; modulo_id: string }>) ??
-          []),
-      );
-    }
+      return (chunkRows ?? []) as Array<{ id: string; modulo_id: string }>;
+    });
+
+    const atividades = (await Promise.all(atividadesPromises)).flat();
 
     const atividadeModuloMap = new Map(
       (atividades ?? []).map((a) => [a.id, a.modulo_id]),
@@ -760,13 +758,8 @@ export class DashboardAnalyticsService {
     }
 
     // 5) Progresso concluído com questões
-    const progressos: Array<{
-      atividade_id: string;
-      questoes_totais: number | null;
-      questoes_acertos: number | null;
-    }> = [];
     const inicioPeriodo = this.getPeriodStart(opts.period);
-    for (const idsChunk of chunk(atividadeIds, 900)) {
+    const progressosPromises = chunk(atividadeIds, 900).map(async (idsChunk) => {
       let q = client
         .from("progresso_atividades")
         .select("atividade_id, questoes_totais, questoes_acertos")
@@ -783,16 +776,16 @@ export class DashboardAnalyticsService {
           "[dashboard-analytics] Erro ao buscar progresso_atividades por atividade_id:",
           chunkErr,
         );
-        continue;
+        return [];
       }
-      progressos.push(
-        ...(((chunkRows ?? []) as Array<{
-          atividade_id: string;
-          questoes_totais: number | null;
-          questoes_acertos: number | null;
-        }>) ?? []),
-      );
-    }
+      return (chunkRows ?? []) as Array<{
+        atividade_id: string;
+        questoes_totais: number | null;
+        questoes_acertos: number | null;
+      }>;
+    });
+
+    const progressos = (await Promise.all(progressosPromises)).flat();
 
     const moduleAgg = new Map<string, { totais: number; acertos: number }>();
     for (const p of progressos) {
