@@ -5,4 +5,4 @@ export * from "./radius-selector";
 export * from "./reset-theme";
 export * from "./sidebar-mode-selector";
 export * from "./scale-selector";
-// export * from "./active-theme"; // TODO: Copy from legacy theme-customizer
+export * from "./active-theme";
