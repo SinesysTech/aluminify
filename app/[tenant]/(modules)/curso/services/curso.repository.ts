@@ -69,8 +69,8 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Curso> {
   return {
     id: row.id,
     empresaId: row.empresa_id,
-    segmentId: row.segmento_id ?? undefined,
-    disciplineId: row.disciplina_id ?? undefined, // Mantido para compatibilidade
+    segmentId: row.segmento_id ?? null,
+    disciplineId: row.disciplina_id ?? null, // Mantido para compatibilidade
     disciplineIds, // Nova propriedade
     name: row.nome,
     modality: row.modalidade,
