@@ -14,13 +14,10 @@ import { ProfessorDisciplinaPerformanceList } from '../professor-disciplina-perf
 import { DashboardSkeleton } from '../dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/feedback/alert'
-import {
-  WelcomeCard,
-  StudentSuccessCard,
-  ProgressStatisticsCard,
-  LeaderboardCard,
-  ChartMostActivity,
-} from '../cards'
+import { WelcomeCard, LeaderboardCard } from '../cards'
+import { StudentSuccessCard } from '../cards/student-success-card'
+import { ProgressStatisticsCard } from '../cards/progress-statistics-card'
+import { ChartMostActivity } from '../cards/chart-most-activity'
 
 // Intervalo de refresh automático (5 minutos)
 const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
