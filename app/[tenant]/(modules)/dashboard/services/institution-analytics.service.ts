@@ -149,7 +149,7 @@ export class InstitutionAnalyticsService {
 
       const alunosComAtividade = new Set(
         (alunosSessoes ?? [])
-          .filter((s: any): s is { usuario_id: string } => s.usuario_id !== null)
+          .filter((s: { usuario_id: string | null }): s is { usuario_id: string } => s.usuario_id !== null)
           .map((s: { usuario_id: string }) => s.usuario_id),
       );
       alunosAtivos = alunosComAtividade.size;

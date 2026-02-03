@@ -388,7 +388,7 @@ export class StudentRepositoryImpl implements StudentRepository {
           total = fallbackResult.count;
           fallbackSuccess = true;
         }
-      } catch (e) {
+      } catch (_e) {
         // Ignore and try next strategy
       }
 
