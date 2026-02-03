@@ -147,7 +147,8 @@
       "Bash(npm i:*)",
       "Bash(git -C \"c:\\\\areadoaluno\\\\areadoaluno\" status -u)",
       "Bash(npm install:*)",
-      "Bash(docker run:*)"
+      "Bash(docker run:*)",
+      "Bash(git -C /Users/jordanmedeiros/Development/aluminify status package-lock.json)"
     ],
     "deny": [],
     "ask": []
