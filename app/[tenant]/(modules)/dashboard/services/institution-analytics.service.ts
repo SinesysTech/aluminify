@@ -348,6 +348,129 @@ export class InstitutionAnalyticsService {
   /**
    * Busca ranking dos melhores alunos
    */
+  /**
+   * Calcula streak de vários alunos em lote
+   */
+  private async getStudentsStreakBatch(
+    studentIds: string[],
+    client: ReturnType<typeof getDatabaseClient>,
+  ): Promise<Map<string, number>> {
+    if (studentIds.length === 0) return new Map();
+
+    const today = new Date();
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+
+    const { data: sessoes } = await client
+      .from("sessoes_estudo")
+      .select("usuario_id, created_at")
+      .in("usuario_id", studentIds)
+      .gte("created_at", oneYearAgo.toISOString())
+      .order("created_at", { ascending: false });
+
+    const streaksMap = new Map<string, number>();
+    const studentSessionsMap = new Map<string, string[]>();
+
+    // Initialize with 0
+    for (const id of studentIds) {
+        streaksMap.set(id, 0);
+        studentSessionsMap.set(id, []);
+    }
+
+    // Group dates by student
+    for (const sessao of sessoes ?? []) {
+      if (!sessao.usuario_id || !sessao.created_at) continue;
+
+      if (studentSessionsMap.has(sessao.usuario_id)) {
+        studentSessionsMap.get(sessao.usuario_id)!.push(new Date(sessao.created_at).toISOString().split("T")[0]);
+      }
+    }
+
+    const todayStr = today.toISOString().split("T")[0];
+
+    // Calculate streak for each student
+    for (const [studentId, dates] of studentSessionsMap.entries()) {
+        const uniqueDates = [...new Set(dates)].sort().reverse();
+        if (uniqueDates.length === 0) continue;
+
+        let streak = 0;
+
+        // We check up to uniqueDates.length + 1 to handle the "skip today" case where the loop might need to go one step further
+        // Actually the original logic loops over datas.length. If we skip today (i=0), we consume one iteration without checking a date from the list effectively?
+        // No, i controls the expected date.
+
+        for (let i = 0; i <= uniqueDates.length + 1; i++) {
+            const expectedDate = new Date();
+            expectedDate.setDate(expectedDate.getDate() - i);
+            const expectedDateStr = expectedDate.toISOString().split("T")[0];
+
+            if (uniqueDates.includes(expectedDateStr)) {
+                streak++;
+            } else if (i === 0 && uniqueDates[0] !== todayStr) {
+                // Hoje não estudou, verificar se ontem estudou
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+                if (uniqueDates[0] === yesterdayStr) {
+                    // Continuar contando a partir de ontem
+                    continue;
+                }
+                break;
+            } else {
+                break;
+            }
+        }
+        streaksMap.set(studentId, streak);
+    }
+
+    return streaksMap;
+  }
+
+  /**
+   * Calcula aproveitamento de vários alunos em lote
+   */
+  private async getStudentsAproveitamentoBatch(
+    studentIds: string[],
+    client: ReturnType<typeof getDatabaseClient>,
+  ): Promise<Map<string, number>> {
+    if (studentIds.length === 0) return new Map();
+
+    const { data: progressos } = await client
+      .from("progresso_atividades")
+      .select("usuario_id, questoes_totais, questoes_acertos")
+      .in("usuario_id", studentIds);
+
+    const aproveitamentoMap = new Map<string, number>();
+    const totalsMap = new Map<string, { total: number; acertos: number }>();
+
+    // Initialize with 0
+    for (const id of studentIds) {
+        totalsMap.set(id, { total: 0, acertos: 0 });
+        aproveitamentoMap.set(id, 0);
+    }
+
+    for (const p of progressos ?? []) {
+      if (!p.usuario_id) continue;
+
+      if (totalsMap.has(p.usuario_id)) {
+          const current = totalsMap.get(p.usuario_id)!;
+          current.total += p.questoes_totais ?? 0;
+          current.acertos += p.questoes_acertos ?? 0;
+      }
+    }
+
+    for (const [studentId, stats] of totalsMap.entries()) {
+        if (stats.total === 0) {
+            aproveitamentoMap.set(studentId, 0);
+        } else {
+            aproveitamentoMap.set(studentId, Math.round((stats.acertos / stats.total) * 100));
+        }
+    }
+
+    return aproveitamentoMap;
+  }
+
   async getStudentRanking(
     empresaId: string,
     client: ReturnType<typeof getDatabaseClient>,
@@ -402,15 +525,17 @@ export class InstitutionAnalyticsService {
     const usuarioMap = new Map(usuarios?.map(u => [u.id, u]) ?? []);
 
     // 4. Calculate detailed metrics only for the winners
-    // Run in parallel
-    const rankingPromises = rankedStudents.map(async (student) => {
+    const [streaksMap, aproveitamentoMap] = await Promise.all([
+        this.getStudentsStreakBatch(topStudentIds, client),
+        this.getStudentsAproveitamentoBatch(topStudentIds, client)
+    ]);
+
+    const ranking: StudentRankingItem[] = rankedStudents.map((student) => {
         const usuario = usuarioMap.get(student.id);
         const name = usuario?.nome_completo ?? "Aluno";
 
-        const [streak, aproveitamento] = await Promise.all([
-            this.getStudentStreak(student.id, client),
-            this.getStudentAproveitamento(student.id, client)
-        ]);
+        const streak = streaksMap.get(student.id) ?? 0;
+        const aproveitamento = aproveitamentoMap.get(student.id) ?? 0;
 
         const segundos = student.time;
         const horas = Math.floor(segundos / 3600);
@@ -424,10 +549,8 @@ export class InstitutionAnalyticsService {
             horasEstudoMinutos: Math.floor(segundos / 60),
             aproveitamento,
             streakDays: streak
-        } as StudentRankingItem;
+        };
     });
-
-    const ranking = await Promise.all(rankingPromises);
 
     // Sort again because Promise.all order is preserved but good to be safe if logic changes
     ranking.sort((a, b) => b.horasEstudoMinutos - a.horasEstudoMinutos);
