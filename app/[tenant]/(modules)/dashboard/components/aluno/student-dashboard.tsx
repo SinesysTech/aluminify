@@ -21,6 +21,7 @@ import {
     fetchDashboardEfficiency,
     fetchDashboardStrategic,
     fetchDashboardDistribution,
+    fetchCoursesList,
     fetchProgressByMonth,
     fetchLearningPaths,
     fetchLeaderboard,
@@ -46,9 +47,14 @@ import {
     CourseProgressByMonth,
     LeaderboardCard,
     LearningPathCard,
+    StudentSuccessCard,
+    ProgressStatisticsCard,
+    ChartMostActivity,
+    CoursesListTable,
     type MonthlyProgressItem,
     type LearningPath,
     type LeaderboardItem,
+    type CourseListItem,
 } from '../cards'
 
 /**
@@ -380,24 +386,8 @@ export default function StudentDashboardClientPage() {
         )
     }
 
-    // Preparar dados para o ChartMostActivity a partir da distribuicao por disciplina
-    const chartActivityData = distribution.map((item, index) => {
-        const colors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
-        return {
-            source: item.name.toLowerCase().replace(/\s+/g, '-'),
-            label: item.name,
-            percentage: Math.round(item.percentage * 10) / 10,
-            color: item.color || colors[index % colors.length],
-        }
-    }).slice(0, 5) // Limitar a 5 itens para o pie chart
-
-    // Calcular contagens para ProgressStatisticsCard
-
-    const inProgressItems = coursesList.filter(c => c.started && c.progress < 100).length
-    const completedItems = coursesList.filter(c => c.progress >= 100).length
-
     return (
-        <div className="mx-auto max-w-7xl space-y-4 md:space-y-8">
+        <div className="mx-auto max-w-7xl space-y-4 md:space-y-6">
             {/* Mensagem de erro (se houver dados mas tambem erro) */}
             {error && (
                 <Alert variant="destructive">
@@ -407,11 +397,9 @@ export default function StudentDashboardClientPage() {
                 </Alert>
             )}
 
-            {/* ===== NOVO LAYOUT (Template) ===== */}
-
-            {/* Linha 1: WelcomeCard (largura total) */}
+            {/* 1. Boas-vindas + Ranking */}
             <div className="grid gap-4 lg:grid-cols-12">
-                <div className="lg:col-span-12 xl:col-span-6">
+                <div className="lg:col-span-12 xl:col-span-8">
                     <WelcomeCard
                         userName={user.name}
                         streakDays={user.streakDays}
@@ -421,10 +409,7 @@ export default function StudentDashboardClientPage() {
                         ctaHref={tenant ? `/${tenant}/cursos` : '#'}
                     />
                 </div>
-                <div className="lg:col-span-6 xl:col-span-3">
-                    <LearningPathCard paths={learningPaths} />
-                </div>
-                <div className="lg:col-span-6 xl:col-span-3">
+                <div className="lg:col-span-12 xl:col-span-4">
                     <LeaderboardCard
                         students={leaderboard}
                         title="Ranking"
@@ -433,38 +418,11 @@ export default function StudentDashboardClientPage() {
                 </div>
             </div>
 
-            {/* Linha 2: StudentSuccess + Progress + Activity */}
-            <div className="grid gap-4 xl:grid-cols-3">
-                <StudentSuccessCard
-                    currentSuccessRate={metrics.accuracy}
-                    previousSuccessRate={Math.max(0, metrics.accuracy - 3)}
-                    totalStudents={metrics.questionsAnswered}
-                    passingStudents={Math.round(metrics.questionsAnswered * metrics.accuracy / 100)}
-                    title="Taxa de Acerto"
-                    totalLabel="Questoes Respondidas"
-                    passingLabel="Questoes Corretas"
-                />
-                <ProgressStatisticsCard
-                    totalActivityPercent={metrics.scheduleProgress}
-                    inProgressCount={inProgressItems}
-                    completedCount={completedItems}
-                />
-                <ChartMostActivity data={chartActivityData} title="Distribuicao por Disciplina" />
-            </div>
-
-            {/* Linha 3: Progresso Mensal + Lista de Cursos */}
-            <div className="mt-4 gap-4 space-y-4 xl:grid xl:grid-cols-2 xl:space-y-0">
-                <CourseProgressByMonth data={progressByMonth} title="Aulas Concluidas por Mes" />
-                <CoursesListTable courses={coursesList} title="Meus Cursos" />
-            </div>
-
-            {/* ===== SECAO EXISTENTE (mantida) ===== */}
-
-            {/* Progresso do Cronograma */}
+            {/* 2. Progresso do Cronograma */}
             <ScheduleProgress value={metrics.scheduleProgress} streakDays={user.streakDays} />
 
-            {/* Grid de 4 Metric Cards */}
-            <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
+            {/* 3. KPIs principais */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
                 <MetricCard
                     label="Tempo de Estudo"
                     value={metrics.focusTime}
@@ -515,24 +473,34 @@ export default function StudentDashboardClientPage() {
                 />
             </div>
 
-            {/* Consistency Heatmap (largura total) */}
+            {/* 4. Tendencias: Progresso Mensal + Trilhas */}
+            <div className="grid gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-7">
+                    <CourseProgressByMonth data={progressByMonth} title="Aulas Concluidas por Mes" />
+                </div>
+                <div className="lg:col-span-5">
+                    <LearningPathCard paths={learningPaths} />
+                </div>
+            </div>
+
+            {/* 5. Consistencia de Estudo */}
             <ConsistencyHeatmap
                 data={heatmap}
                 period={heatmapPeriod}
                 onPeriodChange={handleHeatmapPeriodChange}
             />
 
-            {/* 2 Colunas - Subject Performance List e Subject Distribution */}
+            {/* 6. Desempenho por Disciplina */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6 items-stretch">
                 <div className="lg:col-span-3 h-112.5">
                     <SubjectPerformanceList subjects={subjects} period={mapHeatmapPeriodToDashboardPeriod(heatmapPeriod)} />
                 </div>
-                <div className="lg:col-span-2 h-">
+                <div className="lg:col-span-2">
                     <SubjectDistribution data={distribution} period={mapHeatmapPeriodToDashboardPeriod(heatmapPeriod)} />
                 </div>
             </div>
 
-            {/* 2 Colunas - Focus Efficiency Chart e Strategic Domain */}
+            {/* 7. Analises detalhadas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 <FocusEfficiencyChart data={efficiency} />
                 {strategic && <StrategicDomainComponent data={strategic} />}
