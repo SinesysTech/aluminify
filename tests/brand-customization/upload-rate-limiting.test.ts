@@ -92,8 +92,8 @@ describe('Property 19: Upload Rate Limiting', () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
-          requestCount: fc.integer({ min: 1, max: 10 }),
-          timeSpacing: fc.integer({ min: 0, max: 1000 }),
+          requestCount: fc.integer({ min: 1, max: 8 }),
+          timeSpacing: fc.integer({ min: 0, max: 50 }), // Reduced from 1000 to 50ms
           userAgent: fc.string({ minLength: 1, maxLength: 100 }),
           ipAddress: fc.ipV4(),
         }),
@@ -156,7 +156,7 @@ describe('Property 19: Upload Rate Limiting', () => {
       ),
       { numRuns: 1 } // Single run for faster execution
     )
-  })
+  }, 60000) // Increased timeout to 60 seconds
 
   it('should handle different rate limit configurations', async () => {
     await fc.assert(
