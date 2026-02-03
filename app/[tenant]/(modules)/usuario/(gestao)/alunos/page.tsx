@@ -19,19 +19,21 @@ export default async function AlunosPage({
     query?: string
     courseId?: string
     turmaId?: string
+    status?: string
   }>
 }) {
   const { tenant } = await params
   // Valida que o usuário pertence ao tenant da URL
   const { tenantId } = await requireTenantUser(tenant, { allowedRoles: ['usuario'] })
 
-  const { page: pageStr, query: queryStr, courseId: courseIdStr, turmaId: turmaIdStr } =
+  const { page: pageStr, query: queryStr, courseId: courseIdStr, turmaId: turmaIdStr, status: statusStr } =
     await searchParams
 
   const page = Number(pageStr) || 1
   const query = queryStr || ''
   const courseId = courseIdStr || undefined
   const turmaId = turmaIdStr || undefined
+  const status = (statusStr === 'active' || statusStr === 'inactive') ? statusStr : undefined
 
   // Usar cliente com contexto do usuário para respeitar RLS
   const supabase = await createClient()
@@ -39,7 +41,7 @@ export default async function AlunosPage({
   const cursoService = createCursoService(supabase)
 
   const [studentsResult, coursesResult, allStudentsMetaResult] = await Promise.all([
-    studentService.list({ page, perPage: 10, query, courseId, turmaId }),
+    studentService.list({ page, perPage: 10, query, courseId, turmaId, status }),
     cursoService.list({ perPage: 100, sortBy: 'name', sortOrder: 'asc' }, tenantId),
     // Para mostrar o total geral no topo (independente de filtros)
     studentService.list({ page: 1, perPage: 1 }),

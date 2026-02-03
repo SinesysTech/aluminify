@@ -255,9 +255,18 @@ export class StudentRepositoryImpl implements StudentRepository {
     // Quando filtramos por curso/empresa/turma (studentIdsToFilter), a lista vem de matrículas
     // (alunos_cursos). Não exigir deleted_at IS NULL para não esconder alunos que tiveram apenas
     // o vínculo de staff removido (soft delete em usuarios) mas continuam matriculados.
+
+    // 2024-02-09: JOIN with papeis to filter only "aluno"
     let queryBuilder = this.client
       .from(TABLE)
-      .select("id", { count: "exact", head: true });
+      .select("id, papeis!inner(tipo)", { count: "exact", head: true })
+      .eq("papeis.tipo", "aluno");
+
+    if (params?.status === 'active') {
+        queryBuilder = queryBuilder.eq('ativo', true);
+    } else if (params?.status === 'inactive') {
+        queryBuilder = queryBuilder.eq('ativo', false);
+    }
 
     if (studentIdsToFilter !== null) {
       // PostgreSQL tem limites práticos para cláusulas IN com muitos valores
@@ -318,11 +327,19 @@ export class StudentRepositoryImpl implements StudentRepository {
     // Get paginated data (idem: quando lista é por matrícula, incluir mesmo com deleted_at set)
     let dataQuery = this.client
       .from(TABLE)
-      .select("*")
+      .select("*, papeis!inner(tipo)")
+      .eq("papeis.tipo", "aluno")
       .order(sortBy, { ascending: sortOrder })
       .range(from, to);
+
     if (studentIdsToFilter !== null) {
       dataQuery = dataQuery.in("id", studentIdsToFilter);
+    }
+
+    if (params?.status === 'active') {
+        dataQuery = dataQuery.eq('ativo', true);
+    } else if (params?.status === 'inactive') {
+        dataQuery = dataQuery.eq('ativo', false);
     }
 
     if (searchTerm) {
@@ -346,78 +363,49 @@ export class StudentRepositoryImpl implements StudentRepository {
       try {
         let fallbackCountQuery = this.client
           .from(TABLE)
-          .select("id", { count: "exact", head: false })
+          .select("id, papeis!inner(tipo)", { count: "exact", head: false })
+          .eq("papeis.tipo", "aluno")
           .limit(1); // Apenas precisamos do count, não dos dados
-        if (studentIdsToFilter === null) {
-          fallbackCountQuery = fallbackCountQuery.is("deleted_at", null);
-        }
+
         if (studentIdsToFilter !== null) {
-          fallbackCountQuery = fallbackCountQuery.in("id", studentIdsToFilter);
+            fallbackCountQuery = fallbackCountQuery.in("id", studentIdsToFilter);
         }
-
+        if (params?.status === 'active') {
+            fallbackCountQuery = fallbackCountQuery.eq('ativo', true);
+        } else if (params?.status === 'inactive') {
+            fallbackCountQuery = fallbackCountQuery.eq('ativo', false);
+        }
         if (searchTerm) {
-          const q = escapeIlikePattern(searchTerm);
-          fallbackCountQuery = fallbackCountQuery.or(
-            `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
-          );
+             const q = escapeIlikePattern(searchTerm);
+             fallbackCountQuery = fallbackCountQuery.or(
+                `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
+             );
         }
 
-        const { count: fallbackCount, error: fallbackError } =
-          await fallbackCountQuery;
+        const fallbackResult = await fallbackCountQuery;
 
-        if (
-          !fallbackError &&
-          fallbackCount !== null &&
-          fallbackCount !== undefined
-        ) {
-          total = fallbackCount;
+        if (!fallbackResult.error && fallbackResult.count !== null) {
+          total = fallbackResult.count;
           fallbackSuccess = true;
-          console.info(
-            `Fallback count (strategy 1) successful: ${total} students`,
-          );
         }
-      } catch (fallbackErr) {
-        console.warn(
-          `Fallback count strategy 1 failed: ${formatSupabaseError(fallbackErr)}`,
-        );
+      } catch (e) {
+        // Ignore and try next strategy
       }
 
-      // Estratégia 2: Se studentIdsToFilter existe, usar seu tamanho como aproximação
-      if (
-        !fallbackSuccess &&
-        studentIdsToFilter !== null &&
-        studentIdsToFilter.length > 0
-      ) {
-        total = studentIdsToFilter.length;
-        fallbackSuccess = true;
-        console.warn(
-          `Using studentIdsToFilter length as count approximation: ${total}. ` +
-            `This assumes all filtered students are visible.`,
-        );
-      }
-
-      // Estratégia 3: Último recurso - usar tamanho dos dados + indicar que é aproximação
       if (!fallbackSuccess) {
-        const dataLength = (data ?? []).length;
-        // Se temos dados e não estamos na última página, estimar total
-        if (dataLength > 0 && dataLength === perPage) {
-          // Provavelmente há mais páginas, então estimamos baseado na página atual
-          total = page * perPage + 1; // Mínimo estimado
-        } else {
-          // Última página ou menos dados que perPage
-          total = (page - 1) * perPage + dataLength;
-        }
-        console.warn(
-          `Using estimated count based on returned data: ${total} (page ${page}, ` +
-            `${dataLength} items returned). This is an approximation and may not be accurate.`,
-        );
+         // Se ainda falhar e temos dados, assumir que é a única página se < perPage
+         if (data && data.length < perPage && data.length > 0) {
+            total = data.length + from;
+         } else {
+             // Fallback final: apenas para evitar UI quebrada
+             total = data ? data.length + from + (data.length === perPage ? 1 : 0) : 0;
+         }
       }
     }
 
-    const totalPages = Math.ceil(total / perPage);
-
-    const students = await this.attachCourses(data ?? []);
-    const studentsWithProgress = await this.attachProgress(students);
+    // Attach additional info
+    const studentsWithCourses = await this.attachCourses(data as unknown as StudentRow[] ?? []);
+    const studentsWithProgress = await this.attachProgress(studentsWithCourses);
 
     return {
       data: studentsWithProgress,
@@ -425,7 +413,7 @@ export class StudentRepositoryImpl implements StudentRepository {
         page,
         perPage,
         total,
-        totalPages,
+        totalPages: Math.ceil(total / perPage),
       },
     };
   }

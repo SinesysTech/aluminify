@@ -84,8 +84,20 @@ export function StudentFilters() {
         replace(`${pathname}?${params.toString()}`)
     }
 
+    const handleStatusChange = (status: string) => {
+        const params = new URLSearchParams(searchParams)
+        if (status && status !== '__all__') {
+            params.set('status', status)
+            params.set('page', '1')
+        } else {
+            params.delete('status')
+        }
+        replace(`${pathname}?${params.toString()}`)
+    }
+
     const selectedCourseId = searchParams.get('courseId') || '__all__'
     const selectedTurmaId = searchParams.get('turmaId') || '__all__'
+    const selectedStatus = searchParams.get('status') || '__all__'
 
     // Filter turmas by selected course if any
     const filteredTurmas = selectedCourseId !== '__all__'
@@ -109,6 +121,15 @@ export function StudentFilters() {
                 />
             </div>
             <div className="flex items-center gap-2">
+                <select
+                    className="h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+                    value={selectedStatus}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                >
+                    <option value="__all__">Status: Todos</option>
+                    <option value="active">Ativo</option>
+                    <option value="inactive">Inativo</option>
+                </select>
                 <select
                     className="h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
                     value={selectedCourseId}
