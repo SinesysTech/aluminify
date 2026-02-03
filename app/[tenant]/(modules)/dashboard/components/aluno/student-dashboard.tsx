@@ -44,14 +44,9 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/feedback/alert'
 import {
     WelcomeCard,
-    ProgressStatisticsCard,
-    ChartMostActivity,
     CourseProgressByMonth,
-    CoursesListTable,
     LeaderboardCard,
     LearningPathCard,
-    StudentSuccessCard,
-    type CourseListItem,
     type MonthlyProgressItem,
     type LearningPath,
     type LeaderboardItem,

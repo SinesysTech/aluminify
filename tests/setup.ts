@@ -14,6 +14,8 @@ process.env.SUPABASE_SECRET_KEY =
   process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'test-service-role-key'
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'test-anon-key'
+process.env.OAUTH_ENCRYPTION_KEY =
+  process.env.OAUTH_ENCRYPTION_KEY || 'test-oauth-encryption-key-minimum-32chars'
 
 // Global test timeout
 jest.setTimeout(30000)
