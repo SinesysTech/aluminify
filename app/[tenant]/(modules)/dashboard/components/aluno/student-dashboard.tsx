@@ -21,7 +21,6 @@ import {
     fetchDashboardEfficiency,
     fetchDashboardStrategic,
     fetchDashboardDistribution,
-    fetchCoursesList,
     fetchProgressByMonth,
     fetchLearningPaths,
     fetchLeaderboard,
@@ -47,14 +46,9 @@ import {
     CourseProgressByMonth,
     LeaderboardCard,
     LearningPathCard,
-    StudentSuccessCard,
-    ProgressStatisticsCard,
-    ChartMostActivity,
-    CoursesListTable,
     type MonthlyProgressItem,
     type LearningPath,
     type LeaderboardItem,
-    type CourseListItem,
 } from '../cards'
 
 /**
