@@ -12,7 +12,7 @@ COPY package.json package-lock.json ./
 
 # Install all dependencies (including dev dependencies)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN npm ci --no-audit --prefer-offline --ignore-scripts
+RUN npm install --no-audit --prefer-offline --ignore-scripts
 
 # Copy source code
 COPY . .
