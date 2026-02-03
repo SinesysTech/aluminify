@@ -393,6 +393,62 @@ export class ModuleVisibilityRepositoryImpl implements ModuleVisibilityRepositor
     return mapSubmoduleVisibilityRow(result);
   }
 
+  async bulkUpsertModuleVisibility(
+    empresaId: string,
+    inputs: { moduleId: string; data: Partial<Omit<TenantModuleVisibility, 'id' | 'empresaId' | 'moduleId' | 'createdAt' | 'updatedAt'>> }[],
+    userId: string
+  ): Promise<TenantModuleVisibility[]> {
+    const upsertData = inputs.map(({ moduleId, data }) => ({
+      empresa_id: empresaId,
+      module_id: moduleId,
+      is_visible: data.isVisible ?? true,
+      custom_name: data.customName ?? null,
+      custom_url: data.customUrl ?? null,
+      options: data.options ?? {},
+      display_order: data.displayOrder ?? null,
+      updated_by: userId,
+    }));
+
+    const { data: result, error } = await this.client
+      .from('tenant_module_visibility')
+      .upsert(upsertData, { onConflict: 'empresa_id,module_id' })
+      .select('*');
+
+    if (error) {
+      throw new Error(`Failed to bulk upsert module visibility: ${error.message}`);
+    }
+
+    return toArray<TenantModuleVisibilityRow>(result).map(mapModuleVisibilityRow);
+  }
+
+  async bulkUpsertSubmoduleVisibility(
+    empresaId: string,
+    inputs: { moduleId: string; submoduleId: string; data: Partial<Omit<TenantSubmoduleVisibility, 'id' | 'empresaId' | 'moduleId' | 'submoduleId' | 'createdAt' | 'updatedAt'>> }[],
+    userId: string
+  ): Promise<TenantSubmoduleVisibility[]> {
+    const upsertData = inputs.map(({ moduleId, submoduleId, data }) => ({
+      empresa_id: empresaId,
+      module_id: moduleId,
+      submodule_id: submoduleId,
+      is_visible: data.isVisible ?? true,
+      custom_name: data.customName ?? null,
+      custom_url: data.customUrl ?? null,
+      display_order: data.displayOrder ?? null,
+      updated_by: userId,
+    }));
+
+    const { data: result, error } = await this.client
+      .from('tenant_submodule_visibility')
+      .upsert(upsertData, { onConflict: 'empresa_id,module_id,submodule_id' })
+      .select('*');
+
+    if (error) {
+      throw new Error(`Failed to bulk upsert submodule visibility: ${error.message}`);
+    }
+
+    return toArray<TenantSubmoduleVisibilityRow>(result).map(mapSubmoduleVisibilityRow);
+  }
+
   async deleteModuleVisibility(empresaId: string, moduleId: string): Promise<void> {
     const { error } = await this.client
       .from('tenant_module_visibility')

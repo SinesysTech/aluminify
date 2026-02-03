@@ -149,13 +149,39 @@ export class ModuleVisibilityService {
     }
 
     // Update modules
-    for (const moduleInput of input.modules) {
-      await this.updateModuleVisibility(empresaId, moduleInput, userId);
+    if (input.modules.length > 0) {
+      await this.repository.bulkUpsertModuleVisibility(
+        empresaId,
+        input.modules.map(m => ({
+          moduleId: m.moduleId,
+          data: {
+            isVisible: m.isVisible,
+            customName: m.customName,
+            customUrl: m.customUrl,
+            displayOrder: m.displayOrder,
+            options: m.options,
+          }
+        })),
+        userId
+      );
     }
 
     // Update submodules
-    for (const submoduleInput of input.submodules) {
-      await this.updateSubmoduleVisibility(empresaId, submoduleInput, userId);
+    if (input.submodules.length > 0) {
+      await this.repository.bulkUpsertSubmoduleVisibility(
+        empresaId,
+        input.submodules.map(s => ({
+          moduleId: s.moduleId,
+          submoduleId: s.submoduleId,
+          data: {
+            isVisible: s.isVisible,
+            customName: s.customName,
+            customUrl: s.customUrl,
+            displayOrder: s.displayOrder,
+          }
+        })),
+        userId
+      );
     }
   }
 
