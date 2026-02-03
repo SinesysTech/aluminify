@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CotasPage() {
-  await requireUser(['admin', 'superadmin'])
+  await requireUser({ allowedRoles: ['usuario'] })
 
   return (
     <div className="flex flex-col gap-6">

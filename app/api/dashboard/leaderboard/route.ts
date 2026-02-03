@@ -31,7 +31,7 @@ async function getHandler(request: AuthenticatedRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    let empresaId = searchParams.get("empresa_id") || request.user?.empresaId || undefined;
+    const empresaId = searchParams.get("empresa_id") || request.user?.empresaId || undefined;
 
     if (!empresaId) {
       return NextResponse.json(

@@ -2,7 +2,6 @@
  * Inspeciona estrutura de um Excel (abas, cabeçalhos, primeiras linhas).
  * Uso: npx tsx scripts/usuario/inspect-excel.ts "caminho/arquivo.xlsx"
  */
-import * as path from "path";
 import * as fs from "fs";
 import ExcelJS from "exceljs";
 

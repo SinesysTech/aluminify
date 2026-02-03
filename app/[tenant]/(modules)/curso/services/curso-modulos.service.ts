@@ -57,7 +57,7 @@ export class CursoModulosService {
 
     const cursoIds = Array.isArray(enrollments)
       ? enrollments.map((e: { curso_id: string }) => e.curso_id)
-      : Object.values(enrollments).map((e: { curso_id: string }) => e.curso_id);
+      : Object.values(enrollments).map((e: unknown) => (e as { curso_id: string }).curso_id);
 
     const { data: modules, error: modError } = await this.client
       .from("curso_modulos")

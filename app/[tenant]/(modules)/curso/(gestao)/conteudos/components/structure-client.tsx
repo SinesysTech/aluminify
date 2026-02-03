@@ -308,7 +308,7 @@ export default function StructureManagerClient() {
           .eq('curso_id', cursoSelecionado)
 
         if (cdError) {
-          const code = (cdError as Record<string, unknown>)?.code as string | undefined
+          const code = (cdError as unknown as Record<string, unknown>)?.code as string | undefined
           if (code !== '42P01') console.error('Erro ao carregar disciplinas do curso:', cdError.message ?? cdError)
           setDisciplinasDoCurso([])
           return
@@ -329,7 +329,7 @@ export default function StructureManagerClient() {
           .order('nome', { ascending: true })
 
         if (discError) {
-          const code = (discError as Record<string, unknown>)?.code as string | undefined
+          const code = (discError as unknown as Record<string, unknown>)?.code as string | undefined
           if (code !== '42P01') console.error('Erro ao carregar detalhes das disciplinas:', discError.message ?? discError)
           setDisciplinasDoCurso([])
           return
@@ -369,7 +369,7 @@ export default function StructureManagerClient() {
           .order('nome', { ascending: true })
 
         if (cursosError) {
-          const code = (cursosError as Record<string, unknown>)?.code as string | undefined
+          const code = (cursosError as unknown as Record<string, unknown>)?.code as string | undefined
           if (code !== '42P01') {
             console.error('Erro na query de cursos:', cursosError.message ?? getErrorMessage(cursosError))
           }
