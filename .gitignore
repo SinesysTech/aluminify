@@ -54,3 +54,5 @@ NUL
 
 # Sentry Config File
 .env.sentry-build-plugin
+playwright-report/
+test-results/
