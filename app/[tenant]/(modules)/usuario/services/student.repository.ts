@@ -256,11 +256,11 @@ export class StudentRepositoryImpl implements StudentRepository {
     // (alunos_cursos). Não exigir deleted_at IS NULL para não esconder alunos que tiveram apenas
     // o vínculo de staff removido (soft delete em usuarios) mas continuam matriculados.
 
-    // 2024-02-09: JOIN with papeis to filter only "aluno"
+    // Filter only users with papel_base = 'aluno' via usuarios_empresas
     let queryBuilder = this.client
       .from(TABLE)
-      .select("id, papeis!inner(tipo)", { count: "exact", head: true })
-      .eq("papeis.tipo", "aluno");
+      .select("id, usuarios_empresas!inner(papel_base)", { count: "exact", head: true })
+      .eq("usuarios_empresas.papel_base", "aluno");
 
     if (params?.status === 'active') {
         queryBuilder = queryBuilder.eq('ativo', true);
@@ -327,8 +327,8 @@ export class StudentRepositoryImpl implements StudentRepository {
     // Get paginated data (idem: quando lista é por matrícula, incluir mesmo com deleted_at set)
     let dataQuery = this.client
       .from(TABLE)
-      .select("*, papeis!inner(tipo)")
-      .eq("papeis.tipo", "aluno")
+      .select("*, usuarios_empresas!inner(papel_base)")
+      .eq("usuarios_empresas.papel_base", "aluno")
       .order(sortBy, { ascending: sortOrder })
       .range(from, to);
 
@@ -363,8 +363,8 @@ export class StudentRepositoryImpl implements StudentRepository {
       try {
         let fallbackCountQuery = this.client
           .from(TABLE)
-          .select("id, papeis!inner(tipo)", { count: "exact", head: false })
-          .eq("papeis.tipo", "aluno")
+          .select("id, usuarios_empresas!inner(papel_base)", { count: "exact", head: false })
+          .eq("usuarios_empresas.papel_base", "aluno")
           .limit(1); // Apenas precisamos do count, não dos dados
 
         if (studentIdsToFilter !== null) {
