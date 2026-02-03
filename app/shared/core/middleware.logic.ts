@@ -414,7 +414,7 @@ export async function updateSession(request: NextRequest) {
   (globalThis as any).__headerSizeTotalBytes =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ((globalThis as any).__headerSizeTotalBytes ?? 0) + headerSize;
-  if (headerSize > 4096) {
+  if (headerSize > 8192) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).__headerSizeWarnings =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -422,8 +422,8 @@ export async function updateSession(request: NextRequest) {
   }
   if (process.env.NODE_ENV === "development") {
     console.log(`[MW] Header size: ${headerSize} bytes`);
-    if (headerSize > 4096) {
-      console.warn(`[MW] WARNING: Headers exceeding 4KB (${headerSize} bytes)`);
+    if (headerSize > 8192) {
+      console.warn(`[MW] WARNING: Headers exceeding 8KB (${headerSize} bytes)`);
     }
   }
 
