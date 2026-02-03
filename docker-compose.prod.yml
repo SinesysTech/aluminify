@@ -10,7 +10,6 @@ services:
     container_name: aluminify-app-prod
     ports:
       - "3000:3000" # Next.js
-      - "4111:4111" # Mastra Studio
     env_file:
       - .env.local
     environment:
