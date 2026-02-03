@@ -133,17 +133,12 @@ export class TurmaServiceImpl implements TurmaService {
       throw new Error("Turma não encontrada");
     }
 
-    let success = 0;
-    let failed = 0;
+    const results = await Promise.allSettled(
+      alunoIds.map((alunoId) => this.repository.vincularAluno(turmaId, alunoId))
+    );
 
-    for (const alunoId of alunoIds) {
-      try {
-        await this.repository.vincularAluno(turmaId, alunoId);
-        success++;
-      } catch {
-        failed++;
-      }
-    }
+    const success = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
 
     return { success, failed };
   }
