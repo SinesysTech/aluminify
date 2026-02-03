@@ -60,7 +60,7 @@ if docker buildx version &> /dev/null; then
             [[ $key =~ ^#.*$ ]] && continue
             [[ -z $key ]] && continue
             # Only pass NEXT_PUBLIC_* and UPSTASH_* variables
-            if [[ $key =~ ^NEXT_PUBLIC_ ]] || [[ $key =~ ^UPSTASH_ ]]; then
+            if [[ $key =~ ^NEXT_PUBLIC_ ]] || [[ $key =~ ^UPSTASH_ ]] || [[ $key =~ ^SUPABASE_ ]] || [[ $key =~ ^SENTRY_ ]] || [[ $key =~ ^OAUTH_ ]] || [[ $key =~ ^DOCKER_ ]]; then
                 BUILD_ARGS="$BUILD_ARGS --build-arg $key=$value"
             fi
         done < .env.local
@@ -83,7 +83,7 @@ else
         while IFS='=' read -r key value; do
             [[ $key =~ ^#.*$ ]] && continue
             [[ -z $key ]] && continue
-            if [[ $key =~ ^NEXT_PUBLIC_ ]] || [[ $key =~ ^UPSTASH_ ]]; then
+            if [[ $key =~ ^NEXT_PUBLIC_ ]] || [[ $key =~ ^UPSTASH_ ]] || [[ $key =~ ^SUPABASE_ ]] || [[ $key =~ ^SENTRY_ ]] || [[ $key =~ ^OAUTH_ ]] || [[ $key =~ ^DOCKER_ ]]; then
                 BUILD_ARGS="$BUILD_ARGS --build-arg $key=$value"
             fi
         done < .env.local
