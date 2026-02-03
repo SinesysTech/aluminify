@@ -3,7 +3,7 @@
 # Optimized for production with security best practices
 
 # Stage 1: Builder - Build the application
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -48,7 +48,7 @@ ENV SKIP_ENV_VALIDATION=true
 RUN npm run build
 
 # Stage 2: Runner - Production runtime
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 WORKDIR /app
 

@@ -29,7 +29,7 @@ export class InstitutionAnalyticsService {
       .eq("ativo", true)
       .is("deleted_at", null);
 
-    return (data ?? []).map((r) => r.usuario_id);
+    return (data ?? []).map((r: { usuario_id: string }) => r.usuario_id);
   }
 
   /**
@@ -150,7 +150,7 @@ export class InstitutionAnalyticsService {
       const alunosComAtividade = new Set(
         (alunosSessoes ?? [])
           .filter((s): s is { usuario_id: string } => s.usuario_id !== null)
-          .map((s) => s.usuario_id),
+          .map((s: { usuario_id: string }) => s.usuario_id),
       );
       alunosAtivos = alunosComAtividade.size;
     }
@@ -399,7 +399,7 @@ export class InstitutionAnalyticsService {
       .select("id, nome_completo")
       .in("id", topStudentIds);
 
-    const usuarioMap = new Map(usuarios?.map(u => [u.id, u]) ?? []);
+    const usuarioMap = new Map(usuarios?.map((u: { id: string; nome_completo: string | null }) => [u.id, u]) ?? []);
 
     // 4. Calculate detailed metrics only for the winners (Bulk Fetch)
 
@@ -553,7 +553,7 @@ export class InstitutionAnalyticsService {
     const { data: agendamentos } = await client
         .from("agendamentos")
         .select("professor_id, aluno_id, status")
-        .in("professor_id", professores.map(p => p.id))
+        .in("professor_id", professores.map((p: { id: string }) => p.id))
         .gte("created_at", thirtyDaysAgo.toISOString());
 
     // Aggregate in memory
@@ -574,7 +574,7 @@ export class InstitutionAnalyticsService {
         }
     }
 
-    const ranking: ProfessorRankingItem[] = professores.map(professor => {
+    const ranking: ProfessorRankingItem[] = professores.map((professor: { id: string; nome_completo: string | null; foto_url: string | null }) => {
         const stats = statsMap.get(professor.id) || { realizados: 0, alunosUnicos: new Set() };
         return {
             id: professor.id,
@@ -607,7 +607,7 @@ export class InstitutionAnalyticsService {
       .limit(20);
 
     if (!disciplines || disciplines.length === 0) return [];
-    const disciplinaMap = new Map(disciplines.map(d => [d.id, d.nome]));
+    const disciplinaMap = new Map(disciplines.map((d: { id: string; nome: string }) => [d.id, d.nome]));
 
     // Buscar apenas alunos da empresa (papel_base = 'aluno') if not provided
     let alunoIds = prefetchedAlunoIds;
@@ -622,7 +622,7 @@ export class InstitutionAnalyticsService {
         .from("sessoes_estudo")
         .select("usuario_id, disciplina_id")
         .in("usuario_id", alunoIds)
-        .in("disciplina_id", disciplines.map(d => d.id));
+        .in("disciplina_id", disciplines.map((d: { id: string }) => d.id));
 
     // Group sessions
     const sessionsByDisc = new Map<string, Set<string>>(); // discId -> Set<userId>
@@ -682,7 +682,7 @@ export class InstitutionAnalyticsService {
     }
 
     // Assemble result
-    const performance: DisciplinaPerformance[] = disciplines.map(d => {
+    const performance: DisciplinaPerformance[] = disciplines.map((d: { id: string; nome: string }) => {
         const activeStudents = sessionsByDisc.get(d.id)?.size ?? 0;
 
         if (activeStudents === 0) return null;
@@ -699,7 +699,7 @@ export class InstitutionAnalyticsService {
             totalQuestoes: pStats.total,
             alunosAtivos: activeStudents
         };
-    }).filter((p): p is DisciplinaPerformance => p !== null);
+    }).filter((p: DisciplinaPerformance | null): p is DisciplinaPerformance => p !== null);
 
     // Ordenar por aproveitamento (maior primeiro)
     performance.sort((a, b) => b.aproveitamento - a.aproveitamento);
