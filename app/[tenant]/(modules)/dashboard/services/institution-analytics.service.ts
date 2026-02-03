@@ -149,7 +149,7 @@ export class InstitutionAnalyticsService {
 
       const alunosComAtividade = new Set(
         (alunosSessoes ?? [])
-          .filter((s): s is { usuario_id: string } => s.usuario_id !== null)
+          .filter((s: any): s is { usuario_id: string } => s.usuario_id !== null)
           .map((s: { usuario_id: string }) => s.usuario_id),
       );
       alunosAtivos = alunosComAtividade.size;
@@ -442,7 +442,7 @@ export class InstitutionAnalyticsService {
     }
 
     const ranking: StudentRankingItem[] = rankedStudents.map((student) => {
-        const usuario = usuarioMap.get(student.id);
+        const usuario = usuarioMap.get(student.id) as { id: string; nome_completo: string | null } | undefined;
         const name = usuario?.nome_completo ?? "Aluno";
 
         // Calculate Streak
