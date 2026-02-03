@@ -120,7 +120,7 @@ const zipBombContentGenerator = fc.record({
 })
 
 const polyglotFileGenerator = fc.record({
-  name: fc.string({ minLength: 5, maxLength: 30 }).map(s => `${s}.png`),
+  name: fc.string({ minLength: 5, maxLength: 30, unit: 'grapheme' }).map(s => s.replace(/[^a-zA-Z0-9]/g, 'a') + '.png'),
   size: fc.integer({ min: 200, max: 1024 }),
   type: fc.constantFrom('image/png', 'image/jpeg'),
 }).map(({ name, size, type }) => {

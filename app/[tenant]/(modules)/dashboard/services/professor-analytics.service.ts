@@ -141,7 +141,6 @@ export class ProfessorAnalyticsService {
       .in("usuario_id", alunoIdsUnicos);
 
     const cursosMap = new Map();
-    // @ts-expect-error - Supabase join result type
     alunosCursos?.forEach((ac) => {
         cursosMap.set(ac.usuario_id, ac.cursos?.nome ?? "Sem curso");
     });
@@ -359,14 +358,14 @@ export class ProfessorAnalyticsService {
       .limit(10);
 
     if (!disciplinas || disciplinas.length === 0) return [];
-    const disciplinaMap = new Map(disciplines.map(d => [d.id, d.nome]));
+    const disciplinaMap = new Map(disciplinas.map((d: { id: string; nome: string }) => [d.id, d.nome]));
 
     // Bulk fetch sessions
     const { data: sessoes } = await client
         .from("sessoes_estudo")
         .select("usuario_id, disciplina_id")
         .in("usuario_id", alunoIds)
-        .in("disciplina_id", disciplines.map(d => d.id));
+        .in("disciplina_id", disciplinas.map((d: { id: string }) => d.id));
 
     // Group sessions
     const sessionsByDisc = new Map<string, Set<string>>();
@@ -425,7 +424,7 @@ export class ProfessorAnalyticsService {
         stats.acertos += p.questoes_acertos ?? 0;
     }
 
-    const performance: ProfessorDisciplinaPerformance[] = disciplines.map(d => {
+    const performance: ProfessorDisciplinaPerformance[] = disciplinas.map((d: { id: string; nome: string }) => {
         const activeStudents = sessionsByDisc.get(d.id)?.size ?? 0;
         if (activeStudents === 0) return null;
 
@@ -440,7 +439,7 @@ export class ProfessorAnalyticsService {
             aproveitamentoMedio,
             totalAlunos: activeStudents
         };
-    }).filter((p): p is ProfessorDisciplinaPerformance => p !== null);
+    }).filter((p: ProfessorDisciplinaPerformance | null): p is ProfessorDisciplinaPerformance => p !== null);
 
     // Ordenar por aproveitamento (maior primeiro)
     performance.sort((a, b) => b.aproveitamentoMedio - a.aproveitamentoMedio);

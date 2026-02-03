@@ -391,8 +391,8 @@ export class LogoManagerImpl implements LogoManager {
   private hasMaliciousFileName(fileName: string): boolean {
     const maliciousPatterns = [
       /\.\./,           // Path traversal
-      /[<>:"|?*]/,      // Windows invalid characters
-      /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i, // Windows reserved names
+      /[<>:"|?*\u0000-\u001F\u007F]/, // Windows invalid characters + Control characters (like null byte)
+      /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i, // Windows reserved names (with optional extension)
       /^\./,            // Hidden files
       /\.(exe|bat|cmd|scr|pif|com)$/i, // Executable extensions
     ];

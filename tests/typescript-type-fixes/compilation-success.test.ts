@@ -163,7 +163,7 @@ describe("Property 9: Compilation Success", () => {
   it("should successfully type-check all files in components/", async () => {
     await fc.assert(
       fc.asyncProperty(fc.constant(null), async () => {
-        const componentsDir = join(process.cwd(), "components");
+        const componentsDir = join(process.cwd(), "app", "shared", "components");
 
         // Verify directory exists
         expect(existsSync(componentsDir)).toBe(true);
@@ -196,7 +196,7 @@ describe("Property 9: Compilation Success", () => {
   it("should successfully type-check lib/auth.ts and related utility files", async () => {
     await fc.assert(
       fc.asyncProperty(fc.constant(null), async () => {
-        const libDir = join(process.cwd(), "lib");
+        const libDir = join(process.cwd(), "app", "shared", "core");
 
         // Verify directory exists
         expect(existsSync(libDir)).toBe(true);
