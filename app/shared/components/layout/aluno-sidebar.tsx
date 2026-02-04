@@ -4,18 +4,14 @@ import { useMemo } from "react"
 import {
   Calendar,
   CalendarCheck,
-  CalendarDays,
-  MessageSquare,
   LayoutDashboard,
   BookOpen,
-  Circle,
   Clock,
   Library,
   Layers,
-  CalendarPlus,
-  Bot,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { getIconComponent } from "@/components/layout/navigation-icons"
 import { usePathname, useParams } from "next/navigation"
 
 import { NavMain } from "@/components/layout/nav-main"
@@ -45,28 +41,6 @@ type NavItem = {
   }[]
 }
 
-// Icon mapping: name string -> Lucide component
-const ICON_MAP: Record<string, LucideIcon> = {
-  LayoutDashboard,
-  BookOpen,
-  CalendarCheck,
-  Calendar,
-  CalendarDays,
-  CalendarPlus,
-  MessageSquare,
-  Clock,
-  Library,
-  Layers,
-  Bot,
-}
-
-/**
- * Get icon component from icon name string
- * Falls back to Circle if icon not found
- */
-function getIconComponent(iconName: string): LucideIcon {
-  return ICON_MAP[iconName] || Circle
-}
 
 /**
  * Skeleton component for sidebar menu items while loading

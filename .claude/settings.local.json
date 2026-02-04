@@ -156,7 +156,9 @@
       "mcp__sentry__find_projects",
       "mcp__sentry__search_issues",
       "mcp__sentry__search_events",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(xargs:*)",
+      "Bash(npm run check:*)"
     ],
     "deny": [],
     "ask": []

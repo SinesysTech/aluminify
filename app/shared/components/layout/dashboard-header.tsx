@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { DynamicBreadcrumb } from '@/components/layout/dynamic-breadcrumb'
+import { MobileOrgSwitcher } from '@/components/layout/mobile-org-switcher'
 
 export function DashboardHeader() {
   return (
@@ -20,7 +21,8 @@ export function DashboardHeader() {
           <DynamicBreadcrumb />
         </div>
       </div>
-      <div className="flex items-center px-2 md:px-4 shrink-0">
+      <div className="flex items-center gap-2 px-2 md:px-4 shrink-0">
+        <MobileOrgSwitcher />
         <ThemeToggle iconOnly />
       </div>
     </header>
