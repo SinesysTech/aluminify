@@ -13,26 +13,26 @@ export function ScheduleProgress({ value }: ScheduleProgressProps) {
   // Determinar cor baseada no valor
   const getColorClass = () => {
     if (value < 30) {
-      return 'bg-[#F87171]'
+      return 'bg-rose-400'
     }
     if (value < 70) {
-      return 'bg-[#FACC15]'
+      return 'bg-amber-400'
     }
-    return 'bg-[#34D399]'
+    return 'bg-emerald-400'
   }
 
   const getTextColor = () => {
     if (value < 30) {
-      return 'text-[#F87171]'
+      return 'text-rose-400'
     }
     if (value < 70) {
-      return 'text-[#FACC15]'
+      return 'text-amber-400'
     }
-    return 'text-[#34D399]'
+    return 'text-emerald-400'
   }
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 rounded-2xl dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
       <CardContent className="px-4 md:px-6 py-3 md:py-4">
         <div className="flex flex-col gap-3 md:gap-4">
           <div className="flex justify-between items-center gap-4">

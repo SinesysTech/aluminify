@@ -211,12 +211,12 @@ export function SubjectPerformanceList({
   // Função para determinar a cor da barra baseada no score
   const getBarColor = (score: number) => {
     if (score >= 80) {
-      return 'bg-green-500'
+      return 'bg-indigo-500'
     }
     if (score >= 50) {
-      return 'bg-yellow-500'
+      return 'bg-blue-400'
     }
-    return 'bg-red-500'
+    return 'bg-blue-300/60 dark:bg-blue-400/30'
   }
 
   const importanciaLabel = (v?: PerformanceItem['importancia']) => {
@@ -230,11 +230,12 @@ export function SubjectPerformanceList({
   }
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300">
+    <Card className="h-full overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+      <div className="h-0.5 bg-linear-to-r from-indigo-400 to-blue-500" />
       <CardContent className="p-4 md:p-5 h-full flex flex-col min-h-0">
         <div className="flex items-center gap-3 mb-4 md:mb-6">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <TrendingUp className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-blue-500">
+            <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -262,19 +263,19 @@ export function SubjectPerformanceList({
                       <p className="font-semibold text-sm">Classificações:</p>
                       <ul className="space-y-1.5 text-xs">
                         <li className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
+                          <div className="w-3 h-3 rounded-full bg-indigo-500 shrink-0" />
                           <span>≥ 80%: Excelente</span>
                         </li>
                         <li className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-yellow-500 shrink-0" />
+                          <div className="w-3 h-3 rounded-full bg-blue-400 shrink-0" />
                           <span>≥ 50%: Regular</span>
                         </li>
                         <li className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
+                          <div className="w-3 h-3 rounded-full bg-blue-300/60 shrink-0" />
                           <span>&lt; 50%: Precisa melhorar</span>
                         </li>
                         <li className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
+                          <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0" />
                           <span>Não iniciada: Sem atividades concluídas</span>
                         </li>
                       </ul>

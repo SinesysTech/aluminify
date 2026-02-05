@@ -6,11 +6,22 @@ import { Progress } from '@/app/shared/components/feedback/progress'
 import { cn } from '@/lib/utils'
 import { FrenteComModulos } from '../types'
 
+export type FrenteColorConfig = {
+  accent: string
+  bar: string
+  text: string
+  hover: string
+  ring: string
+  expand: string
+  border: string
+}
+
 interface FrenteCardProps {
   frente: FrenteComModulos
   stats: { completed: number; total: number }
   isExpanded: boolean
   onToggle: () => void
+  colorConfig: FrenteColorConfig
   className?: string
 }
 
@@ -19,6 +30,7 @@ export function FrenteCard({
   stats,
   isExpanded,
   onToggle,
+  colorConfig,
   className,
 }: FrenteCardProps) {
   const { completed, total } = stats
@@ -28,9 +40,11 @@ export function FrenteCard({
   return (
     <Card
       className={cn(
-        'group cursor-pointer transition-all duration-200',
-        'hover:shadow-md hover:border-primary/30',
-        isExpanded && 'ring-2 ring-primary/20 border-primary/40',
+        'group cursor-pointer transition-all duration-200 rounded-2xl pt-0 overflow-hidden',
+        'hover:shadow-md',
+        colorConfig.hover,
+        'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
+        isExpanded && ['ring-2', colorConfig.ring],
         isComplete && 'bg-emerald-500/5 border-emerald-500/30',
         className
       )}
@@ -46,6 +60,10 @@ export function FrenteCard({
       aria-expanded={isExpanded}
       aria-label={`Frente ${frente.nome}, ${completed} de ${total} atividades concluídas`}
     >
+      <div className={cn(
+        'h-0.5 bg-linear-to-r transition-colors',
+        isComplete ? 'from-emerald-400 to-teal-500' : colorConfig.accent
+      )} />
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -63,7 +81,7 @@ export function FrenteCard({
               value={percentage}
               className={cn(
                 'h-2 mb-2',
-                isComplete && '[&>div]:bg-emerald-500'
+                isComplete ? '[&>div]:bg-emerald-500' : colorConfig.bar
               )}
             />
 
@@ -74,7 +92,7 @@ export function FrenteCard({
               </span>
               <span className={cn(
                 'font-medium tabular-nums',
-                isComplete ? 'text-emerald-600' : 'text-foreground'
+                isComplete ? 'text-emerald-600 dark:text-emerald-400' : colorConfig.text
               )}>
                 {percentage}%
               </span>
@@ -85,7 +103,7 @@ export function FrenteCard({
           <div className={cn(
             'shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
             'bg-muted/50 group-hover:bg-muted transition-colors',
-            isExpanded && 'bg-primary/10'
+            isExpanded && colorConfig.expand
           )}>
             {isExpanded ? (
               <ChevronUp className="h-4 w-4 text-muted-foreground" />

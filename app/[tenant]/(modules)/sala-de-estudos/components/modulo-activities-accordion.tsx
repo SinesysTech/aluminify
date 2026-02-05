@@ -39,7 +39,7 @@ export function ModuloActivitiesAccordion({
 
   return (
     <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value={modulo.id} className="border rounded-lg mb-2">
+      <AccordionItem value={modulo.id} className="border rounded-2xl mb-2 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
         <AccordionTrigger className="px-4 hover:no-underline">
           <div className="flex items-center justify-between w-full mr-4">
             <div className="flex items-center gap-2">

@@ -54,15 +54,20 @@ export function SimplifiedActivityList({
             <AccordionItem
               key={modulo.id}
               value={modulo.id}
-              className="border rounded-xl overflow-hidden bg-card text-card-foreground border-b"
+              className="border rounded-2xl overflow-hidden bg-card text-card-foreground border-b dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5"
             >
-              <AccordionTrigger className="py-3 px-4 bg-muted/30 hover:no-underline hover:bg-muted/40 data-[state=open]:rounded-none">
+              <AccordionTrigger className="py-3 px-4 bg-muted/20 hover:no-underline hover:bg-muted/30 dark:bg-muted/10 dark:hover:bg-muted/20 data-[state=open]:rounded-none transition-colors">
                 <div className="flex items-center justify-between w-full text-left">
                   <span className="text-sm font-medium">
                     {modulo.numeroModulo ? `Módulo ${modulo.numeroModulo}: ` : ''}
                     {modulo.nome}
                   </span>
-                  <span className="text-xs text-muted-foreground tabular-nums shrink-0 ml-2">
+                  <span className={cn(
+                    'text-[10px] px-2 py-0.5 rounded-full tabular-nums shrink-0 ml-2 font-medium',
+                    completedCount === totalCount && totalCount > 0
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-muted text-muted-foreground'
+                  )}>
                     {completedCount}/{totalCount}
                   </span>
                 </div>

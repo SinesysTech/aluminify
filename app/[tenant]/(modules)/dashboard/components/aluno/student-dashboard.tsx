@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle, Target } from 'lucide-react'
+import { Clock, CheckCircle2, Brain, RefreshCw, AlertCircle, Target, MonitorPlay, Timer } from 'lucide-react'
 import type {
     DashboardPeriod,
     UserInfo,
@@ -374,9 +374,9 @@ export default function StudentDashboardClientPage() {
             <ScheduleProgress value={metrics.scheduleProgress} streakDays={user.streakDays} />
 
             {/* 2. KPIs principais */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
                 <MetricCard
-                    label="Tempo de Estudo"
+                    label="Tempo Total de Estudo"
                     value={metrics.focusTime}
                     icon={Clock}
                     variant="time"
@@ -387,6 +387,26 @@ export default function StudentDashboardClientPage() {
                     tooltip={[
                         'Tempo total de estudo no período, somando aulas assistidas e sessões de exercícios.',
                         'O valor mostra a diferença em relação ao período anterior.',
+                    ]}
+                />
+                <MetricCard
+                    label="Tempo de Aulas"
+                    value={metrics.classTime}
+                    icon={MonitorPlay}
+                    variant="classTime"
+                    tooltip={[
+                        'Tempo de aulas assistidas no período.',
+                        'Baseado no tempo estimado de cada aula concluída no cronograma.',
+                    ]}
+                />
+                <MetricCard
+                    label="Tempo de Exercícios"
+                    value={metrics.exerciseTime}
+                    icon={Timer}
+                    variant="exerciseTime"
+                    tooltip={[
+                        'Tempo líquido resolvendo exercícios no modo foco.',
+                        'Contabiliza apenas o tempo efetivo das sessões concluídas.',
                     ]}
                 />
                 <MetricCard

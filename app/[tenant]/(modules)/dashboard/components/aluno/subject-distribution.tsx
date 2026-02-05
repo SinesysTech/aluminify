@@ -43,6 +43,18 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   return null
 }
 
+// Paleta harmonizada com o tema cyan/teal do card
+const CHART_PALETTE = [
+  '#0d9488', // teal-600
+  '#0891b2', // cyan-600
+  '#0284c7', // sky-600
+  '#4f46e5', // indigo-600
+  '#7c3aed', // violet-600
+  '#14b8a6', // teal-500
+  '#06b6d4', // cyan-500
+  '#0ea5e9', // sky-500
+]
+
 export function SubjectDistribution({ data, period }: SubjectDistributionProps) {
   // Ordenar dados por porcentagem (maior para menor)
   const sortedData = useMemo(() => {
@@ -58,11 +70,12 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
   }, [period])
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300">
+    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+      <div className="h-0.5 bg-linear-to-r from-cyan-400 to-teal-500" />
       <CardContent className="p-4 md:p-5 flex-1 min-h-0 flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Clock className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-cyan-500 to-teal-500">
+            <Clock className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -101,7 +114,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
                     {sortedData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={entry.color}
+                        fill={CHART_PALETTE[index % CHART_PALETTE.length]}
                         strokeWidth={0}
                       />
                     ))}
@@ -118,7 +131,7 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-3 h-3 rounded-full shrink-0" 
-                      style={{ backgroundColor: item.color }} 
+                      style={{ backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length] }} 
                     />
                     <span className="truncate max-w-30" title={item.name}>
                       {item.name}

@@ -81,6 +81,7 @@ export default async function BloqueiosPage({
         professorId={professorId}
         empresaId={user.empresaId}
         isAdmin={isAdmin}
+        currentUserId={user.id}
       />
     </div>
   )

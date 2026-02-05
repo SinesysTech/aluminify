@@ -240,7 +240,7 @@ export default function SalaEstudosClientPage() {
 
           {/* Content Area */}
           {allDisciplinas.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center animate-in fade-in-50">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center animate-in fade-in-50 dark:border-white/10">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                 <School className="h-6 w-6 text-muted-foreground" />
               </div>

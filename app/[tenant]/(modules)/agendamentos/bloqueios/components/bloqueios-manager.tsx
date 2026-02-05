@@ -57,9 +57,10 @@ interface BloqueiosManagerProps {
   professorId: string
   empresaId: string
   isAdmin?: boolean
+  currentUserId: string // ID do usuário logado (para criado_por)
 }
 
-export function BloqueiosManager({ professorId, empresaId, isAdmin = false }: BloqueiosManagerProps) {
+export function BloqueiosManager({ professorId, empresaId, isAdmin = false, currentUserId }: BloqueiosManagerProps) {
   const [bloqueios, setBloqueios] = useState<Bloqueio[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -191,7 +192,7 @@ export function BloqueiosManager({ professorId, empresaId, isAdmin = false }: Bl
         data_inicio: dataInicio.toISOString(),
         data_fim: dataFim.toISOString(),
         motivo: formData.motivo || null,
-        criado_por: professorId,
+        criado_por: currentUserId, // Sempre usa o ID do usuário logado
       }
 
       if (editingBloqueio) {

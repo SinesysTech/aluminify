@@ -1707,12 +1707,8 @@ export class DashboardAnalyticsService {
       empresaId,
     );
 
-    const { focusTime, focusTimeDelta } = await this.getFocusTime(
-      alunoId,
-      client,
-      period,
-      empresaId,
-    );
+    const { focusTime, focusTimeDelta, classTime, exerciseTime } =
+      await this.getFocusTime(alunoId, client, period, empresaId);
 
     const { questionsAnswered, periodLabel } = await this.getQuestionsAnswered(
       alunoId,
@@ -1734,6 +1730,8 @@ export class DashboardAnalyticsService {
       scheduleProgress,
       focusTime,
       focusTimeDelta,
+      classTime,
+      exerciseTime,
       questionsAnswered,
       questionsAnsweredPeriod: periodLabel,
       accuracy,
@@ -1794,7 +1792,12 @@ export class DashboardAnalyticsService {
     client: ReturnType<typeof getDatabaseClient>,
     period: DashboardPeriod,
     empresaId?: string,
-  ): Promise<{ focusTime: string; focusTimeDelta: string }> {
+  ): Promise<{
+    focusTime: string;
+    focusTimeDelta: string;
+    classTime: string;
+    exerciseTime: string;
+  }> {
     const inicioPeriodo = this.getPeriodStart(period);
     const fimPeriodo = new Date();
 
@@ -1820,13 +1823,13 @@ export class DashboardAnalyticsService {
       },
     );
 
-    // Formatar tempo
-    const horas = Math.floor(tempoPeriodo / 3600);
-    const minutos = Math.floor((tempoPeriodo % 3600) / 60);
-    const focusTime = horas > 0 ? `${horas}h ${minutos}m` : `${minutos}m`;
+    // Formatar tempos
+    const focusTime = this.formatSeconds(tempoPeriodo.total);
+    const classTime = this.formatSeconds(tempoPeriodo.classSeconds);
+    const exerciseTime = this.formatSeconds(tempoPeriodo.exerciseSeconds);
 
-    // Calcular delta
-    const delta = tempoPeriodo - tempoPeriodoAnterior;
+    // Calcular delta (apenas para o total)
+    const delta = tempoPeriodo.total - tempoPeriodoAnterior.total;
     const deltaHoras = Math.abs(Math.floor(delta / 3600));
     const deltaMinutos = Math.abs(Math.floor((delta % 3600) / 60));
     const deltaFormatted =
@@ -1834,7 +1837,7 @@ export class DashboardAnalyticsService {
     const focusTimeDelta =
       delta >= 0 ? `+${deltaFormatted}` : `-${deltaFormatted}`;
 
-    return { focusTime, focusTimeDelta };
+    return { focusTime, focusTimeDelta, classTime, exerciseTime };
   }
 
   /**
@@ -3043,7 +3046,7 @@ export class DashboardAnalyticsService {
     alunoId: string,
     client: ReturnType<typeof getDatabaseClient>,
     opts: { start: Date; end: Date; empresaId?: string },
-  ): Promise<number> {
+  ): Promise<{ total: number; classSeconds: number; exerciseSeconds: number }> {
     const [listRows, watchedRows] = await Promise.all([
       this.getListSessionsRows(alunoId, client, {
         start: opts.start,
@@ -3056,10 +3059,15 @@ export class DashboardAnalyticsService {
         empresaId: opts.empresaId,
       }),
     ]);
-    return [...listRows, ...watchedRows].reduce(
+    const exerciseSeconds = listRows.reduce(
       (acc, r) => acc + (r.seconds || 0),
       0,
     );
+    const classSeconds = watchedRows.reduce(
+      (acc, r) => acc + (r.seconds || 0),
+      0,
+    );
+    return { total: exerciseSeconds + classSeconds, classSeconds, exerciseSeconds };
   }
 
   private async getListSessionsHeatmapRows(

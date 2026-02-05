@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Tooltip,
   TooltipContent,
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import type { HeatmapDay } from '../../types'
 import { format, subDays, startOfWeek, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Info } from 'lucide-react'
+import { Info, Flame } from 'lucide-react'
 
 export type HeatmapPeriod = 'mensal' | 'semestral' | 'anual'
 
@@ -128,27 +128,56 @@ export function ConsistencyHeatmap({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300">
-      <CardHeader className="pb-2">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Title + Info */}
-          <div className="flex items-center gap-2">
-            <CardTitle className="widget-title">
-              Consistência de Estudos
-            </CardTitle>
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>
-                    Visualize sua consistência de estudos ao longo do tempo.
-                    Quanto mais escuro, mais atividade no dia!
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+    <Card className="overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+      <div className="h-0.5 bg-linear-to-r from-emerald-400 to-teal-500" />
+      <CardContent className="p-4 md:p-5">
+        {/* Header with icon badge */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-500">
+            <Flame className="h-5 w-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="widget-title">Consistência de Estudos</h3>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>
+                      Visualize sua consistência de estudos ao longo do tempo.
+                      Quanto mais escuro, mais atividade no dia!
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-xs text-muted-foreground">{periodConfig.label}</p>
+          </div>
+        </div>
+
+        {/* Controls and Stats */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Dias ativos:</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                {stats.activeDays}
+              </span>
+              <span className="text-muted-foreground">
+                de {stats.totalDays}
+              </span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5">
+              <span className="text-muted-foreground">Consistência:</span>
+              <span className={cn(
+                'font-semibold',
+                stats.percentage >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+              )}>
+                {stats.percentage}%
+              </span>
+            </div>
           </div>
 
           {/* Period Selector */}
@@ -170,30 +199,6 @@ export function ConsistencyHeatmap({
           </div>
         </div>
 
-        {/* Stats Row */}
-        <div className="flex items-center gap-4 mt-3 text-sm">
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">Dias ativos:</span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              {stats.activeDays}
-            </span>
-            <span className="text-muted-foreground">
-              de {stats.totalDays}
-            </span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5">
-            <span className="text-muted-foreground">Consistência:</span>
-            <span className={cn(
-              'font-semibold',
-              stats.percentage >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
-            )}>
-              {stats.percentage}%
-            </span>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent>
         <div className="flex flex-col gap-2">
           {/* Heatmap Grid */}
           <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">

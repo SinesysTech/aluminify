@@ -13,6 +13,8 @@ export interface Metrics {
   scheduleProgress: number; // Percentual (0-100)
   focusTime: string; // Tempo de estudo total (aulas assistidas + listas), formato "12h 30m"
   focusTimeDelta: string; // Diferença vs período anterior, formato "+2h" ou "-1h"
+  classTime: string; // Tempo de aulas assistidas, formato "1h 20m"
+  exerciseTime: string; // Tempo de exercícios (modo foco), formato "45m"
   questionsAnswered: number;
   questionsAnsweredPeriod: string; // Ex: "Essa semana"
   accuracy: number; // Percentual (0-100)

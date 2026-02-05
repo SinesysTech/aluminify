@@ -10,7 +10,7 @@ import {
   PolarRadiusAxis,
 } from 'recharts'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import {
   Tooltip,
   TooltipContent,
@@ -26,12 +26,12 @@ interface StrategicDomainProps {
   data: StrategicDomain
 }
 
-// Configuração visual das importâncias - usando variantes de badge sólidas
-const importanciaConfig: Record<ModuloImportancia, { variant: 'importance-base' | 'importance-high' | 'importance-medium' | 'importance-low'; label: string }> = {
-  Base: { variant: 'importance-base', label: 'Base' },
-  Alta: { variant: 'importance-high', label: 'Alta' },
-  Media: { variant: 'importance-medium', label: 'Média' },
-  Baixa: { variant: 'importance-low', label: 'Baixa' },
+// Configuração visual das importâncias - harmonizada com o tema violet/fuchsia do card
+const importanciaConfig: Record<ModuloImportancia, { className: string; label: string }> = {
+  Base: { className: 'bg-fuchsia-500 text-white', label: 'Base' },
+  Alta: { className: 'bg-violet-500 text-white', label: 'Alta' },
+  Media: { className: 'bg-violet-400/80 text-white', label: 'Média' },
+  Baixa: { className: 'bg-violet-300/60 text-violet-800 dark:text-violet-100', label: 'Baixa' },
 }
 
 // Componente para exibir uma recomendação
@@ -44,12 +44,9 @@ function RecommendationCard({ rec }: { rec: StrategicDomainRecommendation }) {
         <span className="font-medium text-sm line-clamp-2" title={rec.moduloNome}>
           {rec.moduloNome}
         </span>
-        <Badge
-          variant={config.variant}
-          className="shrink-0 text-[10px] px-1.5 py-0"
-        >
+        <span className={cn("shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium", config.className)}>
           {config.label}
-        </Badge>
+        </span>
       </div>
       
       <p className="text-xs text-muted-foreground leading-relaxed">
@@ -125,11 +122,12 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
   }, [isDark])
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300">
+    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+      <div className="h-0.5 bg-linear-to-r from-violet-400 to-fuchsia-500" />
       <CardContent className="p-4 md:p-5 flex-1 flex flex-col min-h-0 gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Brain className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500">
+            <Brain className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -187,7 +185,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
           {/* Legenda do Gráfico */}
           <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-4 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-primary/30 border border-primary" />
+              <div className="w-2 h-2 rounded-full bg-violet-400/30 border border-violet-400" />
               <span>Seu Domínio</span>
             </div>
           </div>
@@ -196,7 +194,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
         {/* Lista de Recomendações */}
         <div className="w-full md:w-1/2 flex flex-col min-h-0">
           <div className="flex items-center gap-2 mb-3">
-            <Target className="w-4 h-4 text-primary" />
+            <Target className="w-4 h-4 text-violet-500 dark:text-violet-400" />
             <h4 className="text-sm font-medium">Foco Recomendado</h4>
           </div>
           
@@ -208,7 +206,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4 text-muted-foreground">
-                  <CheckCircle2 className="w-8 h-8 mb-2 text-green-500/50" />
+                  <CheckCircle2 className="w-8 h-8 mb-2 text-violet-400/50" />
                   <p className="text-sm">Parabéns!</p>
                   <p className="text-xs">
                     Você tem um bom domínio dos módulos estratégicos.

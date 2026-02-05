@@ -39,36 +39,13 @@ function ActivityIcon({ tipo, className }: { tipo: TipoAtividade; className?: st
   }
 }
 
-function getActivityColor(tipo: TipoAtividade) {
-  switch (tipo) {
-    case 'Nivel_1':
-    case 'Nivel_2':
-    case 'Nivel_3':
-    case 'Nivel_4':
-      return 'bg-violet-500/10 text-violet-600 border-violet-500/20'
-    case 'Lista_Mista':
-      return 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-    case 'Simulado_Diagnostico':
-    case 'Simulado_Cumulativo':
-    case 'Simulado_Global':
-      return 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-    case 'Conceituario':
-    case 'Revisao':
-      return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-    case 'Flashcards':
-      return 'bg-muted text-muted-foreground border-muted'
-    default:
-      return 'bg-muted text-muted-foreground'
-  }
-}
-
 export function NextActivityCard({ activity, onViewAll, className }: NextActivityCardProps) {
   const params = useParams()
   const tenant = params?.tenant as string
 
   if (!activity) {
     return (
-      <Card className={cn('border-dashed', className)}>
+      <Card className={cn('border-dashed rounded-2xl dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5', className)}>
         <CardContent className="py-8 text-center">
           <div className="mx-auto w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
             <BookOpen className="h-6 w-6 text-emerald-600" />
@@ -82,26 +59,23 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
     )
   }
 
-  const activityColorClass = getActivityColor(activity.tipo)
-
   const focoHref = `/${tenant}/foco?cursoId=${activity.cursoId}&atividadeId=${activity.id}&disciplinaId=${activity.disciplinaId}&frenteId=${activity.frenteId}&moduloId=${activity.moduloId}`
 
   return (
     <Card className={cn(
-      'overflow-hidden',
-      'bg-linear-to-br from-primary/5 via-transparent to-transparent',
-      'border-primary/20 hover:border-primary/40 transition-colors',
+      'overflow-hidden rounded-2xl pt-0',
+      'bg-linear-to-br from-emerald-500/5 via-transparent to-transparent',
+      'border-emerald-500/20 hover:border-emerald-500/40 transition-colors',
+      'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
       className
     )}>
+      <div className="h-0.5 bg-linear-to-r from-emerald-400 to-teal-500" />
       <CardContent className="p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Icon + Content */}
           <div className="flex items-start gap-4 flex-1 min-w-0">
-            <div className={cn(
-              'shrink-0 w-12 h-12 rounded-xl flex items-center justify-center',
-              activityColorClass
-            )}>
-              <ActivityIcon tipo={activity.tipo} className="h-6 w-6" />
+            <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-linear-to-br from-emerald-500 to-teal-500">
+              <ActivityIcon tipo={activity.tipo} className="h-6 w-6 text-white" />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -109,7 +83,7 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Próxima atividade
                 </span>
-                <Badge variant="outline" className={cn('text-[10px]', activityColorClass)}>
+                <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                   {formatTipoAtividade(activity.tipo)}
                 </Badge>
               </div>
@@ -131,10 +105,10 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
               size="lg"
               className={cn(
                 'gap-2 font-semibold shadow-lg px-6',
-                'bg-linear-to-r from-primary to-primary/80',
-                'hover:from-primary/90 hover:to-primary/70',
-                'hover:shadow-xl hover:scale-[1.02]',
-                'transition-all duration-200'
+                'bg-linear-to-r from-emerald-500 to-teal-500',
+                'hover:from-emerald-600 hover:to-teal-600',
+                'hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02]',
+                'transition-all duration-200 text-white'
               )}
             >
               <Link href={focoHref}>

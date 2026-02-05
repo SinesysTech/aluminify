@@ -59,7 +59,7 @@ export function SalaEstudosFilters({
   )
 
   return (
-    <div className="space-y-4 rounded-lg border bg-card p-4">
+    <div className="space-y-4 rounded-2xl border bg-card p-4 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
       <div className="flex flex-col gap-4 md:flex-row md:items-end">
         <div className="flex-1 space-y-2">
           <Label htmlFor="curso">Curso</Label>

@@ -34,20 +34,15 @@ interface AtividadeChecklistRowProps {
 function getDificuldadeColor(dificuldade: DificuldadePercebida): string {
   switch (dificuldade) {
     case 'Muito Facil':
-      // Roxo: #A78BFA
-      return 'border-transparent bg-[#A78BFA] text-white'
+      return 'border-transparent bg-violet-400 text-white'
     case 'Facil':
-      // Azul: #60A5FA
-      return 'border-transparent bg-[#60A5FA] text-white'
+      return 'border-transparent bg-blue-400 text-white'
     case 'Medio':
-      // Amarelo: #FACC15
-      return 'border-transparent bg-[#FACC15] text-white'
+      return 'border-transparent bg-amber-400 text-white'
     case 'Dificil':
-      // Laranja: #FB923C
-      return 'border-transparent bg-[#FB923C] text-white'
+      return 'border-transparent bg-orange-400 text-white'
     case 'Muito Dificil':
-      // Vermelho: #F87171
-      return 'border-transparent bg-[#F87171] text-white'
+      return 'border-transparent bg-rose-400 text-white'
     default:
       return ''
   }
@@ -156,10 +151,10 @@ export function AtividadeChecklistRow({
 
   const statusBadgeColor =
     isConcluido
-      ? 'border-transparent bg-[#34D399] text-white' // Verde
+      ? 'border-transparent bg-emerald-400 text-white'
       : isIniciado
-        ? 'border-transparent bg-[#60A5FA] text-white' // Azul
-        : 'border-transparent bg-[#22D3EE] text-white' // Ciano (pendente)
+        ? 'border-transparent bg-blue-400 text-white'
+        : 'border-transparent bg-cyan-400 text-white'
 
   return (
     <>
