@@ -1,6 +1,6 @@
 'use client'
 
-import { Timer, ArrowRight, BookOpen, FileText, Video, HelpCircle } from 'lucide-react'
+import { Timer, ArrowRight, BookOpen, FileText, Video, HelpCircle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,10 @@ import { AtividadeComProgresso } from '../types'
 import { TipoAtividade } from '@/app/shared/types/enums'
 import { formatTipoAtividade } from '@/shared/library/utils'
 
+type Prioridade = 'urgente' | 'normal' | 'fallback'
+
 interface NextActivityCardProps {
-  activity: AtividadeComProgresso | null
+  activity: (AtividadeComProgresso & { _prioridade: Prioridade }) | null
   onViewAll?: () => void
   className?: string
 }
@@ -47,8 +49,8 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
     return (
       <Card className={cn('border-dashed rounded-2xl dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5', className)}>
         <CardContent className="py-8 text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
-            <BookOpen className="h-6 w-6 text-emerald-600" />
+          <div className="mx-auto w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-3">
+            <BookOpen className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="font-semibold text-lg">Parabéns!</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -60,41 +62,85 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
   }
 
   const focoHref = `/${tenant}/foco?cursoId=${activity.cursoId}&atividadeId=${activity.id}&disciplinaId=${activity.disciplinaId}&frenteId=${activity.frenteId}&moduloId=${activity.moduloId}`
+  const prioridade = activity._prioridade
 
   return (
     <Card className={cn(
       'overflow-hidden rounded-2xl pt-0',
-      'bg-linear-to-br from-emerald-500/5 via-transparent to-transparent',
-      'border-emerald-500/20 hover:border-emerald-500/40 transition-colors',
       'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
+      prioridade === 'urgente' && [
+        'bg-linear-to-br from-rose-500/5 via-transparent to-transparent',
+        'border-rose-500/20 hover:border-rose-500/40 transition-colors',
+      ],
+      prioridade === 'normal' && [
+        'bg-linear-to-br from-amber-500/5 via-transparent to-transparent',
+        'border-amber-500/20 hover:border-amber-500/40 transition-colors',
+      ],
+      prioridade === 'fallback' && [
+        'bg-linear-to-br from-primary/5 via-transparent to-transparent',
+        'border-primary/20 hover:border-primary/40 transition-colors',
+      ],
       className
     )}>
-      <div className="h-0.5 bg-linear-to-r from-emerald-400 to-teal-500" />
+      <div className={cn(
+        'h-0.5 bg-linear-to-r',
+        prioridade === 'urgente' && 'from-rose-400 to-orange-500',
+        prioridade === 'normal' && 'from-amber-400 to-orange-500',
+        prioridade === 'fallback' && 'from-primary/60 to-primary/30',
+      )} />
       <CardContent className="p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Icon + Content */}
           <div className="flex items-start gap-4 flex-1 min-w-0">
-            <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-linear-to-br from-emerald-500 to-teal-500">
+            <div className={cn(
+              'shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-linear-to-br',
+              prioridade === 'urgente' && 'from-rose-500 to-orange-500',
+              prioridade === 'normal' && 'from-amber-500 to-orange-500',
+              prioridade === 'fallback' && 'from-primary to-primary/80',
+            )}>
               <ActivityIcon tipo={activity.tipo} className="h-6 w-6 text-white" />
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Próxima atividade
                 </span>
-                <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                <Badge variant="outline" className={cn(
+                  'text-[10px]',
+                  prioridade === 'urgente' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+                  prioridade === 'normal' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                  prioridade === 'fallback' && 'bg-primary/10 text-primary border-primary/20',
+                )}>
                   {formatTipoAtividade(activity.tipo)}
                 </Badge>
+                {activity.obrigatorio && (
+                  <Badge variant="outline" className={cn(
+                    'text-[10px]',
+                    prioridade === 'urgente'
+                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                  )}>
+                    Obrigatória
+                  </Badge>
+                )}
               </div>
 
               <h3 className="font-semibold text-lg truncate" title={activity.titulo}>
                 {activity.titulo}
               </h3>
 
-              <p className="text-sm text-muted-foreground mt-0.5 truncate">
-                {activity.disciplinaNome} &bull; {activity.frenteNome}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-sm text-muted-foreground truncate">
+                  {activity.disciplinaNome} &bull; {activity.frenteNome}
+                </p>
+                {prioridade === 'urgente' && (
+                  <span className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 shrink-0">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Aulas concluídas
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -105,10 +151,23 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
               size="lg"
               className={cn(
                 'gap-2 font-semibold shadow-lg px-6',
-                'bg-linear-to-r from-emerald-500 to-teal-500',
-                'hover:from-emerald-600 hover:to-teal-600',
-                'hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02]',
-                'transition-all duration-200 text-white'
+                'hover:shadow-xl hover:scale-[1.02]',
+                'transition-all duration-200 text-white',
+                prioridade === 'urgente' && [
+                  'bg-linear-to-r from-rose-500 to-orange-500',
+                  'hover:from-rose-600 hover:to-orange-600',
+                  'hover:shadow-rose-500/20',
+                ],
+                prioridade === 'normal' && [
+                  'bg-linear-to-r from-amber-500 to-orange-500',
+                  'hover:from-amber-600 hover:to-orange-600',
+                  'hover:shadow-amber-500/20',
+                ],
+                prioridade === 'fallback' && [
+                  'bg-linear-to-r from-primary to-primary/80',
+                  'hover:from-primary/90 hover:to-primary/70',
+                  'hover:shadow-primary/20',
+                ],
               )}
             >
               <Link href={focoHref}>

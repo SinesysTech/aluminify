@@ -26,12 +26,12 @@ interface StrategicDomainProps {
   data: StrategicDomain
 }
 
-// Configuração visual das importâncias - harmonizada com o tema violet/fuchsia do card
+// Configuração visual das importâncias - harmonizada com o tema blue/indigo do card
 const importanciaConfig: Record<ModuloImportancia, { className: string; label: string }> = {
-  Base: { className: 'bg-fuchsia-500 text-white', label: 'Base' },
-  Alta: { className: 'bg-violet-500 text-white', label: 'Alta' },
-  Media: { className: 'bg-violet-400/80 text-white', label: 'Média' },
-  Baixa: { className: 'bg-violet-300/60 text-violet-800 dark:text-violet-100', label: 'Baixa' },
+  Base: { className: 'bg-indigo-500 text-white', label: 'Base' },
+  Alta: { className: 'bg-blue-500 text-white', label: 'Alta' },
+  Media: { className: 'bg-blue-400/80 text-white', label: 'Média' },
+  Baixa: { className: 'bg-blue-300/60 text-blue-800 dark:text-blue-100', label: 'Baixa' },
 }
 
 // Componente para exibir uma recomendação
@@ -100,33 +100,31 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
     },
   ]
 
-  // Cores adaptáveis ao tema - usando roxo #A78BFA
+  // Cores adaptáveis ao tema - usando azul/indigo
   const chartColors = useMemo(() => {
-    const purpleColor = '#A78BFA' // Cor roxa especificada
-    
+    const blueColor = '#818CF8' // indigo-400
+
     if (isDark) {
-      // No modo escuro, usar cores mais claras para melhor visibilidade
       return {
         grid: 'rgba(255, 255, 255, 0.15)',
         text: 'rgba(255, 255, 255, 0.7)',
-        primary: purpleColor,
+        primary: blueColor,
       }
     }
-    
-    // Modo claro - usar cores escuras para melhor visibilidade
+
     return {
       grid: 'rgba(0, 0, 0, 0.2)',
       text: 'rgba(0, 0, 0, 0.8)',
-      primary: purpleColor,
+      primary: '#6366F1', // indigo-500 (mais escuro no light)
     }
   }, [isDark])
 
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
-      <div className="h-0.5 bg-linear-to-r from-violet-400 to-fuchsia-500" />
+      <div className="h-0.5 bg-linear-to-r from-blue-400 to-indigo-500" />
       <CardContent className="p-4 md:p-5 flex-1 flex flex-col min-h-0 gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-500">
             <Brain className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -185,7 +183,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
           {/* Legenda do Gráfico */}
           <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-4 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-violet-400/30 border border-violet-400" />
+              <div className="w-2 h-2 rounded-full bg-indigo-400/30 border border-indigo-400" />
               <span>Seu Domínio</span>
             </div>
           </div>
@@ -194,7 +192,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
         {/* Lista de Recomendações */}
         <div className="w-full md:w-1/2 flex flex-col min-h-0">
           <div className="flex items-center gap-2 mb-3">
-            <Target className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+            <Target className="w-4 h-4 text-blue-500 dark:text-blue-400" />
             <h4 className="text-sm font-medium">Foco Recomendado</h4>
           </div>
           
@@ -206,7 +204,7 @@ export function StrategicDomain({ data }: StrategicDomainProps) {
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4 text-muted-foreground">
-                  <CheckCircle2 className="w-8 h-8 mb-2 text-violet-400/50" />
+                  <CheckCircle2 className="w-8 h-8 mb-2 text-blue-400/50" />
                   <p className="text-sm">Parabéns!</p>
                   <p className="text-xs">
                     Você tem um bom domínio dos módulos estratégicos.

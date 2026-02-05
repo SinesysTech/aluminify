@@ -39,6 +39,8 @@ function serializeAtividadeComProgresso(
     questoesAcertos: atividade.questoesAcertos,
     dificuldadePercebida: atividade.dificuldadePercebida,
     anotacoesPessoais: atividade.anotacoesPessoais,
+    moduloAulasTotal: atividade.moduloAulasTotal,
+    moduloAulasConcluidas: atividade.moduloAulasConcluidas,
   };
 }
 

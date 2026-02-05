@@ -104,13 +104,13 @@ export function ConsistencyHeatmap({
       case 0:
         return 'bg-muted/40 hover:bg-muted/60'
       case 1:
-        return 'bg-emerald-500/40 hover:bg-emerald-500/50 dark:bg-emerald-400/40 dark:hover:bg-emerald-400/50'
+        return 'bg-rose-500/40 hover:bg-rose-500/50 dark:bg-rose-400/40 dark:hover:bg-rose-400/50'
       case 2:
-        return 'bg-emerald-500/60 hover:bg-emerald-500/70 dark:bg-emerald-400/60 dark:hover:bg-emerald-400/70'
+        return 'bg-rose-500/60 hover:bg-rose-500/70 dark:bg-rose-400/60 dark:hover:bg-rose-400/70'
       case 3:
-        return 'bg-emerald-500/80 hover:bg-emerald-500/90 dark:bg-emerald-400/80 dark:hover:bg-emerald-400/90'
+        return 'bg-rose-500/80 hover:bg-rose-500/90 dark:bg-rose-400/80 dark:hover:bg-rose-400/90'
       case 4:
-        return 'bg-emerald-500 hover:bg-emerald-500/90 dark:bg-emerald-400 dark:hover:bg-emerald-400/90'
+        return 'bg-rose-500 hover:bg-rose-500/90 dark:bg-rose-400 dark:hover:bg-rose-400/90'
       default:
         return 'bg-muted/40'
     }
@@ -129,11 +129,11 @@ export function ConsistencyHeatmap({
 
   return (
     <Card className="overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
-      <div className="h-0.5 bg-linear-to-r from-emerald-400 to-teal-500" />
+      <div className="h-0.5 bg-linear-to-r from-rose-400 to-red-500" />
       <CardContent className="p-4 md:p-5">
         {/* Header with icon badge */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-500">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-red-500">
             <Flame className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -162,7 +162,7 @@ export function ConsistencyHeatmap({
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground">Dias ativos:</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="font-semibold text-rose-600 dark:text-rose-400">
                 {stats.activeDays}
               </span>
               <span className="text-muted-foreground">
@@ -173,7 +173,7 @@ export function ConsistencyHeatmap({
               <span className="text-muted-foreground">Consistência:</span>
               <span className={cn(
                 'font-semibold',
-                stats.percentage >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                stats.percentage >= 50 ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'
               )}>
                 {stats.percentage}%
               </span>
@@ -242,10 +242,10 @@ export function ConsistencyHeatmap({
             <span>Menos</span>
             <div className="flex gap-1">
               <div className="size-3.5 rounded-sm bg-muted/40" />
-              <div className="size-3.5 rounded-sm bg-emerald-500/40 dark:bg-emerald-400/40" />
-              <div className="size-3.5 rounded-sm bg-emerald-500/60 dark:bg-emerald-400/60" />
-              <div className="size-3.5 rounded-sm bg-emerald-500/80 dark:bg-emerald-400/80" />
-              <div className="size-3.5 rounded-sm bg-emerald-500 dark:bg-emerald-400" />
+              <div className="size-3.5 rounded-sm bg-rose-500/40 dark:bg-rose-400/40" />
+              <div className="size-3.5 rounded-sm bg-rose-500/60 dark:bg-rose-400/60" />
+              <div className="size-3.5 rounded-sm bg-rose-500/80 dark:bg-rose-400/80" />
+              <div className="size-3.5 rounded-sm bg-rose-500 dark:bg-rose-400" />
             </div>
             <span>Mais</span>
           </div>

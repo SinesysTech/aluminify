@@ -10,7 +10,8 @@ import { MobileOrgSwitcher } from '@/components/layout/mobile-org-switcher'
 
 export function DashboardHeader() {
   return (
-    <header className="sticky top-0 z-10 flex h-14 md:h-16 shrink-0 items-center gap-2 justify-between bg-background/80 backdrop-blur-xl border-b border-border/50">
+    <header className="sticky top-0 z-10 flex h-14 md:h-16 shrink-0 items-center gap-2 justify-between bg-background/80 backdrop-blur-xl dark:bg-background/60">
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-border to-transparent" />
       <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4 min-w-0">
         <SidebarTrigger className="-ml-1 shrink-0" />
         <Separator

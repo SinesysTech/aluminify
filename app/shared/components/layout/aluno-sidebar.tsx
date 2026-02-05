@@ -187,6 +187,7 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       <SidebarHeader>
         <WorkspaceSwitcher />
       </SidebarHeader>
+      <div className="mx-3 h-px bg-linear-to-r from-transparent via-sidebar-border to-transparent" />
       <SidebarContent>
         {navMainWithActive ? (
           <NavMain items={navMainWithActive} label="Menu" />
@@ -194,6 +195,7 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           <NavMenuSkeleton />
         )}
       </SidebarContent>
+      <div className="mx-3 h-px bg-linear-to-r from-transparent via-sidebar-border to-transparent" />
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>

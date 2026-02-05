@@ -35,6 +35,8 @@ export interface AtividadeComProgresso {
   progressoStatus: StatusAtividade | null;
   progressoDataInicio: string | null;
   progressoDataConclusao: string | null;
+  moduloAulasTotal: number;
+  moduloAulasConcluidas: number;
   // Campos de desempenho (quando concluído com check qualificado)
   questoesTotais?: number | null;
   questoesAcertos?: number | null;

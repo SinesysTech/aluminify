@@ -92,9 +92,13 @@ export function WorkspaceSwitcher() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" asChild>
+          <SidebarMenuButton
+            size="lg"
+            asChild
+            className="border border-sidebar-border/50 hover:border-sidebar-foreground/20 hover:bg-sidebar-accent/50 shadow-sm hover:shadow-md dark:border-sidebar-foreground/15 dark:bg-sidebar-accent/20 dark:hover:border-sidebar-foreground/30 dark:hover:bg-sidebar-accent/40 transition-all"
+          >
             <Link href={tenantSlug ? `/${tenantSlug}/dashboard` : "/dashboard"}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ring-1 ring-sidebar-border/30 dark:ring-sidebar-foreground/15">
                 <TenantLogo
                   logoType="sidebar"
                   empresaId={empresaIdForLogo}

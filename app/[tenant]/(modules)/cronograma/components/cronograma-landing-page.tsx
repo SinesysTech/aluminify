@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/app/shared/components/fee
 import { Progress } from '@/app/shared/components/feedback/progress'
 import { Badge } from '@/components/ui/badge'
 import { PageShell } from '@/app/shared/components/layout/page-shell'
+import { cn } from '@/lib/utils'
 
 interface CronogramaSummary {
   id: string
@@ -61,10 +62,10 @@ export function CronogramaLandingPage({ cronogramas, hasBaseContent }: Cronogram
       )}
 
       {cronogramas.length === 0 && hasBaseContent && (
-        <Card className="border-dashed border-2">
+        <Card className="border-dashed border-2 rounded-2xl dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-primary/10 p-4 mb-4">
-              <CalendarCheck className="h-8 w-8 text-primary" />
+            <div className="rounded-full bg-muted/60 p-4 mb-4">
+              <CalendarCheck className="h-8 w-8 text-foreground/70" />
             </div>
             <h3 className="text-lg font-semibold mb-2">Nenhum cronograma criado</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-md">
@@ -93,12 +94,18 @@ export function CronogramaLandingPage({ cronogramas, hasBaseContent }: Cronogram
             return (
               <Card
                 key={cronograma.id}
-                className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30 group"
+                className={cn(
+                  'cursor-pointer transition-all duration-200 group overflow-hidden rounded-2xl pt-0',
+                  'hover:shadow-lg hover:shadow-foreground/5 hover:border-foreground/20',
+                  'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
+                  'dark:hover:shadow-white/5 dark:hover:border-white/15'
+                )}
                 onClick={() => navigateTo(`/cronograma/${cronograma.id}`)}
               >
+                <div className="h-0.5 bg-linear-to-r from-foreground/40 to-foreground/10 dark:from-white/30 dark:to-white/5" />
                 <CardContent className="flex items-center gap-4 py-4">
-                  <div className="hidden sm:flex shrink-0 rounded-lg bg-primary/10 p-3">
-                    <BookOpen className="h-5 w-5 text-primary" />
+                  <div className="hidden sm:flex shrink-0 rounded-xl p-3 bg-foreground dark:bg-white/90">
+                    <BookOpen className="h-5 w-5 text-background dark:text-slate-900" />
                   </div>
 
                   <div className="flex-1 min-w-0 space-y-2">
@@ -106,7 +113,7 @@ export function CronogramaLandingPage({ cronogramas, hasBaseContent }: Cronogram
                       <h3 className="font-semibold truncate">
                         {cronograma.nome || 'Meu Cronograma'}
                       </h3>
-                      <Badge variant="secondary" className="shrink-0 text-xs">
+                      <Badge variant="outline" className="shrink-0 text-xs bg-foreground/5 text-foreground/70 border-foreground/15 dark:bg-white/10 dark:text-white/70 dark:border-white/15">
                         {modalidadeLabel}
                       </Badge>
                     </div>
@@ -121,12 +128,12 @@ export function CronogramaLandingPage({ cronogramas, hasBaseContent }: Cronogram
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <Progress value={progress} className="h-1.5 flex-1" />
+                      <Progress value={progress} className="h-1.5 flex-1 [&>div]:bg-foreground/70 dark:[&>div]:bg-white/70" />
                       <span className="text-xs font-medium tabular-nums w-8 text-right">{progress}%</span>
                     </div>
                   </div>
 
-                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 transition-colors group-hover:text-foreground" />
                 </CardContent>
               </Card>
             )

@@ -172,7 +172,24 @@ export default function SalaEstudosClientPage() {
   }, [atividades])
 
   const nextActivity = React.useMemo(() => {
-    return atividades.find((a) => a.progressoStatus !== 'Concluido') ?? null
+    const pending = atividades.filter((a) => a.progressoStatus !== 'Concluido')
+    if (pending.length === 0) return null
+
+    // Prioridade 1: Obrigatória + módulo com todas as aulas concluídas
+    const urgente = pending.find(
+      (a) =>
+        a.obrigatorio &&
+        a.moduloAulasTotal > 0 &&
+        a.moduloAulasConcluidas >= a.moduloAulasTotal
+    )
+    if (urgente) return { ...urgente, _prioridade: 'urgente' as const }
+
+    // Prioridade 2: Obrigatória (qualquer módulo)
+    const obrigatoria = pending.find((a) => a.obrigatorio)
+    if (obrigatoria) return { ...obrigatoria, _prioridade: 'normal' as const }
+
+    // Prioridade 3: Qualquer pendente (fallback)
+    return { ...pending[0], _prioridade: 'fallback' as const }
   }, [atividades])
 
   const dailyGoal = React.useMemo(() => {

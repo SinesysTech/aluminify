@@ -43,16 +43,16 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   return null
 }
 
-// Paleta harmonizada com o tema cyan/teal do card
+// Paleta harmonizada com o tema emerald/green do card
 const CHART_PALETTE = [
+  '#059669', // emerald-600
+  '#16a34a', // green-600
   '#0d9488', // teal-600
   '#0891b2', // cyan-600
-  '#0284c7', // sky-600
-  '#4f46e5', // indigo-600
-  '#7c3aed', // violet-600
+  '#10b981', // emerald-500
+  '#22c55e', // green-500
   '#14b8a6', // teal-500
   '#06b6d4', // cyan-500
-  '#0ea5e9', // sky-500
 ]
 
 export function SubjectDistribution({ data, period }: SubjectDistributionProps) {
@@ -71,10 +71,10 @@ export function SubjectDistribution({ data, period }: SubjectDistributionProps) 
 
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
-      <div className="h-0.5 bg-linear-to-r from-cyan-400 to-teal-500" />
+      <div className="h-0.5 bg-linear-to-r from-emerald-400 to-green-500" />
       <CardContent className="p-4 md:p-5 flex-1 min-h-0 flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-cyan-500 to-teal-500">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-green-500">
             <Clock className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">

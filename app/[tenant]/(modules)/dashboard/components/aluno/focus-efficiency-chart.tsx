@@ -35,10 +35,10 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
 
   return (
     <Card className="h-full overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
-      <div className="h-0.5 bg-linear-to-r from-amber-400 to-orange-500" />
+      <div className="h-0.5 bg-linear-to-r from-teal-400 to-cyan-500" />
       <CardContent className="p-4 md:p-5 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-500">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-teal-500 to-cyan-500">
             <Timer className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -98,7 +98,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                             <span className="text-[0.70rem] uppercase text-muted-foreground">
                               Tempo Líquido
                             </span>
-                            <span className="font-bold text-amber-600">
+                            <span className="font-bold text-teal-600">
                               {payload[1].value} min
                             </span>
                           </div>
@@ -122,7 +122,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                 name="Tempo Líquido"
                 fill="currentColor"
                 radius={[4, 4, 0, 0]}
-                className="fill-amber-500"
+                className="fill-teal-500"
                 maxBarSize={40}
               />
             </BarChart>
@@ -134,7 +134,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
             <span>Tempo Bruto (Sessão total)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-amber-500 shrink-0" />
+            <div className="w-3 h-3 rounded-sm bg-teal-500 shrink-0" />
             <span>Tempo Líquido (Sem pausas)</span>
           </div>
         </div>

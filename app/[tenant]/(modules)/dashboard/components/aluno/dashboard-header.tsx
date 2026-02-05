@@ -78,7 +78,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   }
 
   return (
-    <header>
+    <header className="rounded-2xl border border-border/40 bg-card/50 p-4 md:p-5 shadow-sm dark:bg-card/40 dark:backdrop-blur-sm dark:border-white/5 dark:shadow-none">
       {/* Mobile Layout */}
       <div className="flex items-center justify-between gap-3 md:hidden">
         <h1 className="text-2xl font-bold tracking-tight truncate">
@@ -93,8 +93,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 size="default"
                 className={cn(
                   'gap-2 font-semibold shadow-lg shrink-0',
-                  'bg-linear-to-r from-primary to-primary/80',
-                  'hover:from-primary/90 hover:to-primary/70',
+                  'bg-foreground text-background',
+                  'hover:bg-foreground/90',
                   'transition-all duration-200'
                 )}
               >
@@ -132,8 +132,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 size="lg"
                 className={cn(
                   'gap-2 font-semibold shadow-lg px-6',
-                  'bg-linear-to-r from-primary to-primary/80',
-                  'hover:from-primary/90 hover:to-primary/70',
+                  'bg-foreground text-background',
+                  'hover:bg-foreground/90',
                   'hover:shadow-xl hover:scale-[1.02]',
                   'transition-all duration-200'
                 )}

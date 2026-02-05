@@ -179,9 +179,9 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-sidebar-border/50 hover:border-sidebar-foreground/20 hover:bg-sidebar-accent/50 shadow-sm hover:shadow-md dark:border-sidebar-foreground/15 dark:bg-sidebar-accent/20 dark:hover:border-sidebar-foreground/30 dark:hover:bg-sidebar-accent/40 transition-all"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-lg ring-1 ring-sidebar-border/30 dark:ring-sidebar-foreground/15">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">{getInitials(user.name)}</AvatarFallback>
               </Avatar>

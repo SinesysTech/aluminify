@@ -208,6 +208,45 @@ export class SalaEstudosService {
       .in("atividade_id", atividadeIds);
     const progressoMap = new Map((pData || []).map((p) => [p.atividade_id, p]));
 
+    // 6b. Buscar aulas por módulo e aulas concluídas pelo aluno
+    const { data: aulasDoModulo } = await this.supabase
+      .from("aulas")
+      .select("id, modulo_id")
+      .in("modulo_id", moduloIds);
+
+    const aulasTotalPorModulo = new Map<string, number>();
+    const aulasConcluidasPorModulo = new Map<string, number>();
+
+    (aulasDoModulo || []).forEach((aula) => {
+      if (!aula.modulo_id) return;
+      aulasTotalPorModulo.set(
+        aula.modulo_id,
+        (aulasTotalPorModulo.get(aula.modulo_id) ?? 0) + 1,
+      );
+    });
+
+    if (aulasTotalPorModulo.size > 0) {
+      const { data: aulasConcluidas } = await this.supabase
+        .from("aulas_concluidas")
+        .select("aula_id")
+        .eq("usuario_id", alunoId);
+
+      const aulaToModulo = new Map<string, string>();
+      (aulasDoModulo || []).forEach((a) => {
+        if (a.modulo_id) aulaToModulo.set(a.id, a.modulo_id);
+      });
+
+      (aulasConcluidas || []).forEach((ac) => {
+        const mId = aulaToModulo.get(ac.aula_id);
+        if (mId) {
+          aulasConcluidasPorModulo.set(
+            mId,
+            (aulasConcluidasPorModulo.get(mId) ?? 0) + 1,
+          );
+        }
+      });
+    }
+
     // 7. Info lookups (names)
     const { data: dInfos } = await this.supabase
       .from("disciplinas")
@@ -289,6 +328,8 @@ export class SalaEstudosService {
         questoesAcertos: prog?.questoes_acertos,
         dificuldadePercebida: prog?.dificuldade_percebida,
         anotacoesPessoais: prog?.anotacoes_pessoais,
+        moduloAulasTotal: aulasTotalPorModulo.get(mod.id) ?? 0,
+        moduloAulasConcluidas: aulasConcluidasPorModulo.get(mod.id) ?? 0,
       });
     }
 

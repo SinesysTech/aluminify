@@ -232,6 +232,63 @@ export async function listByAlunoMatriculasHelper(
     ]),
   );
 
+  // 6b. Buscar aulas por módulo e aulas concluídas pelo aluno
+  // para determinar quais módulos o aluno já "assistiu" (aulas concluídas)
+  const { data: aulasDoModulo, error: aulasError } = await client
+    .from("aulas")
+    .select("id, modulo_id")
+    .in("modulo_id", moduloIds);
+
+  if (aulasError) {
+    throw new Error(`Failed to fetch aulas: ${aulasError.message}`);
+  }
+
+  // Contar total de aulas por módulo
+  const aulasTotalPorModulo = new Map<string, number>();
+  const aulaIdsPorModulo = new Map<string, string[]>();
+  (aulasDoModulo || []).forEach((aula) => {
+    if (!aula.modulo_id) return;
+    aulasTotalPorModulo.set(
+      aula.modulo_id,
+      (aulasTotalPorModulo.get(aula.modulo_id) ?? 0) + 1,
+    );
+    const ids = aulaIdsPorModulo.get(aula.modulo_id) ?? [];
+    ids.push(aula.id);
+    aulaIdsPorModulo.set(aula.modulo_id, ids);
+  });
+
+  // Buscar aulas concluídas pelo aluno (sem .in() para evitar limite de URL do PostgREST)
+  const aulasConcluidasPorModulo = new Map<string, number>();
+
+  if (aulasTotalPorModulo.size > 0) {
+    const { data: aulasConcluidas, error: aulasConcluidasError } = await client
+      .from("aulas_concluidas")
+      .select("aula_id")
+      .eq("usuario_id", alunoId);
+
+    if (aulasConcluidasError) {
+      throw new Error(
+        `Failed to fetch aulas_concluidas: ${aulasConcluidasError.message}`,
+      );
+    }
+
+    // Mapear aula_id → modulo_id para contar concluídas por módulo
+    const aulaToModulo = new Map<string, string>();
+    (aulasDoModulo || []).forEach((a) => {
+      if (a.modulo_id) aulaToModulo.set(a.id, a.modulo_id);
+    });
+
+    (aulasConcluidas || []).forEach((ac) => {
+      const moduloId = aulaToModulo.get(ac.aula_id);
+      if (moduloId) {
+        aulasConcluidasPorModulo.set(
+          moduloId,
+          (aulasConcluidasPorModulo.get(moduloId) ?? 0) + 1,
+        );
+      }
+    });
+  }
+
   // 7. Buscar disciplinas
   const { data: disciplinas, error: discError } = await client
     .from("disciplinas")
@@ -333,6 +390,9 @@ export async function listByAlunoMatriculasHelper(
       questoesAcertos: progresso?.questoesAcertos ?? null,
       dificuldadePercebida: progresso?.dificuldadePercebida ?? null,
       anotacoesPessoais: progresso?.anotacoesPessoais ?? null,
+      // Dados de conclusão de aulas do módulo
+      moduloAulasTotal: aulasTotalPorModulo.get(modulo.id) ?? 0,
+      moduloAulasConcluidas: aulasConcluidasPorModulo.get(modulo.id) ?? 0,
     });
   }
 

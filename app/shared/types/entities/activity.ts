@@ -57,6 +57,8 @@ export interface AtividadeComProgressoEHierarquia extends Atividade {
   progressoStatus: StatusAtividade | null;
   progressoDataInicio: Date | null;
   progressoDataConclusao: Date | null;
+  moduloAulasTotal: number;
+  moduloAulasConcluidas: number;
 }
 
 export interface CreateAtividadeInput {

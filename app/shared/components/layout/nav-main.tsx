@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronRight, type LucideIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 import {
   Collapsible,
@@ -59,9 +60,16 @@ export function NavMain({
               defaultOpen={item.isActive}
               className="group/collapsible"
             >
-              <SidebarMenuItem>
+              <SidebarMenuItem className="relative">
+                {item.isActive && (
+                  <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-sidebar-foreground/70 dark:bg-sidebar-foreground/50" />
+                )}
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title} isActive={item.isActive}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={item.isActive}
+                    className={cn(item.isActive && "shadow-sm dark:shadow-none")}
+                  >
                     <item.icon />
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -83,8 +91,16 @@ export function NavMain({
               </SidebarMenuItem>
             </Collapsible>
           ) : (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title} isActive={item.isActive}>
+            <SidebarMenuItem key={item.title} className="relative">
+              {item.isActive && (
+                <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-sidebar-foreground/70 dark:bg-sidebar-foreground/50" />
+              )}
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={item.isActive}
+                className={cn(item.isActive && "shadow-sm dark:shadow-none")}
+              >
                 <Link href={item.url}>
                   <item.icon />
                   <span>{item.title}</span>
