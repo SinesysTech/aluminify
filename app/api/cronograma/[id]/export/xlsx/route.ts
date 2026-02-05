@@ -56,15 +56,62 @@ function formatTempo(minutos?: number | null) {
   return `${m} min`
 }
 
-function corDisciplina(disciplinaId?: string) {
-  if (!disciplinaId) return 'FFEEF7'
-  const hash = (disciplinaId || '').split('').reduce((acc, c) => acc * 31 + c.charCodeAt(0), 7)
-  const hue = Math.abs(hash) % 360
-  // Converter hue aproximado para tonalidade pastel
-  const r = Math.round(255 * (1 - Math.abs(((hue / 60) % 2) - 1) * 0.2))
-  const g = Math.round(240 * (1 - Math.abs(((hue / 60) % 2) - 1) * 0.2))
-  const b = Math.round(220 * (1 - Math.abs(((hue / 60) % 2) - 1) * 0.2))
-  return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+/**
+ * Retorna cor de fundo da linha baseada no número da semana e na frente.
+ * Cada semana tem uma família de cores (azul, verde, amarelo) e cada frente
+ * tem uma intensidade diferente dentro dessa família.
+ */
+function corSemanaFrente(semanaNumero: number, frenteNome: string): string {
+  // Famílias de cores por semana (3 tons cada: claro, médio, intenso)
+  const familias = [
+    // Azul (semanas 1, 4, 7...)
+    ['E8F4FD', 'D1E9FB', 'B8DCF8'],
+    // Verde (semanas 2, 5, 8...)
+    ['E8F8F0', 'D1F1E0', 'B8E8D0'],
+    // Amarelo (semanas 3, 6, 9...)
+    ['FFF8E8', 'FFF1D1', 'FFE8B8'],
+  ]
+  
+  // Determinar índice da frente (A=0, B=1, C=2, outras=0)
+  const frenteUpper = (frenteNome || '').toUpperCase().trim()
+  let frenteIndex = 0
+  if (frenteUpper.startsWith('FRENTE B') || frenteUpper === 'B') {
+    frenteIndex = 1
+  } else if (frenteUpper.startsWith('FRENTE C') || frenteUpper === 'C') {
+    frenteIndex = 2
+  }
+  
+  const familiaIndex = (semanaNumero - 1) % familias.length
+  return familias[familiaIndex][frenteIndex]
+}
+
+/**
+ * Reordena os itens do cronograma para agrupar por frente dentro de cada semana.
+ * Ordem: Semana → Frente (A, B, C) → Módulo → Aula
+ */
+function sortByFrenteWithinWeek(itens: ItemExport[]): ItemExport[] {
+  return [...itens].sort((a, b) => {
+    // 1. Ordenar por semana
+    if (a.semana_numero !== b.semana_numero) {
+      return a.semana_numero - b.semana_numero;
+    }
+    // 2. Ordenar por nome da frente (A, B, C)
+    const frenteA = a.aulas?.modulos?.frentes?.nome || '';
+    const frenteB = b.aulas?.modulos?.frentes?.nome || '';
+    if (frenteA !== frenteB) {
+      return frenteA.localeCompare(frenteB, 'pt-BR');
+    }
+    // 3. Ordenar por número do módulo
+    const moduloA = a.aulas?.modulos?.numero_modulo ?? 0;
+    const moduloB = b.aulas?.modulos?.numero_modulo ?? 0;
+    if (moduloA !== moduloB) {
+      return moduloA - moduloB;
+    }
+    // 4. Ordenar por número da aula
+    const aulaA = a.aulas?.numero_aula ?? 0;
+    const aulaB = b.aulas?.numero_aula ?? 0;
+    return aulaA - aulaB;
+  });
 }
 
 async function buildWorkbook(cronograma: CronogramaExport, itens: ItemExport[]) {
@@ -117,10 +164,11 @@ async function buildWorkbook(cronograma: CronogramaExport, itens: ItemExport[]) 
   folha.columns = [
     { header: 'Data', key: 'data', width: 14 },
     { header: 'Semana', key: 'semana', width: 10 },
-    { header: 'Ordem', key: 'ordem', width: 10 },
     { header: 'Disciplina', key: 'disciplina', width: 26 },
     { header: 'Frente', key: 'frente', width: 26 },
+    { header: 'Nº Módulo', key: 'numero_modulo', width: 12 },
     { header: 'Módulo', key: 'modulo', width: 18 },
+    { header: 'Nº Aula', key: 'numero_aula', width: 10 },
     { header: 'Aula', key: 'aula', width: 40 },
     { header: 'Tempo Est.', key: 'tempo', width: 12 },
     { header: 'Concluída', key: 'concluida', width: 12 },
@@ -136,30 +184,30 @@ async function buildWorkbook(cronograma: CronogramaExport, itens: ItemExport[]) 
     const frente = it.aulas?.modulos?.frentes
     const modulo = it.aulas?.modulos
     const aula = it.aulas
+    const frenteNome = frente?.nome || ''
     const row = folha.addRow({
       data: d,
       semana: it.semana_numero,
-      ordem: it.ordem_na_semana,
       disciplina: disc?.nome || '',
-      frente: frente?.nome || '',
+      frente: frenteNome,
+      numero_modulo: modulo?.numero_modulo ?? '',
       modulo: modulo?.nome || '',
+      numero_aula: aula?.numero_aula ?? '',
       aula: aula?.nome || '',
       tempo: formatTempo(aula?.tempo_estimado_minutos || null),
       concluida: it.concluido ? 'Sim' : 'Não',
       conclusao: it.data_conclusao || '',
     })
-    const fillColor = corDisciplina(disc?.id)
+    const fillColor = corSemanaFrente(it.semana_numero, frenteNome)
     row.eachCell((cell, colNumber) => {
-      if (colNumber >= 1 && colNumber <= 10) {
+      if (colNumber >= 1 && colNumber <= 11) {
         cell.border = {
           top: { style: 'thin', color: { argb: 'DDDDDD' } },
           left: { style: 'thin', color: { argb: 'EEEEEE' } },
           bottom: { style: 'thin', color: { argb: 'DDDDDD' } },
           right: { style: 'thin', color: { argb: 'EEEEEE' } },
         }
-        if (colNumber === 4) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillColor } }
-        }
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillColor } }
       }
     })
   })
@@ -217,7 +265,10 @@ async function getHandler(
     horas_estudo_dia: cronogramaTyped.horas_estudo_dia || 2,
     modalidade_estudo: cronogramaTyped.modalidade_estudo || 'hibrido',
   }
-  const wb = await buildWorkbook(cronogramaExport, itens)
+  
+  // Reordenar itens para agrupar por frente dentro de cada semana (A, B, C)
+  const itensOrdenados = sortByFrenteWithinWeek(itens)
+  const wb = await buildWorkbook(cronogramaExport, itensOrdenados)
   const buffer = await wb.xlsx.writeBuffer()
 
   return new NextResponse(buffer, {

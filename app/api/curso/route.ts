@@ -33,6 +33,7 @@ const serializeCourse = (
   planningUrl: course.planningUrl,
   coverImageUrl: course.coverImageUrl,
   usaTurmas: course.usaTurmas,
+  hotmartProductId: course.hotmartProductId,
   createdAt: course.createdAt.toISOString(),
   updatedAt: course.updatedAt.toISOString(),
 });
@@ -85,6 +86,7 @@ async function getHandler(request: AuthenticatedRequest) {
         planejamento_url,
         imagem_capa_url,
         usa_turmas,
+        hotmart_product_id,
         created_at,
         updated_at,
         cursos_disciplinas (disciplina_id),
@@ -126,6 +128,7 @@ async function getHandler(request: AuthenticatedRequest) {
         planningUrl: c.planejamento_url,
         coverImageUrl: c.imagem_capa_url,
         usaTurmas: c.usa_turmas ?? false,
+        hotmartProductId: c.hotmart_product_id ?? null,
         createdAt: c.created_at,
         updatedAt: c.updated_at,
       })),
@@ -237,6 +240,7 @@ async function postHandler(request: AuthenticatedRequest) {
       planningUrl: body?.planningUrl,
       coverImageUrl: body?.coverImageUrl,
       usaTurmas: body?.usaTurmas,
+      hotmartProductId: body?.hotmartProductId,
     });
     return NextResponse.json(
       { data: serializeCourse(course) },

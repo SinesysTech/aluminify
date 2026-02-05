@@ -25,6 +25,7 @@ export interface Course {
   planningUrl: string | null;
   coverImageUrl: string | null;
   usaTurmas: boolean;
+  hotmartProductId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +48,7 @@ export interface CreateCourseInput {
   planningUrl?: string;
   coverImageUrl?: string;
   usaTurmas?: boolean;
+  hotmartProductId?: string;
 }
 
 export interface UpdateCourseInput {
@@ -66,4 +68,5 @@ export interface UpdateCourseInput {
   planningUrl?: string | null;
   coverImageUrl?: string | null;
   usaTurmas?: boolean;
+  hotmartProductId?: string | null;
 }

@@ -58,6 +58,7 @@ type CourseRow = {
   planejamento_url: string | null;
   imagem_capa_url: string | null;
   usa_turmas: boolean;
+  hotmart_product_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -84,6 +85,7 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Curso> {
     planningUrl: row.planejamento_url,
     coverImageUrl: row.imagem_capa_url,
     usaTurmas: row.usa_turmas ?? false,
+    hotmartProductId: row.hotmart_product_id ?? null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -129,6 +131,7 @@ export class CursoRepositoryImpl implements CursoRepository {
       empresaId: "empresa_id",
       segmentId: "segmento_id",
       disciplineId: "disciplina_id",
+      hotmartProductId: "hotmart_product_id",
     };
     return columnMap[sortBy] || sortBy;
   }
@@ -228,6 +231,7 @@ export class CursoRepositoryImpl implements CursoRepository {
       planejamento_url: payload.planningUrl ?? null,
       imagem_capa_url: payload.coverImageUrl ?? null,
       usa_turmas: payload.usaTurmas ?? false,
+      hotmart_product_id: payload.hotmartProductId ?? null,
     };
 
     const { data, error } = await this.client
@@ -317,6 +321,10 @@ export class CursoRepositoryImpl implements CursoRepository {
 
     if (payload.usaTurmas !== undefined) {
       updateData.usa_turmas = payload.usaTurmas;
+    }
+
+    if (payload.hotmartProductId !== undefined) {
+      updateData.hotmart_product_id = payload.hotmartProductId;
     }
 
     const { data, error } = await this.client

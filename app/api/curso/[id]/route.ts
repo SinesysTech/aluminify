@@ -23,6 +23,7 @@ const serializeCourse = (course: Awaited<ReturnType<typeof cursoService.getById>
   planningUrl: course.planningUrl,
   coverImageUrl: course.coverImageUrl,
   usaTurmas: course.usaTurmas,
+  hotmartProductId: course.hotmartProductId,
   createdAt: course.createdAt.toISOString(),
   updatedAt: course.updatedAt.toISOString(),
 });
@@ -90,6 +91,7 @@ async function putHandler(request: AuthenticatedRequest, params: { id: string })
       planningUrl: body?.planningUrl,
       coverImageUrl: body?.coverImageUrl,
       usaTurmas: body?.usaTurmas,
+      hotmartProductId: body?.hotmartProductId,
     });
     return NextResponse.json({ data: serializeCourse(course) });
   } catch (error) {

@@ -114,6 +114,7 @@ export class CursoService {
       accessMonths,
       planningUrl: payload.planningUrl ?? undefined,
       coverImageUrl: payload.coverImageUrl ?? undefined,
+      hotmartProductId: payload.hotmartProductId ?? undefined,
     });
 
     // Invalidar cache de estrutura hierárquica e listagem (por empresa)
@@ -228,6 +229,10 @@ export class CursoService {
 
     if (payload.usaTurmas !== undefined) {
       updateData.usaTurmas = payload.usaTurmas;
+    }
+
+    if (payload.hotmartProductId !== undefined) {
+      updateData.hotmartProductId = payload.hotmartProductId;
     }
 
     const course = await this.repository.update(id, updateData);

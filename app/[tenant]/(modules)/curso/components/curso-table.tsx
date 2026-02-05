@@ -102,6 +102,7 @@ export type Curso = {
   planningUrl: string | null
   coverImageUrl: string | null
   usaTurmas?: boolean
+  hotmartProductId?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -147,6 +148,10 @@ const cursoSchema = z.object({
     z.string().url('URL inválida').optional().nullable()
   ) as z.ZodType<string | null | undefined>,
   usaTurmas: z.boolean(),
+  hotmartProductId: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+    z.string().optional().nullable()
+  ) as z.ZodType<string | null | undefined>,
 })
 
 type CursoFormInput = z.input<typeof cursoSchema>
@@ -199,6 +204,7 @@ export function CursoTable() {
       planningUrl: null,
       coverImageUrl: null,
       usaTurmas: false,
+      hotmartProductId: null,
     },
   })
 
@@ -220,6 +226,7 @@ export function CursoTable() {
       planningUrl: null,
       coverImageUrl: null,
       usaTurmas: false,
+      hotmartProductId: null,
     },
   })
 
@@ -320,6 +327,7 @@ export function CursoTable() {
         planningUrl: values.planningUrl || undefined,
         coverImageUrl: values.coverImageUrl || undefined,
         usaTurmas: values.usaTurmas || false,
+        hotmartProductId: values.hotmartProductId || undefined,
       })
       setSuccessMessage('Curso criado com sucesso!')
       setCreateDialogOpen(false)
@@ -366,6 +374,7 @@ export function CursoTable() {
       planningUrl: curso.planningUrl,
       coverImageUrl: curso.coverImageUrl,
       usaTurmas: curso.usaTurmas || false,
+      hotmartProductId: curso.hotmartProductId || null,
     })
     setEditDialogOpen(true)
   }
@@ -385,6 +394,7 @@ export function CursoTable() {
         planningUrl: values.planningUrl || null,
         coverImageUrl: values.coverImageUrl || null,
         usaTurmas: values.usaTurmas,
+        hotmartProductId: values.hotmartProductId || null,
       })
       setSuccessMessage('Curso atualizado com sucesso!')
       setEditDialogOpen(false)
@@ -922,6 +932,31 @@ export function CursoTable() {
                         </div>
                       </div>
 
+                      {/* Seção: Integrações */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Integrações</h3>
+                        <FormField
+                          control={createForm.control}
+                          name="hotmartProductId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>ID do Produto Hotmart</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex: 1234567"
+                                  {...field}
+                                  value={field.value || ''}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Código do produto na Hotmart. Quando um aluno comprar esse produto, será matriculado automaticamente neste curso.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                         <Button
                           type="button"
@@ -1454,6 +1489,31 @@ export function CursoTable() {
                         )}
                       />
                     </div>
+                  </div>
+
+                  {/* Seção: Integrações */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Integrações</h3>
+                    <FormField
+                      control={editForm.control}
+                      name="hotmartProductId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID do Produto Hotmart</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ex: 1234567"
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Código do produto na Hotmart. Quando um aluno comprar esse produto, será matriculado automaticamente neste curso.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">

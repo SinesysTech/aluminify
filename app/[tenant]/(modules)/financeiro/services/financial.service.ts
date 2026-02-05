@@ -44,7 +44,7 @@ export interface FinancialService {
 // ============================================================================
 
 interface ProductWithCourse {
-  id: string;
+  id: string | null;
   curso_id: string | null;
 }
 
@@ -85,6 +85,10 @@ function isApprovedPurchaseEvent(event: HotmartEventType): boolean {
   return event === "PURCHASE_APPROVED" || event === "PURCHASE_COMPLETE";
 }
 
+function isCancellationEvent(event: HotmartEventType): boolean {
+  return ["PURCHASE_CANCELED", "PURCHASE_REFUNDED", "PURCHASE_CHARGEBACK"].includes(event);
+}
+
 function isCartAbandonmentEvent(event: HotmartEventType): boolean {
   return event === "PURCHASE_OUT_OF_SHOPPING_CART";
 }
@@ -121,7 +125,14 @@ function extractAddress(address?: HotmartAddress): HotmartAddress | undefined {
   };
 }
 
-function generateTemporaryPassword(): string {
+function generateTemporaryPassword(cpf?: string): string {
+  // Usar CPF (somente dígitos) como senha padrão, se disponível
+  const cpfDigits = cpf?.replace(/\D/g, "");
+  if (cpfDigits && cpfDigits.length >= 11) {
+    return cpfDigits;
+  }
+
+  // Fallback: senha aleatória
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   let password = "";
   for (let i = 0; i < 8; i++) {
@@ -226,17 +237,26 @@ export class FinancialServiceImpl implements FinancialService {
         studentEnrolled = await this.enrollStudentInCourse(studentId, productWithCourse.curso_id);
       }
     } else {
-      // For non-approved events, just find existing student
+      // For non-approved events, find existing student
       const existingStudent = await this.findStudentByEmail(empresaId, buyer.email);
       if (existingStudent) {
         studentId = existingStudent.id;
+
+        // For cancellation/refund/chargeback, unenroll from linked course
+        if (isCancellationEvent(event) && productWithCourse?.curso_id) {
+          await this.unenrollStudentFromCourse(
+            studentId,
+            productWithCourse.curso_id,
+            empresaId
+          );
+        }
       }
     }
 
     const transactionInput: CreateTransactionInput = {
       empresaId,
       alunoId: studentId,
-      productId: productWithCourse?.id ?? null,
+      productId: productWithCourse?.id || null,
       provider: "hotmart",
       providerTransactionId: purchase.transaction,
       status,
@@ -269,6 +289,7 @@ export class FinancialServiceImpl implements FinancialService {
         order_bump: purchase.order_bump,
         student_created: studentCreated,
         student_enrolled: studentEnrolled,
+        student_unenrolled: isCancellationEvent(event),
         curso_id: productWithCourse?.curso_id,
       },
     };
@@ -319,6 +340,18 @@ export class FinancialServiceImpl implements FinancialService {
           .update({ hotmart_id: hotmartProductId })
           .eq("id", existingStudent.id);
       }
+
+      // Ensure usuarios_empresas binding exists
+      await this.client.from("usuarios_empresas").upsert(
+        {
+          usuario_id: existingStudent.id,
+          empresa_id: empresaId,
+          papel_base: "aluno",
+          ativo: true,
+        },
+        { onConflict: "usuario_id,empresa_id,papel_base" }
+      );
+
       return { id: existingStudent.id, created: false };
     }
 
@@ -332,7 +365,7 @@ export class FinancialServiceImpl implements FinancialService {
     buyer: HotmartBuyer,
     hotmartProductId: string
   ): Promise<string> {
-    const temporaryPassword = generateTemporaryPassword();
+    const temporaryPassword = generateTemporaryPassword(buyer.document);
     const phoneString = extractPhoneString(buyer.phone);
     const address = extractAddress(buyer.address);
 
@@ -392,6 +425,21 @@ export class FinancialServiceImpl implements FinancialService {
       role: "aluno",
     });
 
+    // Create usuarios_empresas binding (tenant relationship)
+    const { error: ueError } = await this.client.from("usuarios_empresas").upsert(
+      {
+        usuario_id: userId,
+        empresa_id: empresaId,
+        papel_base: "aluno",
+        ativo: true,
+      },
+      { onConflict: "usuario_id,empresa_id,papel_base" }
+    );
+
+    if (ueError) {
+      console.error("[Hotmart Webhook] Failed to create usuarios_empresas:", ueError);
+    }
+
     console.log("[Hotmart Webhook] Student created:", {
       id: userId,
       email: buyer.email,
@@ -428,6 +476,46 @@ export class FinancialServiceImpl implements FinancialService {
     }
 
     console.log("[Hotmart Webhook] Student enrolled:", { studentId, cursoId });
+    return true;
+  }
+
+  private async unenrollStudentFromCourse(
+    studentId: string,
+    cursoId: string,
+    empresaId: string
+  ): Promise<boolean> {
+    // 1. Remover de alunos_cursos
+    const { error } = await this.client
+      .from("alunos_cursos")
+      .delete()
+      .eq("usuario_id", studentId)
+      .eq("curso_id", cursoId);
+
+    if (error) {
+      console.error("[Hotmart Webhook] Failed to unenroll student:", error);
+      return false;
+    }
+
+    // 2. Verificar se aluno ainda tem matrículas nesta empresa
+    const { data: remaining } = await this.client
+      .from("alunos_cursos")
+      .select("curso_id, cursos!inner(empresa_id)")
+      .eq("usuario_id", studentId)
+      .eq("cursos.empresa_id", empresaId);
+
+    // 3. Se não tem mais matrículas, desativar usuarios_empresas (papel aluno)
+    if (!remaining || remaining.length === 0) {
+      await this.client
+        .from("usuarios_empresas")
+        .update({ ativo: false })
+        .eq("usuario_id", studentId)
+        .eq("empresa_id", empresaId)
+        .eq("papel_base", "aluno");
+
+      console.log("[Hotmart Webhook] Student fully unenrolled from empresa, deactivated usuarios_empresas");
+    }
+
+    console.log("[Hotmart Webhook] Student unenrolled:", { studentId, cursoId });
     return true;
   }
 
@@ -494,21 +582,46 @@ export class FinancialServiceImpl implements FinancialService {
     payload: HotmartSubscriptionCancellationPayload
   ): Promise<WebhookProcessResult> {
     const { data, id: eventId } = payload;
-    const { subscriber, product, subscription, cancellation_date } = data;
+    const { subscriber, product, cancellation_date } = data;
 
     console.log("[Hotmart Webhook] Subscription cancellation:", {
       empresaId,
       eventId,
-      subscriberCode: subscriber.code,
       subscriberEmail: subscriber.email,
       product: product.name,
-      plan: subscription.plan.name,
       cancellationDate: new Date(cancellation_date).toISOString(),
     });
 
+    // Buscar aluno por email
+    const existingStudent = await this.findStudentByEmail(empresaId, subscriber.email);
+    if (!existingStudent) {
+      return {
+        success: true,
+        message: `Subscription cancellation: student ${subscriber.email} not found`,
+      };
+    }
+
+    // Buscar curso vinculado ao produto Hotmart
+    const productWithCourse = await this.findProductWithCourse(empresaId, String(product.id));
+    let unenrolled = false;
+
+    if (productWithCourse?.curso_id) {
+      unenrolled = await this.unenrollStudentFromCourse(
+        existingStudent.id,
+        productWithCourse.curso_id,
+        empresaId
+      );
+    }
+
+    const messages: string[] = [
+      `Subscription cancellation processed for ${subscriber.email}`,
+    ];
+    if (unenrolled) messages.push("Student unenrolled from course");
+
     return {
       success: true,
-      message: `Subscription cancellation processed for ${subscriber.email}`,
+      message: messages.join(". "),
+      studentEnrolled: false,
     };
   }
 
@@ -611,6 +724,19 @@ export class FinancialServiceImpl implements FinancialService {
     empresaId: string,
     hotmartProductId: string
   ): Promise<ProductWithCourse | null> {
+    // 1. Buscar na tabela cursos por hotmart_product_id
+    const { data: cursoData } = await this.client
+      .from("cursos")
+      .select("id")
+      .eq("empresa_id", empresaId)
+      .eq("hotmart_product_id", hotmartProductId)
+      .maybeSingle();
+
+    if (cursoData) {
+      return { id: null, curso_id: cursoData.id };
+    }
+
+    // 2. Fallback: buscar na tabela products (compatibilidade)
     const { data, error } = await this.client
       .from("products")
       .select("id, curso_id")
