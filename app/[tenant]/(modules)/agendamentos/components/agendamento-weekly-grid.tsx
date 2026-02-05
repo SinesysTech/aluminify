@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { AgendamentoComDetalhes } from "@/app/[tenant]/(modules)/agendamentos/types"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/shared/components/overlay/hover-card"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/shared/components/ui/hover-card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface AgendamentoWeeklyGridProps {
@@ -29,7 +29,7 @@ export function AgendamentoWeeklyGrid({ agendamentos, currentDate = new Date() }
         agendamentos.forEach(apt => {
             if (apt.status === 'cancelado') return
 
-            const start = parseISO(apt.data_inicio)
+            const start = typeof apt.data_inicio === 'string' ? parseISO(apt.data_inicio) : apt.data_inicio
             const dayKey = format(start, 'yyyy-MM-dd')
             const hourKey = getHours(start)
             const key = `${dayKey}-${hourKey}`
@@ -122,7 +122,7 @@ function AppointmentCard({ apt }: { apt: AgendamentoComDetalhes }) {
             <HoverCardContent className="w-64 z-50">
                 <div className="space-y-3">
                     <div className="flex justify-between items-start">
-                        <h4 className="text-sm font-semibold">{format(parseISO(apt.data_inicio), "HH:mm")} - {format(parseISO(apt.data_fim), "HH:mm")}</h4>
+                        <h4 className="text-sm font-semibold">{format(typeof apt.data_inicio === 'string' ? parseISO(apt.data_inicio) : apt.data_inicio, "HH:mm")} - {format(typeof apt.data_fim === 'string' ? parseISO(apt.data_fim) : apt.data_fim, "HH:mm")}</h4>
                         <span className={cn(
                             "text-[10px] px-1.5 py-0.5 rounded-full border",
                             apt.status === 'confirmado' ? "bg-green-100 text-green-700 border-green-200" : "bg-amber-100 text-amber-700 border-amber-200"
@@ -135,7 +135,7 @@ function AppointmentCard({ apt }: { apt: AgendamentoComDetalhes }) {
                         <div className="text-xs text-muted-foreground">Aluno</div>
                         <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                                <AvatarImage src={apt.aluno?.avatar_url} />
+                                <AvatarImage src={apt.aluno?.avatar_url || undefined} />
                                 <AvatarFallback>{apt.aluno?.nome?.slice(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <span className="text-sm font-medium">{apt.aluno?.nome}</span>
@@ -146,12 +146,9 @@ function AppointmentCard({ apt }: { apt: AgendamentoComDetalhes }) {
                         <div className="text-xs text-muted-foreground">Professor</div>
                         <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                                {/* @ts-ignore */}
-                                <AvatarImage src={apt.professor?.avatar_url} />
-                                {/* @ts-ignore */}
+                                <AvatarImage src={apt.professor?.avatar_url || undefined} />
                                 <AvatarFallback>{apt.professor?.nome?.slice(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
-                            {/* @ts-ignore */}
                             <span className="text-sm font-medium">{apt.professor?.nome}</span>
                         </div>
                     </div>

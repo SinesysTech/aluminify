@@ -100,13 +100,8 @@ export async function createAgendamento(
     throw new Error(validation.error || "Invalid appointment request");
   }
 
-  // Fetch professor config for auto-confirmation
-  const config = await getConfiguracoesProfessor(data.professor_id);
-  const autoConfirmar = config?.auto_confirmar || false;
-
   const payload = {
     ...data,
-    aluno_id: user.id, // Direct association to logged in student
     aluno_id: user.id, // Direct association to logged in student
     status: "confirmado", // Always confirmed per new business rule
     data_inicio,

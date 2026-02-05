@@ -3,7 +3,16 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 
 // Load env
-dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+const envPath = path.resolve(process.cwd(), ".env.local");
+const envPathFallback = path.resolve(__dirname, "..", ".env.local");
+
+console.log(`Loading env from: ${envPath}`);
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.log(`Failed to load from cwd, trying fallback: ${envPathFallback}`);
+  dotenv.config({ path: envPathFallback });
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
