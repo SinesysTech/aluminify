@@ -1,12 +1,13 @@
 ﻿import { createClient } from "@/app/shared/core/server"
 import { redirect } from "next/navigation"
+import { resolveEmpresaIdFromTenant } from "@/app/shared/core/resolve-empresa-from-tenant"
 
 import { CalendarDays, Clock, CheckCircle, XCircle, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-async function getDetailedStats(professorId: string) {
+async function getDetailedStats(professorId: string, empresaId: string) {
   const supabase = await createClient()
 
   const now = new Date()
@@ -27,26 +28,28 @@ async function getDetailedStats(professorId: string) {
       .from('agendamentos')
       .select('status, data_inicio')
       .eq('professor_id', professorId)
+      .eq('empresa_id', empresaId)
       .gte('data_inicio', startOfMonth.toISOString())
       .lte('data_inicio', endOfMonth.toISOString()),
     supabase
       .from('agendamentos')
       .select('status, data_inicio')
       .eq('professor_id', professorId)
+      .eq('empresa_id', empresaId)
       .gte('data_inicio', startOfLastMonth.toISOString())
       .lte('data_inicio', endOfLastMonth.toISOString()),
     supabase
       .from('agendamentos')
       .select('status, data_inicio')
       .eq('professor_id', professorId)
+      .eq('empresa_id', empresaId)
       .gte('data_inicio', sixMonthsAgo.toISOString())
   ])
 
   const calculateStats = (data: { status: string; data_inicio: string }[] | null) => {
-    if (!data) return { total: 0, pendentes: 0, confirmados: 0, cancelados: 0, concluidos: 0 }
+    if (!data) return { total: 0, confirmados: 0, cancelados: 0, concluidos: 0 }
     return {
       total: data.length,
-      pendentes: data.filter(a => a.status === 'pendente').length,
       confirmados: data.filter(a => a.status === 'confirmado').length,
       cancelados: data.filter(a => a.status === 'cancelado').length,
       concluidos: data.filter(a => a.status === 'concluido').length
@@ -116,7 +119,12 @@ export default async function StatsPage({ params }: StatsPageProps) {
     redirect(`/${tenant}/auth/login`)
   }
 
-  const stats = await getDetailedStats(user.id)
+  const empresaId = await resolveEmpresaIdFromTenant(tenant)
+  if (!empresaId) {
+    redirect(`/${tenant}/auth/login`)
+  }
+
+  const stats = await getDetailedStats(user.id, empresaId)
 
   const growth = stats.lastMonth.total > 0
     ? Math.round(((stats.currentMonth.total - stats.lastMonth.total) / stats.lastMonth.total) * 100)
@@ -234,10 +242,10 @@ export default async function StatsPage({ params }: StatsPageProps) {
                 </div>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Pendentes</span>
+                <span className="text-sm text-muted-foreground">Concluídos</span>
                 <div className="flex items-center gap-4">
-                  <span className="font-medium text-amber-600">{stats.currentMonth.pendentes}</span>
-                  <span className="text-sm text-muted-foreground">vs {stats.lastMonth.pendentes}</span>
+                  <span className="font-medium text-blue-600">{stats.currentMonth.concluidos}</span>
+                  <span className="text-sm text-muted-foreground">vs {stats.lastMonth.concluidos}</span>
                 </div>
               </div>
             </div>
@@ -284,14 +292,10 @@ export default async function StatsPage({ params }: StatsPageProps) {
           <p className="text-sm text-muted-foreground">Estatísticas desde o início</p>
         </div>
         <div className="p-6 pt-0">
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="text-center p-4 rounded-lg bg-muted">
               <div className="text-2xl font-bold">{stats.allTime.total}</div>
               <p className="text-xs text-muted-foreground">Total</p>
-            </div>
-            <div className="text-center p-4 rounded-lg bg-muted">
-              <div className="text-2xl font-bold text-amber-600">{stats.allTime.pendentes}</div>
-              <p className="text-xs text-muted-foreground">Pendentes</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
               <div className="text-2xl font-bold text-emerald-600">{stats.allTime.confirmados}</div>

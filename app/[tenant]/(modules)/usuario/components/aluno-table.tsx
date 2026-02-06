@@ -1320,7 +1320,7 @@ export function AlunoTable() {
               Selecionar todos ({data.length})
             </DropdownMenuItem>
             <DropdownMenuItem onClick={clearSelection}>
-              Limpar selecao
+              Limpar seleção
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

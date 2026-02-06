@@ -284,7 +284,7 @@ export function TransferStudentsDialog({
                       <SelectContent>
                         {turmas.length === 0 ? (
                           <div className="p-2 text-sm text-muted-foreground">
-                            Nenhuma outra turma disponivel neste curso
+                            Nenhuma outra turma disponível neste curso
                           </div>
                         ) : (
                           turmas.map((turma) => (
@@ -306,13 +306,13 @@ export function TransferStudentsDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="concluido">Concluido</SelectItem>
+                      <SelectItem value="concluido">Concluído</SelectItem>
                       <SelectItem value="cancelado">Cancelado</SelectItem>
                       <SelectItem value="trancado">Trancado</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Status que sera atribuido aos alunos na turma de origem apos a transferencia.
+                    Status que será atribuído aos alunos na turma de origem após a transferência.
                   </p>
                 </div>
               </>

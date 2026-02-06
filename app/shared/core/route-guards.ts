@@ -38,10 +38,10 @@ export async function requireProfessorRoute() {
 }
 
 /**
- * Guard para rotas de empresa
+ * Guard para rotas de staff (usuario)
  */
-export async function requireEmpresaRoute() {
-  const user = await requireUser({ allowedRoles: ['empresa'] })
+export async function requireUsuarioRoute() {
+  const user = await requireUser({ allowedRoles: ['usuario'] })
   return user
 }
 

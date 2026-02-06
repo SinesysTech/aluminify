@@ -113,7 +113,7 @@ export default async function AgendamentosPage({
   }
 
   // Professor (possibly also admin) view
-  return <ProfessorAgendamentosView userId={user.id} />
+  return <ProfessorAgendamentosView userId={user.id} empresaId={empresaId ?? undefined} />
 }
 
 function ProfessorSelectorSkeleton() {

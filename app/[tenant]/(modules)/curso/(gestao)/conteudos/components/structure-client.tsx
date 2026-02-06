@@ -2042,15 +2042,15 @@ export default function StructureManagerClient() {
               <Alert className="py-2.5 border-violet-300 bg-violet-100 text-black! dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-50!">
                 <Info className="h-4 w-4 text-violet-700 dark:text-[#A78BFA]" />
                 <AlertTitle className="text-xs font-semibold text-black! dark:text-violet-50!">
-                  Colunas necessarias no arquivo:
+                  Colunas necessárias no arquivo:
                 </AlertTitle>
                 <AlertDescription className="text-black! dark:text-violet-100!">
                   <ul className="text-[11px] space-y-0.5 list-disc list-inside text-black! dark:text-violet-100!">
-                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Modulo</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome do Modulo</span> (obrigatorio)</li>
-                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Aula</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome da Aula</span> (obrigatorio)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Módulo</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome do Módulo</span> (obrigatório)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Aula</span> ou <span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Nome da Aula</span> (obrigatório)</li>
                     <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Tempo</span> - tempo estimado em minutos (opcional)</li>
                     <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Prioridade</span> - valor de 0 a 5 (opcional)</li>
-                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Importancia</span> - Alta, Media, Baixa ou Base (opcional)</li>
+                    <li><span className="font-semibold text-violet-700 dark:text-[#A78BFA]">Importância</span> - Alta, Média, Baixa ou Base (opcional)</li>
                   </ul>
                   <Button
                     variant="outline"

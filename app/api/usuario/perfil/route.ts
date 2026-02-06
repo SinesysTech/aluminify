@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 
-import type { AppUserRole } from "@/app/shared/types/entities/user";
+import type { PapelBase } from "@/app/shared/types/entities/user";
 import type { RoleTipo } from "@/app/shared/types/entities/papel";
 import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
@@ -27,7 +27,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const role = (user.user_metadata?.role as AppUserRole) || "aluno";
+    const role = (user.user_metadata?.role as PapelBase) || "aluno";
 
     // Para usuarios (staff), empresa_id é derivado da tabela `usuarios` (fonte de verdade)
     let empresaId: string | null = null;

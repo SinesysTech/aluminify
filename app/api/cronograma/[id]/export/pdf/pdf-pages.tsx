@@ -405,7 +405,7 @@ export function WeekPage({
         </View>
       </View>
 
-      {/* Barra de distribuicao de tempo (logo apos o header da semana) */}
+      {/* Barra de distribuição de tempo (logo após o header da semana) */}
       {timeData.length > 1 && (
         <View
           style={{

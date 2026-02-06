@@ -1,11 +1,11 @@
-import type { AppUserRole } from "@/app/shared/types";
+import type { PapelBase } from "@/app/shared/types";
 import { cookies } from "next/headers";
 
 export interface ImpersonationContext {
   realUserId: string;
-  realUserRole: AppUserRole;
+  realUserRole: PapelBase;
   impersonatedUserId: string;
-  impersonatedUserRole: AppUserRole;
+  impersonatedUserRole: PapelBase;
   startedAt: string;
 }
 
@@ -66,10 +66,10 @@ export async function isImpersonating(): Promise<boolean> {
  * Valida se um usuário pode impersonar outro usuário
  */
 export function canImpersonateUser(
-  realUserRole: AppUserRole,
+  realUserRole: PapelBase,
   realUserEmpresaId: string | undefined,
-  targetUserId: string,
-  targetUserRole: AppUserRole,
+  _targetUserId: string,
+  targetUserRole: PapelBase,
   targetUserEmpresaId: string | undefined,
 ): { allowed: boolean; reason?: string } {
   // Admins de empresa (usuarios) podem impersonar apenas alunos

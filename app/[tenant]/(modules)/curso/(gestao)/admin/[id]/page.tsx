@@ -348,7 +348,7 @@ export default function CourseDetailPage() {
                 Selecionar todos ({allStudentIds.length})
               </DropdownMenuItem>
               <DropdownMenuItem onClick={clearSelection}>
-                Limpar selecao
+                Limpar seleção
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

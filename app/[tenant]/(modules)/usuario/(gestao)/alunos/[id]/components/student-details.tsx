@@ -94,6 +94,7 @@ interface StudentData {
   temporaryPassword: string | null
   createdAt: string
   updatedAt: string
+  quotaExtra?: number
 }
 
 interface StudentDetailsProps {
@@ -497,6 +498,9 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
               <InfoRow label="Origem do cadastro" value={student.origemCadastro || 'Manual'} />
               {student.hotmartId && (
                 <InfoRow label="ID Hotmart" value={student.hotmartId} />
+              )}
+              {student.quotaExtra !== undefined && (
+                <InfoRow label="Quota Extra de Plantão" value={`${student.quotaExtra}`} icon={BookOpen} />
               )}
               {student.mustChangePassword && student.temporaryPassword && (
                 <InfoRow label="Senha temporária" value={student.temporaryPassword} icon={Key} />

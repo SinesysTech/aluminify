@@ -39,6 +39,7 @@ interface StudentData {
   temporaryPassword: string | null
   createdAt: string
   updatedAt: string
+  quotaExtra?: number
 }
 
 interface StudentEditFormProps {
@@ -69,6 +70,7 @@ export function StudentEditForm({ student, onCancel, onSuccess }: StudentEditFor
     twitter: student.twitter || '',
     mustChangePassword: student.mustChangePassword,
     temporaryPassword: '',
+    quotaExtra: student.quotaExtra ?? 0,
   })
 
   const handleChange = (field: string, value: string | boolean) => {
@@ -92,6 +94,7 @@ export function StudentEditForm({ student, onCancel, onSuccess }: StudentEditFor
         instagram: formData.instagram || null,
         twitter: formData.twitter || null,
         mustChangePassword: formData.mustChangePassword,
+        quotaExtra: Number(formData.quotaExtra),
       }
 
       if (formData.temporaryPassword) {
@@ -237,6 +240,29 @@ export function StudentEditForm({ student, onCancel, onSuccess }: StudentEditFor
                   onChange={(e) => handleChange('twitter', e.target.value)}
                   placeholder="@usuario"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Configurações */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Configurações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="quotaExtra">Quota Extra de Plantão</Label>
+                <Input
+                  id="quotaExtra"
+                  type="number"
+                  min="0"
+                  value={formData.quotaExtra}
+                  onChange={(e) => handleChange('quotaExtra', e.target.value)}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Quantidade de plantões extras que o aluno pode agendar além do limite do curso.
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -21,7 +21,7 @@ import { User } from "@supabase/supabase-js";
 
 import { createClient } from "@/app/shared/core/server";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import type { AppUser, AppUserRole } from "@/app/shared/types";
+import type { AppUser, PapelBase } from "@/app/shared/types";
 import type {
   RoleTipo,
   RolePermissions,
@@ -29,8 +29,6 @@ import type {
 import { getImpersonationContext } from "@/app/shared/core/auth-impersonate";
 import { getDefaultRouteForRole } from "@/app/shared/core/roles";
 import { cacheService } from "@/app/shared/core/services/cache/cache.service";
-
-type LegacyAppUserRole = "professor" | "empresa";
 
 const AUTH_SESSION_CACHE_TTL = 1800; // 30 minutos
 
@@ -95,13 +93,9 @@ async function hydrateUserProfile(
   const metadataRole =
     isImpersonating && context
       ? context.impersonatedUserRole
-      : (user.user_metadata?.role as AppUserRole | LegacyAppUserRole) ||
-        "aluno";
+      : (user.user_metadata?.role as PapelBase) || "aluno";
 
-  let role: AppUserRole =
-    metadataRole === "professor" || metadataRole === "empresa"
-      ? "usuario"
-      : (metadataRole as AppUserRole);
+  let role: PapelBase = metadataRole;
 
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password);
   let roleType: RoleTipo | undefined;
@@ -139,7 +133,7 @@ async function hydrateUserProfile(
       return {
         id: targetUserId,
         email: alunoData.email || "",
-        role: "aluno" as AppUserRole,
+        role: "aluno" as PapelBase,
         fullName: alunoData.nome_completo || undefined,
         mustChangePassword: false, // Usually false during impersonation
         empresaId,
@@ -316,11 +310,7 @@ async function _getAuthenticatedUser(): Promise<AppUser | null> {
 export const getAuthenticatedUser = cache(_getAuthenticatedUser);
 
 type RequireUserOptions = {
-  /**
-   * Back-compat: ainda existem páginas usando roles legadas ("professor"/"empresa").
-   * Internamente isso é tratado como "usuario".
-   */
-  allowedRoles?: (AppUserRole | LegacyAppUserRole)[];
+  allowedRoles?: PapelBase[];
   ignorePasswordRequirement?: boolean;
 };
 
@@ -334,13 +324,9 @@ export async function requireUser(
   }
 
   if (options?.allowedRoles && options.allowedRoles.length > 0) {
-    const normalizedAllowed = new Set<AppUserRole>(
-      options.allowedRoles.map((r) =>
-        r === "professor" || r === "empresa" ? "usuario" : (r as AppUserRole),
-      ),
-    );
+    const allowedSet = new Set<PapelBase>(options.allowedRoles);
 
-    if (!normalizedAllowed.has(user.role)) {
+    if (!allowedSet.has(user.role)) {
       const defaultRoute = getDefaultRouteForRole(user.role);
       const redirectUrl = user.empresaSlug
         ? `/${user.empresaSlug}${defaultRoute}`

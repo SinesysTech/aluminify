@@ -31,7 +31,7 @@ export function FormPanel({ professorId, timeZone, durationMinutes }: FormPanelP
   })
 
   if (!slotParam) {
-    return <div>Nenhum horario selecionado</div>
+    return <div>Nenhum horário selecionado</div>
   }
 
   const startDate = new Date(slotParam)
@@ -100,10 +100,10 @@ export function FormPanel({ professorId, timeZone, durationMinutes }: FormPanelP
       </div>
 
       <div className="flex flex-col space-y-1.5">
-        <Label htmlFor="observacoes">Observacoes (opcional)</Label>
+        <Label htmlFor="observacoes">Observações (opcional)</Label>
         <Textarea
           id="observacoes"
-          placeholder="Compartilhe detalhes ou duvidas para a reuniao..."
+          placeholder="Compartilhe detalhes ou dúvidas para a reunião..."
           value={formData.observacoes}
           onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
           rows={3}

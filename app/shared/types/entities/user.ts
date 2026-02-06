@@ -7,20 +7,10 @@ import type { RoleTipo, RolePermissions } from "./papel";
 // Papel base no modelo unificado (enum_papel_base no banco)
 export type PapelBase = "aluno" | "professor" | "usuario";
 
-// Legacy: roles do app (mantido para compatibilidade durante migração)
-// Será removido em favor de PapelBase quando migração estiver completa
-export type AppUserRole =
-  | "aluno"
-  | "usuario"
-  | "professor"
-  | "empresa";
-
 export interface AppUser {
   id: string;
   email: string;
-  role: AppUserRole;
-  // Papel base no modelo unificado
-  papelBase?: PapelBase;
+  role: PapelBase;
   // Tipo específico do papel (apenas para staff com papel customizado)
   roleType?: RoleTipo;
   // Permissões do papel
@@ -73,6 +63,7 @@ export interface Student {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+  quotaExtra?: number;
 }
 
 export interface CreateStudentInput {
@@ -124,6 +115,7 @@ export interface UpdateStudentInput {
   courseIds?: string[];
   temporaryPassword?: string | null;
   mustChangePassword?: boolean;
+  quotaExtra?: number;
 }
 
 export interface Teacher {

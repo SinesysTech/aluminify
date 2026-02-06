@@ -154,6 +154,8 @@ function mapRow(
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    quotaExtra: (row as any).quota_extra ?? 0,
   };
 }
 
@@ -265,13 +267,16 @@ export class StudentRepositoryImpl implements StudentRepository {
       ? this.client.from(TABLE).select("id", { count: "exact", head: true })
       : this.client
           .from(TABLE)
-          .select("id, usuarios_empresas!inner(papel_base)", { count: "exact", head: true })
+          .select("id, usuarios_empresas!inner(papel_base)", {
+            count: "exact",
+            head: true,
+          })
           .eq("usuarios_empresas.papel_base", "aluno");
 
-    if (params?.status === 'active') {
-        queryBuilder = queryBuilder.eq('ativo', true);
-    } else if (params?.status === 'inactive') {
-        queryBuilder = queryBuilder.eq('ativo', false);
+    if (params?.status === "active") {
+      queryBuilder = queryBuilder.eq("ativo", true);
+    } else if (params?.status === "inactive") {
+      queryBuilder = queryBuilder.eq("ativo", false);
     }
 
     if (studentIdsToFilter !== null) {
@@ -332,7 +337,11 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     // Get paginated data (idem: quando lista é por matrícula, incluir mesmo com deleted_at set)
     let dataQuery = filterByEnrollment
-      ? this.client.from(TABLE).select("*").order(sortBy, { ascending: sortOrder }).range(from, to)
+      ? this.client
+          .from(TABLE)
+          .select("*")
+          .order(sortBy, { ascending: sortOrder })
+          .range(from, to)
       : this.client
           .from(TABLE)
           .select("*, usuarios_empresas!inner(papel_base)")
@@ -344,10 +353,10 @@ export class StudentRepositoryImpl implements StudentRepository {
       dataQuery = dataQuery.in("id", studentIdsToFilter);
     }
 
-    if (params?.status === 'active') {
-        dataQuery = dataQuery.eq('ativo', true);
-    } else if (params?.status === 'inactive') {
-        dataQuery = dataQuery.eq('ativo', false);
+    if (params?.status === "active") {
+      dataQuery = dataQuery.eq("ativo", true);
+    } else if (params?.status === "inactive") {
+      dataQuery = dataQuery.eq("ativo", false);
     }
 
     if (searchTerm) {
@@ -370,26 +379,32 @@ export class StudentRepositoryImpl implements StudentRepository {
       // Estratégia 1: Tentar count sem head (retorna dados + count)
       try {
         let fallbackCountQuery = filterByEnrollment
-          ? this.client.from(TABLE).select("id", { count: "exact", head: false }).limit(1)
+          ? this.client
+              .from(TABLE)
+              .select("id", { count: "exact", head: false })
+              .limit(1)
           : this.client
               .from(TABLE)
-              .select("id, usuarios_empresas!inner(papel_base)", { count: "exact", head: false })
+              .select("id, usuarios_empresas!inner(papel_base)", {
+                count: "exact",
+                head: false,
+              })
               .eq("usuarios_empresas.papel_base", "aluno")
               .limit(1); // Apenas precisamos do count, não dos dados
 
         if (studentIdsToFilter !== null) {
-            fallbackCountQuery = fallbackCountQuery.in("id", studentIdsToFilter);
+          fallbackCountQuery = fallbackCountQuery.in("id", studentIdsToFilter);
         }
-        if (params?.status === 'active') {
-            fallbackCountQuery = fallbackCountQuery.eq('ativo', true);
-        } else if (params?.status === 'inactive') {
-            fallbackCountQuery = fallbackCountQuery.eq('ativo', false);
+        if (params?.status === "active") {
+          fallbackCountQuery = fallbackCountQuery.eq("ativo", true);
+        } else if (params?.status === "inactive") {
+          fallbackCountQuery = fallbackCountQuery.eq("ativo", false);
         }
         if (searchTerm) {
-             const q = escapeIlikePattern(searchTerm);
-             fallbackCountQuery = fallbackCountQuery.or(
-                `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
-             );
+          const q = escapeIlikePattern(searchTerm);
+          fallbackCountQuery = fallbackCountQuery.or(
+            `nome_completo.ilike.%${q}%,email.ilike.%${q}%,numero_matricula.ilike.%${q}%`,
+          );
         }
 
         const fallbackResult = await fallbackCountQuery;
@@ -403,18 +418,22 @@ export class StudentRepositoryImpl implements StudentRepository {
       }
 
       if (!fallbackSuccess) {
-         // Se ainda falhar e temos dados, assumir que é a única página se < perPage
-         if (data && data.length < perPage && data.length > 0) {
-            total = data.length + from;
-         } else {
-             // Fallback final: apenas para evitar UI quebrada
-             total = data ? data.length + from + (data.length === perPage ? 1 : 0) : 0;
-         }
+        // Se ainda falhar e temos dados, assumir que é a única página se < perPage
+        if (data && data.length < perPage && data.length > 0) {
+          total = data.length + from;
+        } else {
+          // Fallback final: apenas para evitar UI quebrada
+          total = data
+            ? data.length + from + (data.length === perPage ? 1 : 0)
+            : 0;
+        }
       }
     }
 
     // Attach additional info
-    const studentsWithCourses = await this.attachCourses(data as unknown as StudentRow[] ?? []);
+    const studentsWithCourses = await this.attachCourses(
+      (data as unknown as StudentRow[]) ?? [],
+    );
     const studentsWithProgress = await this.attachProgress(studentsWithCourses);
 
     return {
@@ -833,6 +852,11 @@ export class StudentRepositoryImpl implements StudentRepository {
 
     if (payload.temporaryPassword !== undefined) {
       updateData.senha_temporaria = payload.temporaryPassword;
+    }
+
+    if (payload.quotaExtra !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (updateData as any).quota_extra = payload.quotaExtra;
     }
 
     let data;

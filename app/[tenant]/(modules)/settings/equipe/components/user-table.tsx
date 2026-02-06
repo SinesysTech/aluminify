@@ -65,11 +65,6 @@ export function UserTable({ usuarios }: UserTableProps) {
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getPapelBaseColor(usuario.papelBase)}`}>
                           {usuario.papelNome || getPapelBaseLabel(usuario.papelBase)}
                         </span>
-                        {usuario.isAdmin && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200">
-                            Admin
-                          </span>
-                        )}
                       </div>
                     </td>
                     <td className="p-4">

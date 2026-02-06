@@ -1,16 +1,15 @@
-import type { AppUserRole } from "@/app/shared/types/entities/user";
+import type { PapelBase } from "@/app/shared/types/entities/user";
 import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/papel";
 import {
   ADMIN_ROLES as ADMIN_ROLE_TIPOS,
   TEACHING_ROLES as TEACHING_ROLE_TIPOS,
 } from "@/app/shared/types/entities/papel";
 
-// Default routes by main role
-const DEFAULT_ROUTE_BY_ROLE: Record<AppUserRole, string> = {
+// Default routes by papel base
+const DEFAULT_ROUTE_BY_ROLE: Record<PapelBase, string> = {
   aluno: "/dashboard",
   usuario: "/dashboard",
   professor: "/dashboard",
-  empresa: "/empresa/dashboard",
 };
 
 /**
@@ -90,7 +89,7 @@ export function canDelete(
 /**
  * Get the default route for a role
  */
-export function getDefaultRouteForRole(role: AppUserRole): string {
+export function getDefaultRouteForRole(role: PapelBase): string {
   return DEFAULT_ROUTE_BY_ROLE[role] ?? "/dashboard";
 }
 
@@ -98,7 +97,7 @@ export function getDefaultRouteForRole(role: AppUserRole): string {
  * Check if user can impersonate other users
  */
 export function canImpersonate(
-  role: AppUserRole,
+  role: PapelBase,
   roleType?: RoleTipo,
 ): boolean {
   if (roleType && isAdminRoleTipo(roleType)) return true;

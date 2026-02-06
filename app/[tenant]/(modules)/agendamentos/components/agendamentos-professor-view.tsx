@@ -17,7 +17,7 @@ export async function ProfessorAgendamentosView({ userId, empresaId }: Props) {
 
     const [agendamentos, stats] = await Promise.all([
         isGlobal ? getAgendamentosGlobal(empresaId!) : getAgendamentosProfessor(userId),
-        isGlobal ? getAgendamentoStatsGlobal(empresaId!) : getAgendamentoStats(userId)
+        isGlobal ? getAgendamentoStatsGlobal(empresaId!) : getAgendamentoStats(userId, empresaId)
     ])
 
     return (

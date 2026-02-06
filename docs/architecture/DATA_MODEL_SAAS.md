@@ -90,22 +90,21 @@ O plano esta armazenado na tabela `empresas`, porem **nao existe ainda logica de
 
 O sistema possui **3 niveis de usuario** na aplicacao e **5 tipos de papel** para staff.
 
-### 3.1 Tipos de Usuario (AppUserRole)
+### 3.1 Papel Base (PapelBase)
 
 Definido em [user.ts](app/shared/types/entities/user.ts):
 
 ```
-AppUserRole = 'aluno' | 'usuario' | 'professor' | 'empresa'
+PapelBase = 'aluno' | 'professor' | 'usuario'
 ```
 
-| Role        | Descricao                                     | Vinculo ao Tenant                         |
-| ----------- | --------------------------------------------- | ----------------------------------------- |
-| `aluno`     | Estudante                                     | Via `alunos.empresa_id` + `alunos_cursos` |
-| `usuario`   | Staff da instituicao (professor, admin, etc.) | Via `usuarios.empresa_id`                 |
-| `professor` | (legado, normalizado para `usuario`)          | Via `professores.empresa_id`              |
-| `empresa`   | (legado, normalizado para `usuario`)          | Via contexto                              |
+| Papel       | Descricao                                     | Vinculo ao Tenant           |
+| ----------- | --------------------------------------------- | --------------------------- |
+| `aluno`     | Estudante                                     | Via `usuarios_empresas`     |
+| `professor` | Professor da instituicao                      | Via `usuarios.empresa_id`   |
+| `usuario`   | Staff da instituicao (admin, monitor, etc.)   | Via `usuarios.empresa_id`   |
 
-> **Nota**: O role `superadmin` foi removido em 2026-01-29. A gestao cross-tenant sera feita por um app admin separado. O service role key do Supabase ja faz bypass de RLS para operacoes server-side.
+> **Nota**: Os roles legados `AppUserRole` (incluindo `empresa` e normalizacao de `professor`) foram removidos em 2026-02-06.
 
 ### 3.2 Tabela: `alunos` (25 colunas)
 
@@ -915,9 +914,11 @@ Todas as tabelas tem RLS habilitado. O modelo usa **funcoes auxiliares** no Post
 interface AppUser {
   id: string;
   email: string;
-  role: AppUserRole; // aluno | usuario
+  role: PapelBase; // aluno | professor | usuario
   roleType?: RoleTipo; // professor | professor_admin | staff | admin | monitor
   permissions?: RolePermissions;
+  isAdmin?: boolean;
+  isOwner?: boolean;
   fullName?: string;
   avatarUrl?: string;
   mustChangePassword?: boolean;
@@ -927,7 +928,7 @@ interface AppUser {
 }
 ```
 
-**Codigo-fonte**: [user.ts:18-32](app/shared/types/entities/user.ts#L18-L32)
+**Codigo-fonte**: [user.ts:10-27](app/shared/types/entities/user.ts#L10-L27)
 
 ### 14.4 Niveis de Cliente Supabase
 
@@ -1082,7 +1083,7 @@ O role `superadmin` foi removido inteiramente do sistema. Nunca foi utilizado em
 | **Banco de dados** | ~109 RLS policies em ~35 tabelas | Removido `OR is_superadmin()` de todas as policies. Dropadas 10 policies exclusivas de superadmin. |
 | **Funcoes PostgreSQL** | 3 funcoes dropadas | `is_superadmin()`, `is_current_user_superadmin()`, `check_and_set_first_professor_superadmin()` |
 | **Funcoes atualizadas** | 2 funcoes | `user_belongs_to_empresa()` (removido bypass), `handle_new_user()` (removida logica de primeiro professor superadmin) |
-| **Tipos TypeScript** | 2 arquivos base | `AppUserRole` e `AuthUser` sem superadmin/isSuperAdmin |
+| **Tipos TypeScript** | 2 arquivos base | `PapelBase` (antes `AppUserRole`) e `AuthUser` sem superadmin/isSuperAdmin |
 | **Core auth/middleware** | 8 arquivos | auth.ts, roles.ts, route-guards.ts, auth-actions.ts, auth-impersonate.ts, middleware.logic.ts, empresa-context.ts, brand-customization-access.ts |
 | **Tenant auth** | 2 arquivos | middleware.ts, auth.service.ts |
 | **UI components** | ~15 arquivos | permission-provider, sidebar, nav, breadcrumb, pages |
@@ -1222,11 +1223,11 @@ usuarios_empresas
 ### TypeScript: tipos simplificados
 
 ```typescript
-// Antes: 4 roles com normalizacao
-type AppUserRole = 'aluno' | 'usuario' | 'professor' | 'empresa';
-
-// Depois: 3 papeis base, sem normalizacao
+// Tipo atual (unificado)
 type PapelBase = 'aluno' | 'professor' | 'usuario';
+
+// Tipo legado removido em 2026-02-06:
+// type AppUserRole = 'aluno' | 'usuario' | 'professor' | 'empresa';
 ```
 
 ### Fluxo de login com multi-tenant
@@ -1333,12 +1334,13 @@ Reescrever todas as funcoes para consultar `usuarios_empresas`:
 
 Reescrever ~109 policies usando as funcoes atualizadas. Como as funcoes mantem a mesma assinatura, a maioria das policies so precisa ser re-testada (nao reescrita).
 
-### FASE 6: TypeScript — Tipos base
+### FASE 6: TypeScript — Tipos base ✅ (concluida 2026-02-06)
 
-- `AppUserRole` → `PapelBase = 'aluno' | 'professor' | 'usuario'`
-- Remover interfaces `Student`, `Teacher` separadas
-- Criar interface `UsuarioEmpresa` para o vinculo
-- Atualizar `AppUser` para incluir `papelBase`, `isAdmin`, `isOwner`
+- ✅ `AppUserRole` removido, substituido por `PapelBase = 'aluno' | 'professor' | 'usuario'`
+- Remover interfaces `Student`, `Teacher` separadas (pendente)
+- Criar interface `UsuarioEmpresa` para o vinculo (pendente)
+- ✅ `AppUser.role` agora usa `PapelBase`
+- ✅ `AppUser` inclui `isAdmin`, `isOwner`
 
 ### FASE 7: Auth — Fluxo de login
 

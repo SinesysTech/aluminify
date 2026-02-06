@@ -91,7 +91,7 @@ Funções core em `app/shared/core/auth.ts`:
 ### RBAC (Role-Based Access Control)
 Definido em `app/shared/core/roles.ts` e `app/shared/types/entities/papel.ts`:
 
-**Papéis base (AppUserRole):** `aluno`, `usuario`
+**Papéis base (PapelBase):** `aluno`, `professor`, `usuario`
 **Tipos de papel (RoleTipo):** `professor`, `professor_admin`, `staff`, `admin`, `monitor`
 
 **Permissões granulares (RolePermissions):** Cada recurso pode ter `view`, `create`, `edit`, `delete`:

@@ -18,9 +18,9 @@ export function ProgressStatisticsCard({
   inProgressCount,
   completedCount,
   progressBars,
-  title = "Estatisticas de Progresso",
+  title = "Estatísticas de Progresso",
   inProgressLabel = "Em Andamento",
-  completedLabel = "Concluidos",
+  completedLabel = "Concluídos",
 }: ProgressStatisticsCardProps) {
   const bars = progressBars ?? [
     { value: Math.min(totalActivityPercent, 100), color: "bg-orange-500", label: "Atividade" },

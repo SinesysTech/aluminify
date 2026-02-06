@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { AppUserRole } from "@/app/shared/types";
+import type { PapelBase } from "@/app/shared/types";
 import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/papel";
 import { isAdminRole } from "@/app/[tenant]/(modules)/usuario/services/permission.service";
 import type {
@@ -27,7 +27,7 @@ export class UserRoleIdentifierService {
     const { empresaId, includeDetails = true } = options;
 
     const roleDetails: UserRoleDetail[] = [];
-    const rolesSet = new Set<Exclude<AppUserRole, "empresa">>();
+    const rolesSet = new Set<PapelBase>();
     const empresaIdsSet = new Set<string>();
 
     // Buscar email/metadata do usuário (útil para fallback por email)
@@ -89,7 +89,7 @@ export class UserRoleIdentifierService {
   async getUserPrimaryRole(
     userId: string,
     empresaId?: string,
-  ): Promise<Exclude<AppUserRole, "empresa">> {
+  ): Promise<PapelBase> {
     const identification = await this.identifyUserRoles(userId, {
       empresaId,
       includeDetails: false,
@@ -105,7 +105,7 @@ export class UserRoleIdentifierService {
     empresaId: string,
   ): Promise<{
     valid: boolean;
-    roles: Array<Exclude<AppUserRole, "empresa">>;
+    roles: PapelBase[];
   }> {
     const identification = await this.identifyUserRoles(userId, {
       empresaId,
@@ -125,7 +125,7 @@ export class UserRoleIdentifierService {
    */
   async switchUserRole(
     userId: string,
-    newRole: AppUserRole,
+    newRole: PapelBase,
     empresaId?: string,
   ): Promise<SwitchRoleResult> {
     // Validate that user has the requested role
@@ -134,9 +134,7 @@ export class UserRoleIdentifierService {
       includeDetails: false,
     });
 
-    if (
-      !identification.roles.includes(newRole as Exclude<AppUserRole, "empresa">)
-    ) {
+    if (!identification.roles.includes(newRole)) {
       return {
         success: false,
         newRole,
@@ -480,12 +478,13 @@ export class UserRoleIdentifierService {
     return Array.from(empresaMap.values());
   }
 
-  private determinePrimaryRole(
-    roles: Array<Exclude<AppUserRole, "empresa">>,
-  ): Exclude<AppUserRole, "empresa"> {
-    // Priority: usuario > aluno
+  private determinePrimaryRole(roles: PapelBase[]): PapelBase {
+    // Priority: usuario > professor > aluno
     if (roles.includes("usuario")) {
       return "usuario";
+    }
+    if (roles.includes("professor")) {
+      return "professor";
     }
     if (roles.includes("aluno")) {
       return "aluno";

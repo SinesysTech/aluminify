@@ -9,6 +9,7 @@ import { format, formatDistanceToNow, isFuture, differenceInHours } from "date-f
 import { ptBR } from "date-fns/locale"
 import { Calendar, Clock, Video, MessageSquare } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +23,7 @@ interface AgendamentoCardProps {
 }
 
 export function AgendamentoCard({ agendamento, showActions = true }: AgendamentoCardProps) {
+  const { tenant } = useParams<{ tenant: string }>()
   const dataInicio = new Date(agendamento.data_inicio)
   const dataFim = new Date(agendamento.data_fim)
   const isUpcoming = isFuture(dataInicio)
@@ -52,7 +54,7 @@ export function AgendamentoCard({ agendamento, showActions = true }: Agendamento
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Aluno Info */}
           <Link
-            href={`/agendamentos/detalhes/${agendamento.id}`}
+            href={`/${tenant}/agendamentos/detalhes/${agendamento.id}`}
             className="flex items-center gap-3 flex-1 min-w-0"
           >
             <Avatar className="h-10 w-10">

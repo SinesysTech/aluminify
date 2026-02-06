@@ -15,9 +15,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/app/shared/core/auth";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { userBelongsToTenant } from "@/app/shared/core/effective-empresa";
-import type { AppUser, AppUserRole } from "@/app/shared/types";
-
-type LegacyAppUserRole = "professor" | "empresa";
+import type { AppUser, PapelBase } from "@/app/shared/types";
 
 interface ResolvedTenant {
   empresaId: string;
@@ -73,7 +71,7 @@ export async function resolveTenantId(
 }
 
 interface RequireTenantUserOptions {
-  allowedRoles?: (AppUserRole | LegacyAppUserRole)[];
+  allowedRoles?: PapelBase[];
   ignorePasswordRequirement?: boolean;
 }
 

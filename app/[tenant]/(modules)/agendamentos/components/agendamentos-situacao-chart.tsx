@@ -58,9 +58,9 @@ export function AgendamentosSituacaoChart({
   stats,
 }: Props) {
   const data = useMemo<ChartItem[]>(() => {
+    // Combine pendentes + confirmados as "Agendados" since appointments are now auto-confirmed
     const items: ChartItem[] = [
-      { name: 'Pendentes', value: stats.pendentes, color: 'var(--chart-3)' },
-      { name: 'Confirmados', value: stats.confirmados, color: 'var(--chart-1)' },
+      { name: 'Agendados', value: stats.confirmados + stats.pendentes, color: 'var(--chart-1)' },
       { name: 'Cancelados', value: stats.cancelados, color: 'var(--chart-2)' },
       { name: 'Concluídos', value: stats.concluidos ?? 0, color: 'var(--chart-4)' },
     ]

@@ -725,19 +725,25 @@ export async function getAgendamentosEmpresa(
   }));
 }
 
-export async function getAgendamentoStats(professorId: string) {
+export async function getAgendamentoStats(professorId: string, empresaId?: string) {
   const supabase = await createClient();
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("agendamentos")
     .select("status, data_inicio")
     .eq("professor_id", professorId)
     .gte("data_inicio", startOfMonth.toISOString())
     .lte("data_inicio", endOfMonth.toISOString());
+
+  if (empresaId) {
+    query = query.eq("empresa_id", empresaId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching stats:", error);

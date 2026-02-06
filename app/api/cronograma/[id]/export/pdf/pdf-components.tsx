@@ -725,7 +725,7 @@ export function MotivationalMessage({ percent }: { percent: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// StatCard - card de estatistica para a capa
+// StatCard - card de estatística para a capa
 // ---------------------------------------------------------------------------
 
 export function StatCard({

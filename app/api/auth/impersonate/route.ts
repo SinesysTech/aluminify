@@ -9,7 +9,7 @@ import {
   canImpersonateUser,
 } from "@/app/shared/core/auth-impersonate";
 import { invalidateAuthSessionCache } from "@/app/shared/core/auth";
-import type { AppUserRole } from "@/app/shared/types";
+import type { PapelBase } from "@/app/shared/types";
 import type { Database } from "@/app/shared/core/database.types";
 
 async function postHandler(request: AuthenticatedRequest) {
@@ -87,7 +87,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
     // Validar se pode impersonar
     const validation = canImpersonateUser(
-      request.user.role as AppUserRole,
+      request.user.role as PapelBase,
       realUserEmpresaId,
       studentId,
       "aluno",
@@ -104,9 +104,9 @@ async function postHandler(request: AuthenticatedRequest) {
     // Criar contexto de impersonação
     const context = {
       realUserId: request.user.id,
-      realUserRole: request.user.role as AppUserRole,
+      realUserRole: request.user.role as PapelBase,
       impersonatedUserId: studentId,
-      impersonatedUserRole: "aluno" as AppUserRole,
+      impersonatedUserRole: "aluno" as PapelBase,
       startedAt: new Date().toISOString(),
     };
 

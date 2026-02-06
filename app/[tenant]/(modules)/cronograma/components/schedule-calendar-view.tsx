@@ -2020,7 +2020,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
             <div className="space-y-1">
               <CardTitle className="text-lg md:text-xl">{cronograma.nome || 'Meu Cronograma'}</CardTitle>
               <CardDescription className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
-                <Badge variant="secondary" className="text-xs">Calendario</Badge>
+                <Badge variant="secondary" className="text-xs">Calendário</Badge>
                 <span>
                   {format(new Date(cronograma.data_inicio), "dd 'de' MMMM", { locale: ptBR })} -{' '}
                   {format(new Date(cronograma.data_fim), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}

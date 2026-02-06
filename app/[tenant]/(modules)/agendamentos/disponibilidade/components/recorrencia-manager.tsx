@@ -306,9 +306,9 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            {/* Tipo de Servico */}
+            {/* Tipo de Serviço */}
             <div className="grid gap-2">
-              <Label htmlFor="tipo_servico">Tipo de Servico</Label>
+              <Label htmlFor="tipo_servico">Tipo de Serviço</Label>
               <Select
                 value={formData.tipo_servico}
                 onValueChange={(value: "plantao") =>
@@ -350,10 +350,10 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               </Select>
             </div>
 
-            {/* Horarios */}
+            {/* Horários */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="hora_inicio">Horario Inicio</Label>
+                <Label htmlFor="hora_inicio">Horário Início</Label>
                 <Input
                   id="hora_inicio"
                   type="time"
@@ -364,7 +364,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="hora_fim">Horario Fim</Label>
+                <Label htmlFor="hora_fim">Horário Fim</Label>
                 <Input
                   id="hora_fim"
                   type="time"
@@ -376,9 +376,9 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               </div>
             </div>
 
-            {/* Duracao do Slot */}
+            {/* Duração do Slot */}
             <div className="grid gap-2">
-              <Label htmlFor="duracao">Duracao de cada atendimento</Label>
+              <Label htmlFor="duracao">Duração de cada atendimento</Label>
               <Select
                 value={String(formData.duracao_slot_minutos)}
                 onValueChange={(value) =>
@@ -398,15 +398,15 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               </Select>
               {formData.hora_inicio && formData.hora_fim && (
                 <p className="text-xs text-muted-foreground">
-                  {calculateSlots(formData.hora_inicio, formData.hora_fim, formData.duracao_slot_minutos)} slots disponiveis
+                  {calculateSlots(formData.hora_inicio, formData.hora_fim, formData.duracao_slot_minutos)} slots disponíveis
                 </p>
               )}
             </div>
 
-            {/* Periodo de Vigencia */}
+            {/* Período de Vigência */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="data_inicio">Data Inicio *</Label>
+                <Label htmlFor="data_inicio">Data Início *</Label>
                 <Input
                   id="data_inicio"
                   type="date"
@@ -498,7 +498,7 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
               </Button>
               <Button onClick={() => handleOpenDialog()}>
                 <Plus className="mr-2 h-4 w-4" />
-                Adicionar Horario
+                Adicionar Horário
               </Button>
             </div>
 
@@ -583,12 +583,12 @@ export function RecorrenciaManager({ professorId, empresaId }: RecorrenciaManage
                 <TableHeader>
                   <TableRow>
                     <TableHead>Dia</TableHead>
-                    <TableHead>Horario</TableHead>
-                    <TableHead>Duracao</TableHead>
+                    <TableHead>Horário</TableHead>
+                    <TableHead>Duração</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Periodo</TableHead>
+                    <TableHead>Período</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-25">Acoes</TableHead>
+                    <TableHead className="w-25">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

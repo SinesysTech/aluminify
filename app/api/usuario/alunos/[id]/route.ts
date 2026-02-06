@@ -100,7 +100,12 @@ async function getHandler(
     const service = createStudentService(supabase);
     const student = await service.getById(params.id);
     if (!student) throw new StudentNotFoundError(params.id);
-    return NextResponse.json({ data: serializeStudent({ ...student, empresaId: student.empresaId || "" }) });
+    return NextResponse.json({
+      data: serializeStudent({
+        ...student,
+        empresaId: student.empresaId || "",
+      }),
+    });
   } catch (error) {
     return handleError(error);
   }
@@ -114,7 +119,9 @@ async function putHandler(
   try {
     const body = await request.json();
     // Operações em alunos_cursos exigem service role (RLS bloqueia insert/delete com anon key)
-    const supabase = body?.courseIds ? getServiceRoleClient() : await createClient();
+    const supabase = body?.courseIds
+      ? getServiceRoleClient()
+      : await createClient();
     const service = createStudentService(supabase);
     const student = await service.update(params.id, {
       fullName: body?.fullName,
@@ -130,8 +137,14 @@ async function putHandler(
       courseIds: body?.courseIds,
       temporaryPassword: body?.temporaryPassword,
       mustChangePassword: body?.mustChangePassword,
+      quotaExtra: body?.quotaExtra,
     });
-    return NextResponse.json({ data: serializeStudent({ ...student, empresaId: student.empresaId || "" }) });
+    return NextResponse.json({
+      data: serializeStudent({
+        ...student,
+        empresaId: student.empresaId || "",
+      }),
+    });
   } catch (error) {
     return handleError(error);
   }
@@ -147,7 +160,7 @@ async function deleteHandler(
     if (!empresaId) {
       return NextResponse.json(
         { error: "Usuário não está associado a uma empresa" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const supabase = await createClient();

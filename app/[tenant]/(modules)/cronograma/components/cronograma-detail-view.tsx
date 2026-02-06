@@ -35,7 +35,7 @@ export function CronogramaDetailView({ cronogramaId }: CronogramaDetailViewProps
             Lista
           </TabsTrigger>
           <TabsTrigger value="calendario" className="flex-1 sm:flex-initial">
-            Calendario
+            Calendário
           </TabsTrigger>
         </TabsList>
 

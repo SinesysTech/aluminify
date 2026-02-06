@@ -1,4 +1,4 @@
-import type { AppUserRole } from '@/app/shared/types';
+import type { PapelBase } from '@/app/shared/types';
 import type { RoleTipo, RolePermissions } from '@/app/shared/types/entities/papel';
 
 /**
@@ -6,8 +6,8 @@ import type { RoleTipo, RolePermissions } from '@/app/shared/types/entities/pape
  */
 export interface UserRoleIdentification {
   userId: string;
-  roles: Array<Exclude<AppUserRole, 'empresa'>>;
-  primaryRole: Exclude<AppUserRole, 'empresa'>;
+  roles: PapelBase[];
+  primaryRole: PapelBase;
   empresaIds: string[];
   /** Detailed info about each role */
   roleDetails: UserRoleDetail[];
@@ -17,7 +17,7 @@ export interface UserRoleIdentification {
  * Detailed info about a user role
  */
 export interface UserRoleDetail {
-  role: Exclude<AppUserRole, 'empresa'>;
+  role: PapelBase;
   empresaId: string;
   empresaNome: string;
   empresaSlug: string;
@@ -44,7 +44,7 @@ export interface IdentifyRolesOptions {
  */
 export interface SwitchRoleResult {
   success: boolean;
-  newRole: AppUserRole;
+  newRole: PapelBase;
   empresaId?: string;
   error?: string;
 }

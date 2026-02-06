@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 
 import { createClient } from '@/app/shared/core/client'
 import { getDefaultRouteForRole } from '@/app/shared/core/roles'
-import type { AppUserRole } from '@/app/shared/types'
+import type { PapelBase } from '@/app/shared/types'
 import { Input } from '@/app/shared/components/forms/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/app/shared/components/forms/label'
@@ -17,7 +17,7 @@ import { toast } from 'sonner'
 
 interface FirstAccessFormProps {
   userId: string
-  role: AppUserRole
+  role: PapelBase
   empresaSlug?: string
 }
 

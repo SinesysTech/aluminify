@@ -16,9 +16,7 @@ import {
 import { UserBaseService } from "./user-base.service";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 import type { PaginationParams } from "@/app/shared/types/dtos/api-responses";
-import {
-  normalizeCpf,
-} from "@/app/shared/library/br";
+import { normalizeCpf } from "@/app/shared/library/br";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 const FULL_NAME_MIN_LENGTH = 3;
@@ -215,7 +213,7 @@ export class StudentService extends UserBaseService {
     } catch (error: unknown) {
       const err = error as Error;
       const errorMessage = err.message?.toLowerCase() || "";
-      
+
       // Verificar se é erro de constraint única (duplicate key)
       // Incluindo erro de primary key (alunos_pkey ou "chave primária")
       const isPrimaryKeyError =
@@ -236,12 +234,12 @@ export class StudentService extends UserBaseService {
         if (isPrimaryKeyError) {
           // Tentar buscar por ID primeiro
           let existingStudent = await this.repository.findById(studentId);
-          
+
           // Se não encontrou, tentar buscar por email
           if (!existingStudent) {
             existingStudent = await this.repository.findByEmail(email);
           }
-          
+
           if (existingStudent) {
             // Aluno existe, apenas vincular cursos
             const courseIdsToLink =
@@ -260,7 +258,7 @@ export class StudentService extends UserBaseService {
             return updated ?? existingStudent;
           }
         }
-        
+
         // Para outros erros de constraint, verificar se é por email (aluno já existe)
         if (
           errorMessage.includes("usuarios_email_key") ||
@@ -285,7 +283,7 @@ export class StudentService extends UserBaseService {
             return updated ?? existingByEmail;
           }
         }
-        
+
         throw new StudentConflictError(
           err.message || "Aluno já existe no sistema",
         );
@@ -375,11 +373,12 @@ export class StudentService extends UserBaseService {
         // Buscar empresa_id do aluno atual para verificar duplicata na mesma empresa
         const currentStudent = await this.repository.findById(id);
         const empresaId = currentStudent?.empresaId ?? undefined;
-        
-        const existingByEnrollment = await this.repository.findByEnrollmentNumber(
-          enrollmentNumber,
-          empresaId,
-        );
+
+        const existingByEnrollment =
+          await this.repository.findByEnrollmentNumber(
+            enrollmentNumber,
+            empresaId,
+          );
         if (existingByEnrollment && existingByEnrollment.id !== id) {
           throw new StudentConflictError(
             `Student with enrollment number "${enrollmentNumber}" already exists in this empresa`,
@@ -434,6 +433,13 @@ export class StudentService extends UserBaseService {
 
     if (payload.mustChangePassword !== undefined) {
       updateData.mustChangePassword = payload.mustChangePassword;
+    }
+
+    if (payload.quotaExtra !== undefined) {
+      if (payload.quotaExtra < 0) {
+        throw new StudentValidationError("Quota extra cannot be negative");
+      }
+      updateData.quotaExtra = payload.quotaExtra;
     }
 
     return this.repository.update(id, updateData);
