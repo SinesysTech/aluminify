@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ElementType } from 'react'
 import { resolveEmpresaIdFromTenant } from '@/app/shared/core/resolve-empresa-from-tenant'
+import { isAdminRoleTipo } from "@/app/shared/core/roles"
 import { getAgendamentosAluno } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -26,7 +27,9 @@ export default async function MeusAgendamentosPage({ params }: MeusAgendamentosP
 
   // If not student, show professor/staff/admin view
   if (user.role !== 'aluno') {
-    return <ProfessorAgendamentosView userId={user.id} />
+    const isAdmin = user.roleType ? isAdminRoleTipo(user.roleType) : false
+    const viewUserId = isAdmin ? 'all' : user.id
+    return <ProfessorAgendamentosView userId={viewUserId} empresaId={user.empresaId ?? undefined} />
   }
 
   // Always resolve empresa from the current tenant URL to ensure tenant isolation
