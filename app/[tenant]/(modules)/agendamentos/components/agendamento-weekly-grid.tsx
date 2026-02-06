@@ -1,9 +1,11 @@
 "use client"
 
-import { useMemo } from "react"
-import { startOfWeek, addDays, format, isSameDay, parseISO, getHours } from "date-fns"
+import { useState, useMemo } from "react"
+import { startOfWeek, addDays, format, isSameDay, parseISO, getHours, addWeeks, subWeeks } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AgendamentoComDetalhes } from "@/app/[tenant]/(modules)/agendamentos/types"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/shared/components/ui/hover-card"
@@ -15,8 +17,14 @@ interface AgendamentoWeeklyGridProps {
 }
 
 export function AgendamentoWeeklyGrid({ agendamentos, currentDate = new Date() }: AgendamentoWeeklyGridProps) {
+    const [viewDate, setViewDate] = useState(currentDate)
+
+    const handleNextWeek = () => setViewDate(prev => addWeeks(prev, 1))
+    const handlePrevWeek = () => setViewDate(prev => subWeeks(prev, 1))
+    const handleToday = () => setViewDate(new Date())
+
     // 1. Calculate week days
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }) // Sunday start? or Monday? User said "Dias da semana". Let's assume Mon-Fri usually, but let's show Sun-Sat or Mon-Sat. 'weekStartsOn: 0' is Sunday.
+    const weekStart = startOfWeek(viewDate, { weekStartsOn: 0 })
     const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i))
 
     // 2. Define time slots (07:00 to 22:00)
@@ -45,8 +53,19 @@ export function AgendamentoWeeklyGrid({ agendamentos, currentDate = new Date() }
 
     return (
         <Card className="overflow-hidden">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
                 <CardTitle>Visão Semanal</CardTitle>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handlePrevWeek}>
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleToday}>
+                        Hoje
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleNextWeek}>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
                 <div className="min-w-[800px]">
@@ -63,8 +82,7 @@ export function AgendamentoWeeklyGrid({ agendamentos, currentDate = new Date() }
                                     isSameDay(day, new Date()) && "bg-primary/5 text-primary"
                                 )}
                             >
-                                <div className="capitalize">{format(day, 'EEE', { locale: ptBR })}</div>
-                                <div className="text-xs text-muted-foreground">{format(day, 'dd/MM')}</div>
+                                <div className="capitalize">{format(day, 'EEE dd/MM', { locale: ptBR })}</div>
                             </div>
                         ))}
                     </div>

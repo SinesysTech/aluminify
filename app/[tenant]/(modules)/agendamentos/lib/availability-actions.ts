@@ -115,7 +115,10 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
 
   // Get existing bookings - use local day boundaries
   const startOfDay = fromZonedTime(`${dateOnly}T00:00:00`, SCHEDULING_TIMEZONE);
-  const endOfDay = fromZonedTime(`${dateOnly}T23:59:59.999`, SCHEDULING_TIMEZONE);
+  const endOfDay = fromZonedTime(
+    `${dateOnly}T23:59:59.999`,
+    SCHEDULING_TIMEZONE,
+  );
 
   const { data: bookings } = await supabase
     .from("agendamentos")
@@ -281,8 +284,13 @@ export async function getAvailabilityForMonth(
     }>,
   ): boolean => {
     return bloqueiosList.some((b) => {
-      const blockStart = b.data_inicio.split("T")[0];
-      const blockEnd = b.data_fim.split("T")[0];
+      // Use helper to convert UTC ISO string to Zoned Date, then formatted YYYY-MM-DD
+      const blockStart = toZonedTime(b.data_inicio, SCHEDULING_TIMEZONE)
+        .toISOString()
+        .split("T")[0];
+      const blockEnd = toZonedTime(b.data_fim, SCHEDULING_TIMEZONE)
+        .toISOString()
+        .split("T")[0];
       return dateStr >= blockStart && dateStr <= blockEnd;
     });
   };
@@ -429,7 +437,10 @@ export async function getProfessoresDisponibilidade(
 
   // Get bloqueios for all professors - use local day boundaries
   const startOfDay = fromZonedTime(`${dateStr}T00:00:00`, SCHEDULING_TIMEZONE);
-  const endOfDay = fromZonedTime(`${dateStr}T23:59:59.999`, SCHEDULING_TIMEZONE);
+  const endOfDay = fromZonedTime(
+    `${dateStr}T23:59:59.999`,
+    SCHEDULING_TIMEZONE,
+  );
 
   const { data: bloqueios } = await supabase
     .from("agendamento_bloqueios")

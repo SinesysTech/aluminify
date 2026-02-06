@@ -74,7 +74,7 @@ export default async function AgendamentosPage({
     const professorsList = await getTeachersForAdminSelector(user.empresaId)
     const professorId = searchProfessorId && typeof searchProfessorId === "string"
       ? searchProfessorId
-      : professorsList[0]?.id
+      : "all"
 
     if (!professorId) {
       return (
@@ -106,7 +106,7 @@ export default async function AgendamentosPage({
         />
 
         <Suspense fallback={<AgendamentosSkeleton />}>
-          <ProfessorAgendamentosView userId={professorId} />
+          <ProfessorAgendamentosView userId={professorId} empresaId={user.empresaId || undefined} />
         </Suspense>
       </div>
     )

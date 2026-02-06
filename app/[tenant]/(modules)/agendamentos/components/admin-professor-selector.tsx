@@ -67,6 +67,7 @@ export function AdminProfessorSelector({
                         <SelectValue placeholder="Selecione um professor..." />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="all">Visão Geral (Todos)</SelectItem>
                         {isTeacher && (
                             <SelectItem value="me">Minha Agenda (Eu)</SelectItem>
                         )}

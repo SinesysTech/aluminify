@@ -760,3 +760,90 @@ export async function getAgendamentoStats(professorId: string) {
 
   return stats;
 }
+
+export async function getAgendamentoStatsGlobal(empresaId: string) {
+  const supabase = await createClient();
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .select("status")
+    .eq("empresa_id", empresaId)
+    .gte("data_inicio", startOfMonth.toISOString())
+    .lte("data_inicio", endOfMonth.toISOString());
+
+  if (error) {
+    console.error("Error fetching global stats:", error);
+    return {
+      total: 0,
+      pendentes: 0,
+      confirmados: 0,
+      cancelados: 0,
+      concluidos: 0,
+    };
+  }
+
+  const stats = {
+    total: data?.length || 0,
+    pendentes: data?.filter((a) => a.status === "pendente").length || 0,
+    confirmados: data?.filter((a) => a.status === "confirmado").length || 0,
+    cancelados: data?.filter((a) => a.status === "cancelado").length || 0,
+    concluidos: data?.filter((a) => a.status === "concluido").length || 0,
+  };
+
+  return stats;
+}
+
+export async function getAgendamentosGlobal(
+  empresaId: string,
+): Promise<AgendamentoComDetalhes[]> {
+  const supabase = await createClient();
+
+  const { data: agendamentos, error } = await supabase
+    .from("agendamentos")
+    .select(
+      `
+      *,
+      aluno:usuarios!agendamentos_aluno_id_fkey(
+        id,
+        nome_completo,
+        email
+      ),
+      professor:usuarios!agendamentos_professor_id_fkey(
+        id,
+        nome_completo,
+        email,
+        foto_url
+      )
+    `,
+    )
+    .eq("empresa_id", empresaId)
+    .order("data_inicio", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching global appointments:", error);
+    return [];
+  }
+
+  if (!agendamentos) return [];
+
+  return agendamentos.map((data) => {
+    const aluno = isValidUserObject(data.aluno) ? data.aluno : undefined;
+    const professor = isValidUserObject(data.professor)
+      ? data.professor
+      : undefined;
+
+    return {
+      ...data,
+      status: data.status as Agendamento["status"],
+      lembrete_enviado: data.lembrete_enviado ?? undefined,
+      created_at: data.created_at ?? undefined,
+      updated_at: data.updated_at ?? undefined,
+      aluno,
+      professor,
+    };
+  });
+}

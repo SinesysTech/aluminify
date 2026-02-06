@@ -43,6 +43,8 @@ import {
   updateAgendamento,
   getAgendamentosEmpresa,
   getAgendamentoStats,
+  getAgendamentosGlobal,
+  getAgendamentoStatsGlobal,
 } from "./appointment-actions";
 
 export {
@@ -56,6 +58,8 @@ export {
   updateAgendamento,
   getAgendamentosEmpresa,
   getAgendamentoStats,
+  getAgendamentosGlobal,
+  getAgendamentoStatsGlobal,
 };
 
 // Config actions
@@ -102,7 +106,11 @@ import { validateAgendamento, checkConflitos } from "./validation-actions";
 export { validateAgendamento, checkConflitos };
 
 // Report actions
-import { gerarRelatorio, getRelatorios, getRelatorioById } from "./report-actions";
+import {
+  gerarRelatorio,
+  getRelatorios,
+  getRelatorioById,
+} from "./report-actions";
 
 export { gerarRelatorio, getRelatorios, getRelatorioById };
 
@@ -112,10 +120,7 @@ import {
   getProfessorById,
 } from "./professor-selection-actions";
 
-export {
-  getProfessoresDisponiveis,
-  getProfessorById,
-};
+export { getProfessoresDisponiveis, getProfessorById };
 
 // Admin helpers
 import {
