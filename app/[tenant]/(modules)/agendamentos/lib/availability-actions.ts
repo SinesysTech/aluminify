@@ -182,24 +182,6 @@ export async function getAvailableSlots(professorId: string, dateStr: string) {
   };
 }
 
-export async function getAvailableSlotsLegacy(
-  professorId: string,
-  dateStr: string,
-): Promise<string[]> {
-  const result = await getAvailableSlots(professorId, dateStr);
-
-  if (
-    result &&
-    typeof result === "object" &&
-    "slots" in result &&
-    Array.isArray(result.slots)
-  ) {
-    return result.slots as string[];
-  }
-
-  return [];
-}
-
 export async function getAvailabilityForMonth(
   professorId: string,
   year: number,

@@ -319,12 +319,12 @@ export async function getAgendamentoById(
       *,
       aluno:usuarios!agendamentos_aluno_id_fkey(
         id,
-        nome_completo,
+        nome:nome_completo,
         email
       ),
       professor:usuarios!agendamentos_professor_id_fkey(
         id,
-        nome_completo,
+        nome:nome_completo,
         email,
         foto_url
       )
@@ -809,12 +809,12 @@ export async function getAgendamentosGlobal(
       *,
       aluno:usuarios!agendamentos_aluno_id_fkey(
         id,
-        nome_completo,
+        nome:nome_completo,
         email
       ),
       professor:usuarios!agendamentos_professor_id_fkey(
         id,
-        nome_completo,
+        nome:nome_completo,
         email,
         foto_url
       )
@@ -846,4 +846,21 @@ export async function getAgendamentosGlobal(
       professor,
     };
   });
+}
+
+export async function updateStudentExtraQuota(
+  userId: string,
+  quotaExtra: number,
+) {
+  const supabase = await createClient();
+  const plantaoQuotaService = new PlantaoQuotaService(supabase);
+
+  try {
+    await plantaoQuotaService.setStudentExtraQuota(userId, quotaExtra);
+    revalidatePath("/[tenant]/agendamentos", "layout");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating extra quota:", error);
+    return { success: false, error: "Failed to update extra quota" };
+  }
 }
