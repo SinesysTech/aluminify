@@ -3,7 +3,6 @@ import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { createFinancialService } from "@/app/[tenant]/(modules)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type { UpdateTransactionInput } from "@/app/[tenant]/(modules)/financeiro/services/financial.types";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 interface RouteContext {
   params: { id: string };
@@ -105,8 +104,7 @@ async function patchHandler(request: AuthenticatedRequest, context?: Record<stri
     }
 
     // Check if user is admin
-    const isAdmin = user.role === "usuario" && !!user.roleType && isAdminRoleTipo(user.roleType);
-    if (!isAdmin) {
+    if (!user.isAdmin) {
       return NextResponse.json(
         { error: "Only admins can update transactions" },
         { status: 403 }

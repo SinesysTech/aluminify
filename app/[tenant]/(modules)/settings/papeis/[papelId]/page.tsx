@@ -1,7 +1,6 @@
 import { requireUser } from '@/app/shared/core/auth'
 import { createClient } from '@/app/shared/core/server'
 import { redirect, notFound } from 'next/navigation'
-import { isAdminRoleTipo } from '@/app/shared/core/roles'
 import { EditPapelClient } from './edit-papel-client'
 import type { RolePermissions, RoleTipo } from '@/app/shared/types/entities/papel'
 
@@ -14,8 +13,7 @@ export default async function EditPapelPage({ params }: PageProps) {
   const user = await requireUser()
 
   // Only admins can access this page
-  const isAdmin = user.roleType && isAdminRoleTipo(user.roleType)
-  if (!isAdmin) {
+  if (!user.isAdmin) {
     redirect(`/${tenant}/dashboard`)
   }
 

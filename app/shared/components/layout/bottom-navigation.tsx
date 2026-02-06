@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/shared/library/utils'
 import { useCurrentUser } from '@/components/providers/user-provider'
-import { isAdminRoleTipo } from '@/app/shared/core/roles'
 import { useModuleVisibility } from '@/app/shared/hooks/use-module-visibility'
 import { getIconComponent } from '@/components/layout/navigation-icons'
 import { Skeleton } from '@/app/shared/components/feedback/skeleton'
@@ -102,14 +101,14 @@ export function BottomNavigation() {
   const staticNavItems = useMemo((): NavItem[] | null => {
     if (user.role === 'aluno') return null
     if (user.role === 'usuario') {
-      if (user.roleType && isAdminRoleTipo(user.roleType)) {
+      if (user.isAdmin) {
         return adminNavItems
       }
       return professorNavItems
     }
     // Default fallback — tratado na seção dinâmica
     return null
-  }, [user.role, user.roleType])
+  }, [user.role, user.isAdmin])
 
   // -----------------------------------------------------------------------
   // Navegação dinâmica para aluno (mesma lógica de aluno-sidebar.tsx)

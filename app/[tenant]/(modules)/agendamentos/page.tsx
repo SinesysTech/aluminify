@@ -3,7 +3,7 @@ import { ProfessorSelector } from "./components/professor-selector"
 import { ProfessorAgendamentosView } from "./components/agendamentos-professor-view"
 import { requireUser } from "@/app/shared/core/auth"
 import { getProfessoresDisponiveis, getTeachersForAdminSelector } from "@/app/[tenant]/(modules)/agendamentos/lib/actions"
-import { isAdminRoleTipo, isTeachingRoleTipo } from "@/app/shared/core/roles"
+import { isTeachingRole } from "@/app/shared/core/roles"
 import { AdminProfessorSelector } from "./components/admin-professor-selector"
 import { PlantaoQuotaBanner } from "./components/plantao-quota-banner"
 import { resolveEmpresaIdFromTenant } from "@/app/shared/core/resolve-empresa-from-tenant"
@@ -53,8 +53,8 @@ export default async function AgendamentosPage({
   }
 
   // Staff/Admin/Professor View
-  const isAdmin = user.roleType ? isAdminRoleTipo(user.roleType) : false
-  const isTeacher = user.roleType ? isTeachingRoleTipo(user.roleType) : false
+  const isAdmin = user.isAdmin
+  const isTeacher = isTeachingRole(user.role)
 
   // Admin non-teacher: show admin management view
   if (isAdmin && !isTeacher) {

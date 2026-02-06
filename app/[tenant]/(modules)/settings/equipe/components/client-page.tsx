@@ -10,9 +10,10 @@ import { CreateMemberDialog } from './create-member-dialog'
 interface EquipeClientPageProps {
   usuarios: UsuarioSummary[]
   initialFilter?: string
+  currentUserIsAdmin: boolean
 }
 
-export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPageProps) {
+export function EquipeClientPage({ usuarios, initialFilter, currentUserIsAdmin }: EquipeClientPageProps) {
   const [papelTipoFilter, setPapelTipoFilter] = useState<string>(initialFilter || 'todos')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -70,7 +71,7 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
             <CreateMemberDialog />
           </div>
 
-          <UserTable usuarios={filteredUsuarios} />
+          <UserTable usuarios={filteredUsuarios} currentUserIsAdmin={currentUserIsAdmin} />
         </section>
       )}
 

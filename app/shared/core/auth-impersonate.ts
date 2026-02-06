@@ -72,20 +72,36 @@ export function canImpersonateUser(
   targetUserRole: PapelBase,
   targetUserEmpresaId: string | undefined,
 ): { allowed: boolean; reason?: string } {
-  // Admins de empresa (usuarios) podem impersonar apenas alunos
+  // Admins de empresa (usuarios) podem impersonar
   if (realUserRole === "usuario") {
-    if (targetUserRole !== "aluno") {
-      return { allowed: false, reason: "Apenas alunos podem ser impersonados" };
-    }
-
-    // Verificar se o aluno pertence à mesma empresa (se aplicável)
-    if (realUserEmpresaId && targetUserEmpresaId) {
-      if (realUserEmpresaId !== targetUserEmpresaId) {
-        return { allowed: false, reason: "Aluno não pertence à sua empresa" };
+    // 1. Impersonar Aluno
+    if (targetUserRole === "aluno") {
+      // Verificar se o aluno pertence à mesma empresa (se aplicável)
+      if (realUserEmpresaId && targetUserEmpresaId) {
+        if (realUserEmpresaId !== targetUserEmpresaId) {
+          return { allowed: false, reason: "Aluno não pertence à sua empresa" };
+        }
       }
+      return { allowed: true };
     }
 
-    return { allowed: true };
+    // 2. Impersonar Outro Usuário da Equipe
+    if (targetUserRole === "usuario") {
+      if (realUserEmpresaId && targetUserEmpresaId) {
+        if (realUserEmpresaId !== targetUserEmpresaId) {
+          return {
+            allowed: false,
+            reason: "Usuário não pertence à sua empresa",
+          };
+        }
+      }
+      return { allowed: true };
+    }
+
+    return {
+      allowed: false,
+      reason: "Tipo de usuário não pode ser impersonado",
+    };
   }
 
   return {

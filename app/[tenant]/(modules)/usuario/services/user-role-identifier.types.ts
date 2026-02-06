@@ -21,11 +21,16 @@ export interface UserRoleDetail {
   empresaId: string;
   empresaNome: string;
   empresaSlug: string;
-  /** Whether user is admin for this empresa */
+  /** Whether user is admin for this empresa (from usuarios_empresas.is_admin) */
   isAdmin?: boolean;
-  /** Specific role type (only for role="usuario") */
+  /** Whether user is owner for this empresa (from usuarios_empresas.is_owner) */
+  isOwner?: boolean;
+  /**
+   * @deprecated Use isAdmin flag instead.
+   * RoleTipo is being phased out in favor of isAdmin boolean.
+   */
   roleType?: RoleTipo;
-  /** Role permissions (only for role="usuario") */
+  /** Role permissions (only for role="usuario" with custom papel) */
   permissions?: RolePermissions;
 }
 

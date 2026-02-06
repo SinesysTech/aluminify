@@ -1,7 +1,7 @@
 "use server";
 
 import { getAuthenticatedUser } from "@/app/shared/core/auth";
-import { isAdminRoleTipo, isTeachingRoleTipo } from "@/app/shared/core/roles";
+import { isTeachingRole } from "@/app/shared/core/roles";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 /**
@@ -22,7 +22,7 @@ export async function canManageProfessorSchedule(
   if (user.id === professorId) return true;
 
   // Check if user is admin
-  if (!user.roleType || !isAdminRoleTipo(user.roleType)) return false;
+  if (!user.isAdmin) return false;
   if (!user.empresaId) return false;
 
   // Verify target professor is in the same empresa
@@ -48,15 +48,12 @@ export async function getAdminContext() {
   const user = await getAuthenticatedUser();
   if (!user) return null;
 
-  const isAdmin = user.roleType ? isAdminRoleTipo(user.roleType) : false;
-  const isTeacher = user.roleType ? isTeachingRoleTipo(user.roleType) : false;
-
   return {
     userId: user.id,
     empresaId: user.empresaId,
-    isAdmin,
-    isTeacher,
-    roleType: user.roleType,
+    isAdmin: user.isAdmin,
+    isTeacher: isTeachingRole(user.role),
+    roleType: user.roleType, // deprecated, kept for compatibility
   };
 }
 
@@ -82,9 +79,9 @@ export async function getTeachersForAdminSelector(
   }
 
   // Ensure user is admin
-  if (!user.roleType || !isAdminRoleTipo(user.roleType)) {
+  if (!user.isAdmin) {
     console.error(
-      `Unauthorized access attempt to getTeachersForAdminSelector: User ${user.id} is not admin (role: ${user.roleType})`,
+      `Unauthorized access attempt to getTeachersForAdminSelector: User ${user.id} is not admin`,
     );
     throw new Error("Unauthorized");
   }

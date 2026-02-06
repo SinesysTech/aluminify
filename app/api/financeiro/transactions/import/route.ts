@@ -6,7 +6,6 @@ import type {
   TransactionImportResult,
   CreateTransactionInput,
 } from "@/app/[tenant]/(modules)/financeiro/services/financial.types";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 function handleError(error: unknown) {
   console.error("Transaction Import API Error:", error);
@@ -51,8 +50,7 @@ async function postHandler(request: AuthenticatedRequest) {
     }
 
     // Check if user is admin
-    const isAdmin = user.role === "usuario" && !!user.roleType && isAdminRoleTipo(user.roleType);
-    if (!isAdmin) {
+    if (!user.isAdmin) {
       return NextResponse.json(
         { error: "Only admins can import transactions" },
         { status: 403 }

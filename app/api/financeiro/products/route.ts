@@ -3,7 +3,6 @@ import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { createProductRepository, type ProductListParams } from "@/app/[tenant]/(modules)/financeiro/services";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import type { Provider } from "@/app/[tenant]/(modules)/financeiro/services/financial.types";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 const serializeProduct = (
   product: Awaited<ReturnType<ReturnType<typeof createProductRepository>["findById"]>>
@@ -132,8 +131,7 @@ async function postHandler(request: AuthenticatedRequest) {
     }
 
     // Check if user is admin
-    const isAdmin = user.role === "usuario" && !!user.roleType && isAdminRoleTipo(user.roleType);
-    if (!isAdmin) {
+    if (!user.isAdmin) {
       return NextResponse.json(
         { error: "Only admins can create products" },
         { status: 403 }

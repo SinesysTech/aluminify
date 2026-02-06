@@ -147,7 +147,8 @@ export class PapelRepositoryImpl implements PapelRepository {
     const insertData: PapelInsert = {
       empresa_id: payload.empresaId,
       nome: payload.nome,
-      tipo: payload.tipo,
+      // tipo is deprecated - use "staff" as default for backwards compatibility
+      tipo: payload.tipo ?? "staff",
       descricao: payload.descricao ?? null,
       permissoes:
         payload.permissoes as unknown as Database["public"]["Tables"]["papeis"]["Insert"]["permissoes"],

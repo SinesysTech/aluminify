@@ -4,7 +4,6 @@ import {
   type AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
 import { StudentTemplateService } from "@/app/[tenant]/(modules)/usuario/services/student-template.service";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 async function getHandler(request: AuthenticatedRequest) {
   try {
@@ -13,12 +12,8 @@ async function getHandler(request: AuthenticatedRequest) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    // Permitir admins de empresa (usuários com roleType admin)
-    const isAdmin =
-      user.role === "usuario" &&
-      !!user.roleType &&
-      isAdminRoleTipo(user.roleType);
-    if (!isAdmin) {
+    // Permitir admins de empresa
+    if (!user.isAdmin) {
       return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
     }
 

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 import type { Database } from "@/app/shared/core/database.types";
 import type { RolePermissions, RoleTipo } from "@/app/shared/types/entities/papel";
 
@@ -62,8 +61,7 @@ async function postHandler(
   }
 
   // Only admins can create papeis
-  const isAdmin = user.roleType && isAdminRoleTipo(user.roleType);
-  if (!isAdmin) {
+  if (!user.isAdmin) {
     return NextResponse.json(
       { error: "Forbidden: Admin privileges required" },
       { status: 403 },

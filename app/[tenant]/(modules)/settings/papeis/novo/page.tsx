@@ -1,6 +1,5 @@
 import { requireUser } from '@/app/shared/core/auth'
 import { redirect } from 'next/navigation'
-import { isAdminRoleTipo } from '@/app/shared/core/roles'
 import { NovoPapelClient } from './novo-papel-client'
 
 export default async function NovoPapelPage({
@@ -12,8 +11,7 @@ export default async function NovoPapelPage({
   const { tenant } = await params
 
   // Only admins can access this page
-  const isAdmin = user.roleType && isAdminRoleTipo(user.roleType)
-  if (!isAdmin) {
+  if (!user.isAdmin) {
     redirect(`/${tenant}/dashboard`)
   }
 

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth, AuthenticatedRequest } from "@/app/[tenant]/auth/middleware";
 import { getDatabaseClient } from "@/app/shared/core/database/database";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 import type { RolePermissions } from "@/app/shared/types/entities/papel";
 
 interface RouteContext {
@@ -61,8 +60,7 @@ async function patchHandler(
   }
 
   // Only admins can update papeis
-  const isAdmin = user.roleType && isAdminRoleTipo(user.roleType);
-  if (!isAdmin) {
+  if (!user.isAdmin) {
     return NextResponse.json(
       { error: "Forbidden: Admin privileges required" },
       { status: 403 },
@@ -156,8 +154,7 @@ async function deleteHandler(
   }
 
   // Only admins can delete papeis
-  const isAdmin = user.roleType && isAdminRoleTipo(user.roleType);
-  if (!isAdmin) {
+  if (!user.isAdmin) {
     return NextResponse.json(
       { error: "Forbidden: Admin privileges required" },
       { status: 403 },

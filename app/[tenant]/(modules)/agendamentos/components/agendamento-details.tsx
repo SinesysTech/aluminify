@@ -28,8 +28,6 @@ import {
   Mail,
   Video,
   MessageSquare,
-  Check,
-  X,
   Loader2,
   ExternalLink,
   Copy
@@ -223,7 +221,8 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
                   </a>
                 </Button>
               </div>
-              {agendamento.status === "confirmado" && (
+              {/* Allow link editing for confirmed or pending appointments */}
+              {(agendamento.status === "confirmado" || agendamento.status === "pendente") && (
                 <Button variant="outline" onClick={() => setLinkDialogOpen(true)} className="w-full">
                   Alterar Link
                 </Button>
@@ -234,7 +233,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
               <p className="text-muted-foreground text-sm mb-3">
                 Nenhum link de reunião configurado
               </p>
-              {agendamento.status === "confirmado" && (
+              {(agendamento.status === "confirmado" || agendamento.status === "pendente") && (
                 <Button variant="outline" onClick={() => setLinkDialogOpen(true)}>
                   Adicionar Link
                 </Button>
@@ -268,23 +267,7 @@ export function AgendamentoDetails({ agendamento }: AgendamentoDetailsProps) {
         </CardContent>
       </Card>
 
-      {/* Actions */}
-      {agendamento.status === "pendente" && (
-        <div className="md:col-span-2 flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            className="text-destructive hover:text-destructive"
-            onClick={() => setRejectDialogOpen(true)}
-          >
-            <X className="mr-2 h-4 w-4" />
-            Rejeitar
-          </Button>
-          <Button onClick={() => setConfirmDialogOpen(true)}>
-            <Check className="mr-2 h-4 w-4" />
-            Confirmar
-          </Button>
-        </div>
-      )}
+      {/* Actions - Pending state removed/auto-confirmed, so no manual confirm actions needed */}
 
       {/* Confirm Dialog */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>

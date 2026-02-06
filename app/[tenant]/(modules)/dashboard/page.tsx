@@ -5,7 +5,6 @@ import { createClient } from '@/app/shared/core/server'
 import { InstitutionDashboardClient } from './components/institution'
 import ProfessorDashboardClient from './components/professor/dashboard-client'
 import StudentDashboardClientPage from './components/aluno/student-dashboard'
-import { isAdminRoleTipo } from '@/app/shared/core/roles'
 
 export const metadata: Metadata = {
   title: 'Dashboard'
@@ -53,8 +52,7 @@ export default async function DashboardPage(props: {
 
   // Se é admin da empresa, mostrar dashboard da instituição
   // Caso contrário, mostrar dashboard do professor
-  const isAdmin = user.roleType && isAdminRoleTipo(user.roleType)
-  if (isAdmin) {
+  if (user.isAdmin) {
     return <InstitutionDashboardClient />
   }
 

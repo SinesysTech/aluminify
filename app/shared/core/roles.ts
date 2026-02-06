@@ -1,8 +1,13 @@
-import type { PapelBase } from "@/app/shared/types/entities/user";
-import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/papel";
+import type {
+  PapelBase,
+  RoleTipo,
+  RolePermissions,
+} from "@/app/shared/types/entities/papel";
 import {
   ADMIN_ROLES as ADMIN_ROLE_TIPOS,
   TEACHING_ROLES as TEACHING_ROLE_TIPOS,
+  DEFAULT_PERMISSIONS_BY_PAPEL_BASE,
+  ADMIN_PERMISSIONS,
 } from "@/app/shared/types/entities/papel";
 
 // Default routes by papel base
@@ -12,19 +17,81 @@ const DEFAULT_ROUTE_BY_ROLE: Record<PapelBase, string> = {
   professor: "/dashboard",
 };
 
+// =============================================================================
+// New simplified role helpers
+// =============================================================================
+
 /**
- * Check if a role tipo is a teaching role
+ * Check if user has a teaching role (professor)
+ */
+export function isTeachingRole(role: PapelBase): boolean {
+  return role === "professor";
+}
+
+/**
+ * Resolve effective permissions for a user based on role, admin status, and custom permissions
+ * @param role - The user's base role (aluno, professor, usuario)
+ * @param isAdmin - Whether the user has admin privileges
+ * @param customPermissions - Optional custom permissions from a papel customizado
+ */
+export function resolvePermissions(
+  role: PapelBase,
+  isAdmin: boolean,
+  customPermissions?: RolePermissions,
+): RolePermissions {
+  // Admins always get full permissions
+  if (isAdmin) {
+    return ADMIN_PERMISSIONS;
+  }
+
+  // If user has custom permissions (from a papel customizado), use those
+  if (role === "usuario" && customPermissions) {
+    return customPermissions;
+  }
+
+  // Otherwise use default permissions for the role
+  return DEFAULT_PERMISSIONS_BY_PAPEL_BASE[role];
+}
+
+/**
+ * Check if user can impersonate other users (new simplified version)
+ */
+export function canImpersonateUser(isAdmin: boolean): boolean {
+  return isAdmin;
+}
+
+// =============================================================================
+// Legacy helpers (deprecated - maintain for backwards compatibility)
+// =============================================================================
+
+/**
+ * @deprecated Use isTeachingRole(role: PapelBase) instead
  */
 export function isTeachingRoleTipo(tipo: RoleTipo): boolean {
   return TEACHING_ROLE_TIPOS.includes(tipo);
 }
 
 /**
- * Check if a role tipo is an admin role
+ * @deprecated Use isAdmin flag directly instead
  */
 export function isAdminRoleTipo(tipo: RoleTipo): boolean {
   return ADMIN_ROLE_TIPOS.includes(tipo);
 }
+
+/**
+ * @deprecated Use canImpersonateUser(isAdmin) instead
+ */
+export function canImpersonate(
+  _role: PapelBase,
+  roleType?: RoleTipo,
+): boolean {
+  if (roleType && isAdminRoleTipo(roleType)) return true;
+  return false;
+}
+
+// =============================================================================
+// Permission checking helpers
+// =============================================================================
 
 /**
  * Check if user has permission to perform an action on a resource
@@ -91,17 +158,6 @@ export function canDelete(
  */
 export function getDefaultRouteForRole(role: PapelBase): string {
   return DEFAULT_ROUTE_BY_ROLE[role] ?? "/dashboard";
-}
-
-/**
- * Check if user can impersonate other users
- */
-export function canImpersonate(
-  role: PapelBase,
-  roleType?: RoleTipo,
-): boolean {
-  if (roleType && isAdminRoleTipo(roleType)) return true;
-  return false;
 }
 
 /**

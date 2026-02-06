@@ -1,7 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { PapelBase } from "@/app/shared/types";
 import type { RoleTipo, RolePermissions } from "@/app/shared/types/entities/papel";
-import { isAdminRole } from "@/app/[tenant]/(modules)/usuario/services/permission.service";
 import type {
   UserRoleIdentification,
   UserRoleDetail,
@@ -188,13 +187,15 @@ export class UserRoleIdentifierService {
     empresaId?: string,
     email?: string | null,
   ): Promise<UserRoleDetail[]> {
+    // Query usuarios with usuarios_empresas join to get isAdmin/isOwner flags
     let query = this.client
       .from("usuarios")
       .select(
         `
         id,
         empresa_id,
-        papeis!inner (
+        papel_id,
+        papeis (
           tipo,
           permissoes
         ),
@@ -202,6 +203,10 @@ export class UserRoleIdentifierService {
           id,
           nome,
           slug
+        ),
+        usuarios_empresas!inner (
+          is_admin,
+          is_owner
         )
       `,
       )
@@ -227,12 +232,17 @@ export class UserRoleIdentifierService {
     type UsuarioQueryRow = {
       id: string;
       empresa_id: string;
+      papel_id: string | null;
       papeis:
-        | { tipo: string; permissoes: unknown }
-        | { tipo: string; permissoes: unknown }[];
+        | { tipo: string | null; permissoes: unknown }
+        | { tipo: string | null; permissoes: unknown }[]
+        | null;
       empresas:
         | { id: string; nome: string; slug: string }
         | { id: string; nome: string; slug: string }[];
+      usuarios_empresas:
+        | { is_admin: boolean; is_owner: boolean }
+        | { is_admin: boolean; is_owner: boolean }[];
     };
 
     const rows = (data || []) as UsuarioQueryRow[];
@@ -245,7 +255,8 @@ export class UserRoleIdentifierService {
           `
           id,
           empresa_id,
-          papeis!inner (
+          papel_id,
+          papeis (
             tipo,
             permissoes
           ),
@@ -253,6 +264,10 @@ export class UserRoleIdentifierService {
             id,
             nome,
             slug
+          ),
+          usuarios_empresas!inner (
+            is_admin,
+            is_owner
           )
         `,
         )
@@ -279,19 +294,34 @@ export class UserRoleIdentifierService {
       const empresa = Array.isArray(row.empresas)
         ? row.empresas[0]
         : row.empresas;
-      const papel = Array.isArray(row.papeis)
-        ? row.papeis[0]
-        : row.papeis;
-      const roleType = papel.tipo as RoleTipo;
-      const permissions = papel.permissoes as RolePermissions;
+      const vinculo = Array.isArray(row.usuarios_empresas)
+        ? row.usuarios_empresas[0]
+        : row.usuarios_empresas;
+
+      // Get isAdmin/isOwner from usuarios_empresas (new model)
+      const isAdmin = vinculo?.is_admin ?? false;
+      const isOwner = vinculo?.is_owner ?? false;
+
+      // Get papel data if exists (for custom permissions)
+      let roleType: RoleTipo | undefined;
+      let permissions: RolePermissions | undefined;
+
+      if (row.papeis) {
+        const papel = Array.isArray(row.papeis) ? row.papeis[0] : row.papeis;
+        if (papel) {
+          roleType = (papel.tipo as RoleTipo) ?? undefined;
+          permissions = papel.permissoes as RolePermissions | undefined;
+        }
+      }
 
       return {
         role: "usuario" as const,
         empresaId: row.empresa_id,
         empresaNome: empresa.nome,
         empresaSlug: empresa.slug,
-        isAdmin: isAdminRole(roleType),
-        roleType,
+        isAdmin,
+        isOwner,
+        roleType, // deprecated, kept for compatibility
         permissions,
       };
     });

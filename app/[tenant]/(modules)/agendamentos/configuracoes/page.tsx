@@ -3,7 +3,7 @@ import { getConfiguracoesProfessor, getTeachersForAdminSelector } from "@/app/[t
 import { ConfiguracoesForm } from "./components/configuracoes-form"
 import { AdminProfessorSelector } from "@/app/[tenant]/(modules)/agendamentos/components/admin-professor-selector"
 import { requireUser } from "@/app/shared/core/auth"
-import { isAdminRoleTipo, isTeachingRoleTipo } from "@/app/shared/core/roles"
+import { isTeachingRole } from "@/app/shared/core/roles"
 
 export default async function ProfessorConfiguracoesPage({
   searchParams,
@@ -26,8 +26,8 @@ export default async function ProfessorConfiguracoesPage({
     )
   }
 
-  const isAdmin = user.roleType ? isAdminRoleTipo(user.roleType) : false
-  const isTeacher = user.roleType ? isTeachingRoleTipo(user.roleType) : false
+  const isAdmin = user.isAdmin
+  const isTeacher = isTeachingRole(user.role)
 
   let professorId = user.id
   let professorsList: { id: string; fullName: string }[] = []

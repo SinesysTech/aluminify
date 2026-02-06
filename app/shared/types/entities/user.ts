@@ -2,22 +2,30 @@
  * Tipos de entidades de usuário compartilhados
  */
 
-import type { RoleTipo, RolePermissions } from "./papel";
+import type { PapelBase, RoleTipo, RolePermissions } from "./papel";
 
-// Papel base no modelo unificado (enum_papel_base no banco)
-export type PapelBase = "aluno" | "professor" | "usuario";
+// Re-export tipos de papel para conveniência
+export type { PapelBase, RoleTipo, RolePermissions } from "./papel";
 
 export interface AppUser {
   id: string;
   email: string;
   role: PapelBase;
-  // Tipo específico do papel (apenas para staff com papel customizado)
+  /**
+   * @deprecated Use isAdmin flag instead.
+   * roleType is being phased out. The new model uses:
+   * - role (PapelBase) for user category
+   * - isAdmin flag for administrative powers
+   */
   roleType?: RoleTipo;
-  // Permissões do papel
-  permissions?: RolePermissions;
+  // Permissões do papel (sempre presente, derivada do role + isAdmin + papel customizado)
+  permissions: RolePermissions;
   // Flags administrativos do vínculo
-  isAdmin?: boolean;
-  isOwner?: boolean;
+  isAdmin: boolean;
+  isOwner: boolean;
+  // ID do papel customizado (apenas para usuarios com papel específico)
+  papelId?: string;
+  papelNome?: string;
   fullName?: string;
   avatarUrl?: string;
   mustChangePassword?: boolean;
@@ -25,9 +33,6 @@ export interface AppUser {
   empresaSlug?: string;
   empresaNome?: string;
 }
-
-// Re-export tipos de papel para conveniência
-export type { RoleTipo, RolePermissions } from "./papel";
 
 export interface StudentCourseSummary {
   id: string;

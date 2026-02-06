@@ -4,7 +4,6 @@ import { getDatabaseClient } from "@/app/shared/core/database/database";
 
 import type { PapelBase } from "@/app/shared/types/entities/user";
 import type { RoleTipo } from "@/app/shared/types/entities/papel";
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 /**
  * GET /api/usuario/perfil
@@ -33,6 +32,7 @@ export async function GET() {
     let empresaId: string | null = null;
     let fullName: string | null = null;
     let roleType: RoleTipo | null = null;
+    let isAdmin = false;
 
     if (role === "usuario") {
       // Use service role client to bypass RLS for reliable data access
@@ -51,7 +51,22 @@ export async function GET() {
         empresaId = usuarioRow.empresa_id;
         fullName = usuarioRow.nome_completo;
 
-        // Query 2: Get papel data
+        // Query 2: Get isAdmin from usuarios_empresas (new model)
+        if (usuarioRow.empresa_id) {
+          const { data: vinculoRow } = await adminClient
+            .from("usuarios_empresas")
+            .select("is_admin")
+            .eq("usuario_id", user.id)
+            .eq("empresa_id", usuarioRow.empresa_id)
+            .eq("ativo", true)
+            .maybeSingle();
+
+          if (vinculoRow) {
+            isAdmin = vinculoRow.is_admin ?? false;
+          }
+        }
+
+        // Query 3: Get papel data (deprecated, kept for backwards compatibility)
         if (usuarioRow.papel_id) {
           const { data: papelRow } = await adminClient
             .from("papeis")
@@ -85,11 +100,10 @@ export async function GET() {
       id: user.id,
       email: user.email,
       role,
-      roleType,
+      roleType, // deprecated, kept for backwards compatibility
       fullName,
       empresaId,
-      // Derived from roleType for convenience
-      isAdmin: roleType ? isAdminRoleTipo(roleType) : false,
+      isAdmin,
     });
   } catch (e) {
     console.error("Error in /api/usuario/perfil:", e);

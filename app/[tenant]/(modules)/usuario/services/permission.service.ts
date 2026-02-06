@@ -3,17 +3,22 @@
  *
  * Provides permission checking methods for the RBAC system.
  * Centralizes all permission-related logic for consistent access control.
+ *
+ * NEW MODEL (simplified):
+ * - Use `isAdmin` boolean flag instead of RoleTipo for admin checks
+ * - Permissions are resolved via resolvePermissions(role, isAdmin, customPerms)
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/app/shared/core/database.types";
+import type { PapelBase } from "@/app/shared/types";
 import type {
   RolePermissions,
   ResourcePermissions,
   SimplePermissions,
   RoleTipo,
 } from "@/app/shared/types/entities/papel";
-import { ADMIN_ROLES, TEACHING_ROLES } from "@/app/shared/types/entities/papel";
+import { resolvePermissions } from "@/app/shared/core/roles";
 
 // Resource names that map to RolePermissions keys
 export type ResourceName = keyof RolePermissions;
@@ -28,12 +33,20 @@ export interface PermissionCheckResult {
   reason?: string;
 }
 
-// User context for permission checks
+// User context for permission checks (new model)
 export interface PermissionContext {
   userId: string;
   empresaId: string;
   permissions: RolePermissions;
-  roleTipo: RoleTipo;
+  /** User's base role */
+  role: PapelBase;
+  /** Whether user has admin privileges (from usuarios_empresas.is_admin) */
+  isAdmin: boolean;
+  /**
+   * @deprecated Use isAdmin flag instead.
+   * roleTipo is being phased out in favor of isAdmin boolean.
+   */
+  roleTipo?: RoleTipo;
 }
 
 export interface PermissionService {
@@ -49,7 +62,7 @@ export interface PermissionService {
   canEdit(context: PermissionContext, resource: ResourceName): boolean;
   canDelete(context: PermissionContext, resource: ResourceName): boolean;
 
-  // Role type checks
+  // Role checks (new simplified model)
   isAdmin(context: PermissionContext): boolean;
   isTeachingRole(context: PermissionContext): boolean;
 
@@ -118,26 +131,41 @@ export class PermissionServiceImpl implements PermissionService {
   }
 
   /**
-   * Check if user has admin role
+   * Check if user has admin privileges
+   * Uses the isAdmin flag from usuarios_empresas (new model)
    */
   isAdmin(context: PermissionContext): boolean {
-    return ADMIN_ROLES.includes(context.roleTipo);
+    return context.isAdmin;
   }
 
   /**
    * Check if user has a teaching role (can have disciplinas)
+   * Uses the role (PapelBase) field (new model)
    */
   isTeachingRole(context: PermissionContext): boolean {
-    return TEACHING_ROLES.includes(context.roleTipo);
+    return context.role === "professor";
   }
 
   /**
    * Get user permissions from database
+   * Uses the new model: fetches isAdmin from usuarios_empresas and resolves permissions
    */
   async getUserPermissions(userId: string): Promise<PermissionContext | null> {
+    // Fetch user with empresa link and optional papel
     const { data, error } = await this.client
       .from("usuarios")
-      .select("id, empresa_id, papeis!inner(tipo, permissoes)")
+      .select(
+        `
+        id,
+        empresa_id,
+        papel_id,
+        papeis (tipo, permissoes),
+        usuarios_empresas!inner (
+          papel_base,
+          is_admin
+        )
+      `,
+      )
       .eq("id", userId)
       .eq("ativo", true)
       .is("deleted_at", null)
@@ -151,17 +179,43 @@ export class PermissionServiceImpl implements PermissionService {
       return null;
     }
 
-    const papelData = data.papeis as { tipo: string; permissoes: unknown };
+    // Extract vinculo data
+    const vinculoRaw = data.usuarios_empresas as
+      | { papel_base: string; is_admin: boolean }
+      | { papel_base: string; is_admin: boolean }[];
+    const vinculo = Array.isArray(vinculoRaw) ? vinculoRaw[0] : vinculoRaw;
 
-    if (!this.validatePermissions(papelData.permissoes)) {
-      throw new Error("Invalid permission structure in database");
+    const role = (vinculo?.papel_base ?? "usuario") as PapelBase;
+    const isAdmin = vinculo?.is_admin ?? false;
+
+    // Get custom permissions from papel if exists
+    let customPermissions: RolePermissions | undefined;
+    let roleTipo: RoleTipo | undefined;
+
+    if (data.papeis) {
+      const papelRaw = data.papeis as
+        | { tipo: string | null; permissoes: unknown }
+        | { tipo: string | null; permissoes: unknown }[];
+      const papel = Array.isArray(papelRaw) ? papelRaw[0] : papelRaw;
+
+      if (papel?.permissoes && this.validatePermissions(papel.permissoes)) {
+        customPermissions = papel.permissoes;
+      }
+      if (papel?.tipo) {
+        roleTipo = papel.tipo as RoleTipo;
+      }
     }
+
+    // Resolve effective permissions using the new model
+    const permissions = resolvePermissions(role, isAdmin, customPermissions);
 
     return {
       userId: data.id,
       empresaId: data.empresa_id,
-      permissions: papelData.permissoes,
-      roleTipo: papelData.tipo as RoleTipo,
+      permissions,
+      role,
+      isAdmin,
+      roleTipo, // deprecated, kept for compatibility
     };
   }
 
@@ -248,19 +302,28 @@ export function hasPermission(
 }
 
 /**
- * Check if a role type is an admin role
+ * @deprecated Use isAdmin flag from usuarios_empresas instead.
+ * Check if a role type is an admin role (legacy)
  */
 export function isAdminRole(tipo: RoleTipo): boolean {
   return tipo === "admin" || tipo === "professor_admin";
 }
 
 /**
- * Check if a role type is a teaching role
+ * @deprecated Use role === "professor" check instead.
+ * Check if a role type is a teaching role (legacy)
  */
-export function isTeachingRole(tipo: RoleTipo): boolean {
+export function isTeachingRoleByTipo(tipo: RoleTipo): boolean {
   return (
     tipo === "professor" || tipo === "professor_admin" || tipo === "monitor"
   );
+}
+
+/**
+ * Check if a role is a teaching role (new model)
+ */
+export function isTeachingRole(role: PapelBase): boolean {
+  return role === "professor";
 }
 
 /**

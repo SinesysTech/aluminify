@@ -19,7 +19,6 @@ export interface AuthenticatedRequest extends NextRequest {
   impersonationContext?: Awaited<ReturnType<typeof getImpersonationContext>>;
 }
 
-import { isAdminRoleTipo } from "@/app/shared/core/roles";
 
 export async function mapSupabaseUserToAuthUser(
   user: User,
@@ -62,9 +61,7 @@ export async function mapSupabaseUserToAuthUser(
         }
       }
 
-      const isAdmin =
-        activeVinculo.is_admin ||
-        (roleType ? isAdminRoleTipo(roleType) : false);
+      const isAdmin = activeVinculo.is_admin ?? false;
 
       const name =
         user.user_metadata?.full_name ||

@@ -24,6 +24,16 @@ export default async function EquipePage(props: PageProps) {
   const supabase = await createClient()
   const usuarioRepository = new UsuarioRepositoryImpl(supabase)
 
+  // Verificar se o usuário atual é admin (buscando no vínculo direto)
+  const { data: vinculo } = await supabase
+    .from("usuarios_empresas")
+    .select("is_admin")
+    .eq("usuario_id", user.id)
+    .eq("empresa_id", user.empresaId)
+    .maybeSingle()
+
+  const currentUserIsAdmin = vinculo?.is_admin || false
+
   const papelTipoFilter = searchParams.papelTipo || undefined
 
   const usuarios = await usuarioRepository.listSummaryByEmpresa(user.empresaId, true)
@@ -32,6 +42,7 @@ export default async function EquipePage(props: PageProps) {
     <EquipeClientPage
       usuarios={usuarios}
       initialFilter={papelTipoFilter}
+      currentUserIsAdmin={currentUserIsAdmin}
     />
   )
 }

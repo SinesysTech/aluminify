@@ -27,14 +27,17 @@ import type {
   RolePermissions,
 } from "@/app/shared/types/entities/papel";
 import { getImpersonationContext } from "@/app/shared/core/auth-impersonate";
-import { getDefaultRouteForRole } from "@/app/shared/core/roles";
+import {
+  getDefaultRouteForRole,
+  resolvePermissions,
+} from "@/app/shared/core/roles";
 import { cacheService } from "@/app/shared/core/services/cache/cache.service";
 
 const AUTH_SESSION_CACHE_TTL = 1800; // 30 minutos
 
 type EssentialAuthSessionData = Pick<
   AppUser,
-  "id" | "email" | "role" | "roleType" | "permissions" | "fullName" | "avatarUrl" | "empresaId" | "empresaSlug" | "empresaNome" | "mustChangePassword"
+  "id" | "email" | "role" | "roleType" | "permissions" | "isAdmin" | "isOwner" | "fullName" | "avatarUrl" | "empresaId" | "empresaSlug" | "empresaNome" | "mustChangePassword"
 >;
 
 /**
@@ -99,7 +102,9 @@ async function hydrateUserProfile(
 
   let mustChangePassword = Boolean(user.user_metadata?.must_change_password);
   let roleType: RoleTipo | undefined;
-  let permissions: RolePermissions | undefined;
+  let customPermissions: RolePermissions | undefined;
+  let isAdmin = false;
+  let isOwner = false;
   let empresaId: string | undefined;
   let empresaNome: string | undefined;
   let empresaSlug: string | undefined;
@@ -130,10 +135,14 @@ async function hydrateUserProfile(
         }
       }
 
+      // Impersonated users are always alunos with default permissions
       return {
         id: targetUserId,
         email: alunoData.email || "",
         role: "aluno" as PapelBase,
+        permissions: resolvePermissions("aluno", false),
+        isAdmin: false,
+        isOwner: false,
         fullName: alunoData.nome_completo || undefined,
         mustChangePassword: false, // Usually false during impersonation
         empresaId,
@@ -158,7 +167,23 @@ async function hydrateUserProfile(
       role = "usuario";
       empresaId = usuarioRow.empresa_id;
 
-      // Fetch Role/Permissions
+      // Fetch admin flags from usuarios_empresas
+      if (usuarioRow.empresa_id) {
+        const { data: vinculoRow } = await adminClient
+          .from("usuarios_empresas")
+          .select("is_admin, is_owner")
+          .eq("usuario_id", user.id)
+          .eq("empresa_id", usuarioRow.empresa_id)
+          .eq("ativo", true)
+          .maybeSingle();
+
+        if (vinculoRow) {
+          isAdmin = vinculoRow.is_admin ?? false;
+          isOwner = vinculoRow.is_owner ?? false;
+        }
+      }
+
+      // Fetch Role/Permissions from papel (for custom permissions)
       if (usuarioRow.papel_id) {
         const { data: papelRow } = await adminClient
           .from("papeis")
@@ -168,7 +193,7 @@ async function hydrateUserProfile(
 
         if (papelRow) {
           roleType = papelRow.tipo as RoleTipo;
-          permissions = papelRow.permissoes as unknown as RolePermissions;
+          customPermissions = papelRow.permissoes as unknown as RolePermissions;
         }
       }
 
@@ -227,12 +252,33 @@ async function hydrateUserProfile(
     }
   }
 
+  // 5. Handle 'professor' Context - fetch admin flags
+  if (role === "professor" && empresaId) {
+    const { data: vinculoRow } = await adminClient
+      .from("usuarios_empresas")
+      .select("is_admin, is_owner")
+      .eq("usuario_id", user.id)
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true)
+      .maybeSingle();
+
+    if (vinculoRow) {
+      isAdmin = vinculoRow.is_admin ?? false;
+      isOwner = vinculoRow.is_owner ?? false;
+    }
+  }
+
+  // Resolve effective permissions using the new model
+  const permissions = resolvePermissions(role, isAdmin, customPermissions);
+
   return {
     id: targetUserId,
     email: user.email || "",
     role,
     roleType,
     permissions,
+    isAdmin,
+    isOwner,
     fullName:
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
@@ -295,6 +341,8 @@ async function _getAuthenticatedUser(): Promise<AppUser | null> {
     role: appUser.role,
     roleType: appUser.roleType,
     permissions: appUser.permissions,
+    isAdmin: appUser.isAdmin,
+    isOwner: appUser.isOwner,
     fullName: appUser.fullName,
     avatarUrl: appUser.avatarUrl,
     empresaId: appUser.empresaId,
