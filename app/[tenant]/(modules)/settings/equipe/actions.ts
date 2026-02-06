@@ -6,7 +6,6 @@ import { createClient } from "@/app/shared/core/server";
 import { UserBaseService } from "@/app/[tenant]/(modules)/usuario/services/user-base.service";
 import { UsuarioRepositoryImpl } from "@/app/[tenant]/(modules)/usuario/services/usuario.repository";
 import { requireUser } from "@/app/shared/core/auth";
-import type { RoleTipo } from "@/app/shared/types/entities/papel";
 
 const createMemberSchema = z.object({
   nomeCompleto: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -110,7 +109,6 @@ export async function createMemberAction(
       papelId,
       nomeCompleto,
       email,
-      ativo: true,
     });
 
     revalidatePath("/settings/equipe"); // Revalidar a lista

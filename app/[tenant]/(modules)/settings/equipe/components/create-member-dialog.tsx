@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useFormStatus } from "react-dom"
 import { Plus, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/app/shared/components/ui/button"
 import {
     Dialog,
     DialogContent,
@@ -12,16 +12,16 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/app/shared/components/overlay/dialog"
+import { Input } from "@/app/shared/components/forms/input"
+import { Label } from "@/app/shared/components/forms/label"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/app/shared/components/forms/select"
 import { useToast } from "@/app/shared/components/feedback/use-toast"
 import { createMemberAction, type CreateMemberState } from "../actions"
 
