@@ -5,6 +5,7 @@ import { Users } from 'lucide-react'
 import type { UsuarioSummary } from '@/app/shared/types/entities/usuario'
 import { UserFilters } from './user-filters'
 import { UserTable } from './user-table'
+import { CreateMemberDialog } from './create-member-dialog'
 
 interface EquipeClientPageProps {
   usuarios: UsuarioSummary[]
@@ -58,13 +59,16 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
       {/* SECTION: POPULATED STATE */}
       {!isEmpty && (
         <section id="populated-state" className="flex flex-col gap-4 h-full min-h-[600px]">
-          <UserFilters
-            papelTipoFilter={papelTipoFilter}
-            onPapelTipoChange={setPapelTipoFilter}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            countByTipo={countByTipo}
-          />
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+            <UserFilters
+              papelTipoFilter={papelTipoFilter}
+              onPapelTipoChange={setPapelTipoFilter}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              countByTipo={countByTipo}
+            />
+            <CreateMemberDialog />
+          </div>
 
           <UserTable usuarios={filteredUsuarios} />
         </section>
@@ -81,6 +85,7 @@ export function EquipeClientPage({ usuarios, initialFilter }: EquipeClientPagePr
           <p className="section-subtitle text-center max-w-sm mb-8 leading-relaxed">
             Ainda não há membros cadastrados na equipe desta empresa.
           </p>
+          <CreateMemberDialog />
         </section>
       )}
     </div>
