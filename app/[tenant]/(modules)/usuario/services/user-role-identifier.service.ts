@@ -188,6 +188,9 @@ export class UserRoleIdentifierService {
     email?: string | null,
   ): Promise<UserRoleDetail[]> {
     // Query usuarios with usuarios_empresas join to get isAdmin/isOwner flags
+    // IMPORTANT: Filter usuarios_empresas by papel_base to avoid treating alunos as staff.
+    // Without this filter, any user with a record in 'usuarios' table AND 'usuarios_empresas'
+    // (even with papel_base='aluno') would be incorrectly detected as 'usuario' (staff).
     let query = this.client
       .from("usuarios")
       .select(
@@ -206,13 +209,15 @@ export class UserRoleIdentifierService {
         ),
         usuarios_empresas!inner (
           is_admin,
-          is_owner
+          is_owner,
+          papel_base
         )
       `,
       )
       .eq("id", userId)
       .eq("ativo", true)
-      .is("deleted_at", null);
+      .is("deleted_at", null)
+      .in("usuarios_empresas.papel_base", ["professor", "usuario"]);
 
     if (empresaId) {
       query = query.eq("empresa_id", empresaId);
@@ -267,13 +272,15 @@ export class UserRoleIdentifierService {
           ),
           usuarios_empresas!inner (
             is_admin,
-            is_owner
+            is_owner,
+            papel_base
           )
         `,
         )
         .eq("email", email)
         .eq("ativo", true)
-        .is("deleted_at", null);
+        .is("deleted_at", null)
+        .in("usuarios_empresas.papel_base", ["professor", "usuario"]);
 
       if (empresaId) {
         emailQuery = emailQuery.eq("empresa_id", empresaId);
