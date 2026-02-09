@@ -17,11 +17,11 @@ export function BulkActionsBar({
   if (selectedCount === 0) return null
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-card backdrop-blur-xl text-foreground border border-border rounded-xl shadow-lg px-4 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200">
       <span className="text-sm font-medium">
         {selectedCount} aluno{selectedCount !== 1 ? 's' : ''} selecionado{selectedCount !== 1 ? 's' : ''}
       </span>
-      <div className="h-4 w-px bg-zinc-700" />
+      <div className="h-4 w-px bg-border" />
       <Button
         variant="secondary"
         size="sm"
@@ -35,7 +35,7 @@ export function BulkActionsBar({
         variant="ghost"
         size="sm"
         onClick={onClearSelection}
-        className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+        className="text-muted-foreground hover:text-foreground hover:bg-muted"
       >
         <X className="w-4 h-4" />
       </Button>

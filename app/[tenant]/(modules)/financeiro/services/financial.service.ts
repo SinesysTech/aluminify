@@ -724,16 +724,16 @@ export class FinancialServiceImpl implements FinancialService {
     empresaId: string,
     hotmartProductId: string
   ): Promise<ProductWithCourse | null> {
-    // 1. Buscar na tabela cursos por hotmart_product_id
-    const { data: cursoData } = await this.client
-      .from("cursos")
-      .select("id")
+    // 1. Buscar na tabela de mapeamento (curso pode ter múltiplos IDs Hotmart)
+    const { data: mappingData } = await this.client
+      .from("cursos_hotmart_products")
+      .select("curso_id")
       .eq("empresa_id", empresaId)
       .eq("hotmart_product_id", hotmartProductId)
       .maybeSingle();
 
-    if (cursoData) {
-      return { id: null, curso_id: cursoData.id };
+    if (mappingData?.curso_id) {
+      return { id: null, curso_id: mappingData.curso_id };
     }
 
     // 2. Fallback: buscar na tabela products (compatibilidade)

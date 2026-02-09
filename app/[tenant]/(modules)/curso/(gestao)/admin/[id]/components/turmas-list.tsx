@@ -113,14 +113,14 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-[#E4E4E7] bg-white p-6">
+      <div className="rounded-xl border border-border/40 bg-card/80 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="h-6 w-32 bg-zinc-200 rounded animate-pulse" />
-          <div className="h-9 w-32 bg-zinc-200 rounded animate-pulse" />
+          <div className="h-6 w-32 bg-muted rounded animate-pulse" />
+          <div className="h-9 w-32 bg-muted rounded animate-pulse" />
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-zinc-100 rounded animate-pulse" />
+            <div key={i} className="h-12 bg-muted rounded animate-pulse" />
           ))}
         </div>
       </div>
@@ -140,11 +140,11 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
 
   return (
     <TooltipProvider>
-      <div className="rounded-lg border border-[#E4E4E7] bg-white">
-        <div className="flex items-center justify-between p-4 border-b border-[#E4E4E7]">
+      <div className="rounded-xl border border-border/40 bg-card/80 shadow-sm">
+        <div className="flex items-center justify-between p-4 border-b border-border/40">
           <div>
             <h3 className="text-base font-semibold">Turmas</h3>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">
               Gerencie as turmas do curso {cursoNome}
             </p>
           </div>
@@ -156,11 +156,11 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
 
         {turmas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mb-4">
-              <Users className="w-6 h-6 text-zinc-400" />
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-muted-foreground" />
             </div>
-            <h4 className="text-sm font-medium text-zinc-900">Nenhuma turma cadastrada</h4>
-            <p className="text-sm text-zinc-500 mt-1">
+            <h4 className="text-sm font-medium text-foreground">Nenhuma turma cadastrada</h4>
+            <p className="text-sm text-muted-foreground mt-1">
               Crie turmas para organizar seus alunos
             </p>
             <Button size="sm" className="mt-4" onClick={handleCreate}>
@@ -173,11 +173,11 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
             {/* Mobile Card View */}
             <div className="block md:hidden p-4 space-y-3">
               {turmas.map((turma) => (
-                <div key={turma.id} className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                <div key={turma.id} className="rounded-xl border border-border/40 bg-muted/30 p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <h4 className="font-semibold">{turma.nome}</h4>
-                      <div className="flex items-center gap-1 text-sm text-zinc-600 mt-1">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                         <Calendar className="w-4 h-4" />
                         <span>
                           {formatDate(turma.dataInicio)} - {formatDate(turma.dataFim)}
@@ -189,8 +189,8 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-sm text-zinc-600">
-                      <Users className="w-4 h-4 text-zinc-400" />
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4 text-muted-foreground" />
                       <span>{turma.alunosCount ?? 0} alunos</span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -242,7 +242,7 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
                     <TableRow key={turma.id}>
                       <TableCell className="font-medium">{turma.nome}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-zinc-600">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4" />
                           <span>
                             {formatDate(turma.dataInicio)} - {formatDate(turma.dataFim)}
@@ -251,7 +251,7 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4 text-zinc-400" />
+                          <Users className="w-4 h-4 text-muted-foreground" />
                           <span>{turma.alunosCount ?? 0}</span>
                         </div>
                       </TableCell>

@@ -96,7 +96,7 @@ export function UserTable({ usuarios, currentUserIsAdmin }: UserTableProps) {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-[#E4E4E7]">
+          <tbody className="divide-y divide-border">
             {usuarios.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-muted-foreground">

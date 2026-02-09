@@ -131,7 +131,7 @@ export function StudentTable({ students, meta }: StudentTableProps) {
                     </tr>
                 </thead>
 
-                <tbody className="divide-y divide-[#E4E4E7]">
+                <tbody className="divide-y divide-border/40">
                     {students.length === 0 ? (
                         <tr>
                             <td colSpan={5} className="p-8 text-center text-muted-foreground">
@@ -185,9 +185,9 @@ export function StudentTable({ students, meta }: StudentTableProps) {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                                            <div className="flex-1 h-1.5 bg-muted/50 rounded-full overflow-hidden">
                                                 <div
-                                                    className={`h-full rounded-full ${status === 'Ativo' ? 'bg-zinc-800' : 'bg-zinc-300'}`}
+                                                    className={`h-full rounded-full ${status === 'Ativo' ? 'bg-primary/80' : 'bg-muted-foreground/30'}`}
                                                     style={{ width: `${progress}%` }}
                                                 ></div>
                                             </div>

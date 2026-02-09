@@ -41,18 +41,18 @@ export function LeftPanel({ showForm, timeZone, durationMinutes = 30 }: LeftPane
 			<div className="grid gap-1">
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className="h-12 w-12 bg-gray-200 rounded-full border flex items-center justify-center text-xs text-gray-500">
+						<div className="h-12 w-12 bg-muted rounded-full border flex items-center justify-center text-xs text-muted-foreground">
 							IMG
 						</div>
 					</TooltipTrigger>
 					<TooltipContent>Professor</TooltipContent>
 				</Tooltip>
-				<p className="text-gray-11 text-sm font-semibold">Agendamento</p>
+				<p className="text-muted-foreground text-sm font-semibold">Agendamento</p>
 			</div>
 			<div className="grid gap-3">
-				<p className="text-gray-12 text-2xl font-bold">Sessao Individual</p>
+				<p className="text-foreground text-2xl font-bold">Sessao Individual</p>
 				{showForm && slotParam && (
-					<div className="flex text-gray-12">
+					<div className="flex text-foreground">
 						<CalendarIcon className="size-4 mr-2" />
 						<div className="flex flex-col text-sm font-semibold">
 							<p>
@@ -70,7 +70,7 @@ export function LeftPanel({ showForm, timeZone, durationMinutes = 30 }: LeftPane
 						</div>
 					</div>
 				)}
-				<div className="flex items-center text-gray-12">
+				<div className="flex items-center text-foreground">
 					<Clock4 className="size-4 mr-2" />
 					<p className="text-sm font-semibold">{displayDuration} min</p>
 				</div>

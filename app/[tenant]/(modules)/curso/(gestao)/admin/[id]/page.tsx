@@ -219,8 +219,8 @@ export default function CourseDetailPage() {
     return (
       <div className="flex flex-col gap-8 h-full pb-10">
         <div className="animate-pulse">
-          <div className="h-8 w-64 bg-zinc-200 rounded mb-2" />
-          <div className="h-4 w-96 bg-zinc-100 rounded" />
+          <div className="h-8 w-64 bg-muted rounded mb-2" />
+          <div className="h-4 w-96 bg-muted rounded" />
         </div>
         <TableSkeleton rows={5} columns={6} />
       </div>
@@ -243,7 +243,7 @@ export default function CourseDetailPage() {
     <TooltipProvider>
       <div className="flex flex-col gap-6 h-full pb-10">
         {/* Header */}
-        <header className="flex flex-col gap-4 border-b border-[#E4E4E7] pb-4">
+        <header className="flex flex-col gap-4 border-b border-border pb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -268,36 +268,36 @@ export default function CourseDetailPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-[#E4E4E7] bg-white p-4">
+          <div className="rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500/15 to-indigo-500/15 flex items-center justify-center">
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{enrollments.length}</p>
-                <p className="text-sm text-zinc-500">Total de alunos</p>
+                <p className="text-sm text-muted-foreground">Total de alunos</p>
               </div>
             </div>
           </div>
-          <div className="rounded-lg border border-[#E4E4E7] bg-white p-4">
+          <div className="rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500/15 to-green-500/15 flex items-center justify-center">
                 <BookOpen className="w-5 h-5 text-green-600" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{activeCount}</p>
-                <p className="text-sm text-zinc-500">Matrículas ativas</p>
+                <p className="text-sm text-muted-foreground">Matrículas ativas</p>
               </div>
             </div>
           </div>
-          <div className="rounded-lg border border-[#E4E4E7] bg-white p-4">
+          <div className="rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-zinc-600" />
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-500/15 to-orange-500/15 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-muted-foreground" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{inactiveCount}</p>
-                <p className="text-sm text-zinc-500">Matrículas inativas</p>
+                <p className="text-sm text-muted-foreground">Matrículas inativas</p>
               </div>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function CourseDetailPage() {
         {/* Search and Selection */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
+            <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
             <Input
               type="text"
               placeholder="Buscar aluno por nome, email ou cidade..."
@@ -356,12 +356,12 @@ export default function CourseDetailPage() {
 
         {/* Students Table */}
         {filteredEnrollments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-75 border rounded-lg bg-zinc-50">
-            <Users className="w-12 h-12 text-zinc-300 mb-4" />
-            <h3 className="text-lg font-medium text-zinc-600">
+          <div className="flex flex-col items-center justify-center min-h-75 border border-border/40 rounded-xl bg-muted/30">
+            <Users className="w-12 h-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground">
               {searchTerm ? 'Nenhum aluno encontrado' : 'Nenhum aluno matriculado'}
             </h3>
-            <p className="text-sm text-zinc-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {searchTerm
                 ? 'Tente ajustar os termos de busca'
                 : 'Este curso ainda não possui alunos matriculados'}
@@ -379,7 +379,7 @@ export default function CourseDetailPage() {
                 return (
                   <div
                     key={enrollment.id}
-                    className={`rounded-lg border bg-white p-4 ${isSelected ? 'border-blue-500 bg-blue-50/30' : 'border-[#E4E4E7]'}`}
+                    className={`rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm hover:shadow-md transition-all duration-200 ${isSelected ? 'border-primary bg-primary/10' : ''}`}
                   >
                     <div className="flex items-start gap-3">
                       <Checkbox
@@ -391,12 +391,12 @@ export default function CourseDetailPage() {
                         <div className="flex items-start justify-between">
                           <div>
                             <h3 className="font-medium">{student.name || 'Sem nome'}</h3>
-                            <p className="text-sm text-zinc-500">{student.email}</p>
+                            <p className="text-sm text-muted-foreground">{student.email}</p>
                             {student.phone && (
-                              <p className="text-sm text-zinc-500">{student.phone}</p>
+                              <p className="text-sm text-muted-foreground">{student.phone}</p>
                             )}
                             {(student.city || student.state) && (
-                              <p className="text-sm text-zinc-500">
+                              <p className="text-sm text-muted-foreground">
                                 {[student.city, student.state].filter(Boolean).join(', ')}
                               </p>
                             )}
@@ -406,7 +406,7 @@ export default function CourseDetailPage() {
                           </Badge>
                         </div>
                         <div className="mt-3 pt-3 border-t flex items-center justify-between">
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-xs text-muted-foreground">
                             Matrícula: {format(new Date(enrollment.enrollmentDate), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                           <Tooltip>
@@ -431,9 +431,9 @@ export default function CourseDetailPage() {
             </div>
 
             {/* Desktop Table View */}
-            <div className="hidden md:block rounded-lg border border-[#E4E4E7] overflow-hidden">
+            <div className="hidden md:block rounded-xl border border-border/40 overflow-hidden shadow-sm">
               <Table>
-                <TableHeader className="bg-zinc-50">
+                <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead className="w-12.5">
                       <Checkbox
@@ -461,7 +461,7 @@ export default function CourseDetailPage() {
                     return (
                       <TableRow
                         key={enrollment.id}
-                        className={isSelected ? 'bg-blue-50/50' : 'hover:bg-zinc-50'}
+                        className={isSelected ? 'bg-primary/10' : 'hover:bg-muted/50'}
                         data-state={isSelected ? 'selected' : undefined}
                       >
                         <TableCell>
@@ -514,7 +514,7 @@ export default function CourseDetailPage() {
               </Table>
             </div>
 
-            <div className="text-sm text-zinc-500">
+            <div className="text-sm text-muted-foreground">
               Mostrando {filteredEnrollments.length} de {enrollments.length} alunos
               {selectedIds.size > 0 && ` · ${selectedIds.size} selecionado${selectedIds.size !== 1 ? 's' : ''}`}
             </div>

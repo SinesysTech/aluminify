@@ -170,7 +170,7 @@ O que acontece quando um evento Hotmart é processado com sucesso:
 |-------|-------------------------|
 | 1. Transação | Cria ou atualiza um registro em **Financeiro → Transações** (provider Hotmart, status conforme o evento: aprovado, cancelado, reembolsado etc.). |
 | 2. Aluno | Em eventos de compra aprovada (**PURCHASE_APPROVED** / **PURCHASE_COMPLETE**), se o e-mail do comprador ainda não existir na empresa, é criado um **usuário/aluno** (auth + `usuarios` + `profiles`) com origem "hotmart" e `hotmart_id` preenchido. |
-| 3. Matrícula em curso | Se existir um **produto** cadastrado (Hotmart) com **ID do produto** igual ao `product.id` do webhook e com um **curso** vinculado, o aluno é **matriculado nesse curso**. |
+| 3. Matrícula em curso | Se existir um **curso** com o **ID do produto Hotmart** (ou um dos IDs) igual ao `product.id` do webhook, o aluno é **matriculado automaticamente** nesse curso. |
 
 Ou seja: os dados são usados para **transações**, **criação/atualização de alunos** e **matrícula automática** conforme o cadastro de produtos.
 
@@ -180,21 +180,21 @@ Ou seja: os dados são usados para **transações**, **criação/atualização d
 
 Para que uma venda Hotmart vire **transação + aluno + matrícula no curso certo**, é obrigatório cadastrar o **produto** na plataforma e vincular ao **curso**.
 
-### 4.1 Cadastrar produto Hotmart e vincular ao curso
+### 4.1 (Recomendado) Vincular IDs da Hotmart diretamente no curso
 
-1. Acesse **Financeiro → Produtos** (como brenomeira@salinhadobreno.com.br ou outro usuário da mesma empresa).
-2. Crie um novo produto ou edite um existente.
-3. Defina:
-   - **Provider:** Hotmart.
-   - **ID do Produto no Provider:** exatamente o **ID numérico do produto** na Hotmart (o mesmo que vem em `data.product.id` no webhook). Ex.: `123456`.
-   - **Curso:** selecione o curso ao qual o aluno deve ser matriculado quando a compra for aprovada.
-4. Salve.
+1. Acesse **Cursos → (Editar/Criação do curso)**.
+2. Na seção **Integrações**, preencha **IDs do Produto Hotmart**.\n+   - Você pode informar **mais de um ID** (um por linha ou separados por vírgula).\n+   - Isso é importante para casos como **produto avulso + assinatura** apontando para o mesmo curso.
+3. Salve.
 
 Assim, quando chegar um **PURCHASE_APPROVED** (ou **PURCHASE_COMPLETE**) com esse `product.id`:
 
 - A transação é criada/atualizada.
 - O aluno é criado (se não existir) ou atualizado (ex.: `hotmart_id`).
-- O aluno é matriculado no curso vinculado a esse produto.
+- O aluno é matriculado no curso que contém aquele `product.id` na lista de IDs Hotmart.
+
+### 4.2 (Compatibilidade) Vincular via Financeiro → Produtos
+
+Ainda é possível usar **Financeiro → Produtos** para vincular `provider_product_id` (Hotmart) a um `curso_id`. Esse modo continua suportado como fallback, mas a forma recomendada é o vínculo direto no curso (seção 4.1), pois suporta múltiplos IDs por curso sem redundância.
 
 ### 4.2 Onde ver o ID do produto na Hotmart
 
@@ -205,8 +205,9 @@ No painel da Hotmart, o ID do produto aparece na URL ou na configuração do pro
 ```
 Hotmart envia webhook (PURCHASE_APPROVED)
     → API valida empresaId + X-HOTMART-HOTTOK
-    → Busca produto na plataforma: empresa_id + provider=hotmart + provider_product_id = product.id
-    → Se achar e tiver curso_id: cria/atualiza aluno e matricula no curso
+    → Busca curso na plataforma: empresa_id + hotmart_product_id = product.id (lista do curso)
+    → Se achar curso_id: cria/atualiza aluno e matricula no curso
+    → (Fallback) Se não achar: tenta Financeiro → Produtos (provider_product_id)
     → Sempre: cria/atualiza transação em financeiro/transacoes
 ```
 

@@ -33,6 +33,7 @@ const serializeCourse = (
   planningUrl: course.planningUrl,
   coverImageUrl: course.coverImageUrl,
   usaTurmas: course.usaTurmas,
+  hotmartProductIds: course.hotmartProductIds,
   hotmartProductId: course.hotmartProductId,
   createdAt: course.createdAt.toISOString(),
   updatedAt: course.updatedAt.toISOString(),
@@ -86,10 +87,10 @@ async function getHandler(request: AuthenticatedRequest) {
         planejamento_url,
         imagem_capa_url,
         usa_turmas,
-        hotmart_product_id,
         created_at,
         updated_at,
         cursos_disciplinas (disciplina_id),
+        cursos_hotmart_products (hotmart_product_id),
         modalidades_curso (
           id,
           nome,
@@ -128,7 +129,12 @@ async function getHandler(request: AuthenticatedRequest) {
         planningUrl: c.planejamento_url,
         coverImageUrl: c.imagem_capa_url,
         usaTurmas: c.usa_turmas ?? false,
-        hotmartProductId: c.hotmart_product_id ?? null,
+        hotmartProductIds:
+          c.cursos_hotmart_products?.map(
+            (p: { hotmart_product_id: string }) => p.hotmart_product_id,
+          ) || [],
+        hotmartProductId:
+          c.cursos_hotmart_products?.[0]?.hotmart_product_id ?? null,
         createdAt: c.created_at,
         updatedAt: c.updated_at,
       })),
@@ -240,6 +246,9 @@ async function postHandler(request: AuthenticatedRequest) {
       planningUrl: body?.planningUrl,
       coverImageUrl: body?.coverImageUrl,
       usaTurmas: body?.usaTurmas,
+      hotmartProductIds:
+        body?.hotmartProductIds ??
+        (body?.hotmartProductId ? [body.hotmartProductId] : undefined),
       hotmartProductId: body?.hotmartProductId,
     });
     return NextResponse.json(

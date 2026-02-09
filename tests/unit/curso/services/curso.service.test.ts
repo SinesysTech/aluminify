@@ -61,5 +61,39 @@ describe("CursoService", () => {
         await expect(service.create(validPayload)).rejects.toThrow(CourseValidationError);
         await expect(service.create(validPayload)).rejects.toThrow('Discipline with id "disc-2" does not exist');
     });
+
+    it("should normalize and deduplicate hotmartProductIds before calling repository", async () => {
+      mockRepository.getExistingDisciplineIds.mockResolvedValue(["disc-1", "disc-2"]);
+      mockRepository.create.mockResolvedValue({ id: "course-1", ...validPayload } as any);
+
+      await service.create({
+        ...validPayload,
+        hotmartProductIds: [" 7135950 ", "6706317", "7135950", "", "  "],
+      });
+
+      expect(mockRepository.create).toHaveBeenCalledTimes(1);
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hotmartProductIds: ["7135950", "6706317"],
+        }),
+      );
+    });
+
+    it("should support legacy hotmartProductId by converting to hotmartProductIds", async () => {
+      mockRepository.getExistingDisciplineIds.mockResolvedValue(["disc-1", "disc-2"]);
+      mockRepository.create.mockResolvedValue({ id: "course-1", ...validPayload } as any);
+
+      await service.create({
+        ...validPayload,
+        hotmartProductId: "6706317",
+      });
+
+      expect(mockRepository.create).toHaveBeenCalledTimes(1);
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hotmartProductIds: ["6706317"],
+        }),
+      );
+    });
   });
 });

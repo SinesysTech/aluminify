@@ -126,14 +126,14 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
             {/* Sheet Content */}
             <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border shadow-lg z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
 
-                <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-muted/50">
+                <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between bg-muted/50">
                     <div>
-                        <h2 className="text-lg font-bold text-zinc-900">Novo Registro</h2>
-                        <p className="text-xs text-[#71717A] mt-0.5">Criar credencial de acesso para aluno.</p>
+                        <h2 className="text-lg font-bold text-foreground">Novo Registro</h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">Criar credencial de acesso para aluno.</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-zinc-400 hover:text-zinc-900 transition-colors"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                         <X className="w-5 h-5" strokeWidth={1.5} />
                     </button>
@@ -149,7 +149,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
 
                     <div className="space-y-4">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-700">Nome Completo</label>
+                            <label className="text-xs font-medium text-foreground">Nome Completo</label>
                             <input
                                 type="text"
                                 placeholder="Ex: João da Silva"
@@ -160,7 +160,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-700">E-mail</label>
+                            <label className="text-xs font-medium text-foreground">E-mail</label>
                             <input
                                 type="email"
                                 placeholder="aluno@email.com"
@@ -172,7 +172,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-zinc-700">CPF (Opcional)</label>
+                                <label className="text-xs font-medium text-foreground">CPF (Opcional)</label>
                                 <input
                                     type="text"
                                     placeholder="000.000.000-00"
@@ -182,7 +182,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-zinc-700">Telefone</label>
+                                <label className="text-xs font-medium text-foreground">Telefone</label>
                                 <input
                                     type="text"
                                     placeholder="(00) 00000-0000"
@@ -194,13 +194,13 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                         </div>
                     </div>
 
-                    <hr className="border-[#E4E4E7]" />
+                    <hr className="border-border/40" />
 
                     <div className="space-y-4">
-                        <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Configuração Acadêmica</h4>
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Configuração Acadêmica</h4>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-700">Curso</label>
+                            <label className="text-xs font-medium text-foreground">Curso</label>
                             <select
                                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                                 onChange={(e) => handleCourseChange(e.target.value)}
@@ -216,14 +216,14 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                         {/* Turma selector - only shown when course uses turmas */}
                         {selectedCourse?.usaTurmas && (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-zinc-700">Turma</label>
+                                <label className="text-xs font-medium text-foreground">Turma</label>
                                 {loadingTurmas ? (
-                                    <div className="flex items-center gap-2 h-9 px-3 text-sm text-zinc-500">
+                                    <div className="flex items-center gap-2 h-9 px-3 text-sm text-muted-foreground">
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                         Carregando turmas...
                                     </div>
                                 ) : turmas.length === 0 ? (
-                                    <div className="text-sm text-zinc-500 px-3 py-2 bg-zinc-50 rounded-md border border-dashed border-zinc-200">
+                                    <div className="text-sm text-muted-foreground px-3 py-2 bg-muted/50 rounded-md border border-dashed border-border">
                                         Nenhuma turma cadastrada para este curso.
                                     </div>
                                 ) : (
@@ -242,7 +242,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                         )}
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-zinc-700">Plano de Acesso</label>
+                            <label className="text-xs font-medium text-foreground">Plano de Acesso</label>
                             <select className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring">
                                 <option>Acesso Completo</option>
                                 <option>Apenas Matérias Exatas</option>
@@ -251,18 +251,18 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-border bg-muted/50 flex items-center justify-end gap-3">
+                <div className="p-6 border-t border-border/40 bg-muted/50 flex items-center justify-end gap-3">
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="px-4 py-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-zinc-100 transition-colors text-zinc-700"
+                        className="px-4 py-2 rounded-xl border border-input bg-background text-sm font-medium hover:bg-muted transition-colors text-foreground"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-6 py-2 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] disabled:opacity-50"
+                        className="px-6 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm disabled:opacity-50"
                     >
                         {loading ? 'Salvando...' : 'Salvar Registro'}
                     </button>

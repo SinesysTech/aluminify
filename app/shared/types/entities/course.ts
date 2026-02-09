@@ -25,6 +25,15 @@ export interface Course {
   planningUrl: string | null;
   coverImageUrl: string | null;
   usaTurmas: boolean;
+  /**
+   * IDs de produtos da Hotmart associados ao curso.
+   * Um curso pode ter vários IDs (ex.: produto avulso + assinatura).
+   */
+  hotmartProductIds: string[];
+  /**
+   * @deprecated Use `hotmartProductIds`.
+   * Mantido por compatibilidade: representa o primeiro item de `hotmartProductIds` (ou null).
+   */
   hotmartProductId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -48,7 +57,11 @@ export interface CreateCourseInput {
   planningUrl?: string;
   coverImageUrl?: string;
   usaTurmas?: boolean;
+  /**
+   * @deprecated Use `hotmartProductIds`.
+   */
   hotmartProductId?: string;
+  hotmartProductIds?: string[];
 }
 
 export interface UpdateCourseInput {
@@ -68,5 +81,14 @@ export interface UpdateCourseInput {
   planningUrl?: string | null;
   coverImageUrl?: string | null;
   usaTurmas?: boolean;
+  /**
+   * @deprecated Use `hotmartProductIds`.
+   */
   hotmartProductId?: string | null;
+  /**
+   * Lista completa de IDs Hotmart (substitui o mapeamento anterior).
+   * - `[]` limpa os IDs
+   * - `undefined` não altera
+   */
+  hotmartProductIds?: string[];
 }

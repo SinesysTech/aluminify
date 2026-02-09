@@ -23,6 +23,7 @@ const serializeCourse = (course: Awaited<ReturnType<typeof cursoService.getById>
   planningUrl: course.planningUrl,
   coverImageUrl: course.coverImageUrl,
   usaTurmas: course.usaTurmas,
+  hotmartProductIds: course.hotmartProductIds,
   hotmartProductId: course.hotmartProductId,
   createdAt: course.createdAt.toISOString(),
   updatedAt: course.updatedAt.toISOString(),
@@ -91,6 +92,13 @@ async function putHandler(request: AuthenticatedRequest, params: { id: string })
       planningUrl: body?.planningUrl,
       coverImageUrl: body?.coverImageUrl,
       usaTurmas: body?.usaTurmas,
+      hotmartProductIds:
+        body?.hotmartProductIds ??
+        (body?.hotmartProductId !== undefined
+          ? body.hotmartProductId
+            ? [body.hotmartProductId]
+            : []
+          : undefined),
       hotmartProductId: body?.hotmartProductId,
     });
     return NextResponse.json({ data: serializeCourse(course) });

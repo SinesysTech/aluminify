@@ -97,8 +97,8 @@ export function CourseModulesPanel({ courseId }: CourseModulesPanelProps) {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-[#E4E4E7] bg-white p-6">
-        <div className="flex items-center gap-2 text-zinc-500">
+      <div className="rounded-xl border border-border/40 bg-card/80 shadow-sm p-6">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">Carregando módulos...</span>
         </div>
@@ -110,16 +110,16 @@ export function CourseModulesPanel({ courseId }: CourseModulesPanelProps) {
   const coreModules = tenantModules.filter(m => m.isCore)
 
   return (
-    <div className="rounded-lg border border-[#E4E4E7] bg-white">
+    <div className="rounded-xl border border-border/40 bg-card/80 shadow-sm">
       {/* Header */}
-      <div className="p-4 border-b border-[#E4E4E7]">
+      <div className="p-4 border-b border-border/40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
             <LayoutGrid className="w-5 h-5 text-purple-600" />
           </div>
           <div>
             <h3 className="font-semibold">Módulos do Curso</h3>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">
               Defina quais módulos os alunos deste curso terão acesso.
             </p>
           </div>
@@ -127,14 +127,14 @@ export function CourseModulesPanel({ courseId }: CourseModulesPanelProps) {
       </div>
 
       {/* Module List */}
-      <div className="divide-y divide-[#E4E4E7]">
+      <div className="divide-y divide-border">
         {toggleableModules.map((module) => (
           <div key={module.id} className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
               {enabledIds.has(module.id) ? (
                 <Eye className="h-4 w-4 text-green-600 shrink-0" />
               ) : (
-                <EyeOff className="h-4 w-4 text-zinc-400 shrink-0" />
+                <EyeOff className="h-4 w-4 text-muted-foreground shrink-0" />
               )}
               <span className="text-sm font-medium">{module.name}</span>
             </div>
@@ -149,7 +149,7 @@ export function CourseModulesPanel({ courseId }: CourseModulesPanelProps) {
             <div className="flex items-center gap-3">
               <Eye className="h-4 w-4 text-green-600 shrink-0" />
               <span className="text-sm font-medium">{module.name}</span>
-              <span className="text-xs text-zinc-400">(sempre ativo)</span>
+              <span className="text-xs text-muted-foreground">(sempre ativo)</span>
             </div>
             <Switch checked disabled />
           </div>
@@ -158,7 +158,7 @@ export function CourseModulesPanel({ courseId }: CourseModulesPanelProps) {
 
       {/* Footer */}
       {(hasChanges || error || success) && (
-        <div className="p-4 border-t border-[#E4E4E7] flex items-center justify-between gap-4">
+        <div className="p-4 border-t border-border/40 flex items-center justify-between gap-4">
           <div className="flex-1">
             {error && <p className="text-sm text-red-500">{error}</p>}
             {success && (

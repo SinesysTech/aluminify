@@ -366,7 +366,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
     <TooltipProvider>
       <div className="flex flex-col gap-6 h-full pb-10">
         {/* Header */}
-        <header className="flex flex-col gap-4 border-b border-[#E4E4E7] pb-4">
+        <header className="flex flex-col gap-4 border-b border-border/40 pb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -379,7 +379,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
 
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-xl font-bold text-zinc-600">
+              <div className="w-16 h-16 rounded-full bg-muted/50 border border-border/40 flex items-center justify-center text-xl font-bold text-muted-foreground">
                 {student.fullName
                   ? student.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
                   : '??'}
@@ -536,7 +536,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
                   <Badge
                     key={course.id}
                     variant="outline"
-                    className="cursor-pointer hover:bg-zinc-100 pr-1 gap-1"
+                    className="cursor-pointer hover:bg-muted/50 pr-1 gap-1"
                   >
                     <span
                       onClick={() => router.push(tenant ? `/${tenant}/curso/admin/${course.id}` : `/curso/admin/${course.id}`)}
@@ -545,7 +545,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
                     </span>
                     <button
                       type="button"
-                      className="ml-1 rounded-full p-0.5 hover:bg-zinc-200 transition-colors"
+                      className="ml-1 rounded-full p-0.5 hover:bg-muted/50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
                         setCourseToRemove(course)

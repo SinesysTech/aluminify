@@ -69,8 +69,8 @@ export function CourseQuotaPanel({ courseId }: CourseQuotaPanelProps) {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-[#E4E4E7] bg-white p-6">
-        <div className="flex items-center gap-2 text-zinc-500">
+      <div className="rounded-xl border border-border/40 bg-card/80 shadow-sm p-6">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">Carregando cota...</span>
         </div>
@@ -79,16 +79,16 @@ export function CourseQuotaPanel({ courseId }: CourseQuotaPanelProps) {
   }
 
   return (
-    <div className="rounded-lg border border-[#E4E4E7] bg-white">
+    <div className="rounded-xl border border-border/40 bg-card/80 shadow-sm">
       {/* Header */}
-      <div className="p-4 border-b border-[#E4E4E7]">
+      <div className="p-4 border-b border-border/40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
             <CalendarCheck className="w-5 h-5 text-orange-600" />
           </div>
           <div>
             <h3 className="font-semibold">Cota de Plantões</h3>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">
               Quantidade de plantões que cada aluno deste curso pode agendar por mês.
             </p>
           </div>
@@ -110,16 +110,16 @@ export function CourseQuotaPanel({ courseId }: CourseQuotaPanelProps) {
               }}
             />
           </div>
-          <span className="text-sm text-zinc-500">plantões/mês por aluno</span>
+          <span className="text-sm text-muted-foreground">plantões/mês por aluno</span>
         </div>
-        <p className="text-xs text-zinc-400 mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           Valor 0 = sem direito a plantões. A cota é renovada automaticamente a cada mês.
         </p>
       </div>
 
       {/* Footer */}
       {(hasChanges || error || success) && (
-        <div className="p-4 border-t border-[#E4E4E7] flex items-center justify-between gap-4">
+        <div className="p-4 border-t border-border/40 flex items-center justify-between gap-4">
           <div className="flex-1">
             {error && <p className="text-sm text-red-500">{error}</p>}
             {success && (

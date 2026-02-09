@@ -80,9 +80,9 @@ export function RightPanel({
         <div className="flex justify-between items-center">
           <p
             aria-hidden
-            className="flex-1 align-center font-bold text-md text-gray-12 capitalize"
+            className="flex-1 align-center font-bold text-md text-foreground capitalize"
           >
-            {dayName} <span className="text-gray-11">{dayNumber}</span>
+            {dayName} <span className="text-muted-foreground">{dayNumber}</span>
           </p>
         </div>
         {!loading && slots.length > 0 && (

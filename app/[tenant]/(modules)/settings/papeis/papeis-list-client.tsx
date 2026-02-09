@@ -47,11 +47,11 @@ const ROLE_TYPE_LABELS: Record<RoleTipo, string> = {
 
 // Role type colors
 const ROLE_TYPE_COLORS: Record<RoleTipo, string> = {
-  professor: 'bg-blue-100 text-blue-800',
-  professor_admin: 'bg-purple-100 text-purple-800',
-  staff: 'bg-gray-100 text-gray-800',
-  admin: 'bg-red-100 text-red-800',
-  monitor: 'bg-green-100 text-green-800',
+  professor: 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
+  professor_admin: 'bg-purple-500/15 text-purple-700 dark:text-purple-400',
+  staff: 'bg-muted text-muted-foreground',
+  admin: 'bg-red-500/15 text-red-700 dark:text-red-400',
+  monitor: 'bg-green-500/15 text-green-700 dark:text-green-400',
 }
 
 interface PapeisListClientProps {

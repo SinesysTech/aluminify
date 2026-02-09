@@ -883,7 +883,7 @@ export function AlunoTable() {
   return (
     <TooltipProvider>
     <div className="flex flex-col gap-8 h-full pb-10">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E4E4E7] pb-4">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div>
           <h1 className="page-title">Alunos</h1>
           <p className="page-subtitle">Gerencie os alunos do sistema</p>
@@ -893,7 +893,7 @@ export function AlunoTable() {
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <button className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2">
+                  <button className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2">
                     <Plus className="w-5 h-5" strokeWidth={1.5} />
                     Novo Aluno
                   </button>
@@ -1263,7 +1263,7 @@ export function AlunoTable() {
           ) : (
             <button
               onClick={() => setCreateDialogOpen(true)}
-              className="h-9 px-4 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+              className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2"
             >
               <Plus className="w-5 h-5" strokeWidth={1.5} />
               Novo Aluno
@@ -1285,11 +1285,11 @@ export function AlunoTable() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400" strokeWidth={1.5} />
+          <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
           <input
             type="text"
             placeholder="Filtrar por nome ou email..."
-            className="w-full h-10 pl-9 pr-4 rounded-md border border-[#E4E4E7] bg-white text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] transition-all"
+            className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/40 bg-card/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm transition-all"
             value={(table.getColumn('fullName')?.getFilterValue() as string) ?? ''}
             onChange={(event) => {
               const value = event.target.value
@@ -1335,7 +1335,7 @@ export function AlunoTable() {
             {table.getRowModel().rows.map((row) => {
               const aluno = row.original
               return (
-                <div key={row.id} className="rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-sm">
+                <div key={row.id} className="rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm hover:shadow-md transition-all duration-200">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -1458,8 +1458,8 @@ export function AlunoTable() {
         </>
       ) : (
         <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-[#E4E4E7]">
-            <Users className="w-8 h-8 text-zinc-400" strokeWidth={1} />
+          <div className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border/40">
+            <Users className="w-8 h-8 text-muted-foreground" strokeWidth={1} />
           </div>
 
           <h3 className="empty-state-title mb-2">Nenhum aluno cadastrado</h3>
@@ -1470,7 +1470,7 @@ export function AlunoTable() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCreateDialogOpen(true)}
-              className="h-10 px-6 rounded-md bg-[#09090B] text-white text-sm font-medium hover:bg-[#27272A] transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center gap-2"
+              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2"
             >
               <Plus className="w-5 h-5" strokeWidth={1.5} />
               Adicionar Aluno
@@ -1480,22 +1480,22 @@ export function AlunoTable() {
       )}
 
       {table.getRowModel().rows?.length > 0 && (
-        <div className="border-t border-[#E4E4E7] px-4 py-3 flex items-center justify-between">
-          <span className="text-xs text-[#71717A]">
+        <div className="border-t border-border/40 px-4 py-3 flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">
             Mostrando <strong>{table.getFilteredRowModel().rows.length}</strong> resultados
           </span>
           <div className="flex gap-2">
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
+              className="px-3 py-1.5 border border-border/40 bg-card/50 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
             >
               Anterior
             </button>
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="px-3 py-1 border border-[#E4E4E7] bg-white rounded text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+              className="px-3 py-1.5 border border-border/40 bg-card/50 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
             >
               Próximo
             </button>

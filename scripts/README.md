@@ -17,6 +17,7 @@ A organização reflete os módulos existentes no sistema ou categorias gerais d
 #### 3. Financeiro (`scripts/integracoes/financeiro/`)
 - `import-hotmart-transactions.ts`: Importa transações da Hotmart.
 - `fix-transaction-products.ts`: Corrige mapeamento de produtos em transações existentes.
+- `repair-hotmart-missing-enrollments.ts`: Reprocessa matrículas faltantes de compras Hotmart aprovadas (quando o mapeamento de IDs do curso foi configurado depois).
 
 #### 4. Administrador (`scripts/admin/`)
 - `delete-all-students.sql`: Script SQL para limpeza completa de dados de alunos (Uso restrito).

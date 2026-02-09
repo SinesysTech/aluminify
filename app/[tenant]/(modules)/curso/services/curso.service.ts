@@ -65,6 +65,12 @@ export class CursoService {
       ? this.validateDate(payload.endDate)
       : undefined;
 
+    // Hotmart IDs (curso pode ter múltiplos). Prioridade: hotmartProductIds > hotmartProductId (legado)
+    const hotmartProductIds = this.normalizeHotmartProductIds(
+      payload.hotmartProductIds ??
+        (payload.hotmartProductId ? [payload.hotmartProductId] : []),
+    );
+
     if (startDate && endDate && startDate > endDate) {
       throw new CourseValidationError(
         "Start date must be before or equal to end date",
@@ -113,6 +119,7 @@ export class CursoService {
       accessMonths,
       planningUrl: payload.planningUrl ?? undefined,
       coverImageUrl: payload.coverImageUrl ?? undefined,
+      hotmartProductIds,
       hotmartProductId: payload.hotmartProductId ?? undefined,
     });
 
@@ -235,6 +242,11 @@ export class CursoService {
       updateData.hotmartProductId = payload.hotmartProductId;
     }
 
+    if (payload.hotmartProductIds !== undefined) {
+      updateData.hotmartProductIds =
+        this.normalizeHotmartProductIds(payload.hotmartProductIds);
+    }
+
     const course = await this.repository.update(id, updateData);
 
     // Invalidar cache de estrutura hierárquica e listagem (por empresa)
@@ -247,6 +259,13 @@ export class CursoService {
     await cacheService.del("courses:list:all");
 
     return course;
+  }
+
+  private normalizeHotmartProductIds(ids: string[]): string[] {
+    const normalized = ids
+      .map((id) => (typeof id === "string" ? id.trim() : ""))
+      .filter((id) => id.length > 0);
+    return Array.from(new Set(normalized));
   }
 
   async delete(id: string): Promise<void> {

@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Trash2, Plus, BookOpen, Search, Eye, Users } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2, Plus, BookOpen, Search, Eye, Users, X } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -102,6 +102,7 @@ export type Curso = {
   planningUrl: string | null
   coverImageUrl: string | null
   usaTurmas?: boolean
+  hotmartProductIds?: string[]
   hotmartProductId?: string | null
   createdAt: string
   updatedAt: string
@@ -122,6 +123,33 @@ export type Modalidade = {
   id: string
   nome: string
   slug: string
+}
+
+function normalizeHotmartId(raw: string): string | null {
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+  // ID de produto Hotmart é numérico (e isso impede entradas malformadas)
+  if (!/^\d+$/.test(trimmed)) return null
+  return trimmed
+}
+
+function parseHotmartIdsFromText(text: string): { ids: string[]; invalidTokens: string[] } {
+  // Permite colar lista com espaços, vírgulas, quebras de linha etc.
+  const parts = text.split(/[\s,;]+/g).map((p) => p.trim()).filter(Boolean)
+
+  const ids: string[] = []
+  const invalidTokens: string[] = []
+
+  for (const part of parts) {
+    const normalized = normalizeHotmartId(part)
+    if (normalized) ids.push(normalized)
+    else invalidTokens.push(part)
+  }
+
+  return {
+    ids: Array.from(new Set(ids)),
+    invalidTokens: Array.from(new Set(invalidTokens)).slice(0, 5), // limitar para não estourar UI
+  }
 }
 
 const cursoSchema = z.object({
@@ -148,10 +176,16 @@ const cursoSchema = z.object({
     z.string().url('URL inválida').optional().nullable()
   ) as z.ZodType<string | null | undefined>,
   usaTurmas: z.boolean(),
-  hotmartProductId: z.preprocess(
-    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
-    z.string().optional().nullable()
-  ) as z.ZodType<string | null | undefined>,
+  hotmartProductIds: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, 'ID inválido')
+        .regex(/^\d+$/, 'O ID da Hotmart deve conter apenas números')
+    )
+    .default([])
+    .refine((ids) => new Set(ids).size === ids.length, 'IDs duplicados'),
 })
 
 type CursoFormInput = z.input<typeof cursoSchema>
@@ -181,6 +215,10 @@ export function CursoTable() {
   const [deletingCurso, setDeletingCurso] = React.useState<Curso | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [enrollmentCounts, setEnrollmentCounts] = React.useState<Record<string, number>>({})
+  const [createHotmartIdDraft, setCreateHotmartIdDraft] = React.useState('')
+  const [editHotmartIdDraft, setEditHotmartIdDraft] = React.useState('')
+  const [createHotmartIdsHint, setCreateHotmartIdsHint] = React.useState<string | null>(null)
+  const [editHotmartIdsHint, setEditHotmartIdsHint] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     setMounted(true)
@@ -204,7 +242,7 @@ export function CursoTable() {
       planningUrl: null,
       coverImageUrl: null,
       usaTurmas: false,
-      hotmartProductId: null,
+      hotmartProductIds: [],
     },
   })
 
@@ -226,7 +264,7 @@ export function CursoTable() {
       planningUrl: null,
       coverImageUrl: null,
       usaTurmas: false,
-      hotmartProductId: null,
+      hotmartProductIds: [],
     },
   })
 
@@ -327,11 +365,13 @@ export function CursoTable() {
         planningUrl: values.planningUrl || undefined,
         coverImageUrl: values.coverImageUrl || undefined,
         usaTurmas: values.usaTurmas || false,
-        hotmartProductId: values.hotmartProductId || undefined,
+        hotmartProductIds: values.hotmartProductIds || [],
       })
       setSuccessMessage('Curso criado com sucesso!')
       setCreateDialogOpen(false)
       createForm.reset()
+      setCreateHotmartIdDraft('')
+      setCreateHotmartIdsHint(null)
       await fetchCursos()
       setTimeout(() => setSuccessMessage(null), 3000)
     } catch (err) {
@@ -358,6 +398,11 @@ export function CursoTable() {
 
   const handleEdit = (curso: Curso) => {
     setEditingCurso(curso)
+    const hotmartIds = curso.hotmartProductIds?.length
+      ? curso.hotmartProductIds
+      : curso.hotmartProductId
+        ? [curso.hotmartProductId]
+        : []
     editForm.reset({
       segmentId: curso.segmentId,
       disciplineId: curso.disciplineId, // Mantido para compatibilidade
@@ -374,8 +419,10 @@ export function CursoTable() {
       planningUrl: curso.planningUrl,
       coverImageUrl: curso.coverImageUrl,
       usaTurmas: curso.usaTurmas || false,
-      hotmartProductId: curso.hotmartProductId || null,
+      hotmartProductIds: hotmartIds,
     })
+    setEditHotmartIdDraft('')
+    setEditHotmartIdsHint(null)
     setEditDialogOpen(true)
   }
 
@@ -394,12 +441,14 @@ export function CursoTable() {
         planningUrl: values.planningUrl || null,
         coverImageUrl: values.coverImageUrl || null,
         usaTurmas: values.usaTurmas,
-        hotmartProductId: values.hotmartProductId || null,
+        hotmartProductIds: values.hotmartProductIds || [],
       })
       setSuccessMessage('Curso atualizado com sucesso!')
       setEditDialogOpen(false)
       setEditingCurso(null)
       editForm.reset()
+      setEditHotmartIdDraft('')
+      setEditHotmartIdsHint(null)
       await fetchCursos()
       setTimeout(() => setSuccessMessage(null), 3000)
     } catch (err) {
@@ -937,20 +986,139 @@ export function CursoTable() {
                         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Integrações</h3>
                         <FormField
                           control={createForm.control}
-                          name="hotmartProductId"
+                          name="hotmartProductIds"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>ID do Produto Hotmart</FormLabel>
+                              <FormLabel>IDs do Produto Hotmart</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Ex: 1234567"
-                                  {...field}
-                                  value={field.value || ''}
-                                />
+                                <div className="space-y-3">
+                                  <div className="flex flex-wrap gap-2">
+                                    {(field.value ?? []).length === 0 ? (
+                                      <span className="text-sm text-muted-foreground">Nenhum ID adicionado</span>
+                                    ) : (
+                                      (field.value ?? []).map((id) => (
+                                        <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                                          <span className="font-mono text-xs">{id}</span>
+                                          <button
+                                            type="button"
+                                            className="rounded-sm hover:bg-muted/60 p-0.5"
+                                            onClick={() =>
+                                              field.onChange((field.value ?? []).filter((x) => x !== id))
+                                            }
+                                            aria-label={`Remover ID ${id}`}
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </button>
+                                        </Badge>
+                                      ))
+                                    )}
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <Input
+                                      placeholder="Digite um ID e pressione Enter"
+                                      value={createHotmartIdDraft}
+                                      onChange={(e) => setCreateHotmartIdDraft(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ',' || e.key === ';') {
+                                          e.preventDefault()
+                                          const { ids, invalidTokens } = parseHotmartIdsFromText(createHotmartIdDraft)
+                                          if (ids.length > 0) {
+                                            field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                            setCreateHotmartIdDraft('')
+                                          }
+                                          if (invalidTokens.length > 0) {
+                                            setCreateHotmartIdsHint(
+                                              `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                            )
+                                          } else {
+                                            setCreateHotmartIdsHint(null)
+                                          }
+                                        }
+                                      }}
+                                      onBlur={() => {
+                                        const { ids, invalidTokens } = parseHotmartIdsFromText(createHotmartIdDraft)
+                                        if (ids.length > 0) {
+                                          field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                          setCreateHotmartIdDraft('')
+                                        }
+                                        if (invalidTokens.length > 0) {
+                                          setCreateHotmartIdsHint(
+                                            `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                          )
+                                        } else if (ids.length > 0) {
+                                          setCreateHotmartIdsHint(null)
+                                        }
+                                      }}
+                                      onPaste={(e) => {
+                                        const text = e.clipboardData.getData('text')
+                                        const { ids, invalidTokens } = parseHotmartIdsFromText(text)
+                                        if (ids.length > 0) {
+                                          e.preventDefault()
+                                          field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                        }
+                                        if (invalidTokens.length > 0) {
+                                          setCreateHotmartIdsHint(
+                                            `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                          )
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() => {
+                                        const { ids, invalidTokens } = parseHotmartIdsFromText(createHotmartIdDraft)
+                                        if (ids.length > 0) {
+                                          field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                          setCreateHotmartIdDraft('')
+                                        }
+                                        if (invalidTokens.length > 0) {
+                                          setCreateHotmartIdsHint(
+                                            `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                          )
+                                        } else {
+                                          setCreateHotmartIdsHint(null)
+                                        }
+                                      }}
+                                    >
+                                      Adicionar
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      onClick={async () => {
+                                        try {
+                                          const text = await navigator.clipboard.readText()
+                                          const { ids, invalidTokens } = parseHotmartIdsFromText(text)
+                                          if (ids.length > 0) {
+                                            field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                          }
+                                          if (invalidTokens.length > 0) {
+                                            setCreateHotmartIdsHint(
+                                              `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                            )
+                                          } else if (ids.length > 0) {
+                                            setCreateHotmartIdsHint(null)
+                                          } else {
+                                            setCreateHotmartIdsHint('Nada para importar da área de transferência.')
+                                          }
+                                        } catch {
+                                          setCreateHotmartIdsHint('Não consegui ler a área de transferência. Use Ctrl+V no campo ao lado.')
+                                        }
+                                      }}
+                                    >
+                                      Colar e importar IDs
+                                    </Button>
+                                  </div>
+                                </div>
                               </FormControl>
                               <FormDescription>
-                                Código do produto na Hotmart. Quando um aluno comprar esse produto, será matriculado automaticamente neste curso.
+                                Os IDs ficam organizados em chips. Você pode digitar e confirmar com Enter/vírgula ou colar uma lista que o sistema separa automaticamente.
                               </FormDescription>
+                              {createHotmartIdsHint ? (
+                                <p className="text-sm text-muted-foreground">{createHotmartIdsHint}</p>
+                              ) : null}
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1496,20 +1664,139 @@ export function CursoTable() {
                     <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Integrações</h3>
                     <FormField
                       control={editForm.control}
-                      name="hotmartProductId"
+                      name="hotmartProductIds"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>ID do Produto Hotmart</FormLabel>
+                          <FormLabel>IDs do Produto Hotmart</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Ex: 1234567"
-                              {...field}
-                              value={field.value || ''}
-                            />
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap gap-2">
+                                {(field.value ?? []).length === 0 ? (
+                                  <span className="text-sm text-muted-foreground">Nenhum ID adicionado</span>
+                                ) : (
+                                  (field.value ?? []).map((id) => (
+                                    <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                                      <span className="font-mono text-xs">{id}</span>
+                                      <button
+                                        type="button"
+                                        className="rounded-sm hover:bg-muted/60 p-0.5"
+                                        onClick={() =>
+                                          field.onChange((field.value ?? []).filter((x) => x !== id))
+                                        }
+                                        aria-label={`Remover ID ${id}`}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </Badge>
+                                  ))
+                                )}
+                              </div>
+
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Digite um ID e pressione Enter"
+                                  value={editHotmartIdDraft}
+                                  onChange={(e) => setEditHotmartIdDraft(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ',' || e.key === ';') {
+                                      e.preventDefault()
+                                      const { ids, invalidTokens } = parseHotmartIdsFromText(editHotmartIdDraft)
+                                      if (ids.length > 0) {
+                                        field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                        setEditHotmartIdDraft('')
+                                      }
+                                      if (invalidTokens.length > 0) {
+                                        setEditHotmartIdsHint(
+                                          `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                        )
+                                      } else {
+                                        setEditHotmartIdsHint(null)
+                                      }
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    const { ids, invalidTokens } = parseHotmartIdsFromText(editHotmartIdDraft)
+                                    if (ids.length > 0) {
+                                      field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                      setEditHotmartIdDraft('')
+                                    }
+                                    if (invalidTokens.length > 0) {
+                                      setEditHotmartIdsHint(
+                                        `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                      )
+                                    } else if (ids.length > 0) {
+                                      setEditHotmartIdsHint(null)
+                                    }
+                                  }}
+                                  onPaste={(e) => {
+                                    const text = e.clipboardData.getData('text')
+                                    const { ids, invalidTokens } = parseHotmartIdsFromText(text)
+                                    if (ids.length > 0) {
+                                      e.preventDefault()
+                                      field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                    }
+                                    if (invalidTokens.length > 0) {
+                                      setEditHotmartIdsHint(
+                                        `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                      )
+                                    }
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const { ids, invalidTokens } = parseHotmartIdsFromText(editHotmartIdDraft)
+                                    if (ids.length > 0) {
+                                      field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                      setEditHotmartIdDraft('')
+                                    }
+                                    if (invalidTokens.length > 0) {
+                                      setEditHotmartIdsHint(
+                                        `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                      )
+                                    } else {
+                                      setEditHotmartIdsHint(null)
+                                    }
+                                  }}
+                                >
+                                  Adicionar
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  onClick={async () => {
+                                    try {
+                                      const text = await navigator.clipboard.readText()
+                                      const { ids, invalidTokens } = parseHotmartIdsFromText(text)
+                                      if (ids.length > 0) {
+                                        field.onChange(Array.from(new Set([...(field.value ?? []), ...ids])))
+                                      }
+                                      if (invalidTokens.length > 0) {
+                                        setEditHotmartIdsHint(
+                                          `Ignorados (não numéricos): ${invalidTokens.join(', ')}${invalidTokens.length >= 5 ? '…' : ''}`
+                                        )
+                                      } else if (ids.length > 0) {
+                                        setEditHotmartIdsHint(null)
+                                      } else {
+                                        setEditHotmartIdsHint('Nada para importar da área de transferência.')
+                                      }
+                                    } catch {
+                                      setEditHotmartIdsHint('Não consegui ler a área de transferência. Use Ctrl+V no campo ao lado.')
+                                    }
+                                  }}
+                                >
+                                  Colar e importar IDs
+                                </Button>
+                              </div>
+                            </div>
                           </FormControl>
                           <FormDescription>
-                            Código do produto na Hotmart. Quando um aluno comprar esse produto, será matriculado automaticamente neste curso.
+                            Os IDs ficam organizados em chips. Você pode digitar e confirmar com Enter/vírgula ou colar uma lista que o sistema separa automaticamente.
                           </FormDescription>
+                          {editHotmartIdsHint ? (
+                            <p className="text-sm text-muted-foreground">{editHotmartIdsHint}</p>
+                          ) : null}
                           <FormMessage />
                         </FormItem>
                       )}

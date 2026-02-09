@@ -40,6 +40,7 @@ const TABLE = "cursos";
 const SEGMENT_TABLE = "segmentos";
 const DISCIPLINE_TABLE = "disciplinas";
 const COURSE_DISCIPLINES_TABLE = "cursos_disciplinas";
+const COURSE_HOTMART_PRODUCTS_TABLE = "cursos_hotmart_products";
 
 type CourseRow = {
   id: string;
@@ -58,7 +59,6 @@ type CourseRow = {
   planejamento_url: string | null;
   imagem_capa_url: string | null;
   usa_turmas: boolean;
-  hotmart_product_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -66,6 +66,7 @@ type CourseRow = {
 async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Curso> {
   // Buscar IDs de disciplinas relacionadas
   const disciplineIds = await getCourseDisciplinesFromDb(row.id, client);
+  const hotmartProductIds = await getCourseHotmartProductIdsFromDb(row.id, client);
 
   return {
     id: row.id,
@@ -85,7 +86,8 @@ async function mapRow(row: CourseRow, client: SupabaseClient): Promise<Curso> {
     planningUrl: row.planejamento_url,
     coverImageUrl: row.imagem_capa_url,
     usaTurmas: row.usa_turmas ?? false,
-    hotmartProductId: row.hotmart_product_id ?? null,
+    hotmartProductIds,
+    hotmartProductId: hotmartProductIds[0] ?? null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -110,6 +112,84 @@ async function getCourseDisciplinesFromDb(
   );
 }
 
+async function getCourseHotmartProductIdsFromDb(
+  courseId: string,
+  client: SupabaseClient,
+): Promise<string[]> {
+  const { data, error } = await client
+    .from(COURSE_HOTMART_PRODUCTS_TABLE)
+    .select("hotmart_product_id, created_at")
+    .eq("curso_id", courseId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(`Failed to fetch course Hotmart product IDs: ${error.message}`);
+    return [];
+  }
+
+  return (data ?? [])
+    .map((row: { hotmart_product_id: string }) => row.hotmart_product_id)
+    .filter((id) => typeof id === "string" && id.trim().length > 0);
+}
+
+function normalizeHotmartProductIds(ids: string[]): string[] {
+  const normalized = ids
+    .map((id) => (typeof id === "string" ? id.trim() : ""))
+    .filter((id) => id.length > 0);
+  return Array.from(new Set(normalized));
+}
+
+async function setCourseHotmartProductIdsInDb(
+  client: SupabaseClient,
+  params: {
+    courseId: string;
+    empresaId: string;
+    hotmartProductIds: string[];
+  },
+): Promise<void> {
+  const hotmartProductIds = normalizeHotmartProductIds(params.hotmartProductIds);
+
+  // 1) Inserir primeiro (evita perda de dados caso haja conflito de unicidade)
+  if (hotmartProductIds.length > 0) {
+    const insertData = hotmartProductIds.map((hotmartProductId) => ({
+      empresa_id: params.empresaId,
+      curso_id: params.courseId,
+      hotmart_product_id: hotmartProductId,
+    }));
+
+    const { error: insertError } = await client
+      .from(COURSE_HOTMART_PRODUCTS_TABLE)
+      .upsert(insertData, { onConflict: "curso_id,hotmart_product_id" });
+
+    if (insertError) {
+      throw new Error(
+        `Failed to set course Hotmart product IDs: ${insertError.message}`,
+      );
+    }
+  }
+
+  // 2) Remover os que não estão mais na lista (ou todos, se lista vazia)
+  let deleteQuery = client
+    .from(COURSE_HOTMART_PRODUCTS_TABLE)
+    .delete()
+    .eq("curso_id", params.courseId);
+
+  if (hotmartProductIds.length > 0) {
+    deleteQuery = deleteQuery.not(
+      "hotmart_product_id",
+      "in",
+      `(${hotmartProductIds.map((id) => `"${id.replaceAll('"', '\\"')}"`).join(",")})`,
+    );
+  }
+
+  const { error: deleteError } = await deleteQuery;
+  if (deleteError) {
+    throw new Error(
+      `Failed to remove outdated course Hotmart product IDs: ${deleteError.message}`,
+    );
+  }
+}
+
 export class CursoRepositoryImpl implements CursoRepository {
   constructor(private readonly client: SupabaseClient) {}
 
@@ -131,7 +211,6 @@ export class CursoRepositoryImpl implements CursoRepository {
       empresaId: "empresa_id",
       segmentId: "segmento_id",
       disciplineId: "disciplina_id",
-      hotmartProductId: "hotmart_product_id",
     };
     return columnMap[sortBy] || sortBy;
   }
@@ -231,7 +310,6 @@ export class CursoRepositoryImpl implements CursoRepository {
       planejamento_url: payload.planningUrl ?? null,
       imagem_capa_url: payload.coverImageUrl ?? null,
       usa_turmas: payload.usaTurmas ?? false,
-      hotmart_product_id: payload.hotmartProductId ?? null,
     };
 
     const { data, error } = await this.client
@@ -247,6 +325,18 @@ export class CursoRepositoryImpl implements CursoRepository {
     // Inserir relacionamentos de disciplinas
     if (disciplineIds.length > 0) {
       await this.setCourseDisciplines(data.id, disciplineIds);
+    }
+
+    // Inserir mapeamentos Hotmart (curso pode ter múltiplos IDs)
+    const hotmartProductIds =
+      payload.hotmartProductIds ??
+      (payload.hotmartProductId ? [payload.hotmartProductId] : []);
+    if (hotmartProductIds.length > 0) {
+      await setCourseHotmartProductIdsInDb(this.client, {
+        courseId: data.id,
+        empresaId: payload.empresaId,
+        hotmartProductIds,
+      });
     }
 
     return mapRow(data, this.client);
@@ -323,10 +413,6 @@ export class CursoRepositoryImpl implements CursoRepository {
       updateData.usa_turmas = payload.usaTurmas;
     }
 
-    if (payload.hotmartProductId !== undefined) {
-      updateData.hotmart_product_id = payload.hotmartProductId;
-    }
-
     const { data, error } = await this.client
       .from(TABLE)
       .update(updateData)
@@ -336,6 +422,22 @@ export class CursoRepositoryImpl implements CursoRepository {
 
     if (error) {
       throw new Error(`Failed to update course: ${error.message}`);
+    }
+
+    // Atualizar mapeamentos Hotmart
+    // Prioridade: hotmartProductIds > hotmartProductId (legado)
+    if (payload.hotmartProductIds !== undefined) {
+      await setCourseHotmartProductIdsInDb(this.client, {
+        courseId: id,
+        empresaId: data.empresa_id,
+        hotmartProductIds: payload.hotmartProductIds,
+      });
+    } else if (payload.hotmartProductId !== undefined) {
+      await setCourseHotmartProductIdsInDb(this.client, {
+        courseId: id,
+        empresaId: data.empresa_id,
+        hotmartProductIds: payload.hotmartProductId ? [payload.hotmartProductId] : [],
+      });
     }
 
     return mapRow(data, this.client);
