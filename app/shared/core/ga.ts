@@ -14,7 +14,7 @@ export default function GoogleAnalyticsInit() {
 
     ReactGA.initialize(GA_KEY);
     ReactGA.send("pageview");
-  });
+  }, []);
 
   return null;
 }

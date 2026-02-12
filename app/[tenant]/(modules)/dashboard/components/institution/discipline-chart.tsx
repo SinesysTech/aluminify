@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell, ResponsiveContainer } from 'recharts'
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell } from 'recharts'
 import { GraduationCap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -87,65 +87,63 @@ export function DisciplineChart({ disciplinas }: DisciplineChartProps) {
       </CardHeader>
       <CardContent className="pt-2">
         <ChartContainer config={chartConfig} className="w-full" style={{ height: chartHeight }}>
-          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{ top: 0, right: 48, left: 0, bottom: 0 }}
-              barCategoryGap="20%"
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 0, right: 48, left: 0, bottom: 0 }}
+            barCategoryGap="20%"
+          >
+            <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.3} />
+            <XAxis
+              type="number"
+              domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={120}
+              tick={{ fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <ChartTooltip
+              cursor={{ fill: 'var(--color-muted)', opacity: 0.3 }}
+              content={
+                <ChartTooltipContent
+                  hideLabel
+                  formatter={(value, _name, item) => (
+                    <div className="space-y-1">
+                      <p className="font-medium">{item.payload.fullName}</p>
+                      <p className="text-sm">Aproveitamento: {value}%</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.payload.alunos} alunos · {item.payload.questoes} questões
+                      </p>
+                    </div>
+                  )}
+                />
+              }
+            />
+            <Bar
+              dataKey="aproveitamento"
+              radius={[0, 6, 6, 0]}
+              maxBarSize={28}
+              label={{
+                position: 'right',
+                formatter: (v) => `${v}%`,
+                fontSize: 12,
+                fontWeight: 600,
+                fill: 'var(--color-foreground)',
+              }}
             >
-              <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.3} />
-              <XAxis
-                type="number"
-                domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={120}
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <ChartTooltip
-                cursor={{ fill: 'var(--color-muted)', opacity: 0.3 }}
-                content={
-                  <ChartTooltipContent
-                    hideLabel
-                    formatter={(value, _name, item) => (
-                      <div className="space-y-1">
-                        <p className="font-medium">{item.payload.fullName}</p>
-                        <p className="text-sm">Aproveitamento: {value}%</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.payload.alunos} alunos · {item.payload.questoes} questões
-                        </p>
-                      </div>
-                    )}
-                  />
-                }
-              />
-              <Bar
-                dataKey="aproveitamento"
-                radius={[0, 6, 6, 0]}
-                maxBarSize={28}
-                label={{
-                  position: 'right',
-                  formatter: (v) => `${v}%`,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fill: 'var(--color-foreground)',
-                }}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={index} fill={getBarColor(entry.aproveitamento)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+              {chartData.map((entry, index) => (
+                <Cell key={index} fill={getBarColor(entry.aproveitamento)} />
+              ))}
+            </Bar>
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>

@@ -101,6 +101,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ valid: true, roles: ["aluno"] });
     }
 
+    // Vínculo unificado: usuarios_empresas (staff multi-tenant, etc.)
+    const { data: vinculoRow, error: vinculoError } = await adminClient
+      .from("usuarios_empresas")
+      .select("empresa_id")
+      .eq("usuario_id", user.id)
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true)
+      .is("deleted_at", null)
+      .limit(1);
+
+    if (vinculoError) {
+      console.error(
+        "[validate-tenant] erro ao verificar usuarios_empresas:",
+        vinculoError,
+      );
+    }
+
+    if (Array.isArray(vinculoRow) && vinculoRow.length > 0) {
+      return NextResponse.json({ valid: true, roles: ["usuario"] });
+    }
+
     return NextResponse.json(
       { valid: false, message: "Você não tem acesso a esta instituição." },
       { status: 403 }
