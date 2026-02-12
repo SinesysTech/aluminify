@@ -43,8 +43,22 @@ export class StudentService extends UserBaseService {
     const existingByEmail = await this.repository.findByEmail(email);
     if (existingByEmail) {
       // Aluno já existe no sistema (possivelmente em outra empresa)
-      // Permitir vínculo cross-tenant - apenas vincular aos cursos solicitados
+      // Permitir vínculo cross-tenant - criar vínculo em usuarios_empresas e vincular aos cursos
       // O empresa_id "primário" do aluno permanece inalterado para compatibilidade
+
+      // Criar vínculo em usuarios_empresas para a nova empresa (se empresaId fornecido)
+      if (payload.empresaId) {
+        const db = getDatabaseClient();
+        await db.from("usuarios_empresas").upsert(
+          {
+            usuario_id: existingByEmail.id,
+            empresa_id: payload.empresaId,
+            papel_base: "aluno",
+            ativo: true,
+          },
+          { onConflict: "usuario_id,empresa_id,papel_base", ignoreDuplicates: true },
+        );
+      }
 
       const courseIds =
         payload.courseIds && payload.courseIds.length > 0

@@ -18,6 +18,7 @@ npm run lint:fix         # Auto-fix lint issues
 npm run typecheck        # TypeScript type checking
 npm run test             # Run Jest tests
 npm run test:watch       # Jest watch mode
+npm run check:quick      # Quick check: lint + typecheck + colors (no tests)
 npm run check            # Full check: lint + typecheck + color validation + tests
 npm run check:ci         # CI mode (zero warnings tolerance)
 npm run check:colors     # Validate design system color palette
@@ -38,6 +39,7 @@ app/
 │   ├── (modules)/           # Protected modules (dashboard, curso, flashcards, etc.)
 │   └── auth/                # Tenant-scoped auth flows
 ├── auth/                    # Global auth (non-tenant)
+├── superadmin/              # Multi-tenant management panel
 └── api/                     # RESTful API routes organized by domain
 ```
 
@@ -51,6 +53,7 @@ Defined in `tsconfig.json`:
 |-------|-------------|
 | `@/*` | `./*` (project root) |
 | `@/components/*` | `app/shared/components/*` and `app/shared/components/ui/*` |
+| `@/components/shared/*` | `app/shared/components/ui/*` |
 | `@/hooks/*` | `app/shared/hooks/*` |
 | `@/lib/*` | `app/shared/library/*` and `app/shared/core/*` |
 | `@/shared/*` | `app/shared/*` |
@@ -73,7 +76,7 @@ Core auth functions in `app/shared/core/auth.ts`:
 - `requireUser(roles?)` — Enforces authentication, optionally checks role. Redirects to login if unauthorized.
 - `invalidateAuthSessionCache(userId)` — Call on logout, password change, or role change.
 
-Roles (`RoleTipo`): `aluno` (student), `usuario` (general), `admin`, `superadmin`, `professor` (legacy). RBAC permissions are defined in `app/shared/core/roles.ts` via `hasPermission(permissions, resource, action)`.
+**Roles (simplified model):** Uses `PapelBase` (`aluno`, `professor`, `usuario`) combined with an `isAdmin` flag. The legacy `RoleTipo` system is deprecated. Permissions are resolved via `resolvePermissions(role, isAdmin, customPermissions?)` and checked with `hasPermission(permissions, resource, action)`. See `app/shared/core/roles.ts` and `app/shared/types/entities/papel.ts`.
 
 ### Module Structure Convention
 

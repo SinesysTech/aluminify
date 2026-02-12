@@ -260,8 +260,30 @@ async function postHandler(request: AuthenticatedRequest) {
 
     if (resolvedExistingAluno?.id) {
       // Aluno já existe no sistema (possivelmente em outra empresa)
-      // Permitir vínculo cross-tenant - apenas vincular aos cursos da empresa atual
+      // Permitir vínculo cross-tenant - criar vínculo em usuarios_empresas e vincular aos cursos
       // O empresa_id "primário" do aluno permanece inalterado para compatibilidade
+      const existingAlunoId = resolvedExistingAluno.id;
+
+      // Criar vínculo em usuarios_empresas para a nova empresa (se ainda não existir)
+      const { error: vinculoError } = await db
+        .from("usuarios_empresas")
+        .upsert(
+          {
+            usuario_id: existingAlunoId,
+            empresa_id: empresaId,
+            papel_base: "aluno",
+            ativo: true,
+          },
+          { onConflict: "usuario_id,empresa_id,papel_base", ignoreDuplicates: true },
+        );
+
+      if (vinculoError) {
+        console.error("[Student POST] Error creating tenant binding:", vinculoError);
+        return NextResponse.json(
+          { error: `Erro ao vincular aluno à empresa: ${vinculoError.message}` },
+          { status: 500 },
+        );
+      }
 
       // Validar que os cursos informados pertencem à empresa (evita vínculo cross-tenant).
       if (courseIds.length > 0) {
@@ -288,7 +310,7 @@ async function postHandler(request: AuthenticatedRequest) {
 
       if (courseIds.length > 0) {
         const rows = courseIds.map((cursoId) => ({
-          usuario_id: resolvedExistingAluno.id,
+          usuario_id: existingAlunoId,
           curso_id: cursoId,
         }));
 
@@ -310,7 +332,7 @@ async function postHandler(request: AuthenticatedRequest) {
         "@/app/[tenant]/(modules)/usuario/services/student.repository"
       );
       const repository = new StudentRepositoryImpl(db);
-      const updated = await repository.findById(resolvedExistingAluno.id);
+      const updated = await repository.findById(existingAlunoId);
       if (!updated) {
         return NextResponse.json({ error: "Aluno não encontrado" }, { status: 404 });
       }
