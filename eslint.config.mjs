@@ -20,6 +20,12 @@ const eslintConfig = defineConfig([
     "**/*.sql",
   ]),
   {
+    settings: {
+      // Workaround: eslint-plugin-react auto-detection uses removed context.getFilename() in ESLint 10.
+      // Pin React version explicitly until eslint-plugin-react releases ESLint 10 support.
+      // Track: https://github.com/jsx-eslint/eslint-plugin-react/issues/3977
+      react: { version: "19" },
+    },
     rules: {
       // Allow unused variables that start with underscore
       "@typescript-eslint/no-unused-vars": [
