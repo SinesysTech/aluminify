@@ -77,7 +77,7 @@ export default async function AgendamentoProfessorPage({ params }: AgendamentoPr
     .toUpperCase()
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
       {/* Back button */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>

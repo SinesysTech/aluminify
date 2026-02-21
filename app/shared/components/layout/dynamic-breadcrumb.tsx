@@ -13,6 +13,7 @@ import {
 const routeLabels: Record<string, string> = {
   // Dashboard
   "dashboard": "Dashboard",
+  "agente": "Agente",
 
   // Usuários
   "usuario": "Usuários",
@@ -52,6 +53,7 @@ const routeLabels: Record<string, string> = {
   "configuracoes": "Configurações",
 
   // Empresa
+  "settings": "Configurações",
   "empresa": "Empresa",
   "personalizacao": "Personalização",
   "avancadas": "Avançadas",
@@ -168,7 +170,7 @@ export function DynamicBreadcrumb() {
             )}
             {/* Current page */}
             <BreadcrumbItem>
-              <BreadcrumbPage className="truncate max-w-[200px]">{lastItem.label}</BreadcrumbPage>
+              <BreadcrumbPage className="truncate max-w-50">{lastItem.label}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         ) : (

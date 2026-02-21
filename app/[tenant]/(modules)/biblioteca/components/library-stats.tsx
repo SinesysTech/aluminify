@@ -83,7 +83,7 @@ function StatCard({
     const config = statVariantConfig[variant]
 
     return (
-        <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <Card className="group relative overflow-hidden transition-colors duration-200 motion-reduce:transition-none hover:shadow-md">
             <div
                 className={cn(
                     'absolute inset-0 bg-linear-to-br opacity-60 transition-opacity group-hover:opacity-100',
@@ -95,14 +95,14 @@ function StatCard({
                     <span className="text-xs font-medium text-muted-foreground">{label}</span>
                     <div
                         className={cn(
-                            'flex h-7 w-7 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
+                            'flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-200 motion-reduce:transition-none',
                             config.iconBg,
                         )}
                     >
                         <Icon className={cn('h-3.5 w-3.5', config.iconColor)} />
                     </div>
                 </div>
-                <span className={cn('text-2xl font-bold tracking-tight', config.valueColor)}>
+                <span className={cn('metric-value', config.valueColor)}>
                     {value}
                 </span>
             </CardContent>
@@ -146,7 +146,7 @@ export function LibraryStats({
                         {/* Icon */}
                         <div
                             className={cn(
-                                'flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl shrink-0 transition-transform hover:scale-105',
+                                'flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl shrink-0',
                                 isComplete ? 'bg-emerald-500/15' : 'bg-primary/10',
                             )}
                         >

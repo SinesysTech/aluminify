@@ -138,13 +138,13 @@ function StatsCard({ title, value, icon: Icon, variant }: StatsCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="metric-label">
           {title}
         </CardTitle>
         <Icon className={`h-4 w-4 ${variantStyles[variant]}`} />
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${variantStyles[variant]}`}>
+        <div className={`metric-value ${variantStyles[variant]}`}>
           {value}
         </div>
       </CardContent>

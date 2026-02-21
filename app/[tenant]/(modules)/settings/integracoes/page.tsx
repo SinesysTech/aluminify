@@ -31,7 +31,7 @@ export default async function IntegracoesPage() {
   ])
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
       <Tabs defaultValue="videoconferencia" className="space-y-6">
         <TabsList>
           <TabsTrigger value="videoconferencia" className="gap-2">

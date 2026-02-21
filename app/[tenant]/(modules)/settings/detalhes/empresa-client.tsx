@@ -179,7 +179,7 @@ export default function EmpresaClientPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
         <CardSkeleton count={2} />
       </div>
     );
@@ -187,7 +187,8 @@ export default function EmpresaClientPage() {
 
   if (!empresa) {
     return (
-      <div className="container mx-auto py-8 max-w-xl">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-xl">
         <Card>
           <CardHeader>
             <CardTitle>Empresa não encontrada</CardTitle>
@@ -201,12 +202,13 @@ export default function EmpresaClientPage() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-6 sm:px-6 lg:px-8">
         <div className="space-y-2">
           <Label htmlFor="nome">Nome da Empresa</Label>
           <Input

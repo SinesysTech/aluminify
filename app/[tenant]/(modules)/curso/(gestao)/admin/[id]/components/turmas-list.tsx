@@ -234,7 +234,7 @@ export function TurmasList({ cursoId, cursoNome }: TurmasListProps) {
                     <TableHead className="font-medium">Período</TableHead>
                     <TableHead className="font-medium">Alunos</TableHead>
                     <TableHead className="font-medium">Status</TableHead>
-                    <TableHead className="w-[100px]">Ações</TableHead>
+                    <TableHead className="w-25">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

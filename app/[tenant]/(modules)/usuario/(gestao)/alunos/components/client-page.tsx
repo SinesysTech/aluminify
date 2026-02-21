@@ -294,7 +294,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
     }
 
     return (
-        <div className="flex flex-col gap-8 h-full pb-10">
+        <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-8">
             {/* Loading Overlay durante importação */}
             {isImporting && (
                 <Dialog open={isImporting} onOpenChange={() => {}}>
@@ -311,7 +311,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                         <div className="space-y-4 py-4">
                             <div className="relative w-full overflow-hidden rounded-full bg-muted/50 h-2.5">
                                 <div 
-                                    className="h-full bg-primary rounded-full transition-all duration-500"
+                                    className="h-full rounded-full bg-primary transition-[transform] duration-500 motion-reduce:transition-none"
                                     style={{
                                         width: '60%',
                                         animation: 'loading 1.5s ease-in-out infinite',
@@ -421,7 +421,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                             {mounted ? (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <button className="h-9 px-4 rounded-xl border border-border bg-background text-sm font-medium hover:bg-muted transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2 text-foreground">
+                                        <button className="flex h-9 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-muted hover:shadow-md">
                                             <Upload className="w-5 h-5" strokeWidth={1.5} />
                                             Importar
                                             <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
@@ -439,7 +439,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             ) : (
-                                <button className="h-9 px-4 rounded-xl border border-border bg-background text-sm font-medium hover:bg-muted transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2 text-foreground" disabled>
+                                <button className="flex h-9 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-muted hover:shadow-md disabled:cursor-not-allowed" disabled>
                                     <Upload className="w-5 h-5" strokeWidth={1.5} />
                                     Importar
                                     <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
@@ -447,7 +447,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                             )}
                             <button
                                 onClick={() => setIsSheetOpen(true)}
-                                className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2"
+                                className="flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md"
                             >
                                 <Plus className="w-5 h-5" strokeWidth={1.5} />
                                 Novo Aluno
@@ -477,7 +477,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                     <div className="flex items-center gap-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="h-10 px-6 rounded-xl border border-border bg-background text-sm font-medium hover:bg-muted transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2 text-foreground">
+                                <button className="flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-6 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-muted hover:shadow-md">
                                     <Upload className="w-5 h-5" strokeWidth={1.5} />
                                     Importar Planilha
                                     <ChevronDown className="w-4 h-4" strokeWidth={1.5} />
@@ -496,7 +496,7 @@ export function AlunosClientPage({ students, meta, courses, totalAll }: AlunosCl
                         </DropdownMenu>
                         <button
                             onClick={() => setIsSheetOpen(true)}
-                            className="h-10 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2"
+                            className="flex h-10 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md"
                         >
                             <Plus className="w-5 h-5" strokeWidth={1.5} />
                             Adicionar Manualmente

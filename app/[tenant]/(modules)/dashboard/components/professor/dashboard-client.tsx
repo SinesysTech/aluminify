@@ -99,7 +99,7 @@ export default function ProfessorDashboardClient() {
 
   if (error && !data) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Alert variant="destructive" className="mt-8">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erro ao carregar dashboard</AlertTitle>
@@ -159,7 +159,7 @@ export default function ProfessorDashboardClient() {
     : 0
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-6 md:space-y-8">
       {/* ===== NOVO LAYOUT (Template) ===== */}
 
       {/* WelcomeCard + Controle de Refresh */}

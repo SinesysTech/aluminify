@@ -151,8 +151,8 @@ export function NextActivityCard({ activity, onViewAll, className }: NextActivit
               size="lg"
               className={cn(
                 'gap-2 font-semibold shadow-lg px-6',
-                'hover:shadow-xl hover:scale-[1.02]',
-                'transition-all duration-200 text-white',
+                'hover:shadow-xl',
+                'transition-colors duration-200 motion-reduce:transition-none text-white',
                 prioridade === 'urgente' && [
                   'bg-linear-to-r from-rose-500 to-orange-500',
                   'hover:from-rose-600 hover:to-orange-600',

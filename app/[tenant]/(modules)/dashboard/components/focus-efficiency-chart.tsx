@@ -77,7 +77,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="h-64 min-h-[256px] w-full min-w-0 pt-4">
+        <div className="h-64 min-h-64 w-full min-w-0 pt-4">
           <div className="flex h-full items-end justify-between gap-2">
             {data.map((day, index) => {
               const grossHeight = getHeightPercentage(day.grossTime)
@@ -102,7 +102,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
                       {/* Barra de Tempo Líquido (Primary) */}
                       <div
                         className={cn(
-                          'absolute bottom-0 w-full rounded-t bg-primary transition-all'
+                          'absolute bottom-0 w-full rounded-t bg-primary transition-[height] duration-300 motion-reduce:transition-none'
                         )}
                         style={{ height: `${netPercentage}%` }}
                         title={`${day.day}: Tempo Líquido ${formatTime(day.netTime)} (${Math.round(netPercentage)}% eficiência)`}

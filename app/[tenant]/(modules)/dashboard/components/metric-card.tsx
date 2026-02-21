@@ -79,7 +79,7 @@ function ProgressCircle({ value, className }: { value: number; className?: strin
           strokeDashoffset={offset}
           strokeLinecap="round"
           strokeWidth="2.5"
-          className={cn('transition-all duration-700 ease-out', getColor())}
+          className={cn('transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none', getColor())}
         />
       </svg>
     </div>
@@ -100,13 +100,13 @@ export function MetricCard({
   const styles = variantStyles[variant]
 
   return (
-    <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-md">
+    <Card className="group relative overflow-hidden transition-colors duration-200 motion-reduce:transition-none hover:shadow-md">
       <CardContent className="p-4 md:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             {/* Label row */}
             <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-sm font-medium text-muted-foreground truncate" title={label}>{label}</span>
+              <span className="metric-label truncate" title={label}>{label}</span>
               {tooltip && (
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
@@ -129,7 +129,7 @@ export function MetricCard({
             </div>
 
             {/* Value */}
-            <p className="text-foreground text-2xl md:text-3xl font-bold leading-none tracking-tight">{value}</p>
+            <p className="metric-value">{value}</p>
 
             {/* Trend or subtext */}
             {trend ? (
@@ -156,7 +156,7 @@ export function MetricCard({
             <ProgressCircle value={progressValue} />
           ) : Icon ? (
             <div className={cn(
-              'flex items-center justify-center size-10 rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-105',
+              'flex items-center justify-center size-10 rounded-xl shrink-0 transition-colors duration-200 motion-reduce:transition-none',
               styles.icon
             )}>
               <Icon className="h-5 w-5" />

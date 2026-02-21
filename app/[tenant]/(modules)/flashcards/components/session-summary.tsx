@@ -251,7 +251,7 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
                         </div>
 
                         {/* Title */}
-                        <h1 className="text-xl md:text-2xl font-bold text-foreground mb-1">
+                        <h1 className="section-title mb-1">
                             Sessão Concluída!
                         </h1>
                         <p className="text-muted-foreground text-xs md:text-sm mb-4 md:mb-6">
@@ -260,7 +260,7 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
 
                         {/* Score Ring */}
                         <div className="relative">
-                            <svg width="120" height="120" className="-rotate-90 md:w-[140px] md:h-[140px]">
+                            <svg width="120" height="120" className="-rotate-90 md:w-35 md:h-35">
                                 <defs>
                                     <filter id="glow-summary" x="-50%" y="-50%" width="200%" height="200%">
                                         <feGaussianBlur stdDeviation="3" result="coloredBlur" />
@@ -288,13 +288,13 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
                                     strokeWidth="6"
                                     strokeLinecap="round"
                                     filter="url(#glow-summary)"
-                                    className={cn('transition-all duration-1000 md:[cx:70] md:[cy:70] md:[r:55]', scoreConfig.ringColor)}
+                                    className={cn('transition-[stroke-dashoffset] duration-1000 motion-reduce:transition-none md:[cx:70] md:[cy:70] md:[r:55]', scoreConfig.ringColor)}
                                     strokeDasharray={2 * Math.PI * 48}
                                     strokeDashoffset={(2 * Math.PI * 48) - ((score / 100) * 2 * Math.PI * 48)}
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className={cn('text-2xl md:text-3xl font-bold tabular-nums', scoreConfig.color)}>
+                                <span className={cn('metric-value tabular-nums', scoreConfig.color)}>
                                     {score}%
                                 </span>
                                 <span className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">domínio</span>
@@ -330,7 +330,7 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
                                 <div className={cn('p-1 md:p-1.5 rounded-lg', stat.bg)}>
                                     <stat.icon className={cn('h-3 w-3 md:h-3.5 md:w-3.5', stat.color)} />
                                 </div>
-                                <span className="text-lg md:text-2xl font-bold text-foreground tabular-nums">
+                                <span className="metric-value tabular-nums">
                                     {stat.count}
                                 </span>
                                 <span className="text-[9px] md:text-xs text-muted-foreground leading-tight text-center">{stat.label}</span>
@@ -347,25 +347,25 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
                         <div className="h-2 md:h-2.5 rounded-full overflow-hidden bg-muted dark:bg-white/10 flex">
                             {counts.errei > 0 && (
                                 <div
-                                    className="h-full bg-red-500 transition-all duration-500"
+                                    className="h-full bg-red-500 transition-[width] duration-500 motion-reduce:transition-none"
                                     style={{ width: `${(counts.errei / total) * 100}%` }}
                                 />
                             )}
                             {counts.parcial > 0 && (
                                 <div
-                                    className="h-full bg-amber-500 transition-all duration-500"
+                                    className="h-full bg-amber-500 transition-[width] duration-500 motion-reduce:transition-none"
                                     style={{ width: `${(counts.parcial / total) * 100}%` }}
                                 />
                             )}
                             {counts.dificil > 0 && (
                                 <div
-                                    className="h-full bg-sky-500 transition-all duration-500"
+                                    className="h-full bg-sky-500 transition-[width] duration-500 motion-reduce:transition-none"
                                     style={{ width: `${(counts.dificil / total) * 100}%` }}
                                 />
                             )}
                             {counts.facil > 0 && (
                                 <div
-                                    className="h-full bg-emerald-500 transition-all duration-500"
+                                    className="h-full bg-emerald-500 transition-[width] duration-500 motion-reduce:transition-none"
                                     style={{ width: `${(counts.facil / total) * 100}%` }}
                                 />
                             )}
@@ -379,7 +379,7 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
                             className={cn(
                                 'flex-1 h-11 md:h-12 text-sm md:text-base font-medium',
                                 'bg-primary hover:bg-primary/90 text-primary-foreground',
-                                'transition-all duration-300 hover:scale-[1.02]',
+                                'transition-colors duration-200 motion-reduce:transition-none',
                                 'shadow-lg'
                             )}
                         >
@@ -393,7 +393,7 @@ export function SessionSummary({ feedbacks, onFinish, onStudyMore }: SessionSumm
                                 'flex-1 h-11 md:h-12 text-sm md:text-base font-medium',
                                 'bg-muted/50 dark:bg-white/5 border-border dark:border-white/20 text-foreground',
                                 'hover:bg-muted dark:hover:bg-white/10 hover:border-border dark:hover:border-white/30',
-                                'transition-all duration-300 hover:scale-[1.02]'
+                                'transition-colors duration-200 motion-reduce:transition-none'
                             )}
                         >
                             <RefreshCw className="mr-2 h-4 w-4" />

@@ -160,7 +160,7 @@ export function TimerConfig({
                                 type="button"
                                 onClick={() => onMetodoChange(method.id)}
                                 className={cn(
-                                    'relative flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-all duration-200 cursor-pointer',
+                                    'relative flex flex-col items-center gap-2 py-4 px-3 rounded-xl border-2 transition-colors duration-200 motion-reduce:transition-none cursor-pointer',
                                     'hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/50',
                                     isSelected
                                         ? `${method.borderColor} ${method.bgColor} ring-2 ${method.ringColor} shadow-sm`
@@ -168,8 +168,8 @@ export function TimerConfig({
                                 )}
                             >
                                 <div className={cn(
-                                    'flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200',
-                                    isSelected ? `${method.bgColor} scale-110` : 'bg-muted'
+                                    'flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-200 motion-reduce:transition-none',
+                                    isSelected ? `${method.bgColor}` : 'bg-muted'
                                 )}>
                                     <Icon className={cn(
                                         'h-4.5 w-4.5 transition-colors',
@@ -216,7 +216,7 @@ export function TimerConfig({
                                         type="button"
                                         onClick={() => onTimerMinChange(preset.value)}
                                         className={cn(
-                                            'py-2.5 px-2 rounded-lg border text-center transition-all cursor-pointer',
+                                            'py-2.5 px-2 rounded-lg border text-center transition-colors duration-200 motion-reduce:transition-none cursor-pointer',
                                             'hover:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/30',
                                             timerMin === preset.value
                                                 ? 'border-amber-500/60 bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20'
@@ -259,7 +259,7 @@ export function TimerConfig({
                                         type="button"
                                         onClick={() => applyPomodoroPreset(preset)}
                                         className={cn(
-                                            'py-2.5 px-2 rounded-lg border text-center transition-all cursor-pointer',
+                                            'py-2.5 px-2 rounded-lg border text-center transition-colors duration-200 motion-reduce:transition-none cursor-pointer',
                                             'hover:border-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30',
                                             getCurrentPomodoroPreset() === preset.label
                                                 ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20'
@@ -377,10 +377,10 @@ export function TimerConfig({
                     <Button
                         size="lg"
                         className={cn(
-                            'w-full h-13 text-sm font-semibold gap-2.5 transition-all duration-200',
+                            'w-full h-13 text-sm font-semibold gap-2.5 transition-colors duration-200 motion-reduce:transition-none',
                             'bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70',
-                            'shadow-lg hover:shadow-xl hover:scale-[1.01]',
-                            'disabled:opacity-50 disabled:shadow-none disabled:hover:scale-100'
+                            'shadow-lg hover:shadow-xl',
+                            'disabled:opacity-50 disabled:shadow-none'
                         )}
                         onClick={onStart}
                         disabled={iniciando || !disciplinaId}

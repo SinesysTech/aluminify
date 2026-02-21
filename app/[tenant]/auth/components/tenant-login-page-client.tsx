@@ -381,7 +381,7 @@ export function TenantLoginPageClient({
           <div className="space-y-6">
             {/* Header */}
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+              <h1 className="page-title">
                 Bem-vindo de volta
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">

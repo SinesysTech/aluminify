@@ -355,7 +355,7 @@ export function ProgressoStatsCard({
             <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
-                  'h-full transition-all duration-500',
+                  'h-full transition-[width] duration-500 motion-reduce:transition-none',
                   dailyGoalComplete ? 'bg-pink-500' : 'bg-rose-500'
                 )}
                 style={{ width: `${dailyProgress}%` }}
@@ -384,11 +384,11 @@ export function ProgressoStatsCard({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="text-center p-3 rounded-xl bg-muted/30">
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="metric-value">{stats.total}</div>
             <div className="text-xs text-muted-foreground">Total</div>
           </div>
           <div className="text-center p-3 rounded-xl bg-muted/30">
-            <div className="text-2xl font-bold text-muted-foreground">
+            <div className="metric-value text-muted-foreground">
               {stats.pendentes}
             </div>
             <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
@@ -397,7 +397,7 @@ export function ProgressoStatsCard({
             </div>
           </div>
           <div className="text-center p-3 rounded-xl bg-rose-500/5">
-            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+            <div className="metric-value text-rose-600 dark:text-rose-400">
               {stats.iniciadas}
             </div>
             <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
@@ -406,7 +406,7 @@ export function ProgressoStatsCard({
             </div>
           </div>
           <div className="text-center p-3 rounded-xl bg-pink-500/5">
-            <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+            <div className="metric-value text-pink-600 dark:text-pink-400">
               {stats.concluidas}
             </div>
             <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">

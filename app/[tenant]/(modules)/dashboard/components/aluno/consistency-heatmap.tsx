@@ -128,7 +128,7 @@ export function ConsistencyHeatmap({
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+    <Card className="overflow-hidden transition-colors duration-200 motion-reduce:transition-none rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
       <div className="h-0.5 bg-linear-to-r from-rose-400 to-red-500" />
       <CardContent className="p-4 md:p-5">
         {/* Header with icon badge */}
@@ -187,7 +187,7 @@ export function ConsistencyHeatmap({
                 key={p.value}
                 onClick={() => onPeriodChange(p.value)}
                 className={cn(
-                  'text-xs px-3 py-2 md:py-1.5 rounded-md transition-all font-medium touch-manipulation min-h-9',
+                  'text-xs px-3 py-2 md:py-1.5 rounded-md transition-colors duration-200 motion-reduce:transition-none font-medium touch-manipulation min-h-9',
                   period === p.value
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'

@@ -170,7 +170,7 @@ export default function InstitutionDashboardClient() {
 
   if (error && !data) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Alert variant="destructive" className="mt-8">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erro ao carregar dashboard</AlertTitle>
@@ -200,7 +200,7 @@ export default function InstitutionDashboardClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
       {/* ── Header: Greeting + Institution + Controls ── */}
       <InstitutionHeader
         userName={data.userName ?? 'Administrador'}

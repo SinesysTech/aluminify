@@ -317,7 +317,7 @@ export default function StudentDashboardClientPage() {
 
     if (error && !user) {
         return (
-            <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <Alert variant="destructive" className="mt-8">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Erro ao carregar dashboard</AlertTitle>
@@ -357,7 +357,7 @@ export default function StudentDashboardClientPage() {
     }
 
     return (
-        <div className="mx-auto max-w-7xl space-y-4 md:space-y-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-4 md:space-y-6">
             {/* Mensagem de erro (se houver dados mas também erro) */}
             {error && (
                 <Alert variant="destructive">

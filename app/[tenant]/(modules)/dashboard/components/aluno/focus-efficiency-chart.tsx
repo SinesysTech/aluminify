@@ -34,7 +34,7 @@ export function FocusEfficiencyChart({ data }: FocusEfficiencyChartProps) {
   }, [isDark])
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+    <Card className="h-full overflow-hidden transition-colors duration-200 motion-reduce:transition-none rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
       <div className="h-0.5 bg-linear-to-r from-teal-400 to-cyan-500" />
       <CardContent className="p-4 md:p-5 space-y-4">
         <div className="flex items-center gap-3">

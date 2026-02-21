@@ -20,8 +20,7 @@
     "jsx": "react-jsx",
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    "ignoreDeprecations": "5.0",
     "plugins": [
       {
         "name": "next"
@@ -32,24 +31,24 @@
         "./*"
       ],
       "@/components/*": [
-        "app/shared/components/*",
-        "app/shared/components/ui/*"
+        "./app/shared/components/*",
+        "./app/shared/components/ui/*"
       ],
       "@/components/shared/*": [
-        "app/shared/components/ui/*"
+        "./app/shared/components/ui/*"
       ],
       "@/hooks/*": [
-        "app/shared/hooks/*"
+        "./app/shared/hooks/*"
       ],
       "@/lib/*": [
-        "app/shared/library/*",
-        "app/shared/core/*"
+        "./app/shared/library/*",
+        "./app/shared/core/*"
       ],
       "@/shared/*": [
-        "app/shared/*"
+        "./app/shared/*"
       ],
       "@/lib/database.types": [
-        "app/shared/core/database.types"
+        "./app/shared/core/database.types"
       ]
     }
   },

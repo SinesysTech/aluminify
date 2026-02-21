@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
@@ -25,7 +24,6 @@ import {
 
 export function NavMain({
   items,
-  label = "Menu",
 }: {
   items: {
     title: string
@@ -37,7 +35,6 @@ export function NavMain({
       url: string
     }[]
   }[]
-  label?: string
 }) {
   const pathname = usePathname()
   // Prevent hydration mismatch by only rendering collapsible items after mount
@@ -51,7 +48,6 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) =>
           item.items?.length && mounted ? (
@@ -60,49 +56,65 @@ export function NavMain({
               defaultOpen={item.isActive}
               className="group/collapsible"
             >
-              <SidebarMenuItem className="relative">
-                {item.isActive && (
-                  <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-sidebar-foreground/70 dark:bg-sidebar-foreground/50" />
-                )}
+              <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
                     isActive={item.isActive}
-                    className={cn(item.isActive && "shadow-sm dark:shadow-none")}
+                    className={cn(
+                      "transition-colors duration-200",
+                      item.isActive && "bg-sidebar-accent font-medium"
+                    )}
                   >
-                    <item.icon />
+                    <item.icon className={cn(
+                      "transition-colors duration-200",
+                      item.isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                    )} />
                     <span>{item.title}</span>
-                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    <ChevronRight className="ml-auto size-4 text-sidebar-foreground/40 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild isActive={pathname === subItem.url || pathname?.startsWith(subItem.url + "/")}>
-                          <Link href={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
+                    {item.items.map((subItem) => {
+                      const isSubActive = pathname === subItem.url || pathname?.startsWith(subItem.url + "/")
+                      return (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={isSubActive}
+                            className={cn(
+                              "transition-colors duration-200",
+                              isSubActive && "font-medium text-sidebar-primary"
+                            )}
+                          >
+                            <Link href={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )
+                    })}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
           ) : (
-            <SidebarMenuItem key={item.title} className="relative">
-              {item.isActive && (
-                <div className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-sidebar-foreground/70 dark:bg-sidebar-foreground/50" />
-              )}
+            <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
                 tooltip={item.title}
                 isActive={item.isActive}
-                className={cn(item.isActive && "shadow-sm dark:shadow-none")}
+                className={cn(
+                  "transition-colors duration-200",
+                  item.isActive && "bg-sidebar-accent font-medium"
+                )}
               >
                 <Link href={item.url}>
-                  <item.icon />
+                  <item.icon className={cn(
+                    "transition-colors duration-200",
+                    item.isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                  )} />
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>

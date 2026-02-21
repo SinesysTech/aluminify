@@ -1819,7 +1819,7 @@ export default function StructureManagerClient() {
   }
 
   return (
-    <div className="flex flex-col gap-6 h-full pb-10">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 pb-10 sm:px-6 lg:px-8">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Importar Conteúdo Programático</h1>
@@ -1992,9 +1992,9 @@ export default function StructureManagerClient() {
                 onDrop={handleDrop}
                 className={`
                   relative cursor-pointer rounded-md border-2 border-dashed px-4 py-5
-                  transition-all duration-200 ease-in-out
+                  transition-colors duration-200 motion-reduce:transition-none ease-in-out
                   ${isDragging
-                    ? 'border-primary bg-primary/5 scale-[1.01]'
+                    ? 'border-primary bg-primary/5'
                     : arquivo
                       ? 'border-emerald-500 bg-emerald-500/5'
                       : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'

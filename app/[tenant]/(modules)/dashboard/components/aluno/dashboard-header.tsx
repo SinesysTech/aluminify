@@ -78,10 +78,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   }
 
   return (
-    <header className="rounded-2xl border border-border/40 bg-card/50 p-4 md:p-5 shadow-sm dark:bg-card/40 dark:backdrop-blur-sm dark:border-white/5 dark:shadow-none">
+    <header className="rounded-2xl border border-border/40 bg-card/50 p-4 md:p-5 dark:bg-card/40 dark:backdrop-blur-sm dark:border-white/5">
       {/* Mobile Layout */}
       <div className="flex items-center justify-between gap-3 md:hidden">
-        <h1 className="text-2xl font-bold tracking-tight truncate">
+        <h1 className="page-title truncate">
           {getGreeting()}, {user.name.split(' ')[0]}!
         </h1>
 
@@ -92,10 +92,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 asChild
                 size="default"
                 className={cn(
-                  'gap-2 font-semibold shadow-lg shrink-0',
+                  'gap-2 font-semibold shrink-0 cursor-pointer',
                   'bg-foreground text-background',
                   'hover:bg-foreground/90',
-                  'transition-all duration-200'
+                  'transition-colors duration-200 motion-reduce:transition-none'
                 )}
               >
                 <Link href={modoFocoHref} aria-label="Abrir Modo Foco">
@@ -120,7 +120,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
       {/* Desktop Layout */}
       <div className="hidden md:flex md:items-center md:justify-between md:gap-6">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="page-title">
           {getGreeting()}, {user.name}!
         </h1>
 
@@ -131,11 +131,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 asChild
                 size="lg"
                 className={cn(
-                  'gap-2 font-semibold shadow-lg px-6',
+                  'gap-2 font-semibold px-6 cursor-pointer',
                   'bg-foreground text-background',
                   'hover:bg-foreground/90',
-                  'hover:shadow-xl hover:scale-[1.02]',
-                  'transition-all duration-200'
+                  'transition-colors duration-200 motion-reduce:transition-none'
                 )}
               >
                 <Link href={modoFocoHref} aria-label="Abrir Modo Foco">

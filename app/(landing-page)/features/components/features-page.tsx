@@ -32,7 +32,7 @@ export function FeaturesPage() {
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-6 text-foreground max-w-4xl mx-auto">
                             Seu curso online <br className="hidden md:block" />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400">
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400">
                                 completo e organizado.
                             </span>
                         </h1>
@@ -173,7 +173,7 @@ export function FeaturesPage() {
                             </div>
 
                             <div className="relative">
-                                <div className="absolute -inset-4 bg-gradient-to-tr from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl blur-lg opacity-50"></div>
+                                <div className="absolute -inset-4 bg-linear-to-tr from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl blur-lg opacity-50"></div>
                                 <div className="relative bg-background border border-border rounded-xl shadow-2xl overflow-hidden aspect-4/3 flex flex-col">
                                     {/* Mockup UI */}
                                     <div className="border-b border-border p-3 flex items-center gap-2 bg-muted/30">

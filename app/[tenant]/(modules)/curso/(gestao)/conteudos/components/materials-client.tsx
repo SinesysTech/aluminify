@@ -451,7 +451,7 @@ export default function MaterialsManagerClient() {
     }
 
     return (
-        <div className="w-full space-y-6">
+        <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
             <div>
                 <h1 className="page-title">Gestão de Materiais</h1>
                 <p className="page-subtitle">

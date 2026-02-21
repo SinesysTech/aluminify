@@ -157,7 +157,7 @@ export function MetricCard({
 
   return (
     <Card className={cn(
-      'group overflow-hidden transition-all duration-300 py-0 gap-0 rounded-2xl',
+      'group overflow-hidden transition-colors duration-200 motion-reduce:transition-none py-0 gap-0 rounded-2xl',
       'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
       'hover:shadow-lg',
       config.hoverShadow,
@@ -199,10 +199,10 @@ export function MetricCard({
               </TooltipProvider>
             )}
             <div className={cn(
-              'flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110',
+              'flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl transition-colors duration-200 motion-reduce:transition-none',
               config.iconBg
             )}>
-              <Icon className={cn('h-4 w-4 md:h-[18px] md:w-[18px]', config.iconColor)} />
+              <Icon className={cn('h-4 w-4 md:h-4.5 md:w-4.5', config.iconColor)} />
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ export function MetricCard({
         {/* Value Area */}
         <div className="flex items-end justify-between min-w-0">
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="text-2xl md:text-3xl font-bold tracking-tight text-foreground truncate">{value}</span>
+            <span className="metric-value truncate">{value}</span>
             {subtext && (
               <span className="text-xs text-muted-foreground">{subtext}</span>
             )}
@@ -245,7 +245,7 @@ export function MetricCard({
                 />
                 {/* Progress Circle */}
                 <circle
-                  className={cn('transition-all duration-700 ease-out', config.progressStroke)}
+                  className={cn('transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none', config.progressStroke)}
                   cx="18"
                   cy="18"
                   r="15.9155"

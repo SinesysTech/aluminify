@@ -163,7 +163,11 @@ export default function EmpresaAdminsPage() {
   }
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="text-center">Carregando...</div>
+      </div>
+    );
   }
 
   const professoresNaoAdmin = professores.filter(
@@ -171,8 +175,8 @@ export default function EmpresaAdminsPage() {
   );
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="container mx-auto py-8 space-y-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="page-title">Admins da Empresa</h1>

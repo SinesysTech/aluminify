@@ -882,7 +882,7 @@ export function AlunoTable() {
 
   return (
     <TooltipProvider>
-    <div className="flex flex-col gap-8 h-full pb-10">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-8">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div>
           <h1 className="page-title">Alunos</h1>
@@ -893,7 +893,7 @@ export function AlunoTable() {
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <button className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2">
+                  <button className="flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md">
                     <Plus className="w-5 h-5" strokeWidth={1.5} />
                     Novo Aluno
                   </button>
@@ -1263,7 +1263,7 @@ export function AlunoTable() {
           ) : (
             <button
               onClick={() => setCreateDialogOpen(true)}
-              className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2"
+              className="flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md"
             >
               <Plus className="w-5 h-5" strokeWidth={1.5} />
               Novo Aluno
@@ -1289,7 +1289,7 @@ export function AlunoTable() {
           <input
             type="text"
             placeholder="Filtrar por nome ou email..."
-            className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/40 bg-card/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm transition-all"
+            className="w-full h-10 rounded-xl border border-border/40 bg-card/50 pl-9 pr-4 text-sm placeholder:text-muted-foreground shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={(table.getColumn('fullName')?.getFilterValue() as string) ?? ''}
             onChange={(event) => {
               const value = event.target.value
@@ -1335,7 +1335,7 @@ export function AlunoTable() {
             {table.getRowModel().rows.map((row) => {
               const aluno = row.original
               return (
-                <div key={row.id} className="rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                <div key={row.id} className="rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -1457,7 +1457,7 @@ export function AlunoTable() {
           </div>
         </>
       ) : (
-        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+        <section id="empty-state" className="flex flex-1 flex-col items-center justify-center min-h-100">
           <div className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border/40">
             <Users className="w-8 h-8 text-muted-foreground" strokeWidth={1} />
           </div>
@@ -1470,7 +1470,7 @@ export function AlunoTable() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCreateDialogOpen(true)}
-              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm flex items-center gap-2"
+              className="flex h-10 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md"
             >
               <Plus className="w-5 h-5" strokeWidth={1.5} />
               Adicionar Aluno
@@ -1840,7 +1840,7 @@ export function AlunoTable() {
         courses={courseOptions}
         onTransferComplete={handleTransferComplete}
       />
-    </div>
+      </div>
     </TooltipProvider>
   )
 }

@@ -343,15 +343,15 @@ export function TransferStudentsDialog({
             {/* Results Summary */}
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-md border p-3 text-center">
-                <div className="text-2xl font-bold text-green-600">{result.success}</div>
+                <div className="metric-value text-green-600">{result.success}</div>
                 <div className="text-xs text-muted-foreground">Sucesso</div>
               </div>
               <div className="rounded-md border p-3 text-center">
-                <div className="text-2xl font-bold text-yellow-600">{result.skipped}</div>
+                <div className="metric-value text-yellow-600">{result.skipped}</div>
                 <div className="text-xs text-muted-foreground">Ignorados</div>
               </div>
               <div className="rounded-md border p-3 text-center">
-                <div className="text-2xl font-bold text-red-600">{result.failed}</div>
+                <div className="metric-value text-red-600">{result.failed}</div>
                 <div className="text-xs text-muted-foreground">Falhas</div>
               </div>
             </div>

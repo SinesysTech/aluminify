@@ -227,7 +227,7 @@ export function UserDetails({ user, empresaId, papeis, onUpdate }: UserDetailsPr
                 <AvatarFallback className="text-xl">{initials}</AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-semibold">{user.nomeCompleto}</h1>
+                <h1 className="page-title">{user.nomeCompleto}</h1>
                 <p className="text-muted-foreground">{user.email}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <Badge variant={getRoleBadgeVariant(user.papel?.tipo || '')}>

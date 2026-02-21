@@ -181,8 +181,8 @@ export default function ProfessorNovaEmpresaPage() {
 
   if (checking) {
     return (
-      <div className="container mx-auto py-8 max-w-xl">
-        <Card>
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <Card className="mx-auto max-w-xl">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-muted-foreground">Verificando...</p>
@@ -194,8 +194,8 @@ export default function ProfessorNovaEmpresaPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-xl">
-      <div className="container mx-auto py-8 max-w-xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-xl space-y-6">
         <div>
           <h1 className="page-title">Cadastrar sua Empresa</h1>
           <p className="page-subtitle">

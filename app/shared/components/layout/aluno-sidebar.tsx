@@ -15,14 +15,12 @@ import { getIconComponent } from "@/components/layout/navigation-icons"
 import { usePathname, useParams } from "next/navigation"
 
 import { NavMain } from "@/components/layout/nav-main"
-import { NavUser } from "@/components/layout/nav-user"
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
 import { useModuleVisibility } from "@/app/shared/hooks/use-module-visibility"
 import { Skeleton } from "@/app/shared/components/feedback/skeleton"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -184,21 +182,16 @@ export function AlunoSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="sticky top-0 z-10 bg-sidebar/70 backdrop-blur-xl">
         <WorkspaceSwitcher />
       </SidebarHeader>
-      <div className="mx-3 h-px bg-linear-to-r from-transparent via-sidebar-border to-transparent" />
       <SidebarContent>
         {navMainWithActive ? (
-          <NavMain items={navMainWithActive} label="Menu" />
+          <NavMain items={navMainWithActive} />
         ) : (
           <NavMenuSkeleton />
         )}
       </SidebarContent>
-      <div className="mx-3 h-px bg-linear-to-r from-transparent via-sidebar-border to-transparent" />
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
     </Sidebar>
   )
 }

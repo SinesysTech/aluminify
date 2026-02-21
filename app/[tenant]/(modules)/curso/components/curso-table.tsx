@@ -650,7 +650,7 @@ export function CursoTable() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-8 h-full pb-10">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
           <div>
             <h1 className="page-title">Cursos</h1>
@@ -1173,7 +1173,7 @@ export function CursoTable() {
             <input
               type="text"
               placeholder="Filtrar por nome..."
-              className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+              className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-200 motion-reduce:transition-none"
               value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
               onChange={(event) =>
                 table.getColumn('name')?.setFilterValue(event.target.value)

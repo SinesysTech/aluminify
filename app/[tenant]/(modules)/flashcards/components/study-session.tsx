@@ -259,7 +259,7 @@ export function StudySession({
                         <AlertTriangle className="h-10 w-10 text-destructive" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-semibold text-foreground">Erro ao carregar</h2>
+                        <h2 className="section-title">Erro ao carregar</h2>
                         <p className="text-muted-foreground max-w-md">{error}</p>
                     </div>
                     <div className="flex gap-3">
@@ -292,7 +292,7 @@ export function StudySession({
                         <CircleCheck className="h-10 w-10 text-muted-foreground" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-semibold text-foreground">Sessão finalizada</h2>
+                        <h2 className="section-title">Sessão finalizada</h2>
                         <p className="text-muted-foreground">Não há mais flashcards para revisar.</p>
                     </div>
                     <Button
@@ -381,7 +381,7 @@ export function StudySession({
                                 stroke="currentColor"
                                 strokeWidth="3"
                                 strokeLinecap="round"
-                                className="text-primary transition-all duration-500 md:[cx:28] md:[cy:28] md:[r:22]"
+                                className="text-primary transition-[stroke-dashoffset] duration-500 md:[cx:28] md:[cy:28] md:[r:22]"
                                 strokeDasharray={2 * Math.PI * 19}
                                 strokeDashoffset={(2 * Math.PI * 19) - (progress * 2 * Math.PI * 19)}
                             />
@@ -462,7 +462,7 @@ export function StudySession({
                                     className={cn(
                                         'w-full h-12 md:h-14 text-base md:text-lg font-medium',
                                         'bg-primary hover:bg-primary/90 text-primary-foreground',
-                                        'transition-all duration-300 hover:scale-[1.02]',
+                                        'transition-colors duration-200 motion-reduce:transition-none',
                                         'shadow-lg'
                                     )}
                                     autoFocus
@@ -615,10 +615,9 @@ function FeedbackButton({
             onClick={onClick}
             className={cn(
                 'flex flex-col items-center justify-center gap-1 md:gap-1.5 py-3 md:py-4 px-2 md:px-3 rounded-xl',
-                'border transition-all duration-300',
-                'hover:scale-[1.02] active:scale-[0.98]',
+                'border transition-colors duration-200 motion-reduce:transition-none',
                 'focus:outline-none focus:ring-2 focus:ring-white/20',
-                'w-full h-full min-h-[64px]',
+                'w-full h-full min-h-16',
                 colorClass
             )}
         >

@@ -118,7 +118,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
                 <TableHead>Nome</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
+                <TableHead className="w-25">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -184,7 +184,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Descrição</TableHead>
-                  <TableHead className="w-[100px]">Ações</TableHead>
+                  <TableHead className="w-25">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

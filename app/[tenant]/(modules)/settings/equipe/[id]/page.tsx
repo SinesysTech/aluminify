@@ -95,8 +95,8 @@ export default function UserDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-6 h-full pb-10">
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center min-h-100">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function UserDetailPage() {
 
   if (error || !user || !empresaId) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center min-h-100 gap-4 px-4 sm:px-6 lg:px-8">
         <p className="text-destructive">{error || 'Usuário não encontrado'}</p>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />

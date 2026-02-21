@@ -28,7 +28,7 @@ export default async function AgendamentoDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-2 md:p-6">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href={`/${tenant}/agendamentos`}>

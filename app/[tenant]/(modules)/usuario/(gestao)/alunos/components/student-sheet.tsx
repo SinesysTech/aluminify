@@ -282,7 +282,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-6 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm disabled:opacity-50"
+                        className="rounded-xl bg-primary px-6 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50"
                     >
                         {loading ? 'Salvando...' : 'Salvar Registro'}
                     </button>

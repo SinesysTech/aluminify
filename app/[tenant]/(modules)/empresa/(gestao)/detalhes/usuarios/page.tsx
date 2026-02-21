@@ -143,14 +143,14 @@ export default function EmpresaUsuariosPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="text-center">Carregando...</div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

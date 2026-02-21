@@ -52,7 +52,7 @@ function ProgressBar({
   return (
     <div className="w-full bg-muted rounded-full h-3">
       <div
-        className={`${barClassName} h-3 rounded-full transition-all`}
+        className={`${barClassName} h-3 rounded-full transition-[width] duration-300 motion-reduce:transition-none`}
         style={{ width: `${value ?? 0}%` }}
       />
     </div>

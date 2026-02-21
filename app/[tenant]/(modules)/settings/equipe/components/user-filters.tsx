@@ -41,7 +41,7 @@ export function UserFilters({
 
       {/* Papel Type Filter */}
       <Select value={papelTipoFilter} onValueChange={onPapelTipoChange}>
-        <SelectTrigger className="w-[200px] h-9">
+        <SelectTrigger className="w-50 h-9">
           <SelectValue placeholder="Filtrar por papel" />
         </SelectTrigger>
         <SelectContent>

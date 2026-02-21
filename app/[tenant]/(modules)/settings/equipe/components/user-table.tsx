@@ -91,8 +91,8 @@ export function UserTable({ usuarios, currentUserIsAdmin }: UserTableProps) {
             <tr>
               <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Usuário / Email</th>
               <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Papel</th>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-[150px]">Status</th>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-[100px]">Ações</th>
+              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-37.5">Status</th>
+              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-25">Ações</th>
             </tr>
           </thead>
 

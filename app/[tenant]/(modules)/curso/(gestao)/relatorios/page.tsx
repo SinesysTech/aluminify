@@ -7,7 +7,7 @@ export default async function RelatoriosPage() {
 
   if (!user.empresaId) {
     return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-6 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">Relatórios</h1>
           <p className="page-subtitle">
@@ -19,7 +19,7 @@ export default async function RelatoriosPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-6 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-2">
         <h1 className="page-title">Relatórios de Desempenho</h1>
         <p className="page-subtitle">

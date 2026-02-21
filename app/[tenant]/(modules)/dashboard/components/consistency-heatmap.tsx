@@ -148,7 +148,7 @@ export function ConsistencyHeatmap({
 
         {/* Empty State */}
         {data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 min-h-[160px]">
+          <div className="flex flex-col items-center justify-center py-12 gap-3 min-h-40">
             <div className="flex items-center justify-center size-14 rounded-2xl bg-muted/50">
               <CalendarOff className="h-7 w-7 text-muted-foreground/40" />
             </div>

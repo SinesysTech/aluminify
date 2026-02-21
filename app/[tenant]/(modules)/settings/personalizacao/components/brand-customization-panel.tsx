@@ -457,7 +457,7 @@ export function BrandCustomizationPanel({
                       {/* Mockup Sidebar */}
                       <div className="flex">
                         <div
-                          className="w-16 min-h-[200px] border-r flex flex-col items-center py-4 gap-3"
+                          className="w-16 min-h-50 border-r flex flex-col items-center py-4 gap-3"
                           style={{
                             backgroundColor: brandingState.colorPalette?.sidebarBackground || 'hsl(var(--sidebar-background))',
                             color: brandingState.colorPalette?.sidebarForeground || 'hsl(var(--sidebar-foreground))'
@@ -551,7 +551,7 @@ export function BrandCustomizationPanel({
                           key={index}
                           onClick={() => setActiveTab(item.tab)}
                           className={`
-                            w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all
+                            w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors duration-200 motion-reduce:transition-none
                             hover:bg-muted/50 group cursor-pointer
                             ${item.done ? 'text-muted-foreground' : 'text-foreground'}
                           `}
@@ -579,7 +579,7 @@ export function BrandCustomizationPanel({
                   <div className="grid grid-cols-1 gap-3">
                     <button
                       onClick={() => setActiveTab('logos')}
-                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-colors duration-200 motion-reduce:transition-none hover:shadow-md hover:border-primary/30 cursor-pointer"
                     >
                       <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative flex items-center gap-4">
@@ -596,7 +596,7 @@ export function BrandCustomizationPanel({
 
                     <button
                       onClick={() => setActiveTab('colors')}
-                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-colors duration-200 motion-reduce:transition-none hover:shadow-md hover:border-primary/30 cursor-pointer"
                     >
                       <div className="absolute inset-0 bg-linear-to-r from-pink-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative flex items-center gap-4">
@@ -628,7 +628,7 @@ export function BrandCustomizationPanel({
 
                     <button
                       onClick={() => setActiveTab('fonts')}
-                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+                      className="group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-colors duration-200 motion-reduce:transition-none hover:shadow-md hover:border-primary/30 cursor-pointer"
                     >
                       <div className="absolute inset-0 bg-linear-to-r from-green-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative flex items-center gap-4">

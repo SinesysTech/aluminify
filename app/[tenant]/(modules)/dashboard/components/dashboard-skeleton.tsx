@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
 export function DashboardSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-6 md:space-y-8">
       {/* Header Skeleton */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -16,7 +16,7 @@ export function DashboardSkeleton() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Skeleton className="h-9 w-[120px] rounded-md" />
+          <Skeleton className="h-9 w-30 rounded-md" />
           <Skeleton className="h-9 w-9 rounded-md" />
         </div>
       </div>

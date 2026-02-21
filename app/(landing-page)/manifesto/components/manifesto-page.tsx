@@ -66,8 +66,8 @@ export function ManifestoPage() {
                     <div className="absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-zinc-200 dark:via-zinc-700 to-transparent"></div>
 
                     <section className="mb-20 relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background border-2 border-zinc-200 dark:border-zinc-700 rounded-full z-10"></span>
-                        <h2 className="text-2xl font-bold mb-6 text-primary dark:text-white">
+                        <span className="absolute -left-9.25 md:-left-13.25 top-1 w-3 h-3 bg-white dark:bg-background border-2 border-zinc-200 dark:border-zinc-700 rounded-full z-10"></span>
+                        <h2 className="landing-section-title mb-6 text-primary dark:text-white">
                             Ensinar é um ato de autonomia.
                         </h2>
                         <div className="prose prose-zinc dark:prose-invert prose-lg text-muted-foreground leading-relaxed">
@@ -94,9 +94,9 @@ export function ManifestoPage() {
                     </section>
 
                     <section className="mb-24 relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-primary dark:bg-white border-2 border-primary dark:border-white rounded-full z-10"></span>
+                        <span className="absolute -left-9.25 md:-left-13.25 top-1 w-3 h-3 bg-primary dark:bg-white border-2 border-primary dark:border-white rounded-full z-10"></span>
 
-                        <h2 className="text-2xl font-bold mb-8 text-primary dark:text-white">O mito do &quot;ser sem luz&quot;.</h2>
+                        <h2 className="landing-section-title mb-8 text-primary dark:text-white">O mito do &quot;ser sem luz&quot;.</h2>
 
                         <div className="bg-card border border-border rounded-xl p-8 md:p-10 shadow-sm mb-10 relative overflow-hidden group hover:shadow-md transition-all">
                             <div className="absolute top-0 right-0 p-4 opacity-10 font-serif text-9xl text-primary dark:text-white leading-none select-none group-hover:scale-110 transition-transform duration-700">
@@ -162,8 +162,8 @@ export function ManifestoPage() {
                     </section>
 
                     <section className="mb-20 relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background border-2 border-border rounded-full z-10"></span>
-                        <h2 className="text-2xl font-bold mb-6 text-primary dark:text-white">Nós somos o solo fértil.</h2>
+                        <span className="absolute -left-9.25 md:-left-13.25 top-1 w-3 h-3 bg-white dark:bg-background border-2 border-border rounded-full z-10"></span>
+                        <h2 className="landing-section-title mb-6 text-primary dark:text-white">Nós somos o solo fértil.</h2>
                         <div className="prose prose-zinc dark:prose-invert prose-lg text-muted-foreground leading-relaxed">
                             <p>
                                 Se o aluno precisa ser nutrido, o curso precisa de solo fértil.
@@ -191,7 +191,7 @@ export function ManifestoPage() {
                     </section>
 
                     <section className="relative">
-                        <span className="absolute -left-[37px] md:-left-[53px] top-1 w-3 h-3 bg-white dark:bg-background border-2 border-primary dark:border-white rounded-full z-10"></span>
+                        <span className="absolute -left-9.25 md:-left-13.25 top-1 w-3 h-3 bg-white dark:bg-background border-2 border-primary dark:border-white rounded-full z-10"></span>
 
                         <div className="bg-zinc-50 dark:bg-zinc-900 border border-border rounded-2xl p-8 md:p-12 text-center mt-8">
                             <h3 className="text-xl font-bold text-primary dark:text-white mb-4">

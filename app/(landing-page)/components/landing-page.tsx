@@ -48,7 +48,7 @@ export function LandingPage() {
                     <div className="absolute inset-0 bg-grid-pattern dark:bg-grid-pattern-dark opacity-60" />
 
                     {/* Ambient Glow */}
-                    <div className="absolute left-0 right-0 top-0 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]" />
+                    <div className="absolute left-0 right-0 top-0 m-auto h-77.5 w-77.5 rounded-full bg-primary/20 opacity-20 blur-[100px]" />
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border mb-8 animate-fade-in-up">
@@ -105,7 +105,7 @@ export function LandingPage() {
                             </div>
 
                             {/* Dashboard UI */}
-                            <div className="flex h-[420px] text-left">
+                            <div className="flex h-105 text-left">
                                 {/* Sidebar */}
                                 <div className="w-56 border-r border-border bg-white p-4 hidden md:flex flex-col">
                                     {/* Logo */}
@@ -182,7 +182,7 @@ export function LandingPage() {
 
                                     {/* Video Area */}
                                     <div className="p-6">
-                                        <div className="flex gap-4 h-[280px]">
+                                        <div className="flex gap-4 h-70">
                                             {/* Video Player */}
                                             <div className="flex-1 rounded-xl bg-zinc-900 relative overflow-hidden shadow-xl">
                                                 {/* Video Gradient */}
@@ -384,7 +384,7 @@ export function LandingPage() {
                                         <Video className="w-4 h-4 text-violet-500" />
                                         <span className="text-xs font-medium text-violet-600">Player Imersivo</span>
                                     </div>
-                                    <h3 className="text-2xl font-bold mb-2">Sala de Estudos</h3>
+                                    <h3 className="landing-card-title mb-2">Sala de Estudos</h3>
                                     <p className="text-muted-foreground max-w-md">
                                         Player de vídeo com anotações, chat e materiais integrados.
                                     </p>
@@ -494,7 +494,7 @@ export function LandingPage() {
                                             { color: 'from-emerald-500 to-teal-500' },
                                             { color: 'from-amber-500 to-orange-500' },
                                         ].map((avatar, i) => (
-                                            <div key={i} className="relative group-hover:translate-y-[-2px] transition-transform duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
+                                            <div key={i} className="relative group-hover:-translate-y-0.5 transition-transform duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
                                                 <div className={`w-10 h-10 rounded-full bg-linear-to-br ${avatar.color} border-2 border-card shadow-lg`} />
                                                 {i === 0 && (
                                                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-card" />
@@ -525,7 +525,7 @@ export function LandingPage() {
                                             <BarChart3 className="w-4 h-4 text-amber-500" />
                                             <span className="text-xs font-medium text-amber-600">Tempo Real</span>
                                         </div>
-                                        <h3 className="text-2xl font-bold mb-2">Analytics & Financeiro</h3>
+                                        <h3 className="landing-card-title mb-2">Analytics & Financeiro</h3>
                                         <p className="text-muted-foreground max-w-md">
                                             Visão 360º do seu negócio. Engajamento, retenção e receita.
                                         </p>
@@ -538,7 +538,7 @@ export function LandingPage() {
                                                 <TrendingUp className="w-3 h-3 text-emerald-500" />
                                                 <span className="text-xs text-emerald-500 font-medium">+24%</span>
                                             </div>
-                                            <span className="text-2xl font-bold">R$ 48.2k</span>
+                                            <span className="landing-metric-value">R$ 48.2k</span>
                                             <p className="text-xs text-muted-foreground">Este mês</p>
                                         </div>
                                     </div>

@@ -64,7 +64,7 @@ export function MobileOrgSwitcher() {
         className={cn(
           'md:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-md',
           'border border-border/50 hover:bg-accent/50 transition-colors',
-          'touch-manipulation max-w-[140px]'
+          'touch-manipulation max-w-35'
         )}
         aria-label="Trocar organização"
       >

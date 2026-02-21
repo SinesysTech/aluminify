@@ -75,7 +75,7 @@ export function CreateMemberDialog() {
                     Novo Membro
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>Novo Membro da Equipe</DialogTitle>
                     <DialogDescription>

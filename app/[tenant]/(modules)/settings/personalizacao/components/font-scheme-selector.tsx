@@ -144,10 +144,10 @@ function FontPreview({ scheme, className = "" }: FontPreviewProps) {
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold">Título H1</h1>
-            <h2 className="text-3xl font-bold">Título H2</h2>
-            <h3 className="text-2xl font-bold">Título H3</h3>
-            <h4 className="text-xl font-bold">Título H4</h4>
+            <h1 className="page-title">Título H1</h1>
+            <h2 className="section-title">Título H2</h2>
+            <h3 className="card-title">Título H3</h3>
+            <h4 className="widget-title">Título H4</h4>
           </div>
 
           <div className="space-y-4">
@@ -942,7 +942,7 @@ export function FontSchemeSelector({
           onClick={handleSave}
           disabled={isSaving || validationErrors.length > 0}
           size="sm"
-          className="gap-2 min-w-[160px]"
+          className="gap-2 min-w-40"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />

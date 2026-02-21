@@ -45,7 +45,7 @@ export default function AgentePage() {
   // Show error if no agent configured
   if (agentError) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-4 text-center">
           <AlertCircle className="h-12 w-12 text-muted-foreground" />
           <p className="text-muted-foreground">{agentError}</p>
@@ -57,7 +57,7 @@ export default function AgentePage() {
   // Show loading while fetching agent config
   if (!agentConfig) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-center px-4 sm:px-6 lg:px-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )

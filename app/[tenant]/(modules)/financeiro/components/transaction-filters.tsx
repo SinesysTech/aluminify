@@ -73,7 +73,7 @@ export function TransactionFilters({
           updateFilter("status", value === "all" ? null : value)
         }
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-45">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
@@ -91,7 +91,7 @@ export function TransactionFilters({
           updateFilter("provider", value === "all" ? null : value)
         }
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-45">
           <SelectValue placeholder="Origem" />
         </SelectTrigger>
         <SelectContent>

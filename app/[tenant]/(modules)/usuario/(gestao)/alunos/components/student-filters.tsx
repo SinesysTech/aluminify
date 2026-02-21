@@ -115,7 +115,7 @@ export function StudentFilters() {
                 <input
                     type="text"
                     placeholder="Buscar por nome, email ou ID..."
-                    className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+                    className="w-full h-10 rounded-md border border-border bg-background pl-9 pr-4 text-sm placeholder:text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                     onChange={(e) => handleSearch(e.target.value)}
                     defaultValue={searchParams.get('query')?.toString()}
                 />

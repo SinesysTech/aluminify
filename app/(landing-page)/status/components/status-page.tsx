@@ -75,7 +75,7 @@ export function StatusPage() {
                     <div className="flex items-center gap-4">
                         <StatusIcon />
                         <div>
-                            <h1 className="text-2xl font-bold">{statusText}</h1>
+                            <h1 className="landing-card-title text-white">{statusText}</h1>
                             <p className="opacity-90 text-sm">
                                 {apiStatus === 'ok' ? 'Nenhum incidente reportado.' : 'Investigando conectividade com a API.'}
                             </p>

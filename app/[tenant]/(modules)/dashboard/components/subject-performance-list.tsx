@@ -422,7 +422,7 @@ export function SubjectPerformanceList({
                     ) : (
                       <div
                         className={cn(
-                          'h-2.5 rounded-full transition-all',
+                          'h-2.5 rounded-full transition-[width] duration-300 motion-reduce:transition-none',
                           getBarColor(subject.score)
                         )}
                         style={{ width: `${subject.score}%` }}

@@ -211,7 +211,7 @@ export default function SalaEstudosClientPage() {
   }, [atividades, activeDisciplinaId])
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
       {/* Header with greeting and org switcher */}
       <StudyRoomHeader userName={currentUser.fullName || 'Estudante'} />
 
