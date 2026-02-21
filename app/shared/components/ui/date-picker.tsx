@@ -201,7 +201,7 @@ export function DatePicker({
               variant="outline"
               disabled={disabled}
               className={cn(
-                'w-[40px] p-0',
+                'w-10 p-0',
                 !value && 'text-muted-foreground',
                 error && 'border-destructive'
               )}
@@ -209,7 +209,7 @@ export function DatePicker({
               <CalendarIcon className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0" align="start">
+          <PopoverContent className="w-70 p-0" align="start">
             <Calendar
               mode="single"
               selected={value || undefined}

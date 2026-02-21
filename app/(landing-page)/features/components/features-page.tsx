@@ -72,7 +72,7 @@ export function FeaturesPage() {
                         <div className="grid md:grid-cols-3 gap-8">
                             {/* Sala de Estudos */}
                             <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-                                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
                                     <LayoutDashboard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Área do Aluno Focada</h3>
@@ -91,7 +91,7 @@ export function FeaturesPage() {
 
                             {/* Flashcards */}
                             <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-                                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
                                     <BrainCircuit className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Flashcards para Memorização</h3>
@@ -110,7 +110,7 @@ export function FeaturesPage() {
 
                             {/* Agendamentos */}
                             <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-                                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
                                     <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Agendamento de Aulas</h3>

@@ -18,7 +18,7 @@ export function ManifestoPage() {
     return (
         <div className="bg-background text-foreground font-sans antialiased selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-200">
             <nav
-                className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
+                className={`fixed top-0 w-full z-50 transition-[background-color,border-color,backdrop-filter] duration-300 ${scrolled
                     ? "bg-white/80 dark:bg-background/80 backdrop-blur-md border-b border-border"
                     : "bg-transparent border-b border-transparent"
                     }`}
@@ -26,7 +26,7 @@ export function ManifestoPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20 items-center">
                         <Link className="flex items-center gap-2 group" href="/">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold font-display text-xl group-hover:scale-105 transition-transform">
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold font-display text-xl">
                                 A
                             </div>
                             <span className="font-display font-bold text-lg tracking-tight">
@@ -98,8 +98,8 @@ export function ManifestoPage() {
 
                         <h2 className="landing-section-title mb-8 text-primary dark:text-white">O mito do &quot;ser sem luz&quot;.</h2>
 
-                        <div className="bg-card border border-border rounded-xl p-8 md:p-10 shadow-sm mb-10 relative overflow-hidden group hover:shadow-md transition-all">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 font-serif text-9xl text-primary dark:text-white leading-none select-none group-hover:scale-110 transition-transform duration-700">
+                        <div className="bg-card border border-border rounded-xl p-8 md:p-10 shadow-sm mb-10 relative overflow-hidden group hover:shadow-md transition-shadow">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 font-serif text-9xl text-primary dark:text-white leading-none select-none duration-700">
                                 Aa
                             </div>
 

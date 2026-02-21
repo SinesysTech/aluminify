@@ -669,7 +669,7 @@ export function N8nChatSection({ agentConfig }: N8nChatSectionProps) {
                       className="flex items-center gap-2 rounded-md bg-muted px-2.5 py-1.5"
                     >
                       <Paperclip className="h-3 w-3 shrink-0 text-muted-foreground" />
-                      <span className="truncate max-w-[120px] md:max-w-[180px] text-xs">{file.name}</span>
+                      <span className="truncate max-w-30 md:max-w-45 text-xs">{file.name}</span>
                       <button
                         type="button"
                         onClick={() => removeAttachment(index)}

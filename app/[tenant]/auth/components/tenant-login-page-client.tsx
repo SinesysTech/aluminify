@@ -306,14 +306,14 @@ export function TenantLoginPageClient({
         <div
           className={cn(
             'absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/8',
-            'transition-all duration-1000 ease-out motion-reduce:transition-none',
+            'transition-[opacity,transform] duration-1000 ease-out motion-reduce:transition-none',
             brandingReady ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           )}
         />
         <div
           className={cn(
             'absolute -bottom-28 -left-28 h-96 w-96 rounded-full bg-white/6',
-            'transition-all delay-150 duration-1000 ease-out motion-reduce:transition-none',
+            'transition-[opacity,transform] delay-150 duration-1000 ease-out motion-reduce:transition-none',
             brandingReady ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           )}
         />
@@ -344,7 +344,7 @@ export function TenantLoginPageClient({
         {/* Brand content (fades up when ready) */}
         <div
           className={cn(
-            'relative z-10 flex flex-col items-center text-center transition-all duration-500 ease-out motion-reduce:transition-none',
+            'relative z-10 flex flex-col items-center text-center transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none',
             brandingReady ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
           )}
         >

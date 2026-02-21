@@ -154,7 +154,7 @@ function DataPageEmptyState({
   return (
     <section
       className={cn(
-        "flex-1 flex flex-col items-center justify-center min-h-[400px]",
+        "flex-1 flex flex-col items-center justify-center min-h-100",
         className
       )}
     >
@@ -288,7 +288,7 @@ function DataPageSearchInput({
         type="text"
         placeholder={placeholder}
         className={cn(
-          "w-full h-10 pr-4 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all",
+          "w-full h-10 pr-4 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors",
           icon ? "pl-9" : "pl-4"
         )}
         value={value}

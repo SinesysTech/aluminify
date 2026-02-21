@@ -35,7 +35,7 @@ export function FormPanel() {
 	const hasGuests = guests.length > 0;
 
 	return (
-		<form className="flex flex-col gap-5 w-[360px]">
+		<form className="flex flex-col gap-5 w-90">
 			<div className="flex flex-col space-y-1.5">
 				<Label htmlFor="name">Your name *</Label>
 				<Input id="name" defaultValue="Damián Ricobelli" />

@@ -247,7 +247,7 @@ export function ConversationsPanel({
     <>
       <div
         className={cn(
-          'flex flex-col h-full bg-background transition-all duration-300',
+          'flex flex-col h-full bg-background transition-[width] duration-300',
           open ? 'w-64 border-r' : 'w-0 overflow-hidden'
         )}
       >

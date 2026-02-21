@@ -20,7 +20,7 @@ const routeLabels: Record<string, string> = {
   "alunos": "Alunos",
   "professores": "Professores",
   "equipe": "Equipe",
-  "admins": "Admins",
+  "admins": "Administradores",
 
   // Cursos
   "curso": "Cursos",
@@ -34,7 +34,7 @@ const routeLabels: Record<string, string> = {
 
   // Biblioteca
   "biblioteca": "Biblioteca",
-  "flashcards": "Flashcards",
+  "flashcards": "Cartões de Aprendizado",
 
   // Financeiro
   "financeiro": "Financeiro",
@@ -82,14 +82,18 @@ const routeLabels: Record<string, string> = {
   "logs": "Logs",
 
   // Landing Page
+  "contato": "Contato",
   "features": "Funcionalidades",
   "docs": "Documentação",
   "changelog": "Histórico",
   "roadmap": "Roadmap",
   "status": "Status",
-  "opensource": "Open Source",
+  "opensource": "Código Aberto",
   "manifesto": "Manifesto",
   "pricing": "Preços",
+  "protected": "Área Protegida",
+  "swagger": "API",
+  "sentry-example-page": "Exemplo Sentry",
 
   // Outros
   "tobias": "TobIAs", // TOBIAS-LEGACY: Remover quando TobIAs for deletado

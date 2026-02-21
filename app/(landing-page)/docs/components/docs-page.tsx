@@ -113,12 +113,12 @@ export function DocsPage() {
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-all group bg-card">
+                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-colors group bg-card">
                                 <RocketIcon className="w-6 h-6 text-primary mb-2" />
                                 <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">Quickstart</h3>
                                 <p className="text-sm text-muted-foreground mt-1">Coloque seu curso no ar em poucos minutos com Docker.</p>
                             </div>
-                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-all group bg-card">
+                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-colors group bg-card">
                                 <Layout className="w-6 h-6 text-primary mb-2" />
                                 <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">Arquitetura</h3>
                                 <p className="text-sm text-muted-foreground mt-1">Entenda o padrão de módulos funcionais e route groups.</p>

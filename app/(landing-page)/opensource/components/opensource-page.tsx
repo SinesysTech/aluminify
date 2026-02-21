@@ -39,14 +39,14 @@ export function OpenSourcePage() {
                                 href="https://github.com/SinesysTech/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full sm:w-auto px-8 py-3.5 bg-foreground text-background font-medium rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-foreground text-background font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                             >
                                 <Github className="w-5 h-5" />
                                 Ver no GitHub
                             </a>
                             <Link
                                 href="/pricing"
-                                className="w-full sm:w-auto px-8 py-3.5 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-all flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-colors flex items-center justify-center gap-2"
                             >
                                 Ver planos
                             </Link>

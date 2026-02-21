@@ -27,7 +27,7 @@ export function MagicLinkButton({
         className
       )}
     >
-      <Sparkles className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+      <Sparkles className="mr-2 h-4 w-4" />
       {loading ? 'Enviando...' : 'Enviar Magic Link'}
     </Button>
   )
