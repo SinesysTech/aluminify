@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/app/shared/components/feedback/progress';
 import { createClient } from '@/app/shared/core/client';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { LogoUploadComponent } from './logo-upload-component';
 import { ColorPaletteEditor } from './color-palette-editor';
 import { FontSchemeSelector } from './font-scheme-selector';
@@ -64,6 +65,7 @@ export function BrandCustomizationPanel({
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [draftColorPalette, setDraftColorPalette] = useState<CreateColorPaletteRequest | null>(null);
+  const { isMobile } = useBreakpoint();
 
   // Get branding context for refresh and cross-tab sync
   const brandingContext = useTenantBrandingOptional();
@@ -383,24 +385,24 @@ export function BrandCustomizationPanel({
       <CardContent className="p-0">
         <div className="flex flex-col space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5 h-12 p-1 bg-muted/50">
-              <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsList className={`w-full h-auto p-1 bg-muted/50 ${isMobile ? 'grid grid-cols-2 gap-1' : 'grid grid-cols-5 h-12'}`}>
+              <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm">
                 <Sparkles className="h-4 w-4" />
                 <span className="hidden sm:inline">Visão Geral</span>
               </TabsTrigger>
-              <TabsTrigger value="logos" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="logos" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm">
                 <ImageIcon className="h-4 w-4" />
                 <span className="hidden sm:inline">Logos</span>
               </TabsTrigger>
-              <TabsTrigger value="colors" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="colors" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm">
                 <Palette className="h-4 w-4" />
                 <span className="hidden sm:inline">Cores</span>
               </TabsTrigger>
-              <TabsTrigger value="fonts" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="fonts" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm">
                 <Type className="h-4 w-4" />
                 <span className="hidden sm:inline">Fontes</span>
               </TabsTrigger>
-              <TabsTrigger value="theme" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="theme" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm">
                 <Settings2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Tema</span>
               </TabsTrigger>
@@ -408,10 +410,10 @@ export function BrandCustomizationPanel({
 
             <TabsContent value="overview" className="mt-8 space-y-8">
               {/* Brand Completion Progress */}
-              <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/5 via-primary/10 to-accent/5 border border-primary/10 p-6">
+              <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/5 via-primary/10 to-accent/5 border border-primary/10 p-4 sm:p-6">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="relative">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className={`flex items-start justify-between mb-4 gap-4 ${isMobile ? 'flex-col' : 'flex-row items-center'}`}>
                     <div>
                       <h3 className="text-lg font-semibold text-foreground">Personalização da Marca</h3>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -420,7 +422,7 @@ export function BrandCustomizationPanel({
                           : 'Complete as etapas abaixo para personalizar sua marca.'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <div className="text-3xl font-bold text-primary">{brandCompletion}%</div>
                         <div className="text-xs text-muted-foreground">completo</div>
@@ -840,7 +842,9 @@ export function BrandCustomizationPanel({
 
                 {/* Footer */}
                 <div className="flex items-center justify-center pt-6 border-t">
-                  <ResetThemeButton />
+                  <div className="w-full lg:w-auto">
+                    <ResetThemeButton />
+                  </div>
                 </div>
               </div>
             </TabsContent>

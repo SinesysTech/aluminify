@@ -30,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/app/shared/components/forms/input';
 import { Label } from '@/app/shared/components/forms/label';
 import { Switch } from '@/app/shared/components/forms/switch';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,6 +110,7 @@ export function ModuleVisibilityPanel({
   const [resetting, setResetting] = useState(false);
   const params = useParams();
   const tenantSlug = params?.tenant as string;
+  const { isMobile } = useBreakpoint();
 
   // Initialize state from config
   useEffect(() => {
@@ -305,7 +307,7 @@ export function ModuleVisibilityPanel({
   return (
     <div className="space-y-6">
       {/* Action buttons */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center">
         <div className="text-sm text-muted-foreground">
           {hasChanges ? (
             <Badge variant="outline" className="text-yellow-600 border-yellow-600">
@@ -317,10 +319,10 @@ export function ModuleVisibilityPanel({
             </Badge>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 lg:flex-row w-full lg:w-auto">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" disabled={resetting}>
+              <Button variant="outline" disabled={resetting} className="w-full lg:w-auto justify-center">
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Resetar para padrão
               </Button>
@@ -343,12 +345,12 @@ export function ModuleVisibilityPanel({
           </AlertDialog>
 
           {hasChanges && (
-            <Button variant="ghost" onClick={handleCancel}>
+            <Button variant="ghost" onClick={handleCancel} className="w-full lg:w-auto justify-center">
               Cancelar
             </Button>
           )}
 
-          <Button onClick={handleSave} disabled={saving || !hasChanges}>
+          <Button onClick={handleSave} disabled={saving || !hasChanges} className="w-full lg:w-auto justify-center">
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Salvando...' : 'Salvar'}
           </Button>
@@ -372,28 +374,30 @@ export function ModuleVisibilityPanel({
 
             return (
               <div key={module.id} className="border rounded-lg">
-                <div className="flex items-center gap-3 p-4">
-                  {/* Reorder controls */}
-                  <div className="flex flex-col gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      disabled={index === 0}
-                      onClick={() => moveModule(module.id, 'up')}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      disabled={index === modules.length - 1}
-                      onClick={() => moveModule(module.id, 'down')}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div className={`flex items-start gap-2 p-3 lg:p-4 ${isMobile ? 'flex-col' : 'flex-row lg:items-center'}`}>
+                  {/* Reorder controls - only on desktop */}
+                  {!isMobile && (
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={index === 0}
+                        onClick={() => moveModule(module.id, 'up')}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={index === modules.length - 1}
+                        onClick={() => moveModule(module.id, 'down')}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Icon */}
                   <div className="shrink-0">
@@ -401,16 +405,16 @@ export function ModuleVisibilityPanel({
                   </div>
 
                   {/* Module info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                  <div className={`flex-1 min-w-0 ${isMobile ? 'w-full' : ''}`}>
+                    <div className={`flex items-center gap-2 ${isMobile ? 'flex-col sm:flex-row' : 'flex-row'}`}>
                       <Input
                         value={module.customName}
                         onChange={e => updateModuleName(module.id, e.target.value)}
                         placeholder={module.originalName}
-                        className="h-8 w-48"
+                        className={`h-8 ${isMobile ? 'w-full' : 'w-48'}`}
                       />
                       {module.isCore && (
-                        <Badge variant="secondary" className="gap-1">
+                        <Badge variant="secondary" className="gap-1 shrink-0">
                           <Lock className="h-3 w-3" />
                           Essencial
                         </Badge>
@@ -423,51 +427,54 @@ export function ModuleVisibilityPanel({
                     )}
                   </div>
 
-                  {/* Visibility toggle */}
-                  <div className="flex items-center gap-2">
-                    {module.isCore ? (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Eye className="h-4 w-4" />
-                        <span className="text-sm">Sempre visível</span>
-                      </div>
-                    ) : (
-                      <>
-                        <Label htmlFor={`module-${module.id}`} className="sr-only">
-                          Visibilidade do módulo {displayName}
-                        </Label>
-                        <Switch
-                          id={`module-${module.id}`}
-                          checked={module.isVisible}
-                          onCheckedChange={checked => updateModuleVisibility(module.id, checked)}
-                        />
-                        {module.isVisible ? (
-                          <Eye className="h-4 w-4 text-green-600" />
+                  {/* Visibility toggle and submodule expand - flex on desktop, column on mobile */}
+                  <div className={`flex items-center gap-2 ${isMobile ? 'w-full justify-between' : 'shrink-0'}`}>
+                    <div className="flex items-center gap-2">
+                      {module.isCore ? (
+                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                          <Eye className="h-4 w-4" />
+                          <span className="hidden lg:inline">Sempre visível</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Label htmlFor={`module-${module.id}`} className="sr-only">
+                            Visibilidade do módulo {displayName}
+                          </Label>
+                          <Switch
+                            id={`module-${module.id}`}
+                            checked={module.isVisible}
+                            onCheckedChange={checked => updateModuleVisibility(module.id, checked)}
+                          />
+                          {module.isVisible ? (
+                            <Eye className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Expand/collapse for submodules */}
+                    {hasSubmodules && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleExpanded(module.id)}
+                        className={isMobile ? 'h-8 w-8' : ''}
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
                         ) : (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          <ChevronRight className="h-4 w-4" />
                         )}
-                      </>
+                      </Button>
                     )}
                   </div>
-
-                  {/* Expand/collapse for submodules */}
-                  {hasSubmodules && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleExpanded(module.id)}
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
                 </div>
 
                 {/* Submodules */}
                 {hasSubmodules && isExpanded && (
-                  <div className="border-t bg-muted/30 p-4 space-y-3">
+                  <div className="border-t bg-muted/30 p-3 lg:p-4 space-y-3">
                     <p className="text-sm font-medium text-muted-foreground mb-2">Subitens</p>
                     {module.submodules.map(submodule => {
                       const subDisplayName = submodule.customName || submodule.originalName;
@@ -475,17 +482,17 @@ export function ModuleVisibilityPanel({
                       return (
                         <div
                           key={`${module.id}-${submodule.id}`}
-                          className="flex items-center gap-3 pl-8"
+                          className={`flex items-start gap-2 ${isMobile ? 'flex-col' : 'flex-row lg:items-center pl-8'}`}
                         >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
+                          <div className={`flex-1 min-w-0 ${isMobile ? 'w-full' : ''}`}>
+                            <div className={`flex items-center gap-2 ${isMobile ? 'flex-col sm:flex-row' : 'flex-row'}`}>
                               <Input
                                 value={submodule.customName}
                                 onChange={e =>
                                   updateSubmoduleName(module.id, submodule.id, e.target.value)
                                 }
                                 placeholder={submodule.originalName}
-                                className="h-8 w-40"
+                                className={`h-8 ${isMobile ? 'w-full' : 'w-40'}`}
                               />
                             </div>
                             {submodule.customName && submodule.customName !== submodule.originalName && (

@@ -60,15 +60,15 @@ export function EquipeClientPage({ usuarios, initialFilter, currentUserIsAdmin }
       {/* SECTION: POPULATED STATE */}
       {!isEmpty && (
         <section id="populated-state" className="flex flex-col gap-4 h-full min-h-150">
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-            <UserFilters
+          <div className="flex flex-col gap-3 lg:gap-4 items-start lg:justify-between lg:items-center lg:flex-row">
+            <div className="w-full lg:w-auto"><UserFilters
               papelTipoFilter={papelTipoFilter}
               onPapelTipoChange={setPapelTipoFilter}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               countByTipo={countByTipo}
-            />
-            <CreateMemberDialog />
+            /></div>
+            <div className="w-full lg:w-auto"><CreateMemberDialog /></div>
           </div>
 
           <UserTable usuarios={filteredUsuarios} currentUserIsAdmin={currentUserIsAdmin} />

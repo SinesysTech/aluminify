@@ -30,6 +30,9 @@ const envSchema = z.object({
 
   // Sentry
   SENTRY_AUTH_TOKEN: z.string().optional(),
+  SENTRY_DSN: z.string().url().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+  SENTRY_TUNNEL_ROUTE: z.enum(["true", "false"]).optional(),
 
   // Build & CI
   DOCKER_BUILD: z.enum(["true", "false"]).optional(),

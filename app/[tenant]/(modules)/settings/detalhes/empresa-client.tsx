@@ -208,67 +208,77 @@ export default function EmpresaClientPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-6 sm:px-6 lg:px-8">
-        <div className="space-y-2">
-          <Label htmlFor="nome">Nome da Empresa</Label>
-          <Input
-            id="nome"
-            value={formData.nome}
-            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="cnpj">CNPJ (Opcional)</Label>
-          <Input
-            id="cnpj"
-            value={formData.cnpj}
-            onChange={(e) => {
-              // Normalizar para apenas dígitos e formatar
-              const digits = e.target.value.replace(/\D/g, '');
-              const formatted = formatCNPJ(digits);
-              setFormData({ ...formData, cnpj: formatted });
-            }}
-            inputMode="numeric"
-            maxLength={18}
-            placeholder="00.000.000/0000-00"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="emailContato">Email de Contato</Label>
-          <Input
-            id="emailContato"
-            type="email"
-            value={formData.emailContato}
-            onChange={(e) => setFormData({ ...formData, emailContato: e.target.value })}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="telefone">Telefone</Label>
-          <Input
-            id="telefone"
-            value={formatBRPhone(formData.telefone)}
-            onChange={(e) => setFormData({ ...formData, telefone: formatBRPhone(e.target.value) })}
-            inputMode="numeric"
-            maxLength={15}
-            placeholder="(11) 99999-9999"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Plano</Label>
-          <div className="text-sm text-muted-foreground capitalize">
-            {empresa.plano}
+    <div className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Detalhes da Empresa</CardTitle>
+          <CardDescription>
+            Gerencie as informações básicas da sua empresa
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome da Empresa</Label>
+            <Input
+              id="nome"
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+            />
           </div>
-        </div>
 
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-        </div>
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="cnpj">CNPJ (Opcional)</Label>
+            <Input
+              id="cnpj"
+              value={formData.cnpj}
+              onChange={(e) => {
+                // Normalizar para apenas dígitos e formatar
+                const digits = e.target.value.replace(/\D/g, '');
+                const formatted = formatCNPJ(digits);
+                setFormData({ ...formData, cnpj: formatted });
+              }}
+              inputMode="numeric"
+              maxLength={18}
+              placeholder="00.000.000/0000-00"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="emailContato">Email de Contato</Label>
+            <Input
+              id="emailContato"
+              type="email"
+              value={formData.emailContato}
+              onChange={(e) => setFormData({ ...formData, emailContato: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="telefone">Telefone</Label>
+            <Input
+              id="telefone"
+              value={formatBRPhone(formData.telefone)}
+              onChange={(e) => setFormData({ ...formData, telefone: formatBRPhone(e.target.value) })}
+              inputMode="numeric"
+              maxLength={15}
+              placeholder="(11) 99999-9999"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Plano</Label>
+            <div className="text-sm text-muted-foreground capitalize">
+              {empresa.plano}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto justify-center">
+              {saving ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

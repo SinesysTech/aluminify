@@ -70,7 +70,7 @@ export function CreateMemberDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full lg:w-auto justify-center">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Membro
                 </Button>

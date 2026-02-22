@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -24,6 +25,7 @@ import {
 } from '@/app/shared/components/ui/alert-dialog'
 import { Plus, Pencil, Trash2, Shield, Users } from 'lucide-react'
 import { toast } from 'sonner'
+import { useBreakpoint } from '@/hooks/use-breakpoint'
 import type { RoleTipo } from '@/app/shared/types/entities/papel'
 
 interface PapelListItem {
@@ -63,6 +65,7 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
   const router = useRouter()
   const params = useParams()
   const tenant = params?.tenant as string
+  const { isMobile } = useBreakpoint()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -96,7 +99,16 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button onClick={() => router.push(tenant ? `/${tenant}/settings/papeis/novo` : '/settings/papeis/novo')}>
+        <Button
+          onClick={() =>
+            router.push(
+              tenant
+                ? `/${tenant}/settings/papeis/novo`
+                : '/settings/papeis/novo'
+            )
+          }
+          className="w-full lg:w-auto justify-center"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Novo Papel
         </Button>
@@ -111,46 +123,96 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
             {systemPapeis.length}
           </Badge>
         </div>
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="w-25">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {systemPapeis.map((papel) => (
-                <TableRow key={papel.id}>
-                  <TableCell className="font-medium">{papel.nome}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={ROLE_TYPE_COLORS[papel.tipo as RoleTipo]}
-                    >
-                      {ROLE_TYPE_LABELS[papel.tipo as RoleTipo] || papel.tipo}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {papel.descricao || '-'}
-                  </TableCell>
-                  <TableCell>
+        {isMobile ? (
+          <div className="space-y-3">
+            {systemPapeis.map((papel) => (
+              <Card key={papel.id}>
+                <CardContent className="p-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{papel.nome}</p>
+                      <div className="flex gap-2 mt-1">
+                        <Badge
+                          variant="outline"
+                          className={ROLE_TYPE_COLORS[papel.tipo as RoleTipo]}
+                        >
+                          {ROLE_TYPE_LABELS[papel.tipo as RoleTipo] || papel.tipo}
+                        </Badge>
+                      </div>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => router.push(tenant ? `/${tenant}/settings/papeis/${papel.id}` : `/settings/papeis/${papel.id}`)}
+                      onClick={() =>
+                        router.push(
+                          tenant
+                            ? `/${tenant}/settings/papeis/${papel.id}`
+                            : `/settings/papeis/${papel.id}`
+                        )
+                      }
+                      className="h-8 w-8 shrink-0"
                       title="Visualizar"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                  </TableCell>
+                  </div>
+                  {papel.descricao && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {papel.descricao}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead className="w-25">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {systemPapeis.map((papel) => (
+                  <TableRow key={papel.id}>
+                    <TableCell className="font-medium">{papel.nome}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={ROLE_TYPE_COLORS[papel.tipo as RoleTipo]}
+                      >
+                        {ROLE_TYPE_LABELS[papel.tipo as RoleTipo] || papel.tipo}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {papel.descricao || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          router.push(
+                            tenant
+                              ? `/${tenant}/settings/papeis/${papel.id}`
+                              : `/settings/papeis/${papel.id}`
+                          )
+                        }
+                        title="Visualizar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
 
       {/* Custom Roles */}
@@ -170,11 +232,70 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
             <Button
               variant="outline"
               className="mt-4"
-              onClick={() => router.push(tenant ? `/${tenant}/settings/papeis/novo` : '/settings/papeis/novo')}
+              onClick={() =>
+                router.push(
+                  tenant
+                    ? `/${tenant}/settings/papeis/novo`
+                    : '/settings/papeis/novo'
+                )
+              }
             >
               <Plus className="mr-2 h-4 w-4" />
               Criar primeiro papel
             </Button>
+          </div>
+        ) : isMobile ? (
+          <div className="space-y-3">
+            {customPapeis.map((papel) => (
+              <Card key={papel.id}>
+                <CardContent className="p-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{papel.nome}</p>
+                      <div className="flex gap-2 mt-1">
+                        <Badge
+                          variant="outline"
+                          className={ROLE_TYPE_COLORS[papel.tipo as RoleTipo]}
+                        >
+                          {ROLE_TYPE_LABELS[papel.tipo as RoleTipo] || papel.tipo}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  {papel.descricao && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {papel.descricao}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 -mx-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        router.push(
+                          tenant
+                            ? `/${tenant}/settings/papeis/${papel.id}`
+                            : `/settings/papeis/${papel.id}`
+                        )
+                      }
+                      title="Editar"
+                      className="h-8 w-8"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingId(papel.id)}
+                      title="Excluir"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : (
           <div className="rounded-lg border">
@@ -207,7 +328,13 @@ export function PapeisListClient({ papeis, empresaId }: PapeisListClientProps) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => router.push(tenant ? `/${tenant}/settings/papeis/${papel.id}` : `/settings/papeis/${papel.id}`)}
+                          onClick={() =>
+                            router.push(
+                              tenant
+                                ? `/${tenant}/settings/papeis/${papel.id}`
+                                : `/settings/papeis/${papel.id}`
+                            )
+                          }
                           title="Editar"
                         >
                           <Pencil className="h-4 w-4" />
