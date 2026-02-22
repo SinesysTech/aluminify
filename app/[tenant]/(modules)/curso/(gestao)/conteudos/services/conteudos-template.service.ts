@@ -1,5 +1,3 @@
-import ExcelJS from "exceljs";
-
 export interface ConteudosTemplateColumn {
   header: string;
   key: string;
@@ -88,6 +86,7 @@ const TEMPLATE_COLUMNS: ConteudosTemplateColumn[] = [
 
 export class ConteudosTemplateService {
   async generateTemplate(): Promise<Buffer> {
+    const { default: ExcelJS } = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Aluminify";
     workbook.created = new Date();

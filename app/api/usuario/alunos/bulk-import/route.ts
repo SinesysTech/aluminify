@@ -9,7 +9,6 @@ import {
   AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
 import Papa from "papaparse";
-import ExcelJS from "exceljs";
 import type { Database } from "@/app/shared/core/database.types";
 
 const STUDENT_IMPORT_COLUMN_ALIASES = {
@@ -87,6 +86,7 @@ const parseXLSXFile = async (
   buffer: Buffer,
 ): Promise<ParsedSpreadsheetRow[]> => {
   try {
+    const { default: ExcelJS } = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
     // @ts-expect-error - ExcelJS expects Buffer but TypeScript infers Buffer<ArrayBufferLike> from Buffer.from()
     await workbook.xlsx.load(buffer);

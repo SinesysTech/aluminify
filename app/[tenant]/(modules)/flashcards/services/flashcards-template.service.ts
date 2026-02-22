@@ -1,5 +1,3 @@
-import ExcelJS from "exceljs";
-
 export interface FlashcardsTemplateColumn {
   header: string;
   key: string;
@@ -39,6 +37,7 @@ const TEMPLATE_COLUMNS: FlashcardsTemplateColumn[] = [
 
 export class FlashcardsTemplateService {
   async generateTemplate(): Promise<Buffer> {
+    const { default: ExcelJS } = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Aluminify";
     workbook.created = new Date();
