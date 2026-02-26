@@ -32,7 +32,7 @@ export function FeaturesPage() {
 
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-6 text-foreground max-w-4xl mx-auto">
                             Seu curso online <br className="hidden md:block" />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400">
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-400">
                                 completo e organizado.
                             </span>
                         </h1>
@@ -72,7 +72,7 @@ export function FeaturesPage() {
                         <div className="grid md:grid-cols-3 gap-8">
                             {/* Sala de Estudos */}
                             <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-                                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
                                     <LayoutDashboard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Área do Aluno Focada</h3>
@@ -91,7 +91,7 @@ export function FeaturesPage() {
 
                             {/* Flashcards */}
                             <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-                                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
                                     <BrainCircuit className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Flashcards para Memorização</h3>
@@ -110,7 +110,7 @@ export function FeaturesPage() {
 
                             {/* Agendamentos */}
                             <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-                                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
                                     <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">Agendamento de Aulas</h3>
@@ -173,7 +173,7 @@ export function FeaturesPage() {
                             </div>
 
                             <div className="relative">
-                                <div className="absolute -inset-4 bg-gradient-to-tr from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl blur-lg opacity-50"></div>
+                                <div className="absolute -inset-4 bg-linear-to-tr from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl blur-lg opacity-50"></div>
                                 <div className="relative bg-background border border-border rounded-xl shadow-2xl overflow-hidden aspect-4/3 flex flex-col">
                                     {/* Mockup UI */}
                                     <div className="border-b border-border p-3 flex items-center gap-2 bg-muted/30">

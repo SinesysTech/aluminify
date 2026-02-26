@@ -37,7 +37,7 @@ export function LeftPanel({ showForm, timeZone, durationMinutes = 30 }: LeftPane
 	const timezoneName = TIMEZONE_NAMES[timeZone] || timeZone;
 
 	return (
-		<div className="flex flex-col gap-4 w-full lg:w-[280px] border-b lg:border-b-0 lg:border-r pb-4 lg:pb-0 lg:pr-6">
+		<div className="flex flex-col gap-4 w-full lg:w-70 border-b lg:border-b-0 lg:border-r pb-4 lg:pb-0 lg:pr-6">
 			<div className="grid gap-1">
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -50,7 +50,7 @@ export function LeftPanel({ showForm, timeZone, durationMinutes = 30 }: LeftPane
 				<p className="text-muted-foreground text-sm font-semibold">Agendamento</p>
 			</div>
 			<div className="grid gap-3">
-				<p className="text-foreground text-2xl font-bold">Sessao Individual</p>
+				<p className="section-title">Sessao Individual</p>
 				{showForm && slotParam && (
 					<div className="flex text-foreground">
 						<CalendarIcon className="size-4 mr-2" />

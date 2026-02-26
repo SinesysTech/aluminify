@@ -8,6 +8,7 @@ export interface PlantaoQuotaInfo {
   totalQuota: number;
   usedThisMonth: number;
   remaining: number;
+  hasQuotaConfigured: boolean;
 }
 
 export interface CursoPlantaoQuota {
@@ -92,6 +93,37 @@ export class PlantaoQuotaService {
   ): Promise<PlantaoQuotaInfo> {
     const anoMes = this.getCurrentAnoMes();
 
+    // Check if any quota rows exist for the student's enrolled courses
+    const { data: enrollments, error: enrollError } = await this.client
+      .from("alunos_cursos")
+      .select("curso_id")
+      .eq("usuario_id", usuarioId);
+
+    if (enrollError) {
+      throw new Error(
+        `Failed to fetch student enrollments: ${enrollError.message}`,
+      );
+    }
+
+    const enrolledCursoIds = (enrollments ?? []).map((e) => e.curso_id);
+    let hasQuotaConfigured = false;
+
+    if (enrolledCursoIds.length > 0) {
+      const { count, error: countError } = await this.client
+        .from("curso_plantao_quotas")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId)
+        .in("curso_id", enrolledCursoIds);
+
+      if (countError) {
+        throw new Error(
+          `Failed to check quota configuration: ${countError.message}`,
+        );
+      }
+
+      hasQuotaConfigured = (count ?? 0) > 0;
+    }
+
     // Get total quota from enrolled courses
     const { data: quotaData, error: quotaError } = await this.client.rpc(
       "get_student_plantao_quota",
@@ -124,7 +156,7 @@ export class PlantaoQuotaService {
     const usedThisMonth = usageData ?? 0;
     const remaining = Math.max(totalQuota - usedThisMonth, 0);
 
-    return { totalQuota, usedThisMonth, remaining };
+    return { totalQuota, usedThisMonth, remaining, hasQuotaConfigured };
   }
 
   /**

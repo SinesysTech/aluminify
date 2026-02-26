@@ -237,7 +237,7 @@ export function SubjectPerformanceList({
   }
 
   return (
-    <Card className="h-full overflow-hidden transition-all duration-300 rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
+    <Card className="h-full overflow-hidden transition-colors duration-200 motion-reduce:transition-none rounded-2xl pt-0 dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5">
       <div className="h-0.5 bg-linear-to-r from-amber-400 to-orange-500" />
       <CardContent className="p-4 md:p-5 h-full flex flex-col min-h-0">
         <div className="flex items-center gap-3 mb-4 md:mb-6">
@@ -436,7 +436,7 @@ export function SubjectPerformanceList({
                     ) : (
                       <div
                         className={cn(
-                          'h-2.5 rounded-full transition-all',
+                          'h-2.5 rounded-full transition-[width] duration-300 motion-reduce:transition-none',
                           getBarColor(subject.score)
                         )}
                         style={{ width: `${subject.score}%` }}

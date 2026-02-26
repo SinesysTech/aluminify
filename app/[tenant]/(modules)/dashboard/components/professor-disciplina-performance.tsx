@@ -73,7 +73,7 @@ export function ProfessorDisciplinaPerformanceList({
                   <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
                       className={cn(
-                        'h-full transition-all duration-500',
+                        'h-full transition-[width] duration-500 motion-reduce:transition-none',
                         getPerformanceColor(disciplina.aproveitamentoMedio)
                       )}
                       style={{ width: `${disciplina.aproveitamentoMedio}%` }}

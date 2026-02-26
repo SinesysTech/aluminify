@@ -34,7 +34,10 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      ...quotaInfo,
+      totalQuota: quotaInfo.totalQuota,
+      usedThisMonth: quotaInfo.usedThisMonth,
+      remaining: quotaInfo.remaining,
+      hasQuotaConfigured: quotaInfo.hasQuotaConfigured,
     });
   } catch (error) {
     console.error("Error fetching student quota:", error);

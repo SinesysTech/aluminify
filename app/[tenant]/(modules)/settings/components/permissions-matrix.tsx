@@ -66,7 +66,7 @@ export function PermissionsMatrix({ permissions, onChange, readonly }: Permissio
         <table className="w-full caption-bottom text-sm">
           <thead className="bg-muted/50 border-b">
             <tr>
-              <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground w-[200px]">
+              <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground w-50">
                 Recurso
               </th>
               {ACTION_KEYS.map((action) => (

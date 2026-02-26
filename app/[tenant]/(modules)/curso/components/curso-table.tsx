@@ -650,7 +650,7 @@ export function CursoTable() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-8 h-full pb-10">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
           <div>
             <h1 className="page-title">Cursos</h1>
@@ -665,7 +665,7 @@ export function CursoTable() {
                     Novo Curso
                   </button>
                 </DialogTrigger>
-                <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh]">
                   <DialogHeader className="pb-4 border-b">
                     <DialogTitle className="text-xl">Criar Curso</DialogTitle>
                     <DialogDescription>
@@ -673,7 +673,8 @@ export function CursoTable() {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-6 py-4">
+                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="flex flex-col flex-1 min-h-0">
+                    <div className="flex-1 overflow-y-auto space-y-6 py-4 pr-1">
                       {/* Seção: Identificação */}
                       <div className="space-y-4">
                         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
@@ -1124,6 +1125,7 @@ export function CursoTable() {
                           )}
                         />
                       </div>
+                    </div>
 
                       <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                         <Button
@@ -1171,7 +1173,7 @@ export function CursoTable() {
             <input
               type="text"
               placeholder="Filtrar por nome..."
-              className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+              className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors duration-200 motion-reduce:transition-none"
               value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
               onChange={(event) =>
                 table.getColumn('name')?.setFilterValue(event.target.value)
@@ -1343,7 +1345,7 @@ export function CursoTable() {
         {/* Edit Dialog */}
         {mounted && editingCurso && (
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent fullScreenMobile className="md:max-w-2xl max-h-[90vh]">
               <DialogHeader className="pb-4 border-b">
                 <DialogTitle className="text-xl">Editar Curso</DialogTitle>
                 <DialogDescription>
@@ -1351,7 +1353,8 @@ export function CursoTable() {
                 </DialogDescription>
               </DialogHeader>
               <Form {...editForm}>
-                <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-6 py-4">
+                <form onSubmit={editForm.handleSubmit(handleUpdate)} className="flex flex-col flex-1 min-h-0">
+                <div className="flex-1 overflow-y-auto space-y-6 py-4 pr-1">
                   {/* Seção: Identificação */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Identificação</h3>
@@ -1802,6 +1805,7 @@ export function CursoTable() {
                       )}
                     />
                   </div>
+                </div>
 
                   <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
                     <Button

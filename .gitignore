@@ -56,3 +56,5 @@ NUL
 .env.sentry-build-plugin
 playwright-report/
 test-results/
+
+docker-compose.portainer.yml

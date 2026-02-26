@@ -1988,7 +1988,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
   // Returns condicionais DEVEM vir DEPOIS de todos os hooks
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-4">
         <Skeleton className="h-12 w-64" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -1997,7 +1997,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
 
   if (!cronograma) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
         <Card>
           <CardHeader>
             <CardTitle>Cronograma não encontrado</CardTitle>
@@ -2012,7 +2012,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
   const progressoPercentual = totalItens > 0 ? (itensConcluidos / totalItens) * 100 : 0
 
   return (
-    <div className="container mx-auto py-4 md:py-6 space-y-4 md:space-y-6 px-2 md:px-4">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-4 md:space-y-6">
       {/* Header com Resumo */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
@@ -2033,18 +2033,18 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl bg-muted/50 p-3 text-center">
-              <div className="text-2xl font-bold text-primary">{itensConcluidos}</div>
+              <div className="metric-value text-primary">{itensConcluidos}</div>
               <div className="text-[11px] text-muted-foreground">Concluídas</div>
             </div>
             <div className="rounded-xl bg-muted/50 p-3 text-center">
-              <div className="text-2xl font-bold">
+              <div className="metric-value">
                 {totalItens - itensConcluidos}
               </div>
               <div className="text-[11px] text-muted-foreground">Pendentes</div>
             </div>
             <div className="rounded-xl bg-muted/50 p-3 text-center">
               <div className={cn(
-                'text-2xl font-bold',
+                'metric-value',
                 progressoPercentual >= 100 ? 'text-primary' : 'text-foreground',
               )}>
                 {progressoPercentual.toFixed(1)}%
@@ -2336,7 +2336,7 @@ export function ScheduleCalendarView({ cronogramaId }: ScheduleCalendarViewProps
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="max-h-[600px] overflow-y-auto space-y-2 pt-0">
+                    <CardContent className="max-h-150 overflow-y-auto space-y-2 pt-0">
                       {estatisticasSemanas.semanas
                         .sort((a, b) => a.semana_numero - b.semana_numero)
                         .map((semana) => (

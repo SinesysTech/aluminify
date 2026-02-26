@@ -182,7 +182,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">Produtos</h1>
@@ -198,7 +198,7 @@ export default function ProductsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou ID do provider..."
@@ -209,7 +209,7 @@ export default function ProductsPage() {
         </div>
 
         <Select value={provider} onValueChange={setProvider}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-37.5">
             <SelectValue placeholder="Provider" />
           </SelectTrigger>
           <SelectContent>
@@ -222,7 +222,7 @@ export default function ProductsPage() {
         </Select>
 
         <Select value={active} onValueChange={setActive}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-37.5">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>

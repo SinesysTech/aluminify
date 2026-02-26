@@ -181,7 +181,7 @@ export default function StudentLibrary({
     }
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-6">
             {/* Page Header - matching dashboard InstitutionHeader pattern */}
             <header className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">

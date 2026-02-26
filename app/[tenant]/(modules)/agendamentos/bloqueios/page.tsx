@@ -15,7 +15,7 @@ export default async function BloqueiosPage({
 
   if (!user.empresaId) {
     return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">Bloqueios</h1>
           <p className="page-subtitle">
@@ -44,7 +44,7 @@ export default async function BloqueiosPage({
 
   if (!isAdmin && !isTeacher) {
     return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">Bloqueios</h1>
           <p className="page-subtitle">
@@ -58,7 +58,7 @@ export default async function BloqueiosPage({
   const selectedProfessorName = professorsList.find(p => p.id === professorId)?.fullName
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h1 className="page-title">Bloqueios de Agenda</h1>
         <p className="page-subtitle">

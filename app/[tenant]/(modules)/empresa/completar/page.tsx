@@ -261,8 +261,8 @@ export default function CompletarCadastroEmpresaPage() {
 
   if (checking) {
     return (
-      <div className="container mx-auto py-8 max-w-xl">
-        <div className="rounded-md border p-6">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-xl rounded-md border p-6">
           <div className="text-center">
             <p className="text-muted-foreground">Carregando...</p>
           </div>
@@ -273,8 +273,8 @@ export default function CompletarCadastroEmpresaPage() {
 
   if (!empresa) {
     return (
-      <div className="container mx-auto py-8 max-w-xl">
-        <div className="space-y-2">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-xl space-y-2">
           <h1 className="page-title">Empresa não encontrada</h1>
           <p className="page-subtitle">
             Não foi possível carregar os dados da sua empresa.
@@ -285,7 +285,8 @@ export default function CompletarCadastroEmpresaPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-xl space-y-6">
       <div>
         <h1 className="page-title">Completar Cadastro da Empresa</h1>
         <p className="page-subtitle">
@@ -357,6 +358,7 @@ export default function CompletarCadastroEmpresaPage() {
             {loading ? 'Salvando...' : 'Completar Cadastro'}
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );

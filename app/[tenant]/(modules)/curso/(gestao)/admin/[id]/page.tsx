@@ -217,7 +217,7 @@ export default function CourseDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-8 h-full pb-10">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-8">
         <div className="animate-pulse">
           <div className="h-8 w-64 bg-muted rounded mb-2" />
           <div className="h-4 w-96 bg-muted rounded" />
@@ -241,7 +241,7 @@ export default function CourseDetailPage() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-6 h-full pb-10">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 pb-10 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="flex flex-col gap-4 border-b border-border pb-4">
           <Button
@@ -274,7 +274,7 @@ export default function CourseDetailPage() {
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-semibold">{enrollments.length}</p>
+                <p className="metric-value">{enrollments.length}</p>
                 <p className="text-sm text-muted-foreground">Total de alunos</p>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function CourseDetailPage() {
                 <BookOpen className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-semibold">{activeCount}</p>
+                <p className="metric-value">{activeCount}</p>
                 <p className="text-sm text-muted-foreground">Matrículas ativas</p>
               </div>
             </div>
@@ -296,7 +296,7 @@ export default function CourseDetailPage() {
                 <Calendar className="w-5 h-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-semibold">{inactiveCount}</p>
+                <p className="metric-value">{inactiveCount}</p>
                 <p className="text-sm text-muted-foreground">Matrículas inativas</p>
               </div>
             </div>
@@ -379,7 +379,7 @@ export default function CourseDetailPage() {
                 return (
                   <div
                     key={enrollment.id}
-                    className={`rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm hover:shadow-md transition-all duration-200 ${isSelected ? 'border-primary bg-primary/10' : ''}`}
+                    className={`rounded-xl border border-border/40 bg-card/80 p-4 shadow-sm hover:shadow-md transition-colors duration-200 motion-reduce:transition-none ${isSelected ? 'border-primary bg-primary/10' : ''}`}
                   >
                     <div className="flex items-start gap-3">
                       <Checkbox

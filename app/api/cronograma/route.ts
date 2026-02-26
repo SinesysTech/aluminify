@@ -10,6 +10,9 @@ import {
   AuthenticatedRequest,
 } from "@/app/[tenant]/auth/middleware";
 
+// Geração de cronograma pode ser demorada para muitas disciplinas/módulos
+export const maxDuration = 120;
+
 function handleError(error: unknown) {
   // Erros esperados de validação - log informativo apenas
   if (error instanceof CronogramaValidationError) {

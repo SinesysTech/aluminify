@@ -12,6 +12,7 @@ import {
     TooltipTrigger,
 } from "@/app/shared/components/overlay/tooltip"
 import { Button } from "@/components/ui/button"
+import { ResponsiveTable } from '@/components/ui/responsive-table'
 import { DeleteStudentDialog } from './delete-student-dialog'
 import { toast } from '@/hooks/use-toast'
 import type { PaginationMeta } from '@/app/shared/types/dtos/api-responses'
@@ -119,149 +120,192 @@ export function StudentTable({ students, meta }: StudentTableProps) {
 
     return (
         <TooltipProvider>
-            <div className="overflow-hidden flex-1">
-                <table className="w-full text-left text-sm">
-                <thead className="border-b border-border">
-                    <tr>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Aluno / Email</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Cursos</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-37.5">Status</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-50">Progresso</th>
-                        <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-15">Ações</th>
-                    </tr>
-                </thead>
+            <div className="flex flex-1 flex-col gap-4">
+                <ResponsiveTable
+                    data={students}
+                    getRowKey={(student) => student.id}
+                    emptyMessage="Nenhum aluno encontrado com esses filtros."
+                    columns={[
+                        {
+                            key: "fullName",
+                            label: "Aluno",
+                            isPrimary: true,
+                            render: (_value, student) => {
+                                const initials = student.fullName
+                                    ? student.fullName
+                                          .split(' ')
+                                          .map((n) => n[0])
+                                          .join('')
+                                          .substring(0, 2)
+                                          .toUpperCase()
+                                    : '??'
 
-                <tbody className="divide-y divide-border/40">
-                    {students.length === 0 ? (
-                        <tr>
-                            <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                                Nenhum aluno encontrado com esses filtros.
-                            </td>
-                        </tr>
-                    ) : (
-                        students.map((student) => {
-                            const initials = student.fullName
-                                ? student.fullName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
-                                : '??';
-                            const status = student.ativo ? 'Ativo' : 'Inativo';
-                            const progress = student.progress;
-
-                            return (
-                                <tr key={student.id} className="group hover:bg-muted/50 transition-colors">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">
-                                                {initials}
+                                return (
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-8 w-8 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">
+                                            {initials}
+                                        </div>
+                                        <div>
+                                            <div className="font-medium text-foreground">
+                                                {student.fullName || 'Sem nome'}
                                             </div>
-                                            <div>
-                                                <div className="font-medium text-foreground">{student.fullName || 'Sem nome'}</div>
-                                                <div className="font-mono text-xs text-muted-foreground">{student.email}</div>
+                                            <div className="font-mono text-xs text-muted-foreground">
+                                                {student.email}
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="p-4">
-                                        {student.courses && student.courses.length > 0 ? (
-                                            <div className="flex flex-wrap gap-1">
-                                                {student.courses.map((course) => (
-                                                    <span
-                                                        key={course.id}
-                                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border"
-                                                    >
-                                                        {course.name}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-muted-foreground">-</span>
-                                        )}
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${status === 'Ativo'
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                            : 'bg-red-50 text-red-700 border-red-200'
-                                            }`}>
-                                            {status}
+                                    </div>
+                                )
+                            },
+                        },
+                        {
+                            key: "courses",
+                            label: "Cursos",
+                            render: (_value, student) => {
+                                const courseCount = student.courses?.length ?? 0
+                                if (!student.courses || student.courses.length === 0) {
+                                    return <span className="text-xs text-muted-foreground">-</span>
+                                }
+
+                                return (
+                                    <span className="inline-flex flex-wrap items-center gap-1">
+                                        <span className="text-xs text-muted-foreground sm:hidden">
+                                            {courseCount} curso(s)
                                         </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex-1 h-1.5 bg-muted/50 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full ${status === 'Ativo' ? 'bg-primary/80' : 'bg-muted-foreground/30'}`}
-                                                    style={{ width: `${progress}%` }}
-                                                ></div>
-                                            </div>
-                                            <span className="font-mono text-xs text-muted-foreground">{progress}%</span>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        {mounted ? (
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 w-8 p-0"
-                                                            onClick={() => router.push(tenant ? `/${tenant}/usuario/alunos/${student.id}` : `/usuario/alunos/${student.id}`)}
-                                                        >
-                                                            <UserCog className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Ver Perfil</TooltipContent>
-                                                </Tooltip>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 w-8 p-0"
-                                                            onClick={() => handleViewAsStudent(student.id)}
-                                                            disabled={loadingId === student.id}
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {loadingId === student.id ? 'Carregando...' : 'Visualizar como Aluno'}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                                            onClick={() => handleDeleteClick(student)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Excluir Aluno</TooltipContent>
-                                                </Tooltip>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
-                                                    <UserCog className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
-                                                    <Eye className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            )
-                        })
-                    )}
-                    </tbody>
-                </table>
+                                        <span className="hidden flex-wrap gap-1 sm:inline-flex">
+                                            {student.courses.map((course) => (
+                                                <span
+                                                    key={course.id}
+                                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border"
+                                                >
+                                                    {course.name}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </span>
+                                )
+                            },
+                        },
+                        {
+                            key: "ativo",
+                            label: "Status",
+                            isImportant: true,
+                            render: (_value, student) => {
+                                const status = student.ativo ? 'Ativo' : 'Inativo'
+                                return (
+                                    <span
+                                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+                                            status === 'Ativo'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                : 'bg-red-50 text-red-700 border-red-200'
+                                        }`}
+                                    >
+                                        {status}
+                                    </span>
+                                )
+                            },
+                        },
+                        {
+                            key: "progress",
+                            label: "Progresso",
+                            isImportant: true,
+                            render: (_value, student) => {
+                                const status = student.ativo ? 'Ativo' : 'Inativo'
+                                const progress = student.progress ?? 0
 
-                <div className="border-t border-border px-4 py-3 flex items-center justify-between">
+                                return (
+                                    <span className="inline-flex items-center gap-2">
+                                        <span className="font-mono text-xs text-muted-foreground sm:hidden">
+                                            {progress}%
+                                        </span>
+                                        <span className="hidden items-center gap-2 sm:inline-flex">
+                                            <span className="h-1.5 w-24 bg-muted/50 rounded-full overflow-hidden">
+                                                <span
+                                                    className={`h-full block rounded-full ${
+                                                        status === 'Ativo'
+                                                            ? 'bg-primary/80'
+                                                            : 'bg-muted-foreground/30'
+                                                    }`}
+                                                    style={{ width: `${progress}%` }}
+                                                />
+                                            </span>
+                                            <span className="font-mono text-xs text-muted-foreground">
+                                                {progress}%
+                                            </span>
+                                        </span>
+                                    </span>
+                                )
+                            },
+                        },
+                    ]}
+                    renderActions={(student) =>
+                        mounted ? (
+                            <>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            onClick={() =>
+                                                router.push(
+                                                    tenant
+                                                        ? `/${tenant}/usuario/alunos/${student.id}`
+                                                        : `/usuario/alunos/${student.id}`
+                                                )
+                                            }
+                                        >
+                                            <UserCog className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Ver Perfil</TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            onClick={() => handleViewAsStudent(student.id)}
+                                            disabled={loadingId === student.id}
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {loadingId === student.id ? 'Carregando...' : 'Visualizar como Aluno'}
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                            onClick={() => handleDeleteClick(student)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Excluir Aluno</TooltipContent>
+                                </Tooltip>
+                            </>
+                        ) : (
+                            <>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                                    <UserCog className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </>
+                        )
+                    }
+                />
+
+                <div className="border-t border-border px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-xs text-muted-foreground">
                         {meta.total === 0 ? (
                             <>Mostrando <strong>0</strong> resultados</>
@@ -276,16 +320,16 @@ export function StudentTable({ students, meta }: StudentTableProps) {
                         )}
                         {meta.totalPages > 1 ? <> • Página <strong>{meta.page}</strong> de <strong>{meta.totalPages}</strong></> : null}
                     </span>
-                    <div className="flex gap-2">
+                    <div className="flex w-full gap-2 sm:w-auto">
                         <button
-                            className="px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+                            className="flex-1 px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 sm:flex-none"
                             disabled={meta.page <= 1}
                             onClick={() => goToPage(meta.page - 1)}
                         >
                             Anterior
                         </button>
                         <button
-                            className="px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+                            className="flex-1 px-3 py-1 border border-border bg-background rounded text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 sm:flex-none"
                             disabled={meta.page >= meta.totalPages}
                             onClick={() => goToPage(meta.page + 1)}
                         >

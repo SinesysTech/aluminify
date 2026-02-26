@@ -187,7 +187,7 @@ export function SessionSummaryModal({
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                             <div
                                 className={cn(
-                                    'h-full rounded-full transition-all duration-500',
+                                    'h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none',
                                     efficiencyPercent >= 90 ? 'bg-emerald-500' :
                                     efficiencyPercent >= 75 ? 'bg-primary' :
                                     efficiencyPercent >= 50 ? 'bg-amber-500' :

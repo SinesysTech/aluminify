@@ -35,7 +35,7 @@ export function ScheduleProgress({ value, streakDays }: ScheduleProgressProps) {
             <div className="relative mb-1">
               <Flame
                 className={cn(
-                  'h-7 w-7 md:h-8 md:w-8 transition-all',
+                  'h-7 w-7 md:h-8 md:w-8 transition-colors duration-200 motion-reduce:transition-none',
                   streakDays > 0
                     ? 'text-yellow-300 drop-shadow-[0_0_6px_rgba(250,204,21,0.4)]'
                     : 'text-white/50'
@@ -79,7 +79,7 @@ export function ScheduleProgress({ value, streakDays }: ScheduleProgressProps) {
             <div className="h-2.5 md:h-3 bg-white/20 rounded-full overflow-hidden mb-2">
               <div
                 className={cn(
-                  'h-full rounded-full transition-all duration-700 ease-out',
+                  'h-full rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none',
                   isComplete ? 'bg-white' : 'bg-white/90'
                 )}
                 style={{ width: `${Math.max(value, 2)}%` }}

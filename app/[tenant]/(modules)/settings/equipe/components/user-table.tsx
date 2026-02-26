@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { Eye, UserCog } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
+import { useBreakpoint } from '@/hooks/use-breakpoint'
 import type { UsuarioSummary } from '@/app/shared/types/entities/usuario'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Tooltip,
   TooltipContent,
@@ -25,6 +27,7 @@ export function UserTable({ usuarios, currentUserIsAdmin }: UserTableProps) {
   const params = useParams()
   const tenant = params?.tenant as string
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const { isMobile } = useBreakpoint()
 
   const handleImpersonate = async (targetId: string) => {
     setLoadingId(targetId)
@@ -85,111 +88,218 @@ export function UserTable({ usuarios, currentUserIsAdmin }: UserTableProps) {
 
   return (
     <TooltipProvider>
-      <div className="overflow-hidden flex-1">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border">
-            <tr>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Usuário / Email</th>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Papel</th>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-[150px]">Status</th>
-              <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-[100px]">Ações</th>
-            </tr>
-          </thead>
+      <div>
+        {/* Mobile Card View */}
+        {isMobile ? (
+        <div className="space-y-3">
+          {usuarios.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              Nenhum usuário encontrado com esses filtros.
+            </div>
+          ) : (
+            usuarios.map((usuario) => {
+              const initials = usuario.nomeCompleto
+                ? usuario.nomeCompleto
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase()
+                : '??'
 
-          <tbody className="divide-y divide-border">
-            {usuarios.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="p-8 text-center text-muted-foreground">
-                  Nenhum usuário encontrado com esses filtros.
-                </td>
-              </tr>
-            ) : (
-              usuarios.map((usuario) => {
-                const initials = usuario.nomeCompleto
-                  ? usuario.nomeCompleto.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
-                  : '??'
-
-                return (
-                  <tr key={usuario.id} className="group hover:bg-muted/50 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">
-                          {initials}
+              return (
+                <Card key={usuario.id} className="overflow-hidden">
+                  <CardContent className="p-3">
+                    <div className="space-y-2">
+                      {/* Header with name and actions */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="h-8 w-8 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                            {initials}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-foreground truncate">{usuario.nomeCompleto || 'Sem nome'}</div>
+                            <div className="font-mono text-xs text-muted-foreground truncate">{usuario.email}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium text-foreground">{usuario.nomeCompleto || 'Sem nome'}</div>
-                          <div className="font-mono text-xs text-muted-foreground">{usuario.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getPapelBaseColor(usuario.papelBase)}`}>
-                          {usuario.papelNome || getPapelBaseLabel(usuario.papelBase)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${usuario.ativo
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-red-50 text-red-700 border-red-200'
-                        }`}>
-                        {usuario.ativo ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {currentUserIsAdmin && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          {currentUserIsAdmin && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => handleImpersonate(usuario.id)}
+                                  disabled={loadingId === usuario.id}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {loadingId === usuario.id ? 'Carregando...' : 'Visualizar como Usuário'}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0"
-                                onClick={() => handleImpersonate(usuario.id)}
-                                disabled={loadingId === usuario.id}
+                                onClick={() =>
+                                  router.push(
+                                    tenant
+                                      ? `/${tenant}/settings/equipe/${usuario.id}`
+                                      : `/settings/equipe/${usuario.id}`
+                                  )
+                                }
                               >
-                                <Eye className="h-4 w-4" />
+                                <UserCog className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>
-                              {loadingId === usuario.id ? 'Carregando...' : 'Visualizar como Usuário'}
-                            </TooltipContent>
+                            <TooltipContent>Ver Perfil</TooltipContent>
                           </Tooltip>
-                        )}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() =>
-                                router.push(
-                                  tenant
-                                    ? `/${tenant}/settings/equipe/${usuario.id}`
-                                    : `/settings/equipe/${usuario.id}`
-                                )
-                              }
-                            >
-                              <UserCog className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Ver Perfil</TooltipContent>
-                        </Tooltip>
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
 
-        <div className="border-t border-border px-4 py-3 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            Mostrando <strong>{usuarios.length}</strong> resultado(s)
-          </span>
+                      {/* Details grid */}
+                      <div className="grid grid-cols-2 gap-1.5 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Papel:</span>
+                          <div className="font-medium text-foreground">
+                            {usuario.papelNome || getPapelBaseLabel(usuario.papelBase)}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Status:</span>
+                          <div
+                            className={`inline-flex text-xs font-medium ${
+                              usuario.ativo
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : 'text-red-700 dark:text-red-400'
+                            }`}
+                          >
+                            {usuario.ativo ? 'Ativo' : 'Inativo'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })
+          )}
         </div>
+      ) : (
+        /* Desktop Table View */
+        <div className="overflow-hidden flex-1">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-border">
+              <tr>
+                <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Usuário / Email</th>
+                <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs">Papel</th>
+                <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs w-37.5">Status</th>
+                <th className="h-10 px-4 font-medium text-muted-foreground uppercase tracking-wider text-xs text-right w-25">Ações</th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-border">
+              {usuarios.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                    Nenhum usuário encontrado com esses filtros.
+                  </td>
+                </tr>
+              ) : (
+                usuarios.map((usuario) => {
+                  const initials = usuario.nomeCompleto
+                    ? usuario.nomeCompleto.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+                    : '??'
+
+                  return (
+                    <tr key={usuario.id} className="group hover:bg-muted/50 transition-colors">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">
+                            {initials}
+                          </div>
+                          <div>
+                            <div className="font-medium text-foreground">{usuario.nomeCompleto || 'Sem nome'}</div>
+                            <div className="font-mono text-xs text-muted-foreground">{usuario.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getPapelBaseColor(usuario.papelBase)}`}>
+                            {usuario.papelNome || getPapelBaseLabel(usuario.papelBase)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${usuario.ativo
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-red-50 text-red-700 border-red-200'
+                          }`}>
+                          {usuario.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {currentUserIsAdmin && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => handleImpersonate(usuario.id)}
+                                  disabled={loadingId === usuario.id}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {loadingId === usuario.id ? 'Carregando...' : 'Visualizar como Usuário'}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() =>
+                                  router.push(
+                                    tenant
+                                      ? `/${tenant}/settings/equipe/${usuario.id}`
+                                      : `/settings/equipe/${usuario.id}`
+                                  )
+                                }
+                              >
+                                <UserCog className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Ver Perfil</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+
+          <div className="border-t border-border px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Mostrando <strong>{usuarios.length}</strong> resultado(s)
+            </span>
+          </div>
+        </div>
+      )}
       </div>
     </TooltipProvider>
   )

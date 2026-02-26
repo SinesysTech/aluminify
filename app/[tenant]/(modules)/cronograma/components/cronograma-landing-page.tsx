@@ -95,7 +95,7 @@ export function CronogramaLandingPage({ cronogramas, hasBaseContent }: Cronogram
               <Card
                 key={cronograma.id}
                 className={cn(
-                  'cursor-pointer transition-all duration-200 group overflow-hidden rounded-2xl pt-0',
+                  'cursor-pointer transition-colors duration-200 motion-reduce:transition-none group overflow-hidden rounded-2xl pt-0',
                   'hover:shadow-lg hover:shadow-foreground/5 hover:border-foreground/20',
                   'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
                   'dark:hover:shadow-white/5 dark:hover:border-white/15'

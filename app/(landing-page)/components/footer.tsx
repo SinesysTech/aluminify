@@ -139,12 +139,17 @@ export function Footer() {
                     <p className="text-xs text-muted-foreground">
                         © 2026 Aluminify Inc. Apache 2.0 License.
                     </p>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full">
+                    <a
+                        href="https://sinesys.com.br"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full transition-colors hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    >
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         <span className="text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400">
                             Powered by Sinesys Intelligence
                         </span>
-                    </div>
+                    </a>
                 </div>
             </div>
         </footer>

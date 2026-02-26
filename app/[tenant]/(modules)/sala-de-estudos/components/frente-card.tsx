@@ -40,7 +40,7 @@ export function FrenteCard({
   return (
     <Card
       className={cn(
-        'group cursor-pointer transition-all duration-200 rounded-2xl pt-0 overflow-hidden',
+        'group cursor-pointer transition-colors duration-200 motion-reduce:transition-none rounded-2xl pt-0 overflow-hidden',
         'hover:shadow-md',
         colorConfig.hover,
         'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',

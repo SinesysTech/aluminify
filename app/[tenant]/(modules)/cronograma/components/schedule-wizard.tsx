@@ -47,6 +47,23 @@ import {
 } from '@/app/shared/components/overlay/tooltip'
 import { FrenteOrderDragDrop, type FrenteOrderItem } from './frente-order-drag-drop'
 
+/** Mapeia status HTTP para mensagens amigáveis quando a resposta não é JSON */
+function getHttpErrorMessage(status: number): string {
+  switch (status) {
+    case 502:
+    case 504:
+      return 'O servidor demorou demais para gerar o cronograma. Tente reduzir a quantidade de disciplinas/módulos ou tente novamente em alguns minutos.'
+    case 503:
+      return 'O servidor está temporariamente indisponível. Tente novamente em alguns minutos.'
+    case 413:
+      return 'A requisição é grande demais. Tente reduzir a quantidade de disciplinas selecionadas.'
+    case 429:
+      return 'Muitas requisições em pouco tempo. Aguarde um momento e tente novamente.'
+    default:
+      return `Erro inesperado do servidor (${status}). Tente novamente ou entre em contato com o suporte.`
+  }
+}
+
 const wizardSchema = z.object({
   data_inicio: z.date({ message: 'Data de início é obrigatória' }),
   data_fim: z.date({ message: 'Data de término é obrigatória' }),
@@ -1104,13 +1121,14 @@ export function ScheduleWizard() {
             console.log('JSON parseado:', result)
           } catch (jsonError) {
             console.error('Erro ao fazer parse do JSON:', jsonError)
-            result = { error: `Resposta inválida do servidor: ${responseText.substring(0, 100)}` }
+            result = { error: `Resposta inválida do servidor (${response.status})` }
           }
         } else if (responseText) {
-          console.error('Resposta não é JSON:', responseText)
-          result = { error: responseText || `Erro ${response.status}: ${response.statusText}` }
+          // Resposta não-JSON (ex: HTML de timeout do nginx) — mapear para mensagem amigável
+          console.error('Resposta não é JSON:', responseText.substring(0, 200))
+          result = { error: getHttpErrorMessage(response.status) }
         } else {
-          result = { error: `Erro ${response.status}: ${response.statusText || 'Resposta vazia do servidor'}` }
+          result = { error: getHttpErrorMessage(response.status) }
         }
       } catch (parseError) {
         console.error('Erro ao processar resposta:', parseError)
@@ -1343,11 +1361,11 @@ export function ScheduleWizard() {
   const prioridadeSugerida = Math.max(1, prioridadeAtual - 1)
 
   if (loadingData) {
-    return <div className="container mx-auto py-6">Carregando...</div>
+    return <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 pb-6">Carregando...</div>
   }
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
+    <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 pb-6">
       <Card className="overflow-hidden">
         <CardHeader className="space-y-6">
           <div className="space-y-1">
@@ -1365,7 +1383,7 @@ export function ScheduleWizard() {
                   <div className="flex flex-col items-center gap-1.5">
                     <div
                       className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200',
+                        'flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-200 motion-reduce:transition-none',
                         completed
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : active
@@ -1377,7 +1395,7 @@ export function ScheduleWizard() {
                     </div>
                     <span
                       className={cn(
-                        'text-xs text-center max-w-[80px] leading-tight hidden sm:block',
+                        'text-xs text-center max-w-20 leading-tight hidden sm:block',
                         active ? 'font-semibold text-foreground' : completed ? 'font-medium text-foreground' : 'text-muted-foreground',
                       )}
                     >
@@ -1387,11 +1405,11 @@ export function ScheduleWizard() {
                   {index < STEPS.length - 1 && (
                     <div
                       className={cn(
-                        'h-0.5 flex-1 mx-1 sm:mx-2 rounded-full transition-all duration-300',
+                        'h-0.5 flex-1 mx-1 sm:mx-2 rounded-full transition-colors duration-300 motion-reduce:transition-none',
                         currentStep > step.id + 1
                           ? 'bg-primary'
                           : currentStep > step.id
-                            ? 'bg-gradient-to-r from-primary to-muted'
+                                ? 'bg-linear-to-r from-primary to-muted'
                             : 'bg-muted',
                       )}
                     />
@@ -1698,7 +1716,7 @@ export function ScheduleWizard() {
                                       <AccordionPrimitive.Header className="flex flex-1">
                                         <AccordionPrimitive.Trigger
                                           className={cn(
-                                            'focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180',
+                                            'focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-colors outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180',
                                           )}
                                         >
                                           <div className="text-left">
@@ -1861,7 +1879,7 @@ export function ScheduleWizard() {
                         <Card
                           key={nivel}
                           className={cn(
-                            'cursor-pointer transition-all duration-200 relative group flex flex-col',
+                            'cursor-pointer transition-colors duration-200 motion-reduce:transition-none relative group flex flex-col',
                             'w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]',
                             selected
                               ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
@@ -1959,7 +1977,7 @@ export function ScheduleWizard() {
                         <Card
                           key={value}
                           className={cn(
-                            'cursor-pointer transition-all duration-200 relative group',
+                            'cursor-pointer transition-colors duration-200 motion-reduce:transition-none relative group',
                             selected
                               ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
                               : 'hover:bg-muted/50 hover:shadow-sm',
@@ -2023,7 +2041,7 @@ export function ScheduleWizard() {
                           key={value}
                           type="button"
                           className={cn(
-                            'rounded-xl border p-4 text-center transition-all duration-200 relative',
+                            'rounded-xl border p-4 text-center transition-colors duration-200 motion-reduce:transition-none relative',
                             selected
                               ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
                               : 'hover:bg-muted/50 hover:shadow-sm',
@@ -2085,7 +2103,7 @@ export function ScheduleWizard() {
                               <Card
                                 key={nivel}
                                 className={cn(
-                                  'p-3 transition-all duration-200',
+                                  'p-3 transition-colors duration-200 motion-reduce:transition-none',
                                   isSelected && 'border-primary bg-primary/5 ring-1 ring-primary/20',
                                 )}
                               >

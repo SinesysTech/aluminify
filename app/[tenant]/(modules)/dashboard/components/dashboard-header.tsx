@@ -97,7 +97,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <Button
               asChild
               variant="default"
-              className="flex min-w-[120px] items-center justify-center gap-2 h-10 px-4 shadow-md hover:shadow-lg ring-1 ring-primary/20 hover:ring-primary/40"
+              className="flex min-w-30 items-center justify-center gap-2 h-10 px-4 shadow-md hover:shadow-lg ring-1 ring-primary/20 hover:ring-primary/40"
             >
               <Link href={modoFocoHref} aria-label="Abrir Modo Foco">
                 <Timer className="text-base" size={16} />

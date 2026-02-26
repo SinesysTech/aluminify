@@ -161,7 +161,7 @@ export default function PerfilClient() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center py-12">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
@@ -169,7 +169,7 @@ export default function PerfilClient() {
 
   if (!profile) {
     return (
-      <div className="flex h-full items-center justify-center py-12">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <p className="text-muted-foreground">
           Não foi possível carregar seu perfil.
         </p>
@@ -182,7 +182,7 @@ export default function PerfilClient() {
     formData.telefone !== (profile.telefone || '')
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
       <div>
         <h1 className="page-title">Meu Perfil</h1>
         <p className="page-subtitle">Gerencie suas informações pessoais</p>

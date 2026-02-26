@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export function DashboardSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
       {/* Header Skeleton */}
       <div className="flex flex-col gap-2 mb-8">
         <Skeleton className="h-8 w-64" />
@@ -83,7 +83,7 @@ export function DashboardSkeleton() {
             <CardHeader>
               <Skeleton className="h-5 w-48" />
             </CardHeader>
-            <CardContent className="flex justify-center items-center h-[300px]">
+            <CardContent className="flex justify-center items-center h-75">
               <Skeleton className="h-48 w-48 rounded-full" />
             </CardContent>
           </Card>

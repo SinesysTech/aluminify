@@ -23,7 +23,7 @@ export function Nav({ transparent = false, activeLink }: NavProps) {
     }, [transparent]);
 
     const navClasses = transparent
-        ? `fixed top-0 w-full z-50 transition-all duration-300 ${
+        ? `fixed top-0 w-full z-50 transition-[background-color,border-color,backdrop-filter] duration-300 ${
               scrolled
                   ? "bg-background/80 backdrop-blur-md border-b border-border/80"
                   : "bg-transparent border-b border-transparent"
@@ -44,7 +44,7 @@ export function Nav({ transparent = false, activeLink }: NavProps) {
                 <div className="flex justify-between h-16 items-center">
                     <div className="flex items-center gap-8">
                         <Link className="flex items-center gap-2 group" href="/">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold font-display text-xl group-hover:scale-105 transition-transform">
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold font-display text-xl">
                                 A
                             </div>
                             <span className="font-display font-bold text-lg tracking-tight text-foreground">
@@ -80,13 +80,13 @@ export function Nav({ transparent = false, activeLink }: NavProps) {
                     </div>
                     <div className="flex items-center gap-4">
                         <Link
-                            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:block"
+                            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-muted/70 sm:px-0 sm:py-0 sm:rounded-none"
                             href="/auth/login"
                         >
                             Login
                         </Link>
                         <Link
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                             href="/auth/sign-up"
                         >
                             Criar Conta

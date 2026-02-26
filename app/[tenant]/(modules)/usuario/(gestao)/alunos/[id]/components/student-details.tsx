@@ -385,7 +385,7 @@ export function StudentDetails({ student, onUpdate }: StudentDetailsProps) {
                   : '??'}
               </div>
               <div>
-                <h1 className="text-2xl font-semibold">{student.fullName || 'Sem nome'}</h1>
+                <h1 className="page-title">{student.fullName || 'Sem nome'}</h1>
                 <p className="text-muted-foreground">{student.email}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {student.mustChangePassword && (

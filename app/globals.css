@@ -289,33 +289,68 @@
 
   /* Keyframes (Animações Shadcn) */
   @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
   }
   @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
   @keyframes fade-in-up {
-    0% { opacity: 0; transform: translateY(10px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* Aurora animations (flashcard immersive session) */
   @keyframes aurora-slow {
-    0%, 100% { transform: translate(0%, 0%) rotate(0deg); }
-    25% { transform: translate(5%, 5%) rotate(5deg); }
-    50% { transform: translate(0%, 10%) rotate(0deg); }
-    75% { transform: translate(-5%, 5%) rotate(-5deg); }
+    0%,
+    100% {
+      transform: translate(0%, 0%) rotate(0deg);
+    }
+    25% {
+      transform: translate(5%, 5%) rotate(5deg);
+    }
+    50% {
+      transform: translate(0%, 10%) rotate(0deg);
+    }
+    75% {
+      transform: translate(-5%, 5%) rotate(-5deg);
+    }
   }
   @keyframes aurora-medium {
-    0%, 100% { transform: translate(0%, 0%) rotate(0deg); }
-    33% { transform: translate(-8%, 8%) rotate(-8deg); }
-    66% { transform: translate(8%, -4%) rotate(8deg); }
+    0%,
+    100% {
+      transform: translate(0%, 0%) rotate(0deg);
+    }
+    33% {
+      transform: translate(-8%, 8%) rotate(-8deg);
+    }
+    66% {
+      transform: translate(8%, -4%) rotate(8deg);
+    }
   }
   @keyframes aurora-fast {
-    0%, 100% { transform: translate(0%, 0%) rotate(0deg); }
-    50% { transform: translate(10%, -10%) rotate(10deg); }
+    0%,
+    100% {
+      transform: translate(0%, 0%) rotate(0deg);
+    }
+    50% {
+      transform: translate(10%, -10%) rotate(10deg);
+    }
   }
 
   /* Animation Utilities */
@@ -325,7 +360,6 @@
   --animate-aurora-slow: aurora-slow 30s ease-in-out infinite;
   --animate-aurora-medium: aurora-medium 20s ease-in-out infinite;
   --animate-aurora-fast: aurora-fast 15s ease-in-out infinite;
-
 }
 
 /* Utilitários Base */
@@ -336,8 +370,16 @@
   body {
     @apply bg-background text-foreground antialiased;
     background-image:
-      linear-gradient(to right, hsl(var(--deco-line) / var(--deco-alpha)) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--deco-line) / var(--deco-alpha)) 1px, transparent 1px);
+      linear-gradient(
+        to right,
+        hsl(var(--deco-line) / var(--deco-alpha)) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        hsl(var(--deco-line) / var(--deco-alpha)) 1px,
+        transparent 1px
+      );
     background-size: 4rem 4rem;
     background-position: center top;
     /* Prevent accidental pull-to-refresh on mobile */
@@ -348,14 +390,35 @@
   }
 
   /* Eliminate 300ms tap delay on touch devices */
-  a, button, [role="button"], input, select, textarea, label, summary {
+  a,
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  label,
+  summary {
     touch-action: manipulation;
   }
-  
+
   .grid-bg {
     background-size: 40px 40px;
-    mask-image: linear-gradient(to bottom, transparent, 10%, white, 90%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, 10%, white, 90%, transparent);
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      10%,
+      white,
+      90%,
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      10%,
+      white,
+      90%,
+      transparent
+    );
   }
 
   /* Sidebar: sem textura/quadriculado, só cor sólida */
@@ -374,11 +437,13 @@
   [data-slot="popover-trigger"],
   [data-slot="tooltip-trigger"],
   [data-slot="sheet-trigger"],
-  [data-slot="collapsible-trigger"]{
-    @apply cursor-pointer!
+  [data-slot="collapsible-trigger"] {
+    @apply cursor-pointer!;
   }
 
-  [data-slot="dialog-overlay"], [data-slot="sheet-overlay"], [data-slot="drawer-overlay"] {
+  [data-slot="dialog-overlay"],
+  [data-slot="sheet-overlay"],
+  [data-slot="drawer-overlay"] {
     @apply bg-black/20! backdrop-blur-sm;
   }
 }
@@ -402,27 +467,27 @@
 
   /* Títulos principais de páginas (H1) */
   .page-title {
-    @apply text-2xl md:text-3xl font-bold tracking-tight text-foreground;
+    @apply font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground;
   }
 
   /* Subtítulos/descrições de páginas */
   .page-subtitle {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm leading-relaxed text-muted-foreground;
   }
 
   /* Títulos de seções (H2) */
   .section-title {
-    @apply text-lg font-semibold text-foreground;
+    @apply font-display text-lg md:text-xl font-semibold text-foreground;
   }
 
   /* Subtítulos de seções */
   .section-subtitle {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm leading-relaxed text-muted-foreground;
   }
 
   /* Títulos de cards (H3) */
   .card-title {
-    @apply text-base font-semibold text-foreground;
+    @apply text-base font-semibold leading-tight text-foreground;
   }
 
   /* Títulos de estados vazios */
@@ -432,7 +497,7 @@
 
   /* Títulos de widgets/gráficos internos (dentro de cards no dashboard) */
   .widget-title {
-    @apply text-base md:text-lg font-semibold text-foreground;
+    @apply text-base md:text-lg font-semibold leading-tight text-foreground;
   }
 
   /* Labels de métricas em cards de stats */
@@ -442,6 +507,24 @@
 
   /* Valores de métricas em cards de stats */
   .metric-value {
+    @apply text-2xl md:text-3xl font-bold tracking-tight leading-none text-foreground;
+  }
+
+  /* === Landing Typography (escala própria de marketing) === */
+
+  .landing-hero-title {
+    @apply font-display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground;
+  }
+
+  .landing-section-title {
+    @apply font-display text-2xl font-bold tracking-tight text-foreground;
+  }
+
+  .landing-card-title {
+    @apply font-display text-2xl font-bold tracking-tight text-foreground;
+  }
+
+  .landing-metric-value {
     @apply text-2xl font-bold tracking-tight text-foreground;
   }
 

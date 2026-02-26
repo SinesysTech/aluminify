@@ -154,7 +154,7 @@ function DataPageEmptyState({
   return (
     <section
       className={cn(
-        "flex-1 flex flex-col items-center justify-center min-h-[400px]",
+        "flex-1 flex flex-col items-center justify-center min-h-100",
         className
       )}
     >
@@ -278,9 +278,9 @@ function DataPageSearchInput({
   icon,
 }: DataPageSearchInputProps) {
   return (
-    <div className={cn("relative flex-1 max-w-sm", className)}>
+    <div className={cn("relative w-full sm:max-w-sm", className)}>
       {icon && (
-        <div className="absolute left-2.5 top-2.5 w-5 h-5 text-zinc-400">
+        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none">
           {icon}
         </div>
       )}
@@ -288,7 +288,7 @@ function DataPageSearchInput({
         type="text"
         placeholder={placeholder}
         className={cn(
-          "w-full h-10 pr-4 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all",
+          "w-full h-9 md:h-8 pr-4 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors",
           icon ? "pl-9" : "pl-4"
         )}
         value={value}

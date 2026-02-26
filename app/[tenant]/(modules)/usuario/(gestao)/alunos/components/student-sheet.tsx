@@ -5,6 +5,14 @@ import { X, Loader2 } from 'lucide-react'
 import { createStudentAction } from '../actions'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/shared/library/api-client'
+import { Input } from '@/app/shared/components/forms/input'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/app/shared/components/forms/select'
 
 interface Turma {
     id: string
@@ -81,7 +89,13 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
     }, [isOpen])
 
     const handleCourseChange = (courseId: string) => {
-        setFormData(prev => ({ ...prev, courseId, turmaId: '' }))
+        const resolvedId = courseId === '__none__' ? '' : courseId
+        setFormData(prev => ({ ...prev, courseId: resolvedId, turmaId: '' }))
+    }
+
+    const handleTurmaChange = (turmaId: string) => {
+        const resolvedId = turmaId === '__none__' ? '' : turmaId
+        setFormData(prev => ({ ...prev, turmaId: resolvedId }))
     }
 
     const handleSubmit = async () => {
@@ -124,7 +138,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
             ></div>
 
             {/* Sheet Content */}
-            <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border shadow-lg z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border shadow-lg z-50 flex flex-col pb-[calc(var(--bottom-nav-height)+var(--bottom-nav-safe-area))] md:pb-0 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
 
                 <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between bg-muted/50">
                     <div>
@@ -150,45 +164,44 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                     <div className="space-y-4">
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium text-foreground">Nome Completo</label>
-                            <input
+                            <Input
                                 type="text"
                                 placeholder="Ex: João da Silva"
                                 value={formData.fullName}
                                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-all font-sans"
                             />
                         </div>
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium text-foreground">E-mail</label>
-                            <input
+                            <Input
                                 type="email"
                                 placeholder="aluno@email.com"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-all font-mono"
+                                className="font-mono"
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-medium text-foreground">CPF (Opcional)</label>
-                                <input
+                                <Input
                                     type="text"
                                     placeholder="000.000.000-00"
                                     value={formData.cpf}
                                     onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                                    className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+                                    className="font-mono"
                                 />
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-medium text-foreground">Telefone</label>
-                                <input
+                                <Input
                                     type="text"
                                     placeholder="(00) 00000-0000"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+                                    className="font-mono"
                                 />
                             </div>
                         </div>
@@ -201,16 +214,17 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium text-foreground">Curso</label>
-                            <select
-                                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
-                                onChange={(e) => handleCourseChange(e.target.value)}
-                                value={formData.courseId}
-                            >
-                                <option value="">Selecionar curso...</option>
-                                {courses.map((course) => (
-                                    <option key={course.id} value={course.id}>{course.name}</option>
-                                ))}
-                            </select>
+                            <Select onValueChange={handleCourseChange} value={formData.courseId || '__none__'}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecionar curso..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__none__">Selecionar curso...</SelectItem>
+                                    {courses.map((course) => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Turma selector - only shown when course uses turmas */}
@@ -218,7 +232,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                             <div className="space-y-1.5">
                                 <label className="text-xs font-medium text-foreground">Turma</label>
                                 {loadingTurmas ? (
-                                    <div className="flex items-center gap-2 h-9 px-3 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-2 h-11 md:h-9 px-3 text-sm text-muted-foreground">
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                         Carregando turmas...
                                     </div>
@@ -227,26 +241,32 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                                         Nenhuma turma cadastrada para este curso.
                                     </div>
                                 ) : (
-                                    <select
-                                        className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
-                                        onChange={(e) => setFormData({ ...formData, turmaId: e.target.value })}
-                                        value={formData.turmaId}
-                                    >
-                                        <option value="">Selecionar turma (opcional)...</option>
-                                        {turmas.map((turma) => (
-                                            <option key={turma.id} value={turma.id}>{turma.nome}</option>
-                                        ))}
-                                    </select>
+                                    <Select onValueChange={handleTurmaChange} value={formData.turmaId || '__none__'}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecionar turma (opcional)..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="__none__">Selecionar turma (opcional)...</SelectItem>
+                                            {turmas.map((turma) => (
+                                                <SelectItem key={turma.id} value={turma.id}>{turma.nome}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             </div>
                         )}
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium text-foreground">Plano de Acesso</label>
-                            <select className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring">
-                                <option>Acesso Completo</option>
-                                <option>Apenas Matérias Exatas</option>
-                            </select>
+                            <Select defaultValue="completo">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecionar plano..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="completo">Acesso Completo</SelectItem>
+                                    <SelectItem value="exatas">Apenas Matérias Exatas</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>
@@ -262,7 +282,7 @@ export function StudentSheet({ isOpen, onClose, courses }: StudentSheetProps) {
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-6 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-md shadow-sm disabled:opacity-50"
+                        className="rounded-xl bg-primary px-6 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50"
                     >
                         {loading ? 'Salvando...' : 'Salvar Registro'}
                     </button>

@@ -27,7 +27,7 @@ export function OpenSourcePage() {
                         </div>
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight mb-6">
                             Gratuito e seu.<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-600 to-black dark:from-zinc-300 dark:to-white">Para sempre.</span>
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-zinc-600 to-black dark:from-zinc-300 dark:to-white">Para sempre.</span>
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
                             O Aluminify é código aberto. Isso significa que você pode usar de graça,
@@ -39,14 +39,14 @@ export function OpenSourcePage() {
                                 href="https://github.com/SinesysTech/aluminify"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full sm:w-auto px-8 py-3.5 bg-foreground text-background font-medium rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-foreground text-background font-medium rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                             >
                                 <Github className="w-5 h-5" />
                                 Ver no GitHub
                             </a>
                             <Link
                                 href="/pricing"
-                                className="w-full sm:w-auto px-8 py-3.5 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-all flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-3.5 bg-background border border-border text-foreground font-medium rounded-lg hover:bg-muted transition-colors flex items-center justify-center gap-2"
                             >
                                 Ver planos
                             </Link>
@@ -70,7 +70,7 @@ export function OpenSourcePage() {
                                 <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center mb-6">
                                     <Server className="w-6 h-6 text-foreground" />
                                 </div>
-                                <h3 className="text-2xl font-bold mb-2">Instalação própria</h3>
+                                <h3 className="landing-card-title mb-2">Instalação própria</h3>
                                 <p className="text-muted-foreground mb-6 flex-1">
                                     Se você tem alguém que entende de tecnologia (um sobrinho, um técnico), pode instalar de graça no seu próprio servidor. Controle total.
                                 </p>
@@ -101,7 +101,7 @@ export function OpenSourcePage() {
                                 <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-6">
                                     <Cloud className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <h3 className="text-2xl font-bold mb-2">Nuvem Aluminify</h3>
+                                <h3 className="landing-card-title mb-2">Nuvem Aluminify</h3>
                                 <p className="text-muted-foreground mb-6 flex-1">
                                     Para quem quer focar no curso, não na tecnologia. A gente cuida de tudo: instalação, atualização, segurança e backup.
                                 </p>

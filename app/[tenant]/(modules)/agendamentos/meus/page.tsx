@@ -129,7 +129,7 @@ function StatsCard({ title, value, icon: Icon, variant }: StatsCardProps) {
 
   return (
     <Card className={cn(
-      'group overflow-hidden transition-all duration-300 py-0 gap-0 rounded-2xl',
+      'group overflow-hidden transition-colors duration-200 motion-reduce:transition-none py-0 gap-0 rounded-2xl',
       'dark:bg-card/80 dark:backdrop-blur-sm dark:border-white/5',
       'hover:shadow-lg',
       config.hoverShadow,
@@ -137,15 +137,15 @@ function StatsCard({ title, value, icon: Icon, variant }: StatsCardProps) {
       <div className={cn('h-0.5 bg-linear-to-r', config.accentFrom, config.accentTo)} />
       <CardContent className="p-4 md:p-5">
         <div className="flex items-start justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground leading-tight">{title}</span>
+          <span className="metric-label leading-tight">{title}</span>
           <div className={cn(
-            'flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110',
+            'flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl transition-colors duration-200 motion-reduce:transition-none',
             config.iconBg
           )}>
-            <Icon className="h-4 w-4 md:h-[18px] md:w-[18px] text-white" />
+            <Icon className="h-4 w-4 md:h-4.5 md:w-4.5 text-white" />
           </div>
         </div>
-        <span className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{value}</span>
+        <span className="metric-value">{value}</span>
       </CardContent>
     </Card>
   )

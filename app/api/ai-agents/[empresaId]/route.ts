@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/app/shared/core/server";
+import { getDatabaseClient } from "@/app/shared/core/database/database";
 import { AIAgentsService } from "@/app/shared/services/ai-agents/ai-agents.service";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export async function GET(
     const slug = searchParams.get("slug") || undefined;
     const configType = searchParams.get("config");
 
-    const supabase = await createClient();
+    const supabase = getDatabaseClient();
     const service = new AIAgentsService(supabase);
 
     // List all active agents

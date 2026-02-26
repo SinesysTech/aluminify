@@ -101,7 +101,7 @@ export function StudentsUnderCareList({ students }: StudentsUnderCareListProps) 
                       <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
                           className={cn(
-                            'h-full transition-all duration-500',
+                            'h-full transition-[width] duration-500 motion-reduce:transition-none',
                             getProgressColor(student.progresso)
                           )}
                           style={{ width: `${student.progresso}%` }}

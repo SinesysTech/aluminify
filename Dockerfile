@@ -67,6 +67,10 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# Increase Node.js heap memory to prevent OOM crashes under load
+# (The builder stage has this too, but each stage is independent)
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 # Build-time environment variables (repeated for Runner stage — bakes NEXT_PUBLIC_* into client bundle)
 ARG SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_URL

@@ -241,7 +241,7 @@ export function CleanView({
             {/* Top controls bar - auto-hide */}
             <div
                 className={cn(
-                    'absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 z-20 transition-all duration-500',
+                    'absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 z-20 transition-[opacity,transform] duration-500 motion-reduce:transition-none',
                     showControls ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
                 )}
             >
@@ -290,7 +290,7 @@ export function CleanView({
                     {/* Progress ring */}
                     <svg
                         className={cn(
-                            'absolute -rotate-90 transition-all duration-1000',
+                            'absolute -rotate-90 transition-opacity duration-1000 motion-reduce:transition-none',
                             reducedMotion && 'transition-none'
                         )}
                         width="320"
@@ -328,7 +328,7 @@ export function CleanView({
                             strokeLinecap="round"
                             filter="url(#glow)"
                             className={cn(
-                                'transition-all duration-1000',
+                                'transition-[stroke-dashoffset] duration-1000 motion-reduce:transition-none',
                                 getPhaseColor(),
                                 reducedMotion && 'transition-none'
                             )}
@@ -343,7 +343,7 @@ export function CleanView({
                         onClick={state.paused ? onResume : onPause}
                         className={cn(
                             'relative z-10 text-center cursor-pointer group rounded-full p-8',
-                            'transition-all duration-300 hover:scale-[1.02]',
+                            'transition-colors duration-200 motion-reduce:transition-none',
                             'focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-4 focus:ring-offset-transparent'
                         )}
                         aria-label={state.paused ? 'Retomar sessão' : 'Pausar sessão'}
@@ -351,7 +351,7 @@ export function CleanView({
                         {/* Time */}
                         <div
                             className={cn(
-                                'text-7xl md:text-8xl font-light tabular-nums tracking-tight transition-all duration-500',
+                                'text-7xl md:text-8xl font-light tabular-nums tracking-tight transition-opacity duration-500 motion-reduce:transition-none',
                                 'text-white',
                                 state.paused && 'opacity-60'
                             )}
@@ -369,12 +369,12 @@ export function CleanView({
 
                         {/* Hover/Paused indicator */}
                         <div className={cn(
-                            'absolute inset-0 flex items-center justify-center rounded-full transition-all duration-300',
+                            'absolute inset-0 flex items-center justify-center rounded-full transition-colors duration-300 motion-reduce:transition-none',
                             'bg-white/0 group-hover:bg-white/5',
                             state.paused && 'bg-white/5'
                         )}>
                             <div className={cn(
-                                'flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300',
+                                'flex items-center gap-2 px-4 py-2 rounded-full transition-[opacity,transform,background-color] duration-300 motion-reduce:transition-none',
                                 'opacity-0 translate-y-2',
                                 'group-hover:opacity-100 group-hover:translate-y-0',
                                 state.paused && 'opacity-100 translate-y-0 bg-amber-500/20'
@@ -397,13 +397,13 @@ export function CleanView({
 
                 {/* Quote section */}
                 <div className={cn(
-                    'absolute bottom-28 md:bottom-32 left-0 right-0 px-8 transition-all duration-700',
+                    'absolute bottom-28 md:bottom-32 left-0 right-0 px-8 transition-opacity duration-700 motion-reduce:transition-none',
                     showControls ? 'opacity-80' : 'opacity-50'
                 )}>
                     <blockquote className="max-w-2xl mx-auto text-center">
                         <p className={cn(
                             'text-base md:text-lg text-slate-300 italic leading-relaxed',
-                            'transition-all duration-500'
+                            'transition-colors duration-500 motion-reduce:transition-none'
                         )}>
                             &ldquo;{currentQuote.text}&rdquo;
                         </p>
@@ -416,7 +416,7 @@ export function CleanView({
 
             {/* Bottom hint */}
             <div className={cn(
-                'absolute bottom-6 left-0 right-0 text-center z-20 transition-all duration-500 pointer-events-none',
+                'absolute bottom-6 left-0 right-0 text-center z-20 transition-[opacity,transform] duration-500 motion-reduce:transition-none pointer-events-none',
                 showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}>
                 <p className="text-xs text-slate-500">

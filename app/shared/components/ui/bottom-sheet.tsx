@@ -106,7 +106,7 @@ export function BottomSheet({
               className={cn(
                 "w-full flex items-center justify-between px-4 py-3.5 text-left",
                 "transition-colors hover:bg-accent/50 active:bg-accent",
-                "min-h-[48px]", // Touch target
+                "min-h-12", // Touch target
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 isSelected(option.value) && "bg-accent/30"
               )}

@@ -50,12 +50,12 @@ export function TransactionFilters({
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center">
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative w-full sm:max-w-sm">
+        <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" strokeWidth={1.5} />
         <Input
           placeholder="Buscar por email..."
           defaultValue={currentSearch}
-          className="pl-9"
+          className="h-9 md:h-8 pl-9"
           onChange={(e) => {
             const value = e.target.value;
             // Debounce search
@@ -73,7 +73,7 @@ export function TransactionFilters({
           updateFilter("status", value === "all" ? null : value)
         }
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger size="sm" className="w-45">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
@@ -91,7 +91,7 @@ export function TransactionFilters({
           updateFilter("provider", value === "all" ? null : value)
         }
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger size="sm" className="w-45">
           <SelectValue placeholder="Origem" />
         </SelectTrigger>
         <SelectContent>

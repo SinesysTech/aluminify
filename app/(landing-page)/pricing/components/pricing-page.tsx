@@ -136,7 +136,7 @@ export function PricingPage() {
 
                 <section className="py-24 bg-card border-t border-border">
                     <div className="max-w-3xl mx-auto px-4">
-                        <h2 className="text-2xl font-bold text-center mb-12">Perguntas Frequentes</h2>
+                        <h2 className="landing-section-title text-center mb-12">Perguntas Frequentes</h2>
                         <div className="space-y-4">
                             <details className="group border border-border rounded-lg p-4 cursor-pointer bg-background">
                                 <summary className="flex justify-between items-center font-medium list-none text-foreground">

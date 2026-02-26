@@ -79,11 +79,11 @@ export function StatusIndicator({
       onClick={onClick}
       disabled={disabled || loading || !onClick}
       className={cn(
-        'rounded-full flex items-center justify-center transition-all duration-200',
+        'rounded-full flex items-center justify-center transition-colors duration-200 motion-reduce:transition-none',
         sizeClasses[size],
         config.bgClass,
         isClickable && config.hoverClass,
-        isClickable && 'cursor-pointer active:scale-95',
+        isClickable && 'cursor-pointer',
         !isClickable && 'cursor-default',
         disabled && 'opacity-50',
         className

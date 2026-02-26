@@ -72,7 +72,7 @@ export function FormPanel({ professorId, timeZone, durationMinutes }: FormPanelP
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full lg:w-[360px]">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full lg:w-90">
       {/* Summary Card */}
       <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
         <div className="flex items-center gap-2">

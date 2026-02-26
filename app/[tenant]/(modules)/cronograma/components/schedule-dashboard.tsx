@@ -791,7 +791,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-4">
         <Skeleton className="h-12 w-64" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -800,7 +800,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
 
   if (!cronograma) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
         <Card>
           <CardHeader>
             <CardTitle>Cronograma não encontrado</CardTitle>
@@ -820,7 +820,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
   const progressoPercentual = totalItens > 0 ? (itensConcluidos / totalItens) * 100 : 0
 
   return (
-    <div className="container mx-auto py-4 md:py-6 space-y-4 md:space-y-6 px-2 md:px-4">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 space-y-4 md:space-y-6">
       {/* Header com Resumo */}
       <Card>
         <CardHeader className="pb-3">
@@ -921,11 +921,11 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl bg-muted/50 p-3 text-center">
-              <div className="text-2xl font-bold text-primary">{semanaAtual}</div>
+              <div className="metric-value text-primary">{semanaAtual}</div>
               <div className="text-[11px] text-muted-foreground">Semana atual</div>
             </div>
             <div className="rounded-xl bg-muted/50 p-3 text-center">
-              <div className="text-2xl font-bold">
+              <div className="metric-value">
                 {itensConcluidos}
                 <span className="text-base font-normal text-muted-foreground">/{totalItens}</span>
               </div>
@@ -933,7 +933,7 @@ export function ScheduleDashboard({ cronogramaId }: { cronogramaId: string }) {
             </div>
             <div className="rounded-xl bg-muted/50 p-3 text-center">
               <div className={cn(
-                'text-2xl font-bold',
+                'metric-value',
                 progressoPercentual >= 100 ? 'text-primary' : 'text-foreground',
               )}>
                 {progressoPercentual.toFixed(1)}%

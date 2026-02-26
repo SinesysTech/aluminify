@@ -48,8 +48,10 @@ export default async function EditPapelPage({ params }: PageProps) {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl py-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl">
       <EditPapelClient papel={formattedPapel} empresaId={user.empresaId} />
+      </div>
     </div>
   )
 }

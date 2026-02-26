@@ -83,7 +83,7 @@ export async function createAgendamento(
     user.id,
     targetEmpresaId,
   );
-  if (quotaInfo.totalQuota > 0 && quotaInfo.remaining <= 0) {
+  if (quotaInfo.hasQuotaConfigured && quotaInfo.remaining <= 0) {
     throw new Error(
       "Sua cota mensal de plantões foi atingida. Você não pode agendar mais plantões este mês.",
     );

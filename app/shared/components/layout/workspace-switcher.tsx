@@ -95,10 +95,10 @@ export function WorkspaceSwitcher() {
           <SidebarMenuButton
             size="lg"
             asChild
-            className="border border-sidebar-border/50 hover:border-sidebar-foreground/20 hover:bg-sidebar-accent/50 shadow-sm hover:shadow-md dark:border-sidebar-foreground/15 dark:bg-sidebar-accent/20 dark:hover:border-sidebar-foreground/30 dark:hover:bg-sidebar-accent/40 transition-all"
+            className="hover:bg-sidebar-accent/60 transition-colors duration-200"
           >
             <Link href={tenantSlug ? `/${tenantSlug}/dashboard` : "/dashboard"}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ring-1 ring-sidebar-border/30 dark:ring-sidebar-foreground/15">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ">
                 <TenantLogo
                   logoType="sidebar"
                   empresaId={empresaIdForLogo}
@@ -125,9 +125,9 @@ export function WorkspaceSwitcher() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group/ws data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-sidebar-border hover:border-sidebar-foreground/25 hover:bg-sidebar-accent/50 shadow-sm hover:shadow-md dark:border-sidebar-foreground/20 dark:bg-sidebar-accent/30 dark:hover:border-sidebar-foreground/35 dark:hover:bg-sidebar-accent/50 dark:shadow-none dark:ring-1 dark:ring-sidebar-foreground/10 dark:hover:ring-sidebar-foreground/20 transition-all"
+              className="group/ws data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-sidebar-accent/60 transition-colors duration-200"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ring-1 ring-sidebar-border/30 dark:ring-sidebar-foreground/20">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ">
                 <TenantLogo
                   logoType="sidebar"
                   empresaId={activeEmpresaId}
@@ -140,7 +140,7 @@ export function WorkspaceSwitcher() {
                 <span className="truncate font-semibold">{activeDisplayName}</span>
                 <span className="truncate text-xs text-sidebar-foreground/50">Trocar curso/escola</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/40 group-hover/ws:text-sidebar-foreground/70 transition-colors" />
+              <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/40 group-hover/ws:text-sidebar-foreground/60 transition-colors duration-200" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

@@ -139,7 +139,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
     : 0
 
   return (
-    <div className="flex flex-col gap-6 p-2 md:p-6">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href={`/${tenant}/agendamentos`}>
@@ -158,11 +158,11 @@ export default async function StatsPage({ params }: StatsPageProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Este Mês</h3>
+            <h3 className="metric-label tracking-tight">Este Mês</h3>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="p-6 pt-0">
-            <div className="text-2xl font-bold">{stats.currentMonth.total}</div>
+            <div className="metric-value">{stats.currentMonth.total}</div>
             <p className="text-xs text-muted-foreground">
               {growth >= 0 ? '+' : ''}{growth}% em relação ao mês anterior
             </p>
@@ -171,11 +171,11 @@ export default async function StatsPage({ params }: StatsPageProps) {
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Taxa de Confirmação</h3>
+            <h3 className="metric-label tracking-tight">Taxa de Confirmação</h3>
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           </div>
           <div className="p-6 pt-0">
-            <div className="text-2xl font-bold">{confirmationRate}%</div>
+            <div className="metric-value">{confirmationRate}%</div>
             <p className="text-xs text-muted-foreground">
               {stats.allTime.confirmados + stats.allTime.concluidos} de {stats.allTime.total} agendamentos
             </p>
@@ -184,11 +184,11 @@ export default async function StatsPage({ params }: StatsPageProps) {
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Taxa de Cancelamento</h3>
+            <h3 className="metric-label tracking-tight">Taxa de Cancelamento</h3>
             <XCircle className="h-4 w-4 text-destructive" />
           </div>
           <div className="p-6 pt-0">
-            <div className="text-2xl font-bold">{cancellationRate}%</div>
+            <div className="metric-value">{cancellationRate}%</div>
             <p className="text-xs text-muted-foreground">
               {stats.allTime.cancelados} cancelados
             </p>
@@ -197,11 +197,11 @@ export default async function StatsPage({ params }: StatsPageProps) {
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Horário Popular</h3>
+            <h3 className="metric-label tracking-tight">Horário Popular</h3>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="p-6 pt-0">
-            <div className="text-2xl font-bold">
+            <div className="metric-value">
               {stats.popularHour.toString().padStart(2, '0')}:00
             </div>
             <p className="text-xs text-muted-foreground">
@@ -267,7 +267,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
                     <span className="text-sm text-muted-foreground w-16">{item.month}</span>
                     <div className="flex-1 bg-muted rounded-full h-2">
                       <div
-                        className="bg-primary rounded-full h-2 transition-all"
+                        className="bg-primary rounded-full h-2 transition-[width] duration-300 motion-reduce:transition-none"
                         style={{
                           width: `${Math.min(100, (item.total / Math.max(...stats.monthlyData.map(d => d.total))) * 100)}%`
                         }}
@@ -294,19 +294,19 @@ export default async function StatsPage({ params }: StatsPageProps) {
         <div className="p-6 pt-0">
           <div className="grid gap-4 md:grid-cols-4">
             <div className="text-center p-4 rounded-lg bg-muted">
-              <div className="text-2xl font-bold">{stats.allTime.total}</div>
+              <div className="metric-value">{stats.allTime.total}</div>
               <p className="text-xs text-muted-foreground">Total</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <div className="text-2xl font-bold text-emerald-600">{stats.allTime.confirmados}</div>
+              <div className="metric-value text-emerald-600">{stats.allTime.confirmados}</div>
               <p className="text-xs text-muted-foreground">Confirmados</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <div className="text-2xl font-bold text-blue-600">{stats.allTime.concluidos}</div>
+              <div className="metric-value text-blue-600">{stats.allTime.concluidos}</div>
               <p className="text-xs text-muted-foreground">Concluídos</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <div className="text-2xl font-bold text-red-600">{stats.allTime.cancelados}</div>
+              <div className="metric-value text-red-600">{stats.allTime.cancelados}</div>
               <p className="text-xs text-muted-foreground">Cancelados</p>
             </div>
           </div>

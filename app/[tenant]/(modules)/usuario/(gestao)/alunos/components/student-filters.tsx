@@ -3,8 +3,10 @@
 import { Search } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { apiClient } from '@/shared/library/api-client'
+import { Input } from '@/app/shared/components/forms/input'
+import { FacetedFilter, type FacetedFilterOption } from '@/app/shared/components/ui/faceted-filter'
 
 interface TurmaOption {
     id: string
@@ -17,6 +19,11 @@ interface Course {
     name: string
     usaTurmas?: boolean
 }
+
+const statusOptions: FacetedFilterOption[] = [
+    { label: 'Ativo', value: 'active' },
+    { label: 'Inativo', value: 'inactive' },
+]
 
 export function StudentFilters() {
     const searchParams = useSearchParams()
@@ -60,10 +67,23 @@ export function StudentFilters() {
         replace(`${pathname}?${params.toString()}`)
     }, 300)
 
-    const handleCourseChange = (courseId: string) => {
+    const handleStatusChange = (values: Set<string>) => {
         const params = new URLSearchParams(searchParams)
-        if (courseId && courseId !== '__all__') {
-            params.set('courseId', courseId)
+        const value = values.values().next().value
+        if (value) {
+            params.set('status', value)
+            params.set('page', '1')
+        } else {
+            params.delete('status')
+        }
+        replace(`${pathname}?${params.toString()}`)
+    }
+
+    const handleCourseChange = (values: Set<string>) => {
+        const params = new URLSearchParams(searchParams)
+        const value = values.values().next().value
+        if (value) {
+            params.set('courseId', value)
             params.set('page', '1')
         } else {
             params.delete('courseId')
@@ -73,10 +93,11 @@ export function StudentFilters() {
         replace(`${pathname}?${params.toString()}`)
     }
 
-    const handleTurmaChange = (turmaId: string) => {
+    const handleTurmaChange = (values: Set<string>) => {
         const params = new URLSearchParams(searchParams)
-        if (turmaId && turmaId !== '__all__') {
-            params.set('turmaId', turmaId)
+        const value = values.values().next().value
+        if (value) {
+            params.set('turmaId', value)
             params.set('page', '1')
         } else {
             params.delete('turmaId')
@@ -84,83 +105,63 @@ export function StudentFilters() {
         replace(`${pathname}?${params.toString()}`)
     }
 
-    const handleStatusChange = (status: string) => {
-        const params = new URLSearchParams(searchParams)
-        if (status && status !== '__all__') {
-            params.set('status', status)
-            params.set('page', '1')
-        } else {
-            params.delete('status')
-        }
-        replace(`${pathname}?${params.toString()}`)
-    }
+    const selectedStatus = searchParams.get('status')
+    const selectedCourseId = searchParams.get('courseId')
+    const selectedTurmaId = searchParams.get('turmaId')
 
-    const selectedCourseId = searchParams.get('courseId') || '__all__'
-    const selectedTurmaId = searchParams.get('turmaId') || '__all__'
-    const selectedStatus = searchParams.get('status') || '__all__'
+    const courseOptions: FacetedFilterOption[] = useMemo(
+        () => courses.map((c) => ({ label: c.name, value: c.id })),
+        [courses]
+    )
 
     // Filter turmas by selected course if any
-    const filteredTurmas = selectedCourseId !== '__all__'
-        ? turmas.filter(t => {
-            // Match turma to course by cursoNome (we'd need cursoId in the API response for better matching)
-            const course = courses.find(c => c.id === selectedCourseId)
-            return course && t.cursoNome === course.name
-        })
-        : turmas
+    const turmaOptions: FacetedFilterOption[] = useMemo(() => {
+        const filtered = selectedCourseId
+            ? turmas.filter((t) => {
+                const course = courses.find((c) => c.id === selectedCourseId)
+                return course && t.cursoNome === course.name
+            })
+            : turmas
+
+        return filtered.map((t) => ({
+            label: selectedCourseId ? t.nome : `${t.nome} (${t.cursoNome})`,
+            value: t.id,
+        }))
+    }, [turmas, courses, selectedCourseId])
 
     return (
-        <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-                <input
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:max-w-sm">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" strokeWidth={1.5} />
+                <Input
                     type="text"
                     placeholder="Buscar por nome, email ou ID..."
-                    className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+                    className="h-9 md:h-8 pl-9"
                     onChange={(e) => handleSearch(e.target.value)}
                     defaultValue={searchParams.get('query')?.toString()}
                 />
             </div>
-            <div className="flex items-center gap-2">
-                <select
-                    className="h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-                    value={selectedStatus}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                >
-                    <option value="__all__">Status: Todos</option>
-                    <option value="active">Ativo</option>
-                    <option value="inactive">Inativo</option>
-                </select>
-                <select
-                    className="h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-                    value={selectedCourseId}
-                    onChange={(e) => handleCourseChange(e.target.value)}
-                >
-                    <option value="__all__">Curso: Todos</option>
-                    {courses.map((course) => (
-                        <option key={course.id} value={course.id}>
-                            {course.name}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    className="h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    value={selectedTurmaId}
-                    onChange={(e) => handleTurmaChange(e.target.value)}
-                    disabled={loadingTurmas || filteredTurmas.length === 0}
-                >
-                    <option value="__all__">
-                        {loadingTurmas
-                            ? 'Carregando turmas...'
-                            : filteredTurmas.length === 0
-                                ? 'Nenhuma turma'
-                                : 'Turma: Todas'}
-                    </option>
-                    {filteredTurmas.map((turma) => (
-                        <option key={turma.id} value={turma.id}>
-                            {turma.nome} ({turma.cursoNome})
-                        </option>
-                    ))}
-                </select>
+            <div className="flex flex-wrap items-center gap-2">
+                <FacetedFilter
+                    title="Status"
+                    options={statusOptions}
+                    selected={selectedStatus ? new Set([selectedStatus]) : new Set()}
+                    onSelectionChange={handleStatusChange}
+                />
+                <FacetedFilter
+                    title="Curso"
+                    options={courseOptions}
+                    selected={selectedCourseId ? new Set([selectedCourseId]) : new Set()}
+                    onSelectionChange={handleCourseChange}
+                />
+                {!loadingTurmas && turmaOptions.length > 0 && (
+                    <FacetedFilter
+                        title="Turma"
+                        options={turmaOptions}
+                        selected={selectedTurmaId ? new Set([selectedTurmaId]) : new Set()}
+                        onSelectionChange={handleTurmaChange}
+                    />
+                )}
             </div>
         </div>
     )

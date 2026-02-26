@@ -95,7 +95,7 @@ export default async function TransacoesPage({
   const totalPages = meta.totalPages;
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="flex-1 mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
@@ -118,7 +118,7 @@ export default async function TransacoesPage({
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<div className="flex gap-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-10 w-[180px]" /><Skeleton className="h-10 w-[180px]" /></div>}>
+          <Suspense fallback={<div className="flex gap-4"><Skeleton className="h-10 w-50" /><Skeleton className="h-10 w-45" /><Skeleton className="h-10 w-45" /></div>}>
             <TransactionFilters
               currentStatus={searchParamsData.status}
               currentProvider={searchParamsData.provider}

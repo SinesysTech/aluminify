@@ -57,7 +57,7 @@ export function DateTimePicker({ date, setDate }: Props) {
       <PopoverContent className="w-auto p-0">
         <div className="sm:flex">
           <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus />
-          <div className="flex h-[300px] flex-col divide-y border-s sm:flex-row sm:divide-x sm:divide-y-0">
+          <div className="flex h-75 flex-col divide-y border-s sm:flex-row sm:divide-x sm:divide-y-0">
             <ScrollArea className="w-64 sm:w-auto">
               <div className="flex p-2 sm:flex-col">
                 {hours.reverse().map((hour) => (

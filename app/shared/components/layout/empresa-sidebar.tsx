@@ -13,12 +13,10 @@ import type { LucideIcon } from "lucide-react"
 import { usePathname, useParams } from "next/navigation"
 
 import { NavMain } from "@/components/layout/nav-main"
-import { NavUser } from "@/components/layout/nav-user"
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar"
 
@@ -117,15 +115,12 @@ export function EmpresaSidebar({ ...props }: React.ComponentProps<typeof Sidebar
 
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="sticky top-0 z-10 bg-sidebar/70 backdrop-blur-xl">
         <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMainWithActive} label="Menu" />
+        <NavMain items={navMainWithActive} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
     </Sidebar>
   )
 }

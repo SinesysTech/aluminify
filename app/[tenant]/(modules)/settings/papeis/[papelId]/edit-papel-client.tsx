@@ -66,7 +66,7 @@ export function EditPapelClient({ papel, empresaId }: EditPapelClientProps) {
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">{papel.nome}</h1>
+              <h1 className="page-title">{papel.nome}</h1>
               <Badge variant="secondary" className="gap-1">
                 <Shield className="h-3 w-3" />
                 Sistema
@@ -112,7 +112,7 @@ export function EditPapelClient({ papel, empresaId }: EditPapelClientProps) {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Editar Papel</h1>
+          <h1 className="page-title">Editar Papel</h1>
           <p className="text-muted-foreground">
             Atualize as informações e permissões do papel
           </p>

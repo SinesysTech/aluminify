@@ -33,7 +33,7 @@ export default async function AgendamentosPage({
     const professors = await getProfessoresDisponiveis(empresaId ?? undefined)
 
     return (
-      <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div className="flex flex-col gap-2 items-center lg:px-10">
           <h1 className="page-title">Agendar Atendimento</h1>
           <p className="page-subtitle text-center px-4 md:px-10">
@@ -60,7 +60,7 @@ export default async function AgendamentosPage({
   if (isAdmin && !isTeacher) {
     if (!user.empresaId) {
       return (
-        <div className="flex flex-col gap-6 p-2 md:p-6">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h1 className="page-title">Agendamentos</h1>
             <p className="page-subtitle">
@@ -78,7 +78,7 @@ export default async function AgendamentosPage({
 
     if (!professorId) {
       return (
-        <div className="flex flex-col gap-6 p-2 md:p-6">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h1 className="page-title">Agendamentos</h1>
             <p className="page-subtitle">
@@ -90,7 +90,7 @@ export default async function AgendamentosPage({
     }
 
     return (
-      <div className="flex flex-col gap-6 p-2 md:p-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">Agendamentos</h1>
           <p className="page-subtitle">

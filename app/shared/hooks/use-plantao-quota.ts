@@ -6,6 +6,7 @@ interface PlantaoQuotaInfo {
   totalQuota: number;
   usedThisMonth: number;
   remaining: number;
+  hasQuotaConfigured: boolean;
 }
 
 interface UsePlantaoQuotaReturn extends PlantaoQuotaInfo {
@@ -19,6 +20,7 @@ export function usePlantaoQuota(empresaId: string | null): UsePlantaoQuotaReturn
     totalQuota: 0,
     usedThisMonth: 0,
     remaining: 0,
+    hasQuotaConfigured: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export function usePlantaoQuota(empresaId: string | null): UsePlantaoQuotaReturn
           totalQuota: result.totalQuota,
           usedThisMonth: result.usedThisMonth,
           remaining: result.remaining,
+          hasQuotaConfigured: result.hasQuotaConfigured ?? false,
         });
       }
     } catch (err) {

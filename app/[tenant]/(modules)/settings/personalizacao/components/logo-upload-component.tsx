@@ -344,7 +344,7 @@ export function LogoUploadComponent({
   const colors = LOGO_TYPE_COLORS[logoType];
 
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-md">
+    <Card className="group overflow-hidden transition-colors duration-200 motion-reduce:transition-none hover:shadow-md">
       <CardHeader className={`pb-3 ${colors.bg} border-b ${colors.border}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -429,7 +429,7 @@ export function LogoUploadComponent({
         {/* Upload Area */}
         <div
           className={`
-            relative rounded-xl p-5 text-center cursor-pointer transition-all
+            relative rounded-xl p-5 text-center cursor-pointer transition-colors duration-200 motion-reduce:transition-none
             ${isDragOver
               ? 'bg-primary/10 ring-2 ring-primary ring-offset-2'
               : 'bg-muted/50 hover:bg-muted/70'
@@ -461,7 +461,7 @@ export function LogoUploadComponent({
                   </div>
                 </div>
                 <p className="text-sm font-medium text-primary">Enviando...</p>
-                <Progress value={uploadState.progress} className="w-full max-w-[200px] mx-auto mt-2 h-1.5" />
+                <Progress value={uploadState.progress} className="w-full max-w-50 mx-auto mt-2 h-1.5" />
               </div>
             ) : (
               <>

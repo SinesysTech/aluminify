@@ -282,7 +282,7 @@ export function CotasTable() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Valor 0 = sem limite de atendimentos. A cota é renovada automaticamente a cada mês.
+        Valor 0 = nenhum atendimento permitido. A cota é renovada automaticamente a cada mês.
       </p>
     </div>
   )

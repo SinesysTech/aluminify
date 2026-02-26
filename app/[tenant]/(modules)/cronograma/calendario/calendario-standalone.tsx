@@ -70,7 +70,7 @@ export function CalendarioStandalonePage({ cronogramas }: CalendarioStandalonePa
       {cronogramas.length > 1 && (
         <div className="flex items-center gap-2">
           <Select value={selectedCronogramaId} onValueChange={setSelectedCronogramaId}>
-            <SelectTrigger className="w-full sm:w-[320px]">
+            <SelectTrigger className="w-full sm:w-80">
               <SelectValue placeholder="Selecione um cronograma" />
             </SelectTrigger>
             <SelectContent>

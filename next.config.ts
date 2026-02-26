@@ -18,6 +18,7 @@ const projectRoot = (() => {
 })();
 const isWindows = process.platform === "win32";
 const buildStandalone = process.env.DOCKER_BUILD === "true" && !isWindows;
+const enableSentryTunnel = process.env.SENTRY_TUNNEL_ROUTE === "true";
 
 const nextConfig: NextConfig = {
   // Otimizações para produção
@@ -143,7 +144,9 @@ export default withSentryConfig(nextConfig, {
   // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
   // side errors will fail.
   tunnelRoute:
-    process.env.NODE_ENV === "production" ? "/monitoring" : undefined,
+    process.env.NODE_ENV === "production" && enableSentryTunnel
+      ? "/monitoring"
+      : undefined,
 
   webpack: {
     // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)

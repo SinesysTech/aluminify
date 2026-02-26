@@ -113,10 +113,10 @@ export function ResponsiveTable<T>({
               )}
               onClick={() => onRowClick?.(item)}
             >
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 {/* Título primário */}
                 {primaryColumn && (
-                  <div className="font-medium text-base mb-2">
+                  <div className="font-medium text-base mb-1.5">
                     {primaryColumn.render
                       ? primaryColumn.render(getValue(item, String(primaryColumn.key)), item)
                       : String(getValue(item, String(primaryColumn.key)) ?? "")}
@@ -125,7 +125,7 @@ export function ResponsiveTable<T>({
 
                 {/* Campos importantes */}
                 {importantColumns.length > 0 && (
-                  <div className="space-y-1 mb-3">
+                  <div className="space-y-0.5 mb-2">
                     {importantColumns.map((col) => (
                       <div key={String(col.key)} className="flex justify-between text-sm">
                         <span className="text-muted-foreground">{col.label}</span>
@@ -141,7 +141,7 @@ export function ResponsiveTable<T>({
 
                 {/* Outros campos */}
                 {otherColumns.length > 0 && (
-                  <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="space-y-0.5 text-sm text-muted-foreground">
                     {otherColumns.map((col) => (
                       <div key={String(col.key)} className="flex justify-between">
                         <span>{col.label}</span>
@@ -157,7 +157,7 @@ export function ResponsiveTable<T>({
 
                 {/* Ações */}
                 {renderActions && (
-                  <div className="mt-3 pt-3 border-t flex justify-end gap-2">
+                  <div className="mt-2 pt-2 border-t flex justify-end gap-2">
                     {renderActions(item)}
                   </div>
                 )}
@@ -187,7 +187,7 @@ export function ResponsiveTable<T>({
               </th>
             ))}
             {renderActions && (
-              <th className="text-muted-foreground h-10 px-2 text-right align-middle font-medium whitespace-nowrap w-[100px]">
+              <th className="text-muted-foreground h-10 px-2 text-right align-middle font-medium whitespace-nowrap w-25">
                 Ações
               </th>
             )}

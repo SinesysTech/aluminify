@@ -103,7 +103,7 @@ function ColorInput({ label, value, onChange, description, required = false, dis
       <div className="relative flex items-center group">
         <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center">
           <div
-            className="w-7 h-7 rounded-lg border-2 border-border shadow-sm overflow-hidden relative cursor-pointer hover:scale-105 hover:border-primary/50 transition-all"
+            className="w-7 h-7 rounded-lg border-2 border-border shadow-sm overflow-hidden relative cursor-pointer hover:border-primary/50 transition-colors duration-200 motion-reduce:transition-none"
             style={{ backgroundColor: isValid ? localValue : 'transparent' }}
           >
             <input
@@ -480,7 +480,7 @@ export function ColorPaletteEditor({
             <button
               key={preset.id}
               onClick={() => applyPreset(preset)}
-              className="group relative p-3 rounded-xl border bg-card hover:shadow-md hover:border-primary/50 transition-all cursor-pointer text-left"
+              className="group relative p-3 rounded-xl border bg-card hover:shadow-md hover:border-primary/50 transition-colors duration-200 motion-reduce:transition-none cursor-pointer text-left"
             >
               {/* Color Swatches */}
               <div className="flex gap-1 mb-2">

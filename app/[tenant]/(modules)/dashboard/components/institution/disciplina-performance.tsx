@@ -60,7 +60,7 @@ export function DisciplinaPerformanceList({ disciplinas }: DisciplinaPerformance
                   <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
                       className={cn(
-                        'h-full rounded-full transition-all duration-500 ease-out',
+                        'h-full rounded-full transition-[width] duration-500 ease-out motion-reduce:transition-none',
                         getPerformanceColor(disciplina.aproveitamento)
                       )}
                       style={{ width: `${disciplina.aproveitamento}%` }}

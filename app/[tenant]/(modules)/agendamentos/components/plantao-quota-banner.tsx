@@ -8,7 +8,7 @@ interface PlantaoQuotaBannerProps {
 }
 
 export function PlantaoQuotaBanner({ empresaId }: PlantaoQuotaBannerProps) {
-  const { totalQuota, usedThisMonth, remaining, loading, error } =
+  const { totalQuota, usedThisMonth, remaining, loading, error, hasQuotaConfigured } =
     usePlantaoQuota(empresaId);
 
   if (loading) {
@@ -23,7 +23,8 @@ export function PlantaoQuotaBanner({ empresaId }: PlantaoQuotaBannerProps) {
     return null;
   }
 
-  if (totalQuota === 0) {
+  // No quota configured for this tenant — no enforcement
+  if (!hasQuotaConfigured) {
     return null;
   }
 

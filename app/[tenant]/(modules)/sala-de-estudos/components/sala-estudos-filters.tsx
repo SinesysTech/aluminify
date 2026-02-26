@@ -67,7 +67,7 @@ export function SalaEstudosFilters({
             value={cursoSelecionado || undefined} 
             onValueChange={onCursoChange}
           >
-            <SelectTrigger id="curso">
+            <SelectTrigger id="curso" size="sm">
               <SelectValue placeholder="Selecione um curso" />
             </SelectTrigger>
             <SelectContent>
@@ -93,7 +93,7 @@ export function SalaEstudosFilters({
             onValueChange={onDisciplinaChange}
             disabled={!cursoSelecionado || isLoadingDisciplinas}
           >
-            <SelectTrigger id="disciplina">
+            <SelectTrigger id="disciplina" size="sm">
               <SelectValue
                 placeholder={
                   isLoadingDisciplinas
@@ -127,7 +127,7 @@ export function SalaEstudosFilters({
             onValueChange={onFrenteChange}
             disabled={!disciplinaSelecionada || isLoadingFrentes}
           >
-            <SelectTrigger id="frente">
+            <SelectTrigger id="frente" size="sm">
               <SelectValue
                 placeholder={
                   isLoadingFrentes

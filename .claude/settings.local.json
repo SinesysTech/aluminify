@@ -162,7 +162,9 @@
       "mcp__supabase__list_edge_functions",
       "Bash(where /R \"c:\\\\areadoaluno\\\\areadoaluno\" \"middleware.ts\")",
       "Bash(taskkill:*)",
-      "Bash(timeout //T 2 //NOBREAK)"
+      "Bash(timeout //T 2 //NOBREAK)",
+      "WebFetch(domain:eslint.org)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
@@ -171,7 +173,6 @@
   "enabledMcpjsonServers": [
     "supabase",
     "mastra",
-    "playwright",
-    "gemini-cli-prompt-library"
+    "playwright"
   ]
 }

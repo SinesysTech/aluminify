@@ -145,7 +145,7 @@ export function ContextSelector({
                             onValueChange={onCursoChange}
                             disabled={loadingCursos}
                         >
-                            <SelectTrigger className="h-10">
+                            <SelectTrigger size="sm">
                                 <SelectValue placeholder={loadingCursos ? 'Carregando...' : 'Selecione o curso'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -170,8 +170,7 @@ export function ContextSelector({
                             onValueChange={onDisciplinaChange}
                             disabled={loadingDisciplinas}
                         >
-                            <SelectTrigger className={cn(
-                                "h-10",
+                            <SelectTrigger size="sm" className={cn(
                                 !disciplinaId && "border-primary/50 ring-1 ring-primary/20"
                             )}>
                                 <SelectValue placeholder={loadingDisciplinas ? 'Carregando...' : 'Selecione a disciplina'} />
@@ -224,7 +223,7 @@ export function ContextSelector({
                                         onValueChange={onFrenteChange}
                                         disabled={!disciplinaId || loadingFrentes}
                                     >
-                                        <SelectTrigger className="h-9">
+                                        <SelectTrigger size="sm">
                                             <SelectValue placeholder={
                                                 loadingFrentes ? 'Carregando...' :
                                                     frentes.length === 0 ? 'Nenhuma frente' :
@@ -253,7 +252,7 @@ export function ContextSelector({
                                             onValueChange={onModuloChange}
                                             disabled={loadingModulos}
                                         >
-                                            <SelectTrigger className="h-9">
+                                            <SelectTrigger size="sm">
                                                 <SelectValue placeholder={
                                                     loadingModulos ? 'Carregando...' :
                                                         modulos.length === 0 ? 'Nenhum módulo' :
@@ -284,7 +283,7 @@ export function ContextSelector({
                                             onValueChange={onAtividadeChange}
                                             disabled={loadingAtividades}
                                         >
-                                            <SelectTrigger className="h-9">
+                                            <SelectTrigger size="sm">
                                                 <SelectValue placeholder={
                                                     loadingAtividades ? 'Carregando...' :
                                                         atividades.length === 0 ? 'Nenhuma atividade' :

@@ -61,14 +61,14 @@ export function DisciplineTabs({
                   key={disciplina.id}
                   value={disciplina.id}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-2.5 min-w-[120px] rounded-lg',
+                    'flex items-center gap-2 px-4 py-2.5 min-w-30 rounded-lg',
                     'data-[state=active]:bg-background data-[state=active]:shadow-sm',
                     'dark:data-[state=active]:bg-card/80',
-                    'transition-all duration-200'
+                    'transition-colors duration-200 motion-reduce:transition-none'
                   )}
                 >
                   <span className={cn('w-2 h-2 rounded-full shrink-0', color.dot)} />
-                  <span className="truncate max-w-[150px]">{disciplina.nome}</span>
+                  <span className="truncate max-w-37.5">{disciplina.nome}</span>
                   <Badge
                     variant="outline"
                     className={cn(

@@ -56,19 +56,19 @@ export function EquipeClientPage({ usuarios, initialFilter, currentUserIsAdmin }
   const isEmpty = usuarios.length === 0
 
   return (
-    <div className="flex flex-col gap-8 h-full pb-10">
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-8">
       {/* SECTION: POPULATED STATE */}
       {!isEmpty && (
-        <section id="populated-state" className="flex flex-col gap-4 h-full min-h-[600px]">
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-            <UserFilters
+        <section id="populated-state" className="flex flex-col gap-4 h-full min-h-150">
+          <div className="flex flex-col gap-3 lg:gap-4 items-start lg:justify-between lg:items-center lg:flex-row">
+            <div className="w-full lg:w-auto"><UserFilters
               papelTipoFilter={papelTipoFilter}
               onPapelTipoChange={setPapelTipoFilter}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               countByTipo={countByTipo}
-            />
-            <CreateMemberDialog />
+            /></div>
+            <div className="w-full lg:w-auto"><CreateMemberDialog /></div>
           </div>
 
           <UserTable usuarios={filteredUsuarios} currentUserIsAdmin={currentUserIsAdmin} />
@@ -77,7 +77,7 @@ export function EquipeClientPage({ usuarios, initialFilter, currentUserIsAdmin }
 
       {/* SECTION: EMPTY STATE */}
       {isEmpty && (
-        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+        <section id="empty-state" className="flex-1 flex flex-col items-center justify-center min-h-100">
           <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-border">
             <Users className="w-8 h-8 text-muted-foreground" strokeWidth={1} />
           </div>

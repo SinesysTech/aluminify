@@ -16,21 +16,6 @@ import { StudentBrandingCoordinator } from '@/components/layout/student-branding
 import { StudentTenantCoordinator } from '@/components/layout/student-tenant-coordinator'
 import { headers } from 'next/headers'
 
-// 1. Importação das fontes do Design System (Aluminify)
-import { Inter, JetBrains_Mono } from "next/font/google"
-import { cn } from "@/app/shared/library/utils"
-
-// 2. Configuração das fontes
-const fontSans = Inter({
-    subsets: ["latin"],
-    variable: "--font-sans",
-})
-
-const fontMono = JetBrains_Mono({
-    subsets: ["latin"],
-    variable: "--font-mono",
-})
-
 export async function DashboardLayout({
     children,
 }: Readonly<{
@@ -51,12 +36,7 @@ export async function DashboardLayout({
                         <StudentBrandingCoordinator />
                         <StudentTenantCoordinator />
                         <SidebarProvider
-                            // 3. Aplicação das variáveis de fonte e classes base no Provider
-                            className={cn(
-                                "font-sans antialiased",
-                                fontSans.variable,
-                                fontMono.variable
-                            )}
+                            className="font-sans antialiased"
                         >
                             <AppSidebar />
                             <SidebarInset>

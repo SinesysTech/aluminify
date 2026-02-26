@@ -72,7 +72,7 @@ export function Filters({
                             onValueChange={onCursoChange}
                             disabled={isLoadingFiltros || isLoadingCursos}
                         >
-                            <SelectTrigger className="h-10">
+                            <SelectTrigger size="sm">
                                 <SelectValue
                                     placeholder={
                                         isLoadingCursos
@@ -115,7 +115,7 @@ export function Filters({
                             onValueChange={onDisciplinaChange}
                             disabled={!cursoSelecionado || isLoadingFiltros}
                         >
-                            <SelectTrigger className="h-10">
+                            <SelectTrigger size="sm">
                                 <SelectValue
                                     placeholder={
                                         isLoadingFiltros
@@ -154,7 +154,7 @@ export function Filters({
                             onValueChange={onFrenteChange}
                             disabled={!disciplinaSelecionada || !cursoSelecionado || isLoadingFiltros}
                         >
-                            <SelectTrigger className="h-10">
+                            <SelectTrigger size="sm">
                                 <SelectValue
                                     placeholder={
                                         isLoadingFiltros
@@ -193,7 +193,7 @@ export function Filters({
                             onValueChange={onModuloChange}
                             disabled={!frenteSelecionada || !cursoSelecionado || isLoadingFiltros}
                         >
-                            <SelectTrigger className="h-10">
+                            <SelectTrigger size="sm">
                                 <SelectValue
                                     placeholder={
                                         isLoadingFiltros

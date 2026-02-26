@@ -113,12 +113,12 @@ export function DocsPage() {
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-all group bg-card">
+                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-colors group bg-card">
                                 <RocketIcon className="w-6 h-6 text-primary mb-2" />
                                 <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">Quickstart</h3>
                                 <p className="text-sm text-muted-foreground mt-1">Coloque seu curso no ar em poucos minutos com Docker.</p>
                             </div>
-                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-all group bg-card">
+                            <div className="p-4 rounded-xl border border-border hover:border-primary/50 transition-colors group bg-card">
                                 <Layout className="w-6 h-6 text-primary mb-2" />
                                 <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">Arquitetura</h3>
                                 <p className="text-sm text-muted-foreground mt-1">Entenda o padrão de módulos funcionais e route groups.</p>
@@ -127,7 +127,7 @@ export function DocsPage() {
                     </section>
 
                     <section id="architecture" className="mb-16">
-                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                        <h2 className="landing-section-title mb-4 flex items-center gap-2">
                             <Layers className="w-6 h-6 text-primary" />
                             Arquitetura Modular
                         </h2>
@@ -170,7 +170,7 @@ export function DocsPage() {
                     </section>
 
                     <section id="modules" className="mb-16">
-                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <h2 className="landing-section-title mb-6 flex items-center gap-2">
                             <Cpu className="w-6 h-6 text-primary" />
                             Módulos Funcionais
                         </h2>
@@ -199,14 +199,14 @@ export function DocsPage() {
                     </section>
 
                     <section id="setup" className="mb-16">
-                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                        <h2 className="landing-section-title mb-4 flex items-center gap-2">
                             <Terminal className="w-6 h-6 text-primary" />
                             Instalação
                         </h2>
                         <p className="text-muted-foreground mb-4">O método recomendado para desenvolvimento e produção é via Docker.</p>
 
                         <div className="relative group mt-4 mb-8">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-purple-600/50 rounded-lg blur opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                            <div className="absolute -inset-1 bg-linear-to-r from-primary/50 to-purple-600/50 rounded-lg blur opacity-10 group-hover:opacity-20 transition-opacity"></div>
                             <div className="relative bg-zinc-950 rounded-lg border border-zinc-800 overflow-hidden font-mono text-sm">
                                 <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
                                     <span className="text-xs text-zinc-400">bash</span>
@@ -233,7 +233,7 @@ export function DocsPage() {
                     </section>
 
                     <section id="api" className="mb-16">
-                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                        <h2 className="landing-section-title mb-4 flex items-center gap-2">
                             <Database className="w-6 h-6 text-primary" />
                             API Reference
                         </h2>

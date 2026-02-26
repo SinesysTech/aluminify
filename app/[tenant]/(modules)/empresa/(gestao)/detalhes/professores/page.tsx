@@ -96,11 +96,15 @@ export default function EmpresaProfessoresPage() {
   }
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="text-center">Carregando...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">

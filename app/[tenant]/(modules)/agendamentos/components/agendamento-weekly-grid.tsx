@@ -68,7 +68,7 @@ export function AgendamentoWeeklyGrid({ agendamentos, currentDate = new Date() }
                 </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
-                <div className="min-w-[800px]">
+                <div className="min-w-200">
                     {/* Header Row: Days */}
                     <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b">
                         <div className="p-2 text-xs font-medium text-muted-foreground border-r bg-muted/30 flex items-center justify-center">
@@ -90,7 +90,7 @@ export function AgendamentoWeeklyGrid({ agendamentos, currentDate = new Date() }
                     {/* Time Slots */}
                     <div className="divide-y">
                         {timeSlots.map(hour => (
-                            <div key={hour} className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] min-h-[80px]">
+                            <div key={hour} className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] min-h-20">
                                 {/* Time Label */}
                                 <div className="p-2 text-xs text-muted-foreground border-r bg-muted/10 flex items-start justify-center pt-3">
                                     {hour}:00
@@ -129,7 +129,7 @@ function AppointmentCard({ apt }: { apt: AgendamentoComDetalhes }) {
         <HoverCard>
             <HoverCardTrigger asChild>
                 <div className={cn(
-                    "text-[10px] p-1.5 rounded border shadow-sm cursor-pointer hover:opacity-90 transition-all",
+                    "text-[10px] p-1.5 rounded border shadow-sm cursor-pointer hover:opacity-90 transition-colors duration-200 motion-reduce:transition-none",
                     "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-900",
                     apt.status === 'confirmado' && "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-300 dark:border-green-900"
                 )}>

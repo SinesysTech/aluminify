@@ -57,7 +57,7 @@ function ModeCard({
                     type="button"
                     onClick={onSelect}
                     className={cn(
-                        'group relative cursor-pointer overflow-hidden rounded-xl text-left transition-all duration-200',
+                        'group relative cursor-pointer overflow-hidden rounded-xl text-left transition-colors duration-200 motion-reduce:transition-none',
                         'border-2 bg-card/50',
                         mode.accent,
                         isSelected
@@ -81,7 +81,7 @@ function ModeCard({
                         {/* Icon Container */}
                         <div
                             className={cn(
-                                'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105',
+                                'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 motion-reduce:transition-none',
                                 mode.iconBg
                             )}
                         >
@@ -156,7 +156,7 @@ export function ModeSelector({
                             onClick={() => onScopeChange('all')}
                             disabled={isLoading || modo === 'personalizado'}
                             className={cn(
-                                'inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all cursor-pointer',
+                                'inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-colors duration-200 motion-reduce:transition-none cursor-pointer',
                                 'disabled:opacity-50 disabled:cursor-not-allowed',
                                 scope === 'all'
                                     ? 'border-primary/50 bg-primary/5 text-foreground font-medium ring-1 ring-primary/20'
@@ -175,7 +175,7 @@ export function ModeSelector({
                             onClick={() => onScopeChange('completed')}
                             disabled={isLoading || modo === 'personalizado'}
                             className={cn(
-                                'inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all cursor-pointer',
+                                'inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-colors duration-200 motion-reduce:transition-none cursor-pointer',
                                 'disabled:opacity-50 disabled:cursor-not-allowed',
                                 scope === 'completed'
                                     ? 'border-primary/50 bg-primary/5 text-foreground font-medium ring-1 ring-primary/20'

@@ -84,15 +84,15 @@ export function MaterialsFilters({
                 <div className="flex flex-col gap-4 md:flex-row md:items-end">
                     <div className="flex-1 space-y-2">
                         <Label htmlFor={CURSO_SELECT_ID}>Curso</Label>
-                        <div className="h-9 w-full rounded-md border bg-transparent" />
+                        <div className="h-8 w-full rounded-md border bg-transparent" />
                     </div>
                     <div className="flex-1 space-y-2">
                         <Label htmlFor={DISCIPLINA_SELECT_ID}>Disciplina</Label>
-                        <div className="h-9 w-full rounded-md border bg-transparent" />
+                        <div className="h-8 w-full rounded-md border bg-transparent" />
                     </div>
                     <div className="flex-1 space-y-2">
                         <Label htmlFor={FRENTE_SELECT_ID}>Frente</Label>
-                        <div className="h-9 w-full rounded-md border bg-transparent" />
+                        <div className="h-8 w-full rounded-md border bg-transparent" />
                     </div>
                     <div className="shrink-0">
                         <Button disabled className="w-full md:w-auto">
@@ -110,7 +110,7 @@ export function MaterialsFilters({
                 <div className="flex-1 space-y-2">
                     <Label htmlFor={CURSO_SELECT_ID}>Curso</Label>
                     <Select value={cursoSelecionado} onValueChange={onCursoChange}>
-                        <SelectTrigger id={CURSO_SELECT_ID}>
+                        <SelectTrigger id={CURSO_SELECT_ID} size="sm">
                             <SelectValue placeholder="Selecione um curso" />
                         </SelectTrigger>
                         <SelectContent>
@@ -130,7 +130,7 @@ export function MaterialsFilters({
                         onValueChange={onDisciplinaChange}
                         disabled={!cursoSelecionado}
                     >
-                        <SelectTrigger id={DISCIPLINA_SELECT_ID}>
+                        <SelectTrigger id={DISCIPLINA_SELECT_ID} size="sm">
                             <SelectValue placeholder="Selecione uma disciplina" />
                         </SelectTrigger>
                         <SelectContent>
@@ -150,7 +150,7 @@ export function MaterialsFilters({
                         onValueChange={onFrenteChange}
                         disabled={!disciplinaSelecionada || isLoadingFrentes}
                     >
-                        <SelectTrigger id={FRENTE_SELECT_ID}>
+                        <SelectTrigger id={FRENTE_SELECT_ID} size="sm">
                             <SelectValue
                                 placeholder={
                                     isLoadingFrentes

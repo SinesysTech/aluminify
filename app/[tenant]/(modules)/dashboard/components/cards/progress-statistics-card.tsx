@@ -56,7 +56,7 @@ export function ProgressStatisticsCard({
               <div className="bg-primary flex size-10 items-center justify-center rounded-lg">
                 <CalendarClockIcon className="text-primary-foreground size-4" />
               </div>
-              <span className="text-2xl font-semibold">{inProgressCount}</span>
+              <span className="metric-value">{inProgressCount}</span>
             </div>
             <Badge className="h-auto bg-primary px-4 py-2 text-sm">{inProgressLabel}</Badge>
           </div>
@@ -65,7 +65,7 @@ export function ProgressStatisticsCard({
               <div className="bg-primary flex size-10 items-center justify-center rounded-lg">
                 <CalendarCheck2Icon className="text-primary-foreground size-4" />
               </div>
-              <span className="text-2xl font-semibold">{completedCount}</span>
+              <span className="metric-value">{completedCount}</span>
             </div>
             <Badge className="h-auto bg-green-500 px-4 py-2 text-sm">{completedLabel}</Badge>
           </div>

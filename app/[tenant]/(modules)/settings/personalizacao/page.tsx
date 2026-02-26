@@ -183,7 +183,7 @@ export default function BrandingPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <CardSkeleton count={1} />
       </div>
     );
@@ -191,7 +191,7 @@ export default function BrandingPage() {
 
   if (!empresaId) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Card>
           <CardHeader>
             <CardTitle>Empresa não encontrada</CardTitle>
@@ -205,7 +205,7 @@ export default function BrandingPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <div>
         <h1 className="page-title">Personalização da Marca</h1>
         <p className="page-subtitle">

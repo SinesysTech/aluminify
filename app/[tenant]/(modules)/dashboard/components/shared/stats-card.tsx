@@ -68,13 +68,13 @@ export function StatsCard({
               {Icon && (
                 <Icon className={cn('h-5 w-5', styles.icon)} />
               )}
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="metric-label">
                 {label}
               </p>
             </div>
           </div>
 
-          <p className="text-2xl font-bold tracking-tight">{value}</p>
+          <p className="metric-value">{value}</p>
 
           {trend ? (
             <p

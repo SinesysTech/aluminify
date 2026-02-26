@@ -133,7 +133,7 @@ export default async function TransacaoDetalhePage({
   const providerData = transaction.providerData || {};
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <div className="flex-1 mx-auto w-full max-w-7xl space-y-6 px-4 pb-6 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
@@ -204,7 +204,7 @@ export default async function TransacaoDetalhePage({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Valor</p>
-                <p className="text-2xl font-bold">
+                <p className="metric-value">
                   {formatCurrency(transaction.amountCents, transaction.currency)}
                 </p>
               </div>

@@ -182,7 +182,7 @@ export default function ModulosPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <CardSkeleton count={1} />
       </div>
     );
@@ -190,7 +190,7 @@ export default function ModulosPage() {
 
   if (!empresaId) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Card>
           <CardHeader>
             <CardTitle>Empresa não encontrada</CardTitle>
@@ -204,7 +204,7 @@ export default function ModulosPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <ModuleVisibilityPanel
         empresaId={empresaId}
         initialConfig={config}

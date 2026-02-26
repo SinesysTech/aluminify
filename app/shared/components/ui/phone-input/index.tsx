@@ -176,7 +176,7 @@ export function PhoneInput({
 							<CommandEmpty>No country found.</CommandEmpty>
 							<ScrollArea
 								className={
-									"[&>[data-radix-scroll-area-viewport]]:max-h-[300px]"
+									"*:data-radix-scroll-area-viewport:max-h-75"
 								}
 							>
 								<CommandGroup>
