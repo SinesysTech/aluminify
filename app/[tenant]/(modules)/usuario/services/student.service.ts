@@ -428,21 +428,21 @@ export class StudentService extends UserBaseService {
     }
 
     if (payload.temporaryPassword !== undefined) {
-      if (!payload.temporaryPassword) {
-        throw new StudentValidationError(
-          "A senha temporária não pode ser vazia.",
-        );
-      }
-      const sanitizedPassword = payload.temporaryPassword.trim();
-      if (sanitizedPassword.length < 8) {
-        throw new StudentValidationError(
-          "A senha temporária deve ter pelo menos 8 caracteres.",
-        );
-      }
+      if (payload.temporaryPassword === null || payload.temporaryPassword === "") {
+        // Limpar a senha temporária (usado no fluxo de primeiro acesso)
+        updateData.temporaryPassword = null;
+      } else {
+        const sanitizedPassword = payload.temporaryPassword.trim();
+        if (sanitizedPassword.length < 8) {
+          throw new StudentValidationError(
+            "A senha temporária deve ter pelo menos 8 caracteres.",
+          );
+        }
 
-      await this.updateAuthPassword(id, sanitizedPassword, true);
-      updateData.temporaryPassword = sanitizedPassword;
-      updateData.mustChangePassword = true;
+        await this.updateAuthPassword(id, sanitizedPassword, true);
+        updateData.temporaryPassword = sanitizedPassword;
+        updateData.mustChangePassword = true;
+      }
     }
 
     if (payload.mustChangePassword !== undefined) {

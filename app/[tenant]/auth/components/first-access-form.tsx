@@ -170,7 +170,6 @@ export function FirstAccessForm({ userId, role, empresaSlug }: FirstAccessFormPr
             },
             body: JSON.stringify({
               mustChangePassword: false,
-              temporaryPassword: null,
             }),
           })
 

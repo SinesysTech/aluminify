@@ -111,15 +111,20 @@ async function getHandler(
   }
 }
 
-// PUT - Usa service role quando há courseIds (bypass RLS em alunos_cursos)
+// PUT - Usa service role quando há courseIds ou operações de senha (bypass RLS)
 async function putHandler(
   request: AuthenticatedRequest,
   params: { id: string },
 ) {
   try {
     const body = await request.json();
-    // Operações em alunos_cursos exigem service role (RLS bloqueia insert/delete com anon key)
-    const supabase = body?.courseIds
+    // Operações em alunos_cursos e alterações de senha exigem service role
+    // (RLS bloqueia insert/delete com anon key e pode bloquear update de alunos cross-tenant)
+    const needsServiceRole =
+      body?.courseIds ||
+      body?.temporaryPassword !== undefined ||
+      body?.mustChangePassword !== undefined;
+    const supabase = needsServiceRole
       ? getServiceRoleClient()
       : await createClient();
     const service = createStudentService(supabase);
